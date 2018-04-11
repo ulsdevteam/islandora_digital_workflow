@@ -1,0 +1,7 @@
+name = Islandora Digital Workflow
+package = Islandora Tools
+description = To prepare and track digital content for possible ingest into Islandora.
+version = 7.x
+core = 7.x
+dependencies[] = islandora
+configure = admin/islandora/islandora_digital_workflow

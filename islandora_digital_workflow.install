@@ -1,0 +1,97 @@
+<?php
+
+define('IDW_STAGE_TAXONOMY_MACHINE_NAME', 'workflow_stage_vocab');
+define('IDW_CONTENT_TYPE_TAXONOMY_MACHINE_NAME', 'workflow_content_type_vocab');
+
+/**
+ * @file
+ * Install/uninstall hooks.
+ */
+
+/**
+ * Implements hook_uninstall().
+ */
+function islandora_digital_workflow_install() {
+  $new_vocab = (object) array(
+      'name' => 'Islandora Digital Workflow Stage vocabulary',
+      'description' => 'This vocabulary has the various stages for ' .
+        'workflow_batch nodes.',
+      'machine_name' => IDW_STAGE_TAXONOMY_MACHINE_NAME,
+   );
+  taxonomy_vocabulary_save($new_vocab);
+  // add the individual "Stage" vocabulary terms
+  islandora_digital_workflow_add_workflow_stage_taxonomy_terms();
+
+  $new_vocab = (object) array(
+      'name' => 'Islandora Digital Workflow Content Type vocabulary',
+      'description' => 'This vocabulary has the various content types for ' .
+        'workflow_batch nodes (related to Islandora content models).',
+      'machine_name' => IDW_CONTENT_TYPE_TAXONOMY_MACHINE_NAME,
+   );
+  taxonomy_vocabulary_save($new_vocab);
+  // add the individual "Content Type" vocabulary terms
+  islandora_digital_workflow_add_workflow_content_type_taxonomy_terms();
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function islandora_digital_workflow_uninstall() {
+  $vocab = taxonomy_vocabulary_machine_name_load(IDW_STAGE_TAXONOMY_MACHINE_NAME);
+  taxonomy_vocabulary_delete($vocab->vid);
+}
+
+function islandora_digital_workflow_add_workflow_stage_taxonomy_terms() {
+  $vocab = taxonomy_vocabulary_machine_name_load(IDW_STAGE_TAXONOMY_MACHINE_NAME);
+
+  $term = (object) array(
+   'name' => 'Problem',
+   'description' => 'This is for workflow_batch nodes that have a problem.',
+   'vid' => $vocab->vid,
+  );
+  taxonomy_term_save($term);
+
+  $term = (object) array(
+   'name' => 'New',
+   'description' => 'This is for workflow_batch nodes that are new.',
+   'vid' => $vocab->vid,
+  );
+  taxonomy_term_save($term);
+
+  $term = (object) array(
+   'name' => 'Scanned',
+   'description' => 'This is for workflow_batch nodes that have been scanned.',
+   'vid' => $vocab->vid,
+  );
+  taxonomy_term_save($term);
+
+  $term = (object) array(
+   'name' => 'Reviewed',
+   'description' => 'This is for workflow_batch nodes that have been reviewed.',
+   'vid' => $vocab->vid,
+  );
+  taxonomy_term_save($term);
+
+  $term = (object) array(
+   'name' => 'Done',
+   'description' => 'This is for workflow_batch nodes that are done.',
+   'vid' => $vocab->vid,
+  );
+  taxonomy_term_save($term);
+}
+
+function islandora_digital_workflow_add_workflow_content_type_taxonomy_terms() {
+  $vocab = taxonomy_vocabulary_machine_name_load(IDW_CONTENT_TYPE_TAXONOMY_MACHINE_NAME);
+
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
+  $models = islandora_digital_workflow_get_reduced_readable_cmodels();
+
+  foreach ($models as $cmodel => $readable_name) {
+    $term = (object) array(
+     'name' => $readable_name,
+     'description' => 'This is for workflow_batch nodes for creating Islandora objects of the ' . $cmodel . ' content model.',
+     'vid' => $vocab->vid,
+    );
+    taxonomy_term_save($term);
+  }
+}

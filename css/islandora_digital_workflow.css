@@ -1,0 +1,84 @@
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/* 
+    Created on : Mar 6, 2018, 5:19:40 PM
+    Author     : BGILLING
+*/
+
+.dashboard-report, #islandora-digital-workflow-batch {
+    border-radius: 12px;
+    padding: 10px;
+    border: 2px solid #777;
+    box-shadow: 10px 10px 5px #ccc;
+    margin-bottom: 10px;
+}
+
+.indent-item {
+    margin-left: 12px;
+}
+
+.dashboard-report div {
+    font-size: 93%;
+}
+
+#islandora-digital-workflow-batch h3 {
+    margin-top: 2px;
+}
+
+#islandora-digital-workflow-batch label {
+    margin-bottom: 4px;
+    float: left;
+    width: 24%;
+}
+
+#islandora-digital-workflow-batch div {
+    clear: left;
+}
+
+.good {
+    color: green;
+}
+
+.bad {
+    color: red;
+}
+
+.stage_block {
+    float: left;
+    text-align: center;
+    margin-bottom: 2px;
+    line-height: 1em;
+}
+
+.stage_New, .stage_Scanned, .stage_Problem, .stage_Reviewed, .stage_Done {
+    padding: 4px;
+    border-radius: 4px;
+}
+    
+.stage_New {
+    background-color: #997;
+    color: #220;
+} 
+
+.stage_Scanned {
+    background-color: #472;
+    color: #FFF;
+}
+
+.stage_Problem {
+    background-color: #F00;
+    color: #FF3;
+}
+
+.stage_Reviewed {
+    background-color: #237;
+    color: #CCC;
+}
+
+.stage_Done {
+    background-color: #2C2;
+    color: #349;
+}

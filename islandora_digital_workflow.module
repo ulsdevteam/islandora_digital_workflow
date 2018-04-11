@@ -1,0 +1,175 @@
+<?php
+
+// Permissions.
+define('ISLANDORA_DIGITAL_WORKFLOW', 'digital workflow access');
+define('ISLANDORA_DIGITAL_WORKFLOW_IS_CURATOR', 'digital workflow curator access');
+define('ISLANDORA_DIGITAL_WORKFLOW_IS_DRL', 'digital workflow drl access');
+define('ISLANDORA_DIGITAL_WORKFLOW_IS_MAD', 'digital workflow mad access');
+
+/**
+ * Implements hook_menu().
+ */
+function islandora_digital_workflow_menu() {
+  return array(
+    'admin/islandora/islandora_digital_workflow' => array(
+      'title' => 'Islandora Digital Workflow',
+      'description' => 'Settings for the Islandora Digital Workflow module.',
+      'type' => MENU_NORMAL_ITEM,
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('islandora_digital_workflow_admin_form'),
+      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW),
+      'file' => 'includes/admin.form.inc',
+    ),
+    'islandora/islandora_digital_workflow' => array(
+      'title' => t('Islandora Digital Workflow Dashboard'),
+      'type' => MENU_NORMAL_ITEM,
+      'page callback' => array('islandora_digital_workflow_dashboard'),
+      'file' => 'includes/dashboard.form.inc',
+      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW),
+    ),
+    'islandora/islandora_digital_workflow/create_batch' => array(
+      'type' => MENU_NORMAL_ITEM,
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('islandora_digital_workflow_create_batch_form'),
+      'file' => 'includes/create_batch.form.inc',
+      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_IS_CURATOR),
+    ),
+    'islandora/islandora_digital_workflow/edit_batch/%' => array(
+      'type' => MENU_NORMAL_ITEM,
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('islandora_digital_workflow_create_batch_form', 3),
+      'file' => 'includes/create_batch.form.inc',
+      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_IS_CURATOR),
+    ),
+    'islandora/islandora_digital_workflow_css.css' => array(
+      'type' => MENU_CALLBACK,
+      'page callback' => 'islandora_digital_workflow_update_dynamic_css',
+      'file' => 'includes/islandora_digital_workflow_css.inc',
+      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW),
+    ),
+  );
+}
+
+/**
+ * Implements hook_permission().
+ */
+function islandora_digital_workflow_permission() {
+  return array(
+    ISLANDORA_DIGITAL_WORKFLOW => array(
+      'title' => t('Use the Islandora Digital Workflow system.'),
+      'description' => t('User can access and use the Islandora Digital Workflow system.'),
+    ),
+    ISLANDORA_DIGITAL_WORKFLOW_IS_CURATOR => array(
+      'title' => t('Use the Curator functions of the Islandora Digital Workflow system.'),
+      'description' => t('User can access and use the Curator functions of the Islandora Digital Workflow system.'),
+    ),
+    ISLANDORA_DIGITAL_WORKFLOW_IS_DRL => array(
+      'title' => t('Use the DRL functions of the Islandora Digital Workflow system.'),
+      'description' => t('User can access and use the DRL functions of the Islandora Digital Workflow system.'),
+    ),
+    ISLANDORA_DIGITAL_WORKFLOW_IS_MAD => array(
+      'title' => t('Use the MAD functions of the Islandora Digital Workflow system.'),
+      'description' => t('User can access and use the MAD functions of the Islandora Digital Workflow system.'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_preprocess_theme().
+ *
+ * This code will remove the sidebar and must check to see whether or not the path is on a user page.
+ */
+function islandora_digital_workflow_preprocess_page(&$vars) {
+  global $base_url;
+  $path = drupal_get_path('module', 'islandora_digital_workflow');
+  $item = menu_get_item();
+  if (is_array($item)) {
+    if (strstr($item['path'], 'islandora/islandora_digital_workflow')) {
+      drupal_add_css($path . '/css/islandora_digital_workflow.css');
+      drupal_add_css($path . '/css/islandora_digital_workflow_dynamic.css');
+    } elseif ($item['path'] == 'node/%' ||
+      $item['path'] == 'admin/structure/views/view/%/edit' ||
+      $item['path'] == 'workflow-nodes' || 
+      $item['path'] == 'admin/islandora/islandora_digital_workflow') {
+      drupal_add_css($path . '/css/islandora_digital_workflow.css');
+      drupal_add_css($path . '/css/islandora_digital_workflow_dynamic.css');
+    }
+    // Just the admin form needs the /js/admin_form.js added.
+    if ($item['path'] == 'admin/islandora/islandora_digital_workflow') {
+      drupal_add_css($path . '/css/islandora_digital_workflow.css');
+      drupal_add_js($path . '/js/admin_form.js');
+    }
+  }
+}
+
+function islandora_digital_workflow_theme() {
+  return array(
+    'islandora_digital_workflow_dashboard' => array(
+      'file' => 'theme/theme.inc',
+      'template' => 'theme/islandora-digital-workflow-dashboard',
+      'variables' => array(
+        'dashboard_data' => NULL,
+      ),
+    ),
+    'islandora_digital_workflow_batch' => array(
+      'template' => 'theme/islandora-digital-workflow-batch',
+      'variables' => array(
+        'islandora_digital_workflow_batch' => NULL,
+      ),
+
+    ),
+  );
+}
+
+function gamera_pitt_field__field_stage__workflow_batch($context) {
+  $value = (array_key_exists('element', $context) && array_key_exists('#items', $context['element']) && array_key_exists('value', $context['element']['#items'][0])) ?
+    $context['element']['#items'][0]['value'] : 0;
+  $stage_str = array('New', 'Scanned', 'Problem', 'Reviewed', 'Done');
+  return '<div class="field field-type-user-reference field-label-inline">' .
+         '<div class="stage_block stage_' . $stage_str[$value] . '">' . $stage_str[$value] . '</div>' .
+         '<br style="clear:both">' .
+         '</div>';
+}
+
+/**
+ * Hook for hook_node_update.
+ *
+ * To display all of the related islandora_digital_workflow_batch1 record's
+ * values on the Node page, this code will update the field_batch_defaults
+ * field with the values from the batch record so that all of those do not
+ * need to be CCK fields.
+ */
+function islandora_digital_workflow_node_update($node) {
+//   module_load_include('inc', 'islandora_digital_workflow', 'includes/node-utilities');
+//   islandora_digital_workflow_sync_node_batch_record_info($node, array(),FALSE);
+}
+
+//implementation of hook_block_info
+function islandora_digital_workflow_block_info() {
+  $blocks = array();
+  $blocks['batch_defaults_block'] = array(
+    'info' => t('Batch Defaults'),
+  );
+
+  return $blocks;
+}
+
+//implementation of hook_block_view
+function islandora_digital_workflow_block_view($delta='') {
+  $block = array();
+
+  switch($delta) {
+    case 'batch_defaults_block' :
+      $item = menu_get_item();
+      if ($item['path'] == 'node/%') {
+        module_load_include('inc', 'islandora_digital_workflow', 'includes/node-utilities');
+        // From the menu route, derive the $node object -- needed for contents.
+        $node = is_object($item['map'][1]) ? $item['map'][1] : NULL;
+
+        $batch_record = islandora_digital_workflow_load_batch_record_for_node($node);
+        $block['content'] = theme('islandora_digital_workflow_batch', array('islandora_digital_workflow_batch' => $batch_record));
+      }
+      break;
+  }
+  return $block;
+}
