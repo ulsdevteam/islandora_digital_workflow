@@ -18,17 +18,17 @@ function islandora_digital_workflow_update_dynamic_css() {
             '  background-color:' . $colors['background-color'] . ";\n" .
             '}' . "\n\n";
   }
-  $path = drupal_get_path('module', 'islandora_digital_workflow');
+  $path = drupal_realpath('public://');
 
-  $bytes = file_put_contents($path . '/css/islandora_digital_workflow_dynamic.css', $css);
+  $bytes = file_put_contents($path . '/islandora_digital_workflow_dynamic.css', $css);
   if ($bytes) {
-    drupal_set_message('Saved dynamic CSS to ' . $path . '/css/islandora_digital_workflow_dynamic.css');
+    drupal_set_message('Saved dynamic CSS to ' . $path . '/islandora_digital_workflow_dynamic.css');
   }
   else {
     drupal_set_message('There was a problem saving the dynamic generated CSS to ' .
         $path . '/css/islandora_digital_workflow_dynamic.css.  This is likely ' .
-        'a file permissions issue.  In order to use this ability, the file must ' .
-        'be owned by apache. <blockquote><code>$ cd ' . $path . '/css' . "<br>" .
-        '$ sudo chown apache islandora_digital_workflow_dynamic.css</code></blockquote>');
+        'a file permissions issue.  In order to use this ability, the files folder must ' .
+        'be owned by apache. <blockquote><code>$ sudo chown apache ' . $path .
+        '</code></blockquote>');
   }
 }

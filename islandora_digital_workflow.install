@@ -1,8 +1,5 @@
 <?php
 
-define('IDW_STAGE_TAXONOMY_MACHINE_NAME', 'workflow_stage_vocab');
-define('IDW_CONTENT_TYPE_TAXONOMY_MACHINE_NAME', 'workflow_content_type_vocab');
-
 /**
  * @file
  * Install/uninstall hooks.

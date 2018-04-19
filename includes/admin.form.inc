@@ -17,6 +17,7 @@
  */
 function islandora_digital_workflow_admin_form() {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/access_permissions');
   // Needed for collapsible fieldsets
   drupal_add_js('misc/collapse.js');
   $about_islandora_digital_workflow_markup = '<p>These are the settings for ' .
@@ -46,6 +47,8 @@ function islandora_digital_workflow_admin_form() {
     'islandora_frame' => array(
       '#type' => 'fieldset',
       '#title' => t('Supported Models and Role Permissions'),
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
       'user_roles_frame' => $user_role_permissions_table,
     ),
 
@@ -62,15 +65,35 @@ function islandora_digital_workflow_admin_form() {
       ),
     ),
 
+    'extra_options' => array(
+      '#type' => 'fieldset',
+      '#title' => t('Extra batch properties & options'),
+      'batch_isMemberOfSite_property' => array(
+        '#type' => 'item',
+        '#title' => t('Batch "isMemberOfSite" property'),
+        'batch_use_isMemberOfSite' => array(
+          '#type' => 'checkbox',
+          '#title' => 'Use the isMemberOfSite property?',
+          '#description' => 'When this is checked, batch creation allows selecting ' .
+            '"Sites" and passes the "sites" parameter to the islandora_batch drush ' .
+            'prepare commands.<br /><em>NOTE: This feature requires that each site is ' .
+            'ingested into fedora as pitt:siteCModel where their PID value is used for ' .
+            '"object to site" relationships as well as that the instances of the various ' .
+            'islandora_*_batch modules in order to handle the "sites" parameter.</em>',
+          '#default_value' => variable_get('islandora_digital_workflow_use_isMemberOfSite', 0),
+        ),
+      ),
+    ),
+
     // Stages
     'stages_frame' => array(
       '#type' => 'fieldset',
       '#title' => t('Stages'),
       '#collapsible' => TRUE,
-      '#collapsed' => FALSE,
+      '#collapsed' => TRUE,
       'colors' => array(
         '#type' => 'container',
-        '#suffix' => '<small>For the color settings, use any legal CSS color definition.</small>',
+        '#prefix' => 'For the color settings, use any legal CSS color definition.',
         'stage_problem_frame' => array(
           '#type' => 'fieldset',
           '#title' => $rendered_stages['Problem'],
@@ -198,6 +221,7 @@ function islandora_digital_workflow_admin_form() {
  *   The Drupal form state.
  */
 function islandora_digital_workflow_admin_form_submit(array $form, array &$form_state) {
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/access_permissions');
   $id = $form_state['triggering_element']['#id'];
   module_load_include('inc', 'islandora_digital_workflow', 'includes/islandora_digital_workflow_css');
   switch ($id) {
@@ -228,7 +252,7 @@ function islandora_digital_workflow_admin_form_submit(array $form, array &$form_
       variable_set('islandora_digital_workflow_stages', $stage_values);
       variable_set('islandora_digital_workflow_rules_one', $form_state['values']['rules_one']);
       variable_set('islandora_digital_workflow_ingest_prepared_path', $form_state['values']['ingest_prepared_path']);
-
+      variable_set('islandora_digital_workflow_use_isMemberOfSite', $form_state['values']['batch_use_isMemberOfSite']);
       islandora_digital_workflow_update_dynamic_css();
       drupal_set_message('[' . date('H:i:s') . '] The settings have been saved.');
       // drupal_goto('admin/islandora/islandora_digital_workflow');
@@ -239,6 +263,7 @@ function islandora_digital_workflow_admin_form_submit(array $form, array &$form_
       variable_del('islandora_digital_workflow_user_role_permissions');
       variable_del('islandora_digital_workflow_rules_one');
       variable_del('islandora_digital_workflow_ingest_prepared_path');
+      variable_del('islandora_digital_workflow_use_isMemberOfSite');
       variable_del('islandora_digital_workflow_islandora_models');
       variable_del('islandora_digital_workflow_roles_and_models');
 
@@ -246,62 +271,4 @@ function islandora_digital_workflow_admin_form_submit(array $form, array &$form_
       drupal_set_message('[' . date('H:i:s') . '] The settings have been reset.');
       break;
   }
-}
-
-function islandora_digital_workflow_user_role_permissions_table() {
-  $roles = array('DRL', 'MAD', 'Curator', 'Workflow user');
-  $models = islandora_digital_workflow_get_reduced_cmodels();
-
-  $user_role_permissions = variable_get('islandora_digital_workflow_user_role_permissions', '');
-  $roles_and_models = variable_get('islandora_digital_workflow_roles_and_models', '');
-
-  $readable_models = islandora_digital_workflow_get_reduced_readable_cmodels();
-  $configured_models = $role_permissions = $return_form_elements = array();
-  $configured_supported_models = variable_get('islandora_digital_workflow_islandora_models', array());
-
-  foreach ($readable_models as $cmodel => $model) {
-    $configured_models[$cmodel] = array(
-      '#type' => 'checkbox',
-      '#title' => $model,
-      // Mark the checkboxes as checked based on islandora_digital_workflow_islandora_models
-      '#default_value' => isset($configured_supported_models[$cmodel]) ? (($configured_supported_models[$cmodel] <> 0) ? 1 : 0) : 0,
-    );
-    $user_role_checkboxes = array();
-    foreach ($roles as $role) {
-      $role_model = $role . '/' . $cmodel;
-      $fieldset = array(
-        '#type' => 'item',
-        '#prefix' => '<div class="indent-item">',
-        '#suffix' => '</div>',
-      );
-      $user_role_checkboxes[$role_model]['#title'] = $role;
-      // $role_permissions[$role_model][$role]['#title_display'] = 'invisible';
-      $user_role_checkboxes[$role_model]['#type'] = 'checkbox';
-      $user_role_checkboxes[$role_model]['#default_value'] = $roles_and_models[$role][$cmodel];;
-      $fieldset['checkboxes'] = $user_role_checkboxes;
-      $role_permissions[$cmodel] = $fieldset;
-    }
-    $return_form_elements[$model] = $configured_models[$cmodel];
-    $return_form_elements[] = $role_permissions[$cmodel];
-  }
-  return $return_form_elements;
-}
-
-function islandora_digital_workflow_save_roles_and_models($values) {
-  $readable_models = islandora_digital_workflow_get_reduced_readable_cmodels();
-  $configured_islandora_models = array();
-  foreach ($readable_models as $cmodel => $model) {
-    $configured_islandora_models[$cmodel] = $values[$model];
-  }
-  variable_set('islandora_digital_workflow_islandora_models', $configured_islandora_models);
-  // Loop through the $form_state values - to get the correct checkboxes based
-  // on role and model name.
-  $roles_and_models_values = array();
-  foreach ($values as $key => $value) {
-    if (strstr($key, "/") <> '') {
-      @list($role, $model) = explode("/", $key);
-      $roles_and_models_values[$role][$model] = $value;
-    }
-  }
-  variable_set('islandora_digital_workflow_roles_and_models', $roles_and_models_values);
 }

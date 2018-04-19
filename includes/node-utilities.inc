@@ -1,7 +1,7 @@
 <?php
 
-function islandora_digital_workflow_create_node_from_form_data($form_state) {
-  islandora_digital_workflow_sync_node_batch_record_info(NULL, $form_state, TRUE);
+function islandora_digital_workflow_create_node_from_form_data($form_state, $csv_filename) {
+  islandora_digital_workflow_sync_node_batch_record_info(NULL, $form_state, $csv_filename, TRUE);
 }
 
 /**
@@ -15,11 +15,21 @@ function islandora_digital_workflow_create_node_from_form_data($form_state) {
  * @param object $node
  *   Standard drupal node object.
  */
-function islandora_digital_workflow_sync_node_batch_record_info($node, $form_state, $create_new = FALSE) {
-  dpm('in islandora_digital_workflow_sync_node_batch_record_info');
-  dpm($form_state);
+function islandora_digital_workflow_sync_node_batch_record_info($node, $form_state, $csv_filename = '', $create_new = FALSE) {
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
+
+  if ($csv_filename) {
+    // parse the csv file to get the identifiers / a.k.a. barcodes and set this
+    // pass these values along to be added to the node->field_barcodes value
+    $csv_array = islandora_digital_workflow_csv_file_as_array($csv_filename);
+    @unlink($csv_filename);
+    if (isset($_SESSION['uploaded_csv_filename'])) {
+      unset($_SESSION['uploaded_csv_filename']);
+    }
+  }
+
   if ($create_new) {
-    $node = islandora_digital_workflow_make_new_node($form_state);
+    $node = islandora_digital_workflow_make_new_node($form_state, $csv_array);
   }
   $batch_record = islandora_digital_workflow_load_batch_record_for_node($node, $form_state);
   if (is_array($batch_record)) {
@@ -28,6 +38,9 @@ function islandora_digital_workflow_sync_node_batch_record_info($node, $form_sta
     // Make sure that the format is Full HTML here so it doesn't strip any HTML tags.
     $node->field_batch_defaults[LANGUAGE_NONE][0]['format'] = 'full_html';
     field_attach_update('node', $node);
+
+    // TODO: Call a function to insert the batch item records for the newly created batch_record
+
   }
 }
 
@@ -42,26 +55,9 @@ function islandora_digital_workflow_sync_node_batch_record_info($node, $form_sta
 function islandora_digital_workflow_load_batch_record_for_node($node, $form_state = array()) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
 //  $bt = debug_backtrace();die('<pre>'.print_r($bt, true));
-  $batch_name = @$node->field_batch_name['und'][0]['value'];
+  $batch_name = @$node->field_batch_name[$node->language][0]['value'];
   return islandora_digital_workflow_get_batch_record_by_name($batch_name);
 }
-
-function islandora_digital_workflow_make_new_node($form_state) {
-  global $user;
-  $node = new stdClass();
-  $node->title = $form_state['values']['batch_name'];
-  $node->type = "workflow_batch";
-  // Sets some defaults. Invokes hook_prepare() and hook_node_prepare().
-  node_object_prepare($node);
-  // Or e.g. 'en' if locale is enabled.
-  $node->language = LANGUAGE_NONE;
-  $node->uid = $user->uid;
-  // Status is 1 or 0; published or not.
-  $node->status = 1;
-  // Promote is 1 or 0; promoted to front page or not.
-  $node->promote = 0;
-  // Comment is 0, 1, 2; 0 = disabled, 1 = read only, or 2 = read/write.
-  $node->comment = 0;
 
 /*
   //
@@ -79,8 +75,48 @@ function islandora_digital_workflow_make_new_node($form_state) {
     'target_type' => 'node',
   );
 */
+function islandora_digital_workflow_make_new_node($form_state, $csv_array) {
+  global $user;
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy-utilities');
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
+
+  $node = new stdClass();
+  $node->title = $form_state['values']['batch_name'];
+  $node->type = "workflow_batch";
+  // Sets some defaults. Invokes hook_prepare() and hook_node_prepare().
+  node_object_prepare($node);
+  // Or e.g. 'en' if locale is enabled.
+  $node->language = LANGUAGE_NONE;
+  $node->uid = $user->uid;
+  // Status is 1 or 0; published or not.
+  $node->status = 1;
+  // Promote is 1 or 0; promoted to front page or not.
+  $node->promote = 0;
+  // Comment is 0, 1, 2; 0 = disabled, 1 = read only, or 2 = read/write.
+  $node->comment = 0;
+
   // Set any specific CCK field values for the node object
-  $node->field_batch_name['und'][0]['value'] = $form_state['values']['batch_name'];
+  $node->field_batch_name[$node->language][0]['value'] = $form_state['values']['batch_name'];
+  $node->field_content_type[$node->language][] = array('tid' => $form_state['values']['cmodel_select']);
+  $stages_vocab = taxonomy_vocabulary_machine_name_load(IDW_STAGE_TAXONOMY_MACHINE_NAME);
+  $stage_new_tid = islandora_digital_workflow_get_tid_by_name('New', $stages_vocab);
+  if ($stage_new_tid) {
+    $node->field_stage[$node->language][] = array('tid' => $stage_new_tid);
+  }
+
+  $node->field_pid_count[$node->language][]['value'] = $form_state['values']['object_count'];
+  foreach ($form_state['values']['collections_select'] as $collection_pid) {
+    $node->field_collections_mapping[$node->language][]['value'] = $collection_pid;
+  }
+  if (variable_get('islandora_digital_workflow_use_isMemberOfSite', 0)) {
+    foreach ($form_state['values']['sites_select'] as $site_pid) {
+      $node->field_sites_mapping[$node->language][]['value'] = $site_pid;
+    }
+  }
+  // Since islandora_digital_workflow_csv_file_as_array returned all headings in
+  // lowercase, look for "identifier"
+  $csv_values_arr = islandora_digital_workflow_get_csv_values_for_fieldname('identifier', $csv_array);
+  $node->field_barcodes[$node->language][0]['value'] = implode("\n", $csv_values_arr['identifier']);
 
   $node = node_submit($node); // Prepare node for saving
   node_save($node);

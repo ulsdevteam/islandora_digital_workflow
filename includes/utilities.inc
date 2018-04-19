@@ -228,6 +228,14 @@ function islandora_digital_workflow_get_solr_values($solr_query, $key_field, $va
   return $results;
 }
 
+function islandora_digital_workflow_get_sites_options() {
+  $sites = islandora_digital_workflow_get_solr_options('RELS_EXT_hasModel_uri_ms:*siteCModel', 'PID', 'fgs_label_s');
+  if (count($sites) < 1) {
+    $sites[0] = 'No sites objects configured.';
+  }
+  return $sites;
+}
+
 /**
  * Helper function to look up the names of the collections based on a possible comma-separated list
  */
@@ -241,51 +249,6 @@ function islandora_digital_workflow_lookup_collection_names() {
     $rows[$row['id']] = $row;
   }
   return $rows;
-}
-
-/**
- * Helper function that will load a CSV spreadsheet by name $csv_file, and return
- * it as an associative array.  This will make sure that the headers are all lowercase.
- *
- * @param string $csv_file
- * @return array('header' => $file_header, 'rows' => $file_rows)
- * @throws Exception
- */
-function islandora_digital_workflow_csv_file_as_array($csv_file) {
-  $max_csv_rows_for_display = 200;
-  $file_rows = $file_header = array();
-  if (file_exists($csv_file)) {
-    $row = 0;
-    if (($handle = fopen($csv_file, "r")) !== FALSE) {
-      try {
-        while (($data = fgetcsv($handle)) !== FALSE) {
-          $row++;
-	  if ($row < $max_csv_rows_for_display) {
-            if ($row > 1) {
-              $file_rows[] = $data;
-            }
-            else {
-              $tmp_data = $data;
-              foreach ($tmp_data as $i => $val) {
-                $tmp_data[$i] = str_replace(" ", "_", trim(strtolower($val)));
-              }
-              $file_header = $tmp_data;
-            }
-          }
-        }
-        if ($row > $max_csv_rows_for_display) {
-          // Subtract the header row.
-          $data_rows = $row - 1;
-          drupal_set_message('There are ' . number_format($data_rows) . ' rows in the CSV file "' . $csv_file . '".  Only the first ' . $max_csv_rows_for_display . ' rows are displayed.', 'warning');
-        }
-      }
-      catch (Exception $e) {
-        throw new Exception('The file "'.$csv_file.'" could not be parsed as a CSV.');
-      }
-      fclose($handle);
-    }
-  }
-  return array('header' => $file_header, 'rows' => $file_rows);
 }
 
 /**
@@ -444,4 +407,175 @@ function islandora_digital_workflow_get_cmodels_from_readable_name($all_models, 
   else {
     return '';
   }
+}
+
+function islandora_digital_workflow_validate_csv($csv_filename) {
+  $validation_success = TRUE;
+  $csv_file_arr = islandora_digital_workflow_csv_file_as_array($csv_filename);
+  $file_header = (isset($csv_file_arr['header']) ? $csv_file_arr['header'] : array());
+  $file_rows = (isset($csv_file_arr['rows']) ? $csv_file_arr['rows'] : array());
+
+  // Get the normalized_date column index.
+  $date_index = array_search('normalized_date', $file_header);
+
+  // Get the filename column index.
+  $filename_index = array_search('file_name', $file_header);
+  // If no 'file_name' is not found, check the other field name 'filename'.
+  if ($filename_index === FALSE) {
+    $filename_index = array_search('filename', $file_header);
+  }
+
+  foreach ($file_rows as $k => $row) {
+    /** DO NOT DO RELATIVE FILE CHECKING ON THE UPLOADED CSV FILES!
+    // If there is a filename_index, check that the file exists.
+    if (!$filename_index === FALSE) {
+      $row_filename = $row[$filename_index];
+      if (!file_exists($row_filename)) {
+        $validation_success = FALSE;
+        drupal_set_message(t('There is a filename referenced that does not exist on ' .
+          'the file system.  "' . $row[$filename_index] . '" on row #' . $k . '.  ' .
+          'Please upload fix this issue to be able to ingest this batch.'), 'error');
+      }
+    }
+    */
+    // If there is a normalized_date in the header, check this row's date value
+    if (!($date_index === FALSE)) {
+      $normalized_date = $row[$date_index];
+      $check = islandora_digital_workflow_make_custom_csv_dates($row[$date_index], TRUE);
+      if ($check == '') {
+        $validation_success = FALSE;
+        drupal_set_message(t('There is a bad date value for "normalized_date" = "' .
+          $row[$date_index] . '" on row #' . $k . '.  Please upload the CSV after ' .
+          'fixing this value.'), 'error');
+      }
+    }
+  }
+
+  return $validation_success;
+}
+
+/**
+ * Helper function that will load a CSV spreadsheet by name $csv_file, and return
+ * it as an associative array.  This will make sure that the headers are all lowercase.
+ *
+ * @param string $csv_file
+ * @return array('header' => $file_header, 'rows' => $file_rows)
+ * @throws Exception
+ */
+function islandora_digital_workflow_csv_file_as_array($csv_file) {
+  $file_rows = $file_header = array();
+  if (file_exists($csv_file)) {
+    $row = 0;
+    if (($handle = fopen($csv_file, "r")) !== FALSE) {
+      try {
+        while (($data = fgetcsv($handle)) !== FALSE) {
+          $row++;
+          if ($row > 1) {
+            $file_rows[] = $data;
+          }
+          else {
+            $tmp_data = $data;
+            foreach ($tmp_data as $i => $val) {
+              $tmp_data[$i] = str_replace(" ", "_", trim(strtolower($val)));
+            }
+            $file_header = $tmp_data;
+          }
+        }
+      }
+      catch (Exception $e) {
+        throw new Exception('The file "'.$csv_file.'" could not be parsed as a CSV.');
+      }
+      fclose($handle);
+    }
+  }
+  return array('header' => $file_header, 'rows' => $file_rows);
+}
+
+/**
+ * Will handle the CSV values for dates and create a "display date" and a "sort date" value as best as it can assuming:
+ *      CSV value		Display date				Sort date
+ * -------------------------------------------------------------------------------------------------
+ *	1945/1955		1945-1955				1945-01-01T00:00:00-05:00
+ * a	1945/1955 		ca. 1945-1955				1945-01-01T00:00:00-05:00
+ *	1945-03/1955-04 	March 1945- April 1955			1945-03-01T00:00:00-05:00
+ * a	1945-03/1955-04 	ca. March 1945- April 1955		1945-03-01T00:00:00-05:00
+ * 	1945-03-05/1955-04-23	March 5, 1945- April 23, 1955		1945-03-05T00:00:00-05:00
+ * a	1945-03-05/1955-04-23 	ca. March 5, 1945- April 23, 1955	1945-03-05T00:00:00-05:00
+ */
+function islandora_digital_workflow_make_custom_csv_dates($short_date, $suppress_display_messages = FALSE) {
+  $short_date = trim($short_date);
+  $short_date_length = strlen($short_date);
+  $h_format = 'F j, Y';
+  $from_date = '';
+  // Handle the special cases where there is a date range provided
+  if ($short_date_length == 9 && ($short_date[4] == '/' || $short_date[4] == '-')) {
+    $from_date = substr($short_date, 0, 4) . '-01-01';
+    $to_date = substr($short_date, 5, PHP_INT_MAX) . '-01-01';
+    $h_format = 'Y';
+  }
+  elseif ($short_date_length == 15 && ($short_date[7] == '/' || $short_date[7] == '-')) {
+    $from_date = substr($short_date, 0, 7);
+    $to_date = substr($short_date, 8, PHP_INT_MAX);
+    $h_format = 'F Y';
+  }
+  elseif ($short_date_length == 21 && ($short_date[10] == '/' || $short_date[10] == '-')) {
+    $from_date = substr($short_date, 0, 10);
+    $to_date = substr($short_date, 11, PHP_INT_MAX);
+  }
+  if ($from_date) {
+    $timestamp = strtotime($from_date);
+    $timestamp_to_date = strtotime($to_date);
+    $display_date = date($h_format, $timestamp) . '-' . date($h_format, $timestamp_to_date);
+    return array(date('c', $timestamp), $display_date);
+  }
+  if (strstr($short_date, '-') == '') {
+    if ($short_date_length == 4) {
+      $short_date .= '-01-01';
+      $h_format = 'Y';
+    }
+    elseif ($short_date_length == 6) {
+      $short_date = substr($short_date, 0, 4) . '-' . substr($short_date, 4, 2) . '-01';
+      $h_format = 'F Y';
+    }
+    elseif ($short_date_length <> 8 && !$from_date) {
+      if ($short_date <> '') {
+        if (!$suppress_display_messages) {
+          drupal_set_message('bad date format for date value of "' . $short_date . '".', 'error');
+        }
+        return '';
+      }
+      else {
+        return '';
+      }
+    }
+  }
+  else {
+    if ($short_date_length == 7) {
+      $short_date .= '-01';
+      $h_format = 'F Y';
+    }
+    elseif ($short_date_length <> 10 && !$from_date) {
+      if (!$suppress_display_messages) {
+        drupal_set_message('bad date format for date value of "' . $short_date . '".', 'error');
+      }
+      return '';
+    }
+  }
+  $timestamp = strtotime($short_date);
+  return array(date('c', $timestamp), date($h_format, $timestamp));
+}
+
+function islandora_digital_workflow_get_csv_values_for_fieldname($fieldname, $csv_array) {
+  $ret_array = array();
+  // Make sure that there is at least one data row and that at least the identifier
+  // and the column specified by $fieldname exists.
+  if (isset($csv_array['header']) && (!array_search('identifier', $csv_array['header']) === FALSE) &&
+      (!array_search($fieldname, $csv_array['header']) === FALSE) &&
+      is_array($csv_array['rows']) && count($csv_array['rows']) > 1) {
+    $index_of_fieldname = array_search($fieldname, $csv_array['header']);
+    foreach ($csv_array['rows'] as $row_array) {
+      $ret_array[$fieldname][] = isset($row_array[$index_of_fieldname]) ? $row_array[$index_of_fieldname] : '';
+    }
+  }
+  return $ret_array;
 }

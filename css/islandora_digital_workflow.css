@@ -20,6 +20,19 @@ and open the template in the editor.
     margin-left: 12px;
 }
 
+.major-item {
+    font-weight: bold;
+    font-size: 1.10em;
+}
+
+.major-item div {
+    margin-bottom: 0px;
+}
+
+.major-item label {
+    font-weight: bold;
+}
+
 .dashboard-report div {
     font-size: 93%;
 }
