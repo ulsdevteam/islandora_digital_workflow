@@ -4,12 +4,13 @@
 define('IDW_STAGE_TAXONOMY_MACHINE_NAME', 'workflow_stage_vocab');
 define('IDW_CONTENT_TYPE_TAXONOMY_MACHINE_NAME', 'workflow_content_type_vocab');
 
-
-// Permissions.
+// Permissions -- NOTE: there are additional permission constants defined in
+// islandora_digital_workflow_permission that use the naming convention of
+// 'ISLANDORA_DIGITAL_WORKFLOW_' . strtoupper($model_name) - for which a helper
+// in includes/access_permissions.inc named
+// islandora_digital_workflow_permission_name_of_model() will do.
 define('ISLANDORA_DIGITAL_WORKFLOW', 'digital workflow access');
-define('ISLANDORA_DIGITAL_WORKFLOW_IS_CURATOR', 'digital workflow curator access');
-define('ISLANDORA_DIGITAL_WORKFLOW_IS_DRL', 'digital workflow drl access');
-define('ISLANDORA_DIGITAL_WORKFLOW_IS_MAD', 'digital workflow mad access');
+define('ISLANDORA_DIGITAL_WORKFLOW_CREATE_NEW_BATCH', 'digital workflow create batches');
 
 /**
  * Implements hook_menu().
@@ -29,31 +30,30 @@ function islandora_digital_workflow_menu() {
       'title' => t('Islandora Digital Workflow Dashboard'),
       'type' => MENU_NORMAL_ITEM,
       'page callback' => array('islandora_digital_workflow_dashboard'),
-      'file' => 'includes/dashboard.form.inc',
       'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW),
+      'file' => 'includes/dashboard.form.inc',
     ),
     'islandora/islandora_digital_workflow/create_batch' => array(
       'title' => t('Islandora Digital Workflow - Create Batch'),
       'type' => MENU_NORMAL_ITEM,
       'page callback' => 'drupal_get_form',
       'page arguments' => array('islandora_digital_workflow_create_batch_form'),
+      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_CREATE_NEW_BATCH),
       'file' => 'includes/create_batch.form.inc',
-      'access callback' => 'islandora_digital_workflow_access_menu',
-//      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_IS_DRL, ISLANDORA_DIGITAL_WORKFLOW_IS_MAD, ISLANDORA_DIGITAL_WORKFLOW_IS_CURATOR),
     ),
     'islandora/islandora_digital_workflow/edit_batch/%' => array(
       'title' => t('Islandora Digital Workflow - Edit Batch'),
       'type' => MENU_NORMAL_ITEM,
       'page callback' => 'drupal_get_form',
       'page arguments' => array('islandora_digital_workflow_create_batch_form', 3),
+      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW),
       'file' => 'includes/create_batch.form.inc',
-      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_IS_CURATOR),
     ),
     'islandora/islandora_digital_workflow_css.css' => array(
       'type' => MENU_CALLBACK,
       'page callback' => 'islandora_digital_workflow_update_dynamic_css',
-      'file' => 'includes/islandora_digital_workflow_css.inc',
       'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW),
+      'file' => 'includes/islandora_digital_workflow_css.inc',
     ),
   );
 }
@@ -62,39 +62,33 @@ function islandora_digital_workflow_menu() {
  * Implements hook_permission().
  */
 function islandora_digital_workflow_permission() {
-  return array(
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/access_permissions');
+  $static_permissions = array(
     ISLANDORA_DIGITAL_WORKFLOW => array(
       'title' => t('Use the Islandora Digital Workflow system.'),
       'description' => t('User can access and use the Islandora Digital Workflow system.'),
     ),
-    ISLANDORA_DIGITAL_WORKFLOW_IS_CURATOR => array(
-      'title' => t('Use the Curator functions of the Islandora Digital Workflow system.'),
-      'description' => t('User can access and use the Curator functions of the Islandora Digital Workflow system.'),
-    ),
-    ISLANDORA_DIGITAL_WORKFLOW_IS_DRL => array(
-      'title' => t('Use the DRL functions of the Islandora Digital Workflow system.'),
-      'description' => t('User can access and use the DRL functions of the Islandora Digital Workflow system.'),
-    ),
-    ISLANDORA_DIGITAL_WORKFLOW_IS_MAD => array(
-      'title' => t('Use the MAD functions of the Islandora Digital Workflow system.'),
-      'description' => t('User can access and use the MAD functions of the Islandora Digital Workflow system.'),
+    ISLANDORA_DIGITAL_WORKFLOW_CREATE_NEW_BATCH => array(
+      'title' => t('Create new digital workflow batches.'),
+      'description' => t('User can create new batches within the Islandora Digital Workflow system.'),
     ),
   );
-}
+  $model_based_permissions = array();
+  $models = islandora_digital_workflow_get_reduced_readable_cmodels();
 
-/**
- * Access for submenu items.
- *
- * @return bool
- *   Access granted
- */
-function islandora_digital_workflow_access_menu() {
-  $roles = array(ISLANDORA_DIGITAL_WORKFLOW_IS_DRL, ISLANDORA_DIGITAL_WORKFLOW_IS_MAD, ISLANDORA_DIGITAL_WORKFLOW_IS_CURATOR);
-  $access = FALSE;
-  foreach ($roles as $role) {
-    $access |= user_access($role);
+  foreach ($models as $model_name => $readable_model) {
+    $permission_define_name = islandora_digital_workflow_permission_constant_name_of_model($model_name);
+    $permission = islandora_digital_workflow_permission_of_model($readable_model);
+    if (!defined($permission_define_name)) {
+      define($permission_define_name, $permission);
+    }
+    $model_based_permissions[$permission] = array(
+      'title' => 'Create/Edit/Update ' . $readable_model . ' batches',
+      'description' => 'User can perform tasks related to the ' . $readable_model . ' objects within the Islandora Digital Workflow system',
+    );
   }
-  return $access;
+  return array_merge($static_permissions, $model_based_permissions);
 }
 
 /**
@@ -108,27 +102,11 @@ function islandora_digital_workflow_preprocess_page(&$vars) {
   if (is_array($item)) {
     $public_files_path = drupal_realpath('public://');
     $base_public_files_path = str_replace(realpath("."), "", $public_files_path);
-    // If url begins with "islandora/islandora_digital_workflow"...
-    if (strstr($item['path'], 'islandora/islandora_digital_workflow')) {
-      islandora_digital_workflow_ensure_dynamic_css_copied($path, $public_files_path);
-      drupal_add_css($path . '/css/islandora_digital_workflow.css');
-      drupal_add_css($base_public_files_path . '/css/islandora_digital_workflow_dynamic.css');
-      $vars['page']['sidebar'] = array();
-    } elseif ($item['path'] == 'node/%' ||
-      $item['path'] == 'admin/structure/views/view/%/edit' ||
-      $item['path'] == 'workflow-nodes' || 
-      $item['path'] == 'admin/islandora/islandora_digital_workflow' ||
-      strstr($item['path'], 'islandora/islandora_digital_workflow/batches') || 
-      strstr($item['path'], 'admin/structure/views/view/workflow_nodes/')) {
-      islandora_digital_workflow_ensure_dynamic_css_copied($path, $public_files_path);
-      drupal_add_css($path . '/css/islandora_digital_workflow.css');
-      drupal_add_css($base_public_files_path . '/css/islandora_digital_workflow_dynamic.css');
-    }
+    islandora_digital_workflow_ensure_dynamic_css_copied($path, $public_files_path);
+    drupal_add_css($path . '/css/islandora_digital_workflow.css');
+    drupal_add_css($base_public_files_path . '/islandora_digital_workflow_dynamic.css');
     // Just the admin form needs the /js/admin_form.js added.
     if ($item['path'] == 'admin/islandora/islandora_digital_workflow') {
-      islandora_digital_workflow_ensure_dynamic_css_copied($path, $public_files_path);
-      drupal_add_css($base_public_files_path . '/css/islandora_digital_workflow_dynamic.css');
-//      drupal_add_css($path . '/css/islandora_digital_workflow.css');
       drupal_add_js($path . '/js/admin_form.js');
     }
   }

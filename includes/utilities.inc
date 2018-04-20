@@ -579,3 +579,22 @@ function islandora_digital_workflow_get_csv_values_for_fieldname($fieldname, $cs
   }
   return $ret_array;
 }
+
+function islandora_digital_workflow_models_table() {
+  $readable_models = islandora_digital_workflow_get_reduced_readable_cmodels();
+  $configured_models = $return_form_elements = array();
+  $configured_supported_models = variable_get('islandora_digital_workflow_islandora_models', array());
+
+  foreach ($readable_models as $cmodel => $model) {
+    $configured_models[$cmodel] = array(
+      '#type' => 'checkbox',
+      '#title' => $model,
+      // Mark the checkboxes as checked based on islandora_digital_workflow_islandora_models
+      '#default_value' => isset($configured_supported_models[$cmodel]) ? (($configured_supported_models[$cmodel] <> 0) ? 1 : 0) : 0,
+      '#prefix' => '<div class="major-item">',
+      '#suffix' => '</div>',
+    );
+    $return_form_elements[str_replace(" ", "+", $model)] = $configured_models[$cmodel];
+  }
+  return $return_form_elements;
+}

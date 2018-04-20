@@ -1,25 +1,25 @@
 .stage_New {
-  color:#2ea;
-  background-color:#900;
+  color:#220;
+  background-color:#220;
 }
 
 .stage_Scanned {
   color:#FFF;
-  background-color:#479;
+  background-color:#FFF;
 }
 
 .stage_Problem {
   color:#FF3;
-  background-color:#F00;
+  background-color:#FF3;
 }
 
 .stage_Reviewed {
   color:#CCC;
-  background-color:#237;
+  background-color:#CCC;
 }
 
 .stage_Done {
   color:#349;
-  background-color:#2C2;
+  background-color:#349;
 }
 

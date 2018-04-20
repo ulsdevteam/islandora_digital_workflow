@@ -18,6 +18,23 @@
 function islandora_digital_workflow_create_batch_form(array $form, array &$form_state, $batch_name = NULL) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
   module_load_include('inc', 'islandora_digital_workflow', 'includes/access_permissions');
+
+  $readable_models = islandora_digital_workflow_get_reduced_readable_cmodels();
+  $configured_supported_models = variable_get('islandora_digital_workflow_islandora_models', array());
+  $accessible_models = $return_form_elements = array();
+  foreach ($readable_models as $cmodel => $model) {
+    if (isset($configured_supported_models[$cmodel]) && $configured_supported_models[$cmodel] == 1) {
+      // Now, check that the user has access to this model
+      $permission = islandora_digital_workflow_permission_of_model($model);
+      if (user_access($permission)) {
+        $accessible_models[$cmodel] = $model;
+      }
+    }
+  }
+  if (count($accessible_models) < 1) {
+    drupal_set_message('You do not have access to create batches for any Islandora Object models.  Please contact an administrator to ask them to update permissions if your user or user role needs to have access to any models.', 'error');
+  }
+
   // If this form is processing an existing batch by batch_name, set up some
   // values
   $batch_record = islandora_digital_workflow_get_batch_record_by_name($batch_name);
@@ -57,7 +74,6 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
   $collections = islandora_digital_workflow_get_solr_options('RELS_EXT_hasModel_uri_ms:info' .
       '\:fedora\/islandora\:collectionCModel -PID:*_review', 'PID', 'fgs_label_s');
   asort($collections);
-  $user_role_configured_models = islandora_digital_workflow_user_role_configured_models();
 
   // If the user can administer site config, then display the link to the 
   // supported models here.
@@ -94,7 +110,7 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
       '#title' => t('Destination Islandora Content Model'),
       '#type' => 'select',
       '#required' => true,
-      '#options' => $user_role_configured_models,
+      '#options' => $accessible_models,
       '#description' => $supported_models_description,
     );
   $form['batch_edit_frame']['collections_select'] = array(

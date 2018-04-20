@@ -17,7 +17,7 @@
  */
 function islandora_digital_workflow_admin_form() {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
-  module_load_include('inc', 'islandora_digital_workflow', 'includes/access_permissions');
+  // module_load_include('inc', 'islandora_digital_workflow', 'includes/access_permissions');
   // Needed for collapsible fieldsets
   drupal_add_js('misc/collapse.js');
   $about_islandora_digital_workflow_markup = '<p>These are the settings for ' .
@@ -36,7 +36,7 @@ function islandora_digital_workflow_admin_form() {
         $colors['color'] . ';background-color:' . $colors['background-color'] .
         '" class="stage_block stage_' . $stage . '">' . $stage . '</span>';
   }
-  $user_role_permissions_table = islandora_digital_workflow_user_role_permissions_table();
+  $models_table = islandora_digital_workflow_models_table();
 
   $form = array(
     'about' => array(
@@ -46,10 +46,10 @@ function islandora_digital_workflow_admin_form() {
     // Islandora Objects
     'islandora_frame' => array(
       '#type' => 'fieldset',
-      '#title' => t('Supported Models and Role Permissions'),
+      '#title' => t('Supported Models'),
       '#collapsible' => TRUE,
       '#collapsed' => TRUE,
-      'user_roles_frame' => $user_role_permissions_table,
+      'user_roles_frame' => $models_table,
     ),
 
     // Ingest Options
@@ -248,7 +248,7 @@ function islandora_digital_workflow_admin_form_submit(array $form, array &$form_
             'background-color' => $form_state['values']['stage_Done_background_color'],
         ),
       ));
-      islandora_digital_workflow_save_roles_and_models($form_state['values']);
+      islandora_digital_workflow_save_models($form_state['values']);
       variable_set('islandora_digital_workflow_stages', $stage_values);
       variable_set('islandora_digital_workflow_rules_one', $form_state['values']['rules_one']);
       variable_set('islandora_digital_workflow_ingest_prepared_path', $form_state['values']['ingest_prepared_path']);
@@ -260,12 +260,9 @@ function islandora_digital_workflow_admin_form_submit(array $form, array &$form_
     case 'edit-reset':
       variable_del('islandora_digital_workflow_islandora_models');
       variable_del('islandora_digital_workflow_stages');
-      variable_del('islandora_digital_workflow_user_role_permissions');
       variable_del('islandora_digital_workflow_rules_one');
       variable_del('islandora_digital_workflow_ingest_prepared_path');
       variable_del('islandora_digital_workflow_use_isMemberOfSite');
-      variable_del('islandora_digital_workflow_islandora_models');
-      variable_del('islandora_digital_workflow_roles_and_models');
 
       islandora_digital_workflow_update_dynamic_css();
       drupal_set_message('[' . date('H:i:s') . '] The settings have been reset.');

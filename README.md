@@ -21,7 +21,7 @@ To prepare and track digital content for possible ingest into Islandora.
 - **Test and/or assign identifiers**
 	- Old system tested to make sure that an object or batch with matching id didn’t exist
 	- If system could assign PIDS, that might be preferable. 
-	- Objects may have source ids (accessionnumbers, barcodes, etc.) to help DRL with identification.	DRL uses barcode reader for check-in and scanning processes, so that might be a challenge?
+	- Objects may have source ids (accessionnumbers, barcodes, etc.) to help DRL with identification.  DRL uses barcode reader for check-in and scanning processes, so that might be a challenge?
 - **Collect batch metadata**
 	 - Description of batch
 	 - Sequence (sets the actions for batch)
@@ -54,11 +54,7 @@ Installing this module will also set up the following:
  - custom Drupal views to display the workflow_batch nodes
 
 ## Permissions
-There are three basic roles defined under `/admin/people/permissions/roles` Curator, DRL, and MAD.  These roles also have Drupal permissions defined at `/admin/people/permissions` under the **Islandora Digital Workflow** section that can be configured to allow access to various parts of the system.  Users who use this system will need to be added to the 
-- DRL
-- MAD
-- Curator
-- Workflow User - is the considered the lowest access role.
+Each islandora model is exposed as an "{MODEL_NAME} Islandora Digital Workflow" permission under the Drupal permissions table `/admin/people/permissions`.  User roles and individual users will need to be configured for accesss to the various models.  Even though these permissions would exist for *all islandora models*, there are settings within the Islandora Digital Workflow configuration to suppress specific object models from appearing in the various parts of the interface.
 
 Additionally, the roles' access to specific Islandora models can be controlled with the module's configuration `/admin/islandora/islandora_digital_workflow`.
 
