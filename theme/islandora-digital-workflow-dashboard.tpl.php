@@ -8,7 +8,6 @@
 * - $dashboard_data:
 *
 */
- dpm($dashboard_data);
 ?>
 <div id="two-col-left-main"> 
   <div id="main-content"> 

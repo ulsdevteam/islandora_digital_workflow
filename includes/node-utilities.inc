@@ -22,8 +22,8 @@ function islandora_digital_workflow_sync_node_batch_record_info($node, $form_sta
     // parse the csv file to get the identifiers / a.k.a. barcodes and set this
     // pass these values along to be added to the node->field_barcodes value
     $csv_array = islandora_digital_workflow_csv_file_as_array($csv_filename);
-    @unlink($csv_filename);
     if (isset($_SESSION['uploaded_csv_filename'])) {
+      @unlink($_SESSION['uploaded_csv_filename']);
       unset($_SESSION['uploaded_csv_filename']);
     }
   }
@@ -32,7 +32,7 @@ function islandora_digital_workflow_sync_node_batch_record_info($node, $form_sta
     $node = islandora_digital_workflow_make_new_node($form_state, $csv_array);
   }
   $batch_record = islandora_digital_workflow_load_batch_record_for_node($node, $form_state);
-  if (is_array($batch_record)) {
+  if (!is_array($batch_record)) {
     $new_value = theme('islandora_digital_workflow_batch', array('islandora_digital_workflow_batch' => $batch_record));
     $node->field_batch_defaults[LANGUAGE_NONE][0]['value'] = $new_value;
     // Make sure that the format is Full HTML here so it doesn't strip any HTML tags.
@@ -40,7 +40,10 @@ function islandora_digital_workflow_sync_node_batch_record_info($node, $form_sta
     field_attach_update('node', $node);
 
     // TODO: Call a function to insert the batch item records for the newly created batch_record
-
+    islandora_digital_workflow_create_batch_record_by_form($form_state, $node, $csv_filename);
+  }
+  if (file_exists($csv_filename)) {
+    @unlink($csv_filename);
   }
 }
 

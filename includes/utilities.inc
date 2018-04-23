@@ -36,18 +36,21 @@ function islandora_digital_workflow_content_type_to_islandora_model($content_typ
   return (array_key_exists($content_type, $islandora_content_type_mapping)) ? $islandora_content_type_mapping[$content_type] : '';
 }
 
-function islandora_digital_workflow_create_batch_record_by_form($form_state) {
+function islandora_digital_workflow_create_batch_record_by_form($form_state, $node, $csv_filename) {
   global $user;
   // TODO: add a validate call instead of checking the values of $form_state here.
   if (is_array($form_state) && isset($form_state['values']['batch_name'])
     && $form_state['values']['batch_name']) {
     $batch_name = $form_state['values']['batch_name'];
-    $record = islandora_digital_workflow_get_batch_record_by_name($batch_name);
-    if ((is_null($record))) {
-      $batch_id = db_insert('islandora_digital_workflow_batch')
-      ->fields(array(
+    $batch_record = islandora_digital_workflow_get_batch_record_by_name($batch_name);
+    $field_values = array(
         'batch_external_id' => $batch_name,
-        'batch_description' => 'unset',
+        'batch_description' => $form_state['values']['batch_description'],
+        'ingest_namespace' => $form_state['values']['ingest_namespace'],
+        'item_count' => $form_state['values']['object_count'],
+//mapto_collections
+// if configured, set the site_id field and value
+//mapto_site_id_values
         'batch_default_perm_notes' => '',
         'batch_default_CR_holder' => '',
         'structural_metadata_treatment' => '',
@@ -57,32 +60,65 @@ function islandora_digital_workflow_create_batch_record_by_form($form_state) {
         'batch_condition_handling' => '',
         'batch_host' => '',
         'user' => $user->name,
-      ))
+      );
+    if ((!is_array($batch_record))) {
+      $batch_id = db_insert('islandora_digital_workflow_batch')
+      ->fields($field_values)
       ->execute();
     }
     else {
       $batch_id = db_update('islandora_digital_workflow_batch')
-      ->fields(array(
-        'batch_external_id' => $batch_name,
-        'batch_description' => 'unset',
-        'batch_default_perm_notes' => '',
-        'batch_default_CR_holder' => '',
-        'structural_metadata_treatment' => '',
-        'image_editing_treatment' => '',
-        'blank_and_missing_treatment' => '',
-        'page_edge_treatment' => '',
-        'batch_condition_handling' => '',
-        'batch_host' => '',
-        'user' => $user->name,
-      ))
+      ->fields($field_values)
       ->condition('batch_external_id', $batch_name)
       ->execute();
     }
+    $batch_record = islandora_digital_workflow_get_batch_record_by_name($batch_name);
+    islandora_digital_workflow_sync_node_to_barcode_items($batch_record, $node, $csv_filename);
     return islandora_digital_workflow_get_batch_record_by_name($batch_name);
   }
   else {
     return NULL;
   }
+}
+
+function islandora_digital_workflow_sync_node_to_barcode_items($batch_record, $node, $csv_filename) {
+  if (is_array($batch_record) && isset($node->field_barcodes) &&
+      array_key_exists('value', $node->field_barcodes[$node->language][0])) {
+    $barcodes = explode("\n", $node->field_barcodes[$node->language][0]['value']);
+    $csv_file_sources = islandora_digital_workflow_prepare_csv2mods($csv_filename, $batch_record['default_depositor']);
+    if (count($csv_file_sources) > 0) {
+      // Delete any pre-existing batch_items records for this batch's batch_id.
+      if (db_delete('islandora_digital_workflow_batch_items')
+          ->condition('batch_id', $batch_record['batch_id'])
+          ->execute()) {
+        drupal_set_message('Previous batch item record deleted for "' .
+            $batch_record['batch_external_id'] . '".', 'status');
+      }
+    }
+    foreach ($csv_file_sources as $csv_file_sources) {
+      islandora_digital_workflow_sync_batch_item_record($batch_record, $csv_file_sources);
+    }
+  }
+}
+
+function islandora_digital_workflow_sync_batch_item_record($batch_record, $csv_file_sources) {
+  if (file_exists($csv_file_sources['mods_filename'])) {
+    $mods_content = file_get_contents($csv_file_sources['mods_filename']);
+    unlink($csv_file_sources['mods_filename']);
+  }
+  else {
+    $mods_content = '';
+  }
+  // take each mods_filename and put this into the item record
+  $batch_item_id = db_insert('islandora_digital_workflow_batch_items')
+      ->fields(array(
+        'batch_id' => $batch_record['batch_id'],
+        'identifier' => $csv_file_sources['identifier'],
+        'title' => $csv_file_sources['title'],
+        'filename' => $csv_file_sources['filename'],
+        'mods' => $mods_content,
+      ))
+      ->execute();
 }
 
 function islandora_digital_workflow_get_batch_record_by_name($batch_name) {
@@ -277,9 +313,11 @@ function islandora_digital_workflow_batch_path($batch_values) {
     $ingest_path = variable_get('islandora_digital_workflow_ingest_prepared_path', '/ingest/islandora_ingest');
   } elseif (strstr($ingest_path, ":")) {
     @list($ingest_host, $ingest_path) = explode(":", $ingest_path, 2);
-    drupal_set_message('This batch is configured to use files from a different server.  That server needs ' .
-            'to be configured as a mounted folder under the /ingest directory and the ' . l('Available Host Alias', '/admin/islandora/workflow/') .
-            ' configuration would need to be updated to point to the mounted location.', 'error');
+    drupal_set_message('This batch is configured to use files from a different server.  ' .
+            'That server needs to be configured as a mounted folder under the /ingest ' .
+            'directory and the ' . l('Available Host Alias', '/admin/islandora/workflow/ ') .
+            'configuration would need to be updated to point to the mounted location.',
+            'error');
   } else {
     $ingest_path = $ingest_path;
   }
@@ -292,6 +330,14 @@ function islandora_digital_workflow_batch_path($batch_values) {
   }
 
   return (file_exists($batch_path)) ? $batch_path : '';
+}
+
+/**
+ * Helper function to return the value of the
+ * islandora_digital_workflow_ingest_namespace - with the right trailing colon.
+ */
+function islandora_digital_workflow_get_ingest_namespace() {
+  return rtrim(variable_get('islandora_digital_workflow_ingest_namespace', 'islandora'), ':') . ':';
 }
 
 /**
@@ -597,4 +643,214 @@ function islandora_digital_workflow_models_table() {
     $return_form_elements[str_replace(" ", "+", $model)] = $configured_models[$cmodel];
   }
   return $return_form_elements;
+}
+
+/**
+ * This will parse a row from a CSV file and return an array with two parts to the info:
+ *
+ * $prepared_filepath = The path to the folder that contains the MODS and image TIF.
+ * $identifier - the identifier value (if provided in the spreadsheet).
+ */
+function islandora_digital_workflow_prepare_csv2mods($input_filename, $default_depositor = '') {
+  ini_set('auto_detect_line_endings', true);
+  $outputFilename   = 'MODS.xml';
+
+  // Open csv to read
+  $inputFile  = fopen($input_filename, 'rt');
+
+  // Get the headers of the file
+  $headers = fgetcsv($inputFile);
+  if ((array_search('identifier', $headers) === FALSE) and (array_search('Identifier', $headers) === FALSE)) {
+    return FALSE;
+  }
+
+  $working_directory = dirname(drupal_realpath($input_filename));
+
+  echo "<h3>Working directory " . $working_directory . "</h3>";
+
+  $st = " style='background-color:#F2F2F2;border:1px solid #222'";  $toggle = false;  $row_counter = 1;
+
+  $csv_header_xpath_mappings = islandora_digital_workflow_get_csv_header_xpath_mappings();
+  $mods_created = $files_copied = $bytes_written = 0;
+
+  $ingest_namespace = islandora_digital_workflow_get_ingest_namespace();
+  $identifiers_and_filepaths = array();
+  // Loop through each row creating a <row> node with the correct data
+  while (($row = fgetcsv($inputFile)) !== FALSE) {
+    // First, scan the entire row to get the identifier and the file_name value
+    $toggle = !$toggle;
+    echo '<div' . ($toggle ? $st : " style='border:1px solid #222'") . '>';
+    echo "<h3>row " . $row_counter . "</h3>";
+    $title = $row_file_name = $row_mods_id = '';
+    $rowcopy = $row;
+    foreach($headers as $i => $header) {
+      $header = str_replace(" ", "_", strtolower(trim($header)));
+      // Some partner decided to end the row of headers with a few commas like "depositor,,,,," - so must
+      // check that the header actually has a value.
+      if ($header) {
+        if (array_key_exists($i, $row)) {
+          // ALL LOWERCASE, replace spaces with "_"
+          if ($header == 'identifier') {
+            $row_mods_id = trim($row[$i]);
+            $mods_directory_path = $working_directory . '/' . $row_mods_id;
+            if (!file_exists($mods_directory_path)) {
+              mkdir($mods_directory_path);
+            }
+          }
+          elseif (($header == 'file_name' || $header == 'filename') && array_key_exists($i, $row)) {
+            $row_file_name = $working_directory . '/' . $row[$i];
+            $outputFilename = str_replace(array('.tiff', '.tif'), '.xml', $row[$i]);
+          }
+          elseif ($header == 'normalized_date' && array_key_exists($i, $row)) {
+            list($sort_date, $date) = islandora_digital_workflow_make_custom_csv_dates($row[$i], FALSE);
+            // Add the sort_date field and solr 'date' field
+            if ((array_key_exists('sort_date', $headers) === FALSE)) {
+              $headers[] = 'sort_date';
+              $rowcopy[] = $sort_date;
+            }
+            if ((array_key_exists('date', $headers) === FALSE)) {
+              $headers[] = 'date';
+              $rowcopy[] = $date;
+            }
+            islandora_digital_workflow_fix_if_csv_date_approximate($headers, $rowcopy);
+          }
+          elseif ($header == 'title') {
+            $title = $row[$i];
+          }
+        }
+      }
+      $headers[$i] = $header;
+    }
+    // echo "<pre>".print_r($rowcopy, true)."</pre>";
+
+    // MOVE the file into the row's working directory
+    if ($row_file_name) {
+      if (file_exists($row_file_name)) {
+        $command = "cp $row_file_name $working_directory" . '/' . $row_mods_id . '/.';
+        exec($command);
+        echo "COPY $row_file_name to $working_directory" . '/' . $row_mods_id ."/.<br>";
+        $files_copied++;
+      }
+    }
+
+    // Create a new dom document with pretty formatting
+    $doc  = new DomDocument();
+    $doc->formatOutput   = true;
+
+    // Start creating the MODS XML by adding the root node to the document.
+    $root = $doc->createElement('sheet'); // mods:mods'); // ,'test value');
+    $root->appendChild($doc->createAttribute('xmlns:xsi'))->appendChild($doc->createTextNode("http://www.w3.org/2001/XMLSchema-instance"));
+
+    $root = $doc->appendChild($root);
+    $child = NULL;
+    $depositor_in_CSV = FALSE;
+    foreach($headers as $i => $header) {
+      if (array_key_exists($header, $csv_header_xpath_mappings)) {
+        if (is_array($rowcopy) && array_key_exists($i, $rowcopy) && $rowcopy[$i]) {
+          $child = $doc->createElement($header);
+          $child = $root->appendChild($child);
+          $value = $doc->createTextNode($rowcopy[$i]);
+          $value = $child->appendChild($value);
+          if (!$depositor_in_CSV && $header == 'depositor') {
+            $depositor_in_CSV = TRUE;
+          }
+        }
+      }
+    }
+    if ($child) {
+      $root->appendChild($child);
+    }
+
+    // After the CSV row has been processed, as long as the depositor value was not provided in that row,
+    // and the batch provided a "default_depositor" value, then create this node now.
+    if (!$depositor_in_CSV && $default_depositor && !array_key_exists('depositor', $headers)) {
+      $child = $doc->createElement('depositor');
+      $child = $root->appendChild($child);
+      $value = $doc->createTextNode($default_depositor);
+      $value = $child->appendChild($value);
+    }
+    $strxml = $doc->saveXML();
+
+    echo "<blockquote><pre style='color:#c55'>".htmlspecialchars($strxml) ."</pre></blockquote>";
+
+    $handle = fopen($working_directory . '/' . $row_mods_id . '/' . $outputFilename, "w");
+    $bytes_written += fwrite($handle, $strxml);
+    fclose($handle);
+    echo "</div>";
+    $filename = islandora_digital_workflow_XMLtoMODS($working_directory . '/' . $row_mods_id . '/' . $outputFilename);
+    $mods_created += ($filename <> '');
+    echo "<p>created MODS from spreadsheet row = <b>" . $filename . "</b></p>";
+
+    $identifiers_and_filepaths[] = array(
+        'title' => $title,
+        'identifier' => $ingest_namespace . $row_mods_id,
+        'filename' => $row_file_name,
+        'mods_filename' => $filename);
+    $row_counter++;
+  }
+  echo "<p>" . number_format($files_copied) . " files copied to incoming directory <b>" . $working_directory . "</b></p>";
+  echo "<p>" . number_format($mods_created) . " MODS files created.</p>";
+
+  return $identifiers_and_filepaths;
+}
+
+/**
+ * Helper function for creating MODS from CSV - this will inspect the active row for the value in the
+ * 'normalized_date_qualifier' field to see whether or not the date field value supplied row is approximate.
+ */
+function islandora_digital_workflow_fix_if_csv_date_approximate($headers, &$row) {
+  $normalized_date_qualifier_index = array_search('normalized_date_qualifier', $headers);
+  $date_index = array_search('date', $headers);
+  if ($normalized_date_qualifier_index && isset($row[$normalized_date_qualifier_index])) {
+    if ($row[$normalized_date_qualifier_index] == 'yes' || $row[$normalized_date_qualifier_index] == 'approximate') {
+      $row[$date_index] = 'ca. ' . $row[$date_index];
+    }
+  }
+}
+
+/**
+ * This will run XML to MODS transformation and save resultant MODS
+ * over the original file.
+ *
+ * This same effect could be achieved using a template system because xslt is
+ * relatively slow.  For now, the xslt transform method is used.
+ *
+ * Returns the filename for the new MODS file.
+ */
+function islandora_digital_workflow_XMLtoMODS($xml_filename) {
+  $xsl = str_replace("/includes", "", dirname(__FILE__).'/transforms/sheet2mods.xsl');
+
+  $xml_file = file_get_contents($xml_filename);
+  $MODS = ($xml_file) ? islandora_digital_workflow_runXslTransform(
+            array(
+              'xsl' => $xsl,
+              'input' => $xml_file,
+            )
+          ) : '';
+
+  // This file must be deleted in the process function that called this.
+  $bytes_written = file_put_contents($xml_filename, $MODS);
+
+  echo "<h3>after XSL transform</h3><blockquote><pre style='color:#28f'>" . htmlspecialchars(print_r($MODS, true)) . "</pre></blockquote>";
+
+  return ($bytes_written) ? $xml_filename : '';
+}
+
+function islandora_digital_workflow_runXslTransform($info) {
+  $xsl = new DOMDocument();
+  $xsl->load($info['xsl']);
+  $input = new DOMDocument();
+  $input->loadXML($info['input']);
+
+  $processor = new XSLTProcessor();
+  $processor->importStylesheet($xsl);
+
+/*
+  if (isset($info['php_functions'])) {
+    $processor->registerPHPFunctions($info['php_functions']);
+  }
+*/
+
+  // XXX: Suppressing warnings regarding unregistered prefixes.
+  return $processor->transformToXML($input);
 }

@@ -56,6 +56,13 @@ function islandora_digital_workflow_admin_form() {
     'ingest_fields' => array(
       '#type' => 'fieldset',
       '#title' => t('Ingest options'),
+      'ingest_namespace' => array(
+        '#type' => 'textfield',
+        '#title' => t('Ingest namespace'), // Incoming Ingest Path'),
+        '#description' => t('The namespace for objects that get ingested for ' .
+            'batches by default.  Each batch can override this value.'),
+        '#default_value' => variable_get('islandora_digital_workflow_ingest_namespace', 'islandora'),
+      ),
       'ingest_prepared_path' => array(
         '#type' => 'textfield',
         '#title' => t('Ingest Working Directory'), // Incoming Ingest Path'),
@@ -251,6 +258,7 @@ function islandora_digital_workflow_admin_form_submit(array $form, array &$form_
       islandora_digital_workflow_save_models($form_state['values']);
       variable_set('islandora_digital_workflow_stages', $stage_values);
       variable_set('islandora_digital_workflow_rules_one', $form_state['values']['rules_one']);
+      variable_set('islandora_digital_workflow_ingest_namespace', $form_state['values']['ingest_namespace']);
       variable_set('islandora_digital_workflow_ingest_prepared_path', $form_state['values']['ingest_prepared_path']);
       variable_set('islandora_digital_workflow_use_isMemberOfSite', $form_state['values']['batch_use_isMemberOfSite']);
       islandora_digital_workflow_update_dynamic_css();
@@ -261,6 +269,7 @@ function islandora_digital_workflow_admin_form_submit(array $form, array &$form_
       variable_del('islandora_digital_workflow_islandora_models');
       variable_del('islandora_digital_workflow_stages');
       variable_del('islandora_digital_workflow_rules_one');
+      variable_del('islandora_digital_workflow_ingest_namespace');
       variable_del('islandora_digital_workflow_ingest_prepared_path');
       variable_del('islandora_digital_workflow_use_isMemberOfSite');
 

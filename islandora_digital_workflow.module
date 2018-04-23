@@ -33,11 +33,27 @@ function islandora_digital_workflow_menu() {
       'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW),
       'file' => 'includes/dashboard.form.inc',
     ),
+    // Lookup form
+    'islandora/islandora_digital_workflow/lookup' => array(
+      'page callback' => array('islandora_digital_workflow_lookup'),
+      'type' => MENU_CALLBACK,
+      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW),
+      'file' => 'includes/lookup.form.inc',
+    ),
+    'islandora/islandora_digital_workflow/lookup/%' => array(
+      'title' => t('Islandora Digital Workflow Item'),
+      'type' => MENU_CALLBACK,
+      'page callback' => array('islandora_digital_workflow_lookup_form_submit'),
+      'page arguments' => array(3),
+      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW),
+      'file' => 'includes/lookup.form.inc',
+    ),
     'islandora/islandora_digital_workflow/create_batch' => array(
       'title' => t('Islandora Digital Workflow - Create Batch'),
       'type' => MENU_NORMAL_ITEM,
-      'page callback' => 'drupal_get_form',
-      'page arguments' => array('islandora_digital_workflow_create_batch_form'),
+      'page callback' => array('islandora_digital_workflow_create_batch'),
+//      'page callback' => 'drupal_get_form',
+//      'page arguments' => array('islandora_digital_workflow_create_batch_form'),
       'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_CREATE_NEW_BATCH),
       'file' => 'includes/create_batch.form.inc',
     ),
@@ -132,8 +148,13 @@ function islandora_digital_workflow_theme() {
       'variables' => array(
         'islandora_digital_workflow_batch' => NULL,
       ),
-
     ),
+    'islandora_digital_workflow_lookup' => array(
+      'template' => 'theme/islandora-digital-workflow-findobject-form',
+      'variables' => array(
+        'searchterm' => NULL,
+      )
+    )
   );
 }
 

@@ -19,5 +19,5 @@ function islandora_digital_workflow_get_user_role_dashboard() {
   // Add any other template variables to the array
   $template_variables = array();
   $template_variables = array_merge($template_variables);
-  return $user_roles;
+  return $template_variables;
 }
