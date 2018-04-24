@@ -95,3 +95,15 @@ and open the template in the editor.
     background-color: #2C2;
     color: #349;
 }
+
+.report_table {
+    font-size: 0.825em;
+    font-family: Andale Mono, monospace;
+    max-height: 600px;
+}
+
+.report_table_wrapper {
+    max-height: 330px;
+    height: 330px;
+    overflow: scroll;
+}

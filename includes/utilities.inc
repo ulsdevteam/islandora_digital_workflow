@@ -43,24 +43,52 @@ function islandora_digital_workflow_create_batch_record_by_form($form_state, $no
     && $form_state['values']['batch_name']) {
     $batch_name = $form_state['values']['batch_name'];
     $batch_record = islandora_digital_workflow_get_batch_record_by_name($batch_name);
+
+    $uploaded_csv_file = ($csv_filename) ? file_get_contents($csv_filename) : FALSE;
+    $batch_request_date = $form_state['values']['batch_request_due_date']['year'] . '/' .
+        $form_state['values']['batch_request_due_date']['month'] . '/' .
+        $form_state['values']['batch_request_due_date']['day'];
     $field_values = array(
-        'batch_external_id' => $batch_name,
+        'batch_name' => $batch_name,
         'batch_description' => $form_state['values']['batch_description'],
-        'ingest_namespace' => $form_state['values']['ingest_namespace'],
+	'is_batch_active' => $form_state['values']['is_batch_active'],
+        'is_batch_request' => $form_state['values']['is_batch_request'],
+        'batch_requestor' => $form_state['values']['batch_requestor'],
+        'batch_request_due_date' => $batch_request_date,
         'item_count' => $form_state['values']['object_count'],
-//mapto_collections
-// if configured, set the site_id field and value
-//mapto_site_id_values
+        'ingest_namespace' => $form_state['values']['ingest_namespace'],
+        'default_ead_id' => $form_state['values']['default_ead_id'],
+        'default_depositor' => $form_state['values']['default_depositor'],
+	'batch_host' => $form_state['values']['batch_host'],
+	'default_genre' => $form_state['values']['default_genre'],
+	'batch_default_pub_status' => $form_state['values']['batch_default_pub_status'],
+	'batch_default_CR_status' => $form_state['values']['batch_default_CR_status'],
+	'batch_default_CR_holder' => $form_state['values']['batch_default_CR_holder'],
+
+        'nid' => $node->nid,
+        'user' => $user->name,
+
+        // default_type_of_resource - the text value of the selected Islandora Model
+        // mapto_collections
+        // if configured, set the site_id field and value
+        //   mapto_site_id_values
+
+        /*
         'batch_default_perm_notes' => '',
-        'batch_default_CR_holder' => '',
         'structural_metadata_treatment' => '',
         'image_editing_treatment' => '',
         'blank_and_missing_treatment' => '',
         'page_edge_treatment' => '',
         'batch_condition_handling' => '',
-        'batch_host' => '',
-        'user' => $user->name,
+        'batch_host' => '',*/
       );
+    // Only update the uploaded CSV file if the file was passed in.  In other words
+    // updating a batch record should not wipe out the previous value for
+    // uploaded_csv_file.
+    if ($csv_filename) {
+      $field_values['uploaded_csv_file'] = $uploaded_csv_file;
+    }
+
     if ((!is_array($batch_record))) {
       $batch_id = db_insert('islandora_digital_workflow_batch')
       ->fields($field_values)
@@ -69,11 +97,11 @@ function islandora_digital_workflow_create_batch_record_by_form($form_state, $no
     else {
       $batch_id = db_update('islandora_digital_workflow_batch')
       ->fields($field_values)
-      ->condition('batch_external_id', $batch_name)
+      ->condition('batch_name', $batch_name)
       ->execute();
     }
-    $batch_record = islandora_digital_workflow_get_batch_record_by_name($batch_name);
-    islandora_digital_workflow_sync_node_to_barcode_items($batch_record, $node, $csv_filename);
+    $updated_batch_record = islandora_digital_workflow_get_batch_record_by_name($batch_name);
+    islandora_digital_workflow_sync_node_to_barcode_items($updated_batch_record, $node, $csv_filename);
     return islandora_digital_workflow_get_batch_record_by_name($batch_name);
   }
   else {
@@ -81,22 +109,44 @@ function islandora_digital_workflow_create_batch_record_by_form($form_state, $no
   }
 }
 
+/**
+ * This function will fetch the config value for "Available Host Aliases for Batch ingest"
+ * and split the alias_and_value value at the "=" character and then add items to the return
+ * associative array with the actual host value as the array keys and the alias is the value.
+ * @return array
+ */
+function islandora_digital_workflow_get_batch_host_values() {
+  $arr = explode("\r\n", variable_get('islandora_digital_workflow_hosts_for_ingest'), 2);
+  $return_array = array(variable_get('islandora_digital_workflow_ingest_prepared_path', '/ingest/islandora_ingest') => 'Default Incoming Ingest Path');
+
+  foreach ($arr as $alias_and_value) {
+    @list($alias, $value) = explode("=", $alias_and_value, 2);
+    $alias = trim($alias);
+    if ($alias && $value) {
+      $return_array[$value] = $alias;
+    }
+  }
+  return $return_array;
+}
+
 function islandora_digital_workflow_sync_node_to_barcode_items($batch_record, $node, $csv_filename) {
   if (is_array($batch_record) && isset($node->field_barcodes) &&
       array_key_exists('value', $node->field_barcodes[$node->language][0])) {
     $barcodes = explode("\n", $node->field_barcodes[$node->language][0]['value']);
-    $csv_file_sources = islandora_digital_workflow_prepare_csv2mods($csv_filename, $batch_record['default_depositor']);
+    // Set a variable for this for readibility on the subsequent function call.
+    $keep_created_MODS_files = FALSE;
+    $csv_file_sources = islandora_digital_workflow_prepare_csv2mods($csv_filename, $batch_record['default_depositor'], $keep_created_MODS_files);
     if (count($csv_file_sources) > 0) {
       // Delete any pre-existing batch_items records for this batch's batch_id.
       if (db_delete('islandora_digital_workflow_batch_items')
           ->condition('batch_id', $batch_record['batch_id'])
           ->execute()) {
         drupal_set_message('Previous batch item record deleted for "' .
-            $batch_record['batch_external_id'] . '".', 'status');
+            $batch_record['batch_name'] . '".', 'status');
       }
-    }
-    foreach ($csv_file_sources as $csv_file_sources) {
-      islandora_digital_workflow_sync_batch_item_record($batch_record, $csv_file_sources);
+      foreach ($csv_file_sources as $csv_file_sources) {
+        islandora_digital_workflow_sync_batch_item_record($batch_record, $csv_file_sources);
+      }
     }
   }
 }
@@ -125,7 +175,7 @@ function islandora_digital_workflow_get_batch_record_by_name($batch_name) {
   if ($batch_name) {
     $query = db_select('islandora_digital_workflow_batch', 'b')
         ->fields('b')
-        ->condition('b.batch_external_id', $batch_name)
+        ->condition('b.batch_name', $batch_name)
         ->range(0,1);
     $results = $query->execute();
     $row = $results->fetchAssoc();
@@ -289,8 +339,8 @@ function islandora_digital_workflow_lookup_collection_names() {
 
 /**
  * This will return the ingest path for a given batch by combining the batch's host setting
- * and the batch_external_id.  If the folder does not exist, it will be created.  It will be
- * named 'batch_{$batch_external_id}'.
+ * and the batch_name.  If the folder does not exist, it will be created.  It will be
+ * named 'batch_{$batch_name}'.
  *
  * In the case when the batch is coming from the ftp to box.com, the system will use
  * the return the Default Ingest Path (configured admin/islandora/workflow) and the files
@@ -303,9 +353,9 @@ function islandora_digital_workflow_lookup_collection_names() {
  * @return string
  */
 function islandora_digital_workflow_batch_path($batch_values) {
-  if (!is_array($batch_values) || !array_key_exists('batch_external_id', $batch_values)) {
+  if (!is_array($batch_values) || !array_key_exists('batch_name', $batch_values)) {
     drupal_set_message('The batch path could not be determined.  Either the values are missing or ' .
-            'there is no value for the batch "Name" (batch_external_id field) yet.', 'warning');
+            'there is no value for the batch "Name" (batch_name field) yet.', 'warning');
     return '';
   }
   $ingest_path = $batch_values['batch_host'];
@@ -314,14 +364,14 @@ function islandora_digital_workflow_batch_path($batch_values) {
   } elseif (strstr($ingest_path, ":")) {
     @list($ingest_host, $ingest_path) = explode(":", $ingest_path, 2);
     drupal_set_message('This batch is configured to use files from a different server.  ' .
-            'That server needs to be configured as a mounted folder under the /ingest ' .
-            'directory and the ' . l('Available Host Alias', '/admin/islandora/workflow/ ') .
-            'configuration would need to be updated to point to the mounted location.',
-            'error');
+        'That server needs to be configured as a mounted folder under the /ingest ' .
+        'directory and the ' . l('Available Host Alias', '/admin/islandora/islandora_digital_workflow') .
+        ' configuration would need to be updated to point to the mounted location.',
+        'error');
   } else {
     $ingest_path = $ingest_path;
   }
-  $batch_path = rtrim($ingest_path, '/') . '/batch_' . $batch_values['batch_external_id'];
+  $batch_path = rtrim($ingest_path, '/') . '/batch_' . $batch_values['batch_name'];
   if (!file_exists($batch_path)) {
     $call = mkdir($batch_path);
     if (!$call) {
@@ -651,10 +701,13 @@ function islandora_digital_workflow_models_table() {
  * $prepared_filepath = The path to the folder that contains the MODS and image TIF.
  * $identifier - the identifier value (if provided in the spreadsheet).
  */
-function islandora_digital_workflow_prepare_csv2mods($input_filename, $default_depositor = '') {
+function islandora_digital_workflow_prepare_csv2mods($input_filename, $default_depositor = '', $keep_created_MODS_files = FALSE) {
+  if (!$input_filename) {
+    return array();
+  }
+
   ini_set('auto_detect_line_endings', true);
   $outputFilename   = 'MODS.xml';
-
   // Open csv to read
   $inputFile  = fopen($input_filename, 'rt');
 
@@ -692,9 +745,11 @@ function islandora_digital_workflow_prepare_csv2mods($input_filename, $default_d
           // ALL LOWERCASE, replace spaces with "_"
           if ($header == 'identifier') {
             $row_mods_id = trim($row[$i]);
-            $mods_directory_path = $working_directory . '/' . $row_mods_id;
-            if (!file_exists($mods_directory_path)) {
-              mkdir($mods_directory_path);
+            if ($keep_created_MODS_files) {
+              $mods_directory_path = $working_directory . '/' . $row_mods_id;
+              if (!file_exists($mods_directory_path)) {
+                mkdir($mods_directory_path);
+              }
             }
           }
           elseif (($header == 'file_name' || $header == 'filename') && array_key_exists($i, $row)) {
@@ -773,12 +828,14 @@ function islandora_digital_workflow_prepare_csv2mods($input_filename, $default_d
 
     echo "<blockquote><pre style='color:#c55'>".htmlspecialchars($strxml) ."</pre></blockquote>";
 
-    $handle = fopen($working_directory . '/' . $row_mods_id . '/' . $outputFilename, "w");
-    $bytes_written += fwrite($handle, $strxml);
-    fclose($handle);
+    if ($keep_created_MODS_files) {
+      $handle = fopen($working_directory . '/' . $row_mods_id . '/' . $outputFilename, "w");
+      $bytes_written += fwrite($handle, $strxml);
+      fclose($handle);
+    }
     echo "</div>";
     $filename = islandora_digital_workflow_XMLtoMODS($working_directory . '/' . $row_mods_id . '/' . $outputFilename);
-    $mods_created += ($filename <> '');
+    $mods_created += ($keep_created_MODS_files) ? ($filename <> '') : 1;
     echo "<p>created MODS from spreadsheet row = <b>" . $filename . "</b></p>";
 
     $identifiers_and_filepaths[] = array(
@@ -844,13 +901,60 @@ function islandora_digital_workflow_runXslTransform($info) {
 
   $processor = new XSLTProcessor();
   $processor->importStylesheet($xsl);
-
 /*
   if (isset($info['php_functions'])) {
     $processor->registerPHPFunctions($info['php_functions']);
   }
 */
-
-  // XXX: Suppressing warnings regarding unregistered prefixes.
   return $processor->transformToXML($input);
+}
+
+/**
+ * This will analyze a mysql table to return stats on the fields.
+ *
+ * This will perform mysql analysis of the underlying table to return the
+ * fieldname for primary key, which fields are numeric, which are not, and
+ * finally all field names (both numeric and non-numeric fields).
+ *
+ * @param string $tablename
+ *   The name of the MySQL table to inspect.
+ * @return array
+ *   'primary_key_field' string the name of the primary key for the table
+ *   'numeric_fields' array names of numeric fields
+ *   'num_numeric_fields' array names of non-numeric fields
+ *   'all_fields' arry names of all fields
+ */
+function islandora_digital_workflow_get_tablefield_stats($tablename) {
+  $query = db_select($tablename, 'b')
+      ->fields('b')
+      ->range(0,1);
+  $results = $query->execute();
+  $result = $results->fetchAssoc();
+  $primary_key_field = '';
+  $fields = $integer_fieldnames = $non_integer_fieldnames = array();
+
+  $fields = array_keys($result);
+  if (count($fields) < 1) {
+    return array(NULL, array(), array());
+  }
+
+  foreach ($fields as $field) {
+    $results = db_query("SHOW FIELDS FROM `" . $tablename . "` WHERE Field = '" . $field . "'");
+
+    $row = $results->fetchAssoc();
+    if (!$primary_key_field && $row['Key'] == 'PRI') {
+      $primary_key_field = $field;
+    }
+    if (substr($row['Type'], 0, 4) == "int(" || substr($row['Type'], 0, 7) == 'TINYINT') {
+      $integer_fieldnames[] = $field;
+    } else {
+      $non_integer_fieldnames[] = $field;
+    }
+  }
+  return array(
+      'primary_key_field' => $primary_key_field,
+      'numeric_fields' => $integer_fieldnames,
+      'num_numeric_fields' => $non_integer_fieldnames,
+      'all_fields' => $fields
+    );
 }
