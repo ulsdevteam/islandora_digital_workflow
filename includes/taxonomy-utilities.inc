@@ -10,3 +10,8 @@ function islandora_digital_workflow_get_tid_by_name($name, $vocab) {
     return FALSE;
   }
 }
+
+function islandora_digital_workflow_get_name_of_tid($tid) {
+  $term = taxonomy_term_load($tid);
+  return $term->name;
+}

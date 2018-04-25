@@ -105,5 +105,9 @@ and open the template in the editor.
 .report_table_wrapper {
     max-height: 330px;
     height: 330px;
+    width: 20px;
+}
+
+.fieldset_div_wrapper {
     overflow: scroll;
 }

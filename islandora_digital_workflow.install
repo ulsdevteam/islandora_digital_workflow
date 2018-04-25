@@ -34,8 +34,20 @@ function islandora_digital_workflow_install() {
  * Implements hook_uninstall().
  */
 function islandora_digital_workflow_uninstall() {
+  module_load_include('module', 'islandora_digital_workflow', 'islandora_digital_workflow');
+  // Remove the taxonomy that are related to islandora_digital_workflow.
   $vocab = taxonomy_vocabulary_machine_name_load(IDW_STAGE_TAXONOMY_MACHINE_NAME);
   taxonomy_vocabulary_delete($vocab->vid);
+  $vocab = taxonomy_vocabulary_machine_name_load(IDW_CONTENT_TYPE_TAXONOMY_MACHINE_NAME);
+  taxonomy_vocabulary_delete($vocab->vid);
+  // Remove any variables.
+  variable_del('islandora_digital_workflow_islandora_models');
+  variable_del('islandora_digital_workflow_stages');
+  variable_del('islandora_digital_workflow_rules_one');
+  variable_del('islandora_digital_workflow_ingest_namespace');
+  variable_del('islandora_digital_workflow_ingest_prepared_path');
+  variable_del('islandora_digital_workflow_hosts_for_ingest');
+  variable_del('islandora_digital_workflow_use_isMemberOfSite');
 }
 
 function islandora_digital_workflow_add_workflow_stage_taxonomy_terms() {
@@ -75,6 +87,216 @@ function islandora_digital_workflow_add_workflow_stage_taxonomy_terms() {
    'vid' => $vocab->vid,
   );
   taxonomy_term_save($term);
+}
+
+/**
+* Implementation of hook_schema().
+*/
+function islandora_digital_workflow_schema() {
+  // create the database table that stores the solr session user keys
+  $schema['islandora_digital_workflow_batch'] = array(
+    'description' => t('The additional batch properties and defaults that are not stored on the node object.'),
+    'fields' => array(
+      'batch_id' => array(
+        'description' => 'The primary identifier for the record',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'batch_name' => array(
+        'description' => 'The name of the batch',
+        'type' => 'varchar',
+        'length' => 50,
+        'not null' => TRUE,
+      ),
+      'default_type_of_resource' => array(
+        'description' => 'The fedora model for the destination islandora objects',
+        'type' => 'varchar',
+        'length' => 50,
+        'not null' => TRUE,
+      ),
+      'batch_description' => array(
+        'description' => 'The description for the batch',
+        'type' => 'text',
+        'size' => 'normal',
+        'not null' => TRUE,
+      ),
+      'is_batch_active' => array(
+        'description' => 'Is the batch Active?',
+        'type' => 'int',
+        'size' => 'tiny',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'is_batch_request' => array(
+        'description' => 'Is the batch a special request?',
+        'type' => 'int',
+        'size' => 'tiny',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'batch_requestor' => array(
+        'description' => 'The name of whoever requested this batch',
+        'type' => 'varchar',
+        'length' => 50,
+        'not null' => TRUE,
+      ),
+      'batch_request_due_date' => array(
+        'description' => 'Due date if the batch is a request',
+        'type' => 'int',
+        'not null' => FALSE,
+      ),
+      'default_ead_id' => array(
+        'description' => 'The Finding Aid related to the batch',
+        'type' => 'varchar',
+        'length' => 50,
+        'not null' => TRUE,
+      ),
+      'item_count' => array(
+        'description' => 'Number of objects in batch',
+        'type' => 'int',
+        'size' => 'small', // limit goes to 8388607
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'uploaded_csv_file' => array(
+        'description' => 'The CSV file that was uploaded',
+        'type' => 'text',
+        'size' => 'big',
+        'not null' => TRUE,
+      ),
+      'batch_host' => array(
+        'description' => 'The host for the files related to the batch',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+      'ingest_namespace' => array(
+        'description' => 'The ingest namespace for the destination islandora objects',
+        'type' => 'varchar',
+        'length' => 20,
+        'not null' => FALSE,
+      ),
+      'mapto_collections' => array(
+        'description' => 'The Collection for destination islandora objects',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+      'mapto_site_id_values' => array(
+        'description' => 'The Site for destination islandora objects',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+      'default_depositor' => array(
+        'description' => 'Default depositor for destination islandora objects',
+        'type' => 'varchar',
+        'length' => 100,
+        'not null' => TRUE,
+      ),
+      'default_genre' => array(
+        'description' => 'Genre value for destination islandora objects',
+        'type' => 'varchar',
+        'length' => 50,
+        'not null' => TRUE,
+      ),
+      'batch_default_CR_status' => array(
+        'description' => 'Default Copyright status destination islandora objects',
+        'type' => 'varchar',
+        'length' => 12,
+        'not null' => TRUE,
+      ),
+      'batch_default_pub_status' => array(
+        'description' => 'Default Publication Status destination islandora objects',
+        'type' => 'varchar',
+        'length' => 12,
+        'not null' => TRUE,
+      ),
+      'batch_default_CR_holder' => array(
+        'description' => 'Default Copyright Holder Name destination islandora objects',
+        'type' => 'text',
+        'size' => 'normal',
+        'not null' => TRUE,
+      ),
+      'nid' => array(
+        'description' => 'Drupal node nid value',
+        'type' => 'int',
+        'size' => 'medium',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'user' => array(
+        'description' => 'Drupal user',
+        'type' => 'varchar',
+        'length' => 50,
+        'not null' => TRUE,
+      ),
+      'lastmod' => array(
+        'description' => 'Last modified date of the record',
+        'type' => 'int',
+        'not null' => FALSE,
+      ),
+    ),
+    'indexes' => array(
+      'ss_default_type_of_resource' => array('default_type_of_resource'),
+    ),
+    'unique keys' => array(
+      'u_batch_name' => array('batch_name'),
+    ),
+    'primary key' => array('batch_id'),
+  );
+
+  $schema['islandora_digital_workflow_batch_items'] = array(
+    'description' => t('Individual objects of the batch.'),
+    'fields' => array(
+      'batch_item_id' => array(
+        'description' => 'The primary identifier for the record',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'batch_id' => array(
+        'description' => 'The batch_id for  related islandora_digital_workflow_batch record',
+        'type' => 'int',
+        'size' => 'medium',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'identifier' => array(
+        'description' => 'The identifier for the object',
+        'type' => 'varchar',
+        'length' => 50,
+        'not null' => TRUE,
+      ),
+      'title' => array(
+        'description' => 'The fedora model for the destination islandora objects',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+      'filename' => array(
+        'description' => 'The description for the batch',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+      'mods' => array(
+        'description' => 'MODS xml created from CSV row for object',
+        'type' => 'text',
+        'size' => 'normal',
+        'not null' => TRUE,
+      ),
+    ),
+    'indexes' => array(
+      'ss_batch_id' => array('batch_id'),
+    ),
+    'unique keys' => array(
+      'u_batch_id_identifier' => array('batch_id', 'identifier'),
+    ),
+    'primary key' => array('batch_item_id'),
+  );
+  return $schema;
 }
 
 function islandora_digital_workflow_add_workflow_content_type_taxonomy_terms() {

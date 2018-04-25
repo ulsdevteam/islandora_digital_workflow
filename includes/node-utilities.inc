@@ -18,10 +18,6 @@ function islandora_digital_workflow_sync_node_batch_record_info($form_state, $cs
     // parse the csv file to get the identifiers / a.k.a. barcodes and set this
     // pass these values along to be added to the node->field_barcodes value
     $csv_array = islandora_digital_workflow_csv_file_as_array($csv_filename);
-    if (isset($_SESSION['uploaded_csv_filename'])) {
-      @unlink($_SESSION['uploaded_csv_filename']);
-      unset($_SESSION['uploaded_csv_filename']);
-    }
     if ($create_new) {
       $node = islandora_digital_workflow_make_new_node($form_state, $csv_array);
     }
@@ -45,6 +41,10 @@ function islandora_digital_workflow_sync_node_batch_record_info($form_state, $cs
     $node = node_load($batch_record['nid']);
   }
   islandora_digital_workflow_create_batch_record_by_form($form_state, $node, $csv_filename);
+  if (isset($_SESSION['uploaded_csv_filename'])) {
+    @unlink($_SESSION['uploaded_csv_filename']);
+    unset($_SESSION['uploaded_csv_filename']);
+  }
   if (file_exists($csv_filename)) {
     @unlink($csv_filename);
   }

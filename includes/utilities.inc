@@ -44,10 +44,10 @@ function islandora_digital_workflow_create_batch_record_by_form($form_state, $no
     $batch_name = $form_state['values']['batch_name'];
     $batch_record = islandora_digital_workflow_get_batch_record_by_name($batch_name);
 
-    $uploaded_csv_file = ($csv_filename) ? file_get_contents($csv_filename) : FALSE;
-    $batch_request_date = $form_state['values']['batch_request_due_date']['year'] . '/' .
+    $uploaded_csv_file = ($csv_filename) ? file_get_contents(drupal_realpath($csv_filename)) : FALSE;
+    $batch_request_date = strtotime($form_state['values']['batch_request_due_date']['year'] . '/' .
         $form_state['values']['batch_request_due_date']['month'] . '/' .
-        $form_state['values']['batch_request_due_date']['day'];
+        $form_state['values']['batch_request_due_date']['day']);
     $field_values = array(
         'batch_name' => $batch_name,
         'batch_description' => $form_state['values']['batch_description'],
@@ -64,12 +64,14 @@ function islandora_digital_workflow_create_batch_record_by_form($form_state, $no
 	'batch_default_pub_status' => $form_state['values']['batch_default_pub_status'],
 	'batch_default_CR_status' => $form_state['values']['batch_default_CR_status'],
 	'batch_default_CR_holder' => $form_state['values']['batch_default_CR_holder'],
-
+        'default_type_of_resource' => islandora_digital_workflow_get_name_of_tid($form_state['values']['cmodel_select']),
+        'mapto_collections' => implode(",", $form_state['values']['collections_select']),
         'nid' => $node->nid,
         'user' => $user->name,
+        'lastmod' => time(),
 
         // default_type_of_resource - the text value of the selected Islandora Model
-        // mapto_collections
+        // 
         // if configured, set the site_id field and value
         //   mapto_site_id_values
 
@@ -80,8 +82,14 @@ function islandora_digital_workflow_create_batch_record_by_form($form_state, $no
         'blank_and_missing_treatment' => '',
         'page_edge_treatment' => '',
         'batch_condition_handling' => '',
-        'batch_host' => '',*/
+        */
       );
+    // if configured, set the site_id field and value
+    //   mapto_site_id_values / sites_select
+    if (variable_get('islandora_digital_workflow_use_isMemberOfSite', 0)) {
+      $field_values['mapto_site_id_values'] = implode(",", $form_state['values']['sites_select']);
+    }
+
     // Only update the uploaded CSV file if the file was passed in.  In other words
     // updating a batch record should not wipe out the previous value for
     // uploaded_csv_file.
@@ -562,7 +570,7 @@ function islandora_digital_workflow_csv_file_as_array($csv_file) {
   $file_rows = $file_header = array();
   if (file_exists($csv_file)) {
     $row = 0;
-    if (($handle = fopen($csv_file, "r")) !== FALSE) {
+    if (($handle = fopen(drupal_realpath($csv_file), "r")) !== FALSE) {
       try {
         while (($data = fgetcsv($handle)) !== FALSE) {
           $row++;
@@ -709,7 +717,7 @@ function islandora_digital_workflow_prepare_csv2mods($input_filename, $default_d
   ini_set('auto_detect_line_endings', true);
   $outputFilename   = 'MODS.xml';
   // Open csv to read
-  $inputFile  = fopen($input_filename, 'rt');
+  $inputFile  = fopen(drupal_realpath($input_filename), 'rt');
 
   // Get the headers of the file
   $headers = fgetcsv($inputFile);
@@ -834,9 +842,9 @@ function islandora_digital_workflow_prepare_csv2mods($input_filename, $default_d
       fclose($handle);
     }
     echo "</div>";
-    $filename = islandora_digital_workflow_XMLtoMODS($working_directory . '/' . $row_mods_id . '/' . $outputFilename);
+    $filename = ($keep_created_MODS_files) ? islandora_digital_workflow_XMLtoMODS($working_directory . '/' . $row_mods_id . '/' . $outputFilename) : "";
     $mods_created += ($keep_created_MODS_files) ? ($filename <> '') : 1;
-    echo "<p>created MODS from spreadsheet row = <b>" . $filename . "</b></p>";
+    echo "<p>created MODS from spreadsheet for <b>" . $row_mods_id . "</b></p>";
 
     $identifiers_and_filepaths[] = array(
         'title' => $title,
