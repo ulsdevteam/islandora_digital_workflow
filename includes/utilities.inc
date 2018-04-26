@@ -194,6 +194,22 @@ function islandora_digital_workflow_get_batch_record_by_name($batch_name) {
   }
 }
 
+function islandora_digital_workflow_get_batch_record_by_items_identifier($identifier) {
+  if ($identifier) {
+    $query = db_select('islandora_digital_workflow_batch', 'b');
+    $query->join('islandora_digital_workflow_batch_items', 'bi', 'b.batch_id = bi.batch_id');
+    $query->fields('b')
+        ->condition('bi.identifier', $identifier)
+        ->range(0,1);
+    $results = $query->execute();
+    $row = $results->fetchAssoc();
+    return $row;
+  }
+  else {
+    return NULL;
+  }
+}
+
 /**
  * This still provides a test as to whether or not a field gets into the initial XML from the sheet - and the headings title
  * that would match for that field.

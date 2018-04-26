@@ -8,6 +8,45 @@ and open the template in the editor.
     Author     : BGILLING
 */
 
+/* The above block could be customized in the dynamically created CSS */
+.stage_block {
+    float: left;
+    text-align: center;
+    margin-bottom: 2px;
+    line-height: 1em;
+}
+
+.stage_New, .stage_Scanned, .stage_Problem, .stage_Reviewed, .stage_Done {
+    padding: 4px;
+    border-radius: 4px;
+}
+
+.stage_New {
+    background-color: #48d;
+    color: #FFF;
+}
+
+.stage_Scanned {
+    background-color: #472;
+    color: #FFF;
+}
+
+.stage_Problem {
+    background-color: #F00;
+    color: #FF3;
+}
+
+.stage_Reviewed {
+    background-color: #DDD;
+    color: #888;
+}
+
+.stage_Done {
+    background-color: #2C2;
+    color: #FFF;
+}
+/* The above block could be customized in the dynamically created CSS */
+
 .dashboard-report, #islandora-digital-workflow-batch {
     border-radius: 12px;
     padding: 10px;
@@ -57,43 +96,6 @@ and open the template in the editor.
 
 .bad {
     color: red;
-}
-
-.stage_block {
-    float: left;
-    text-align: center;
-    margin-bottom: 2px;
-    line-height: 1em;
-}
-
-.stage_New, .stage_Scanned, .stage_Problem, .stage_Reviewed, .stage_Done {
-    padding: 4px;
-    border-radius: 4px;
-}
-    
-.stage_New {
-    background-color: #997;
-    color: #220;
-} 
-
-.stage_Scanned {
-    background-color: #472;
-    color: #FFF;
-}
-
-.stage_Problem {
-    background-color: #F00;
-    color: #FF3;
-}
-
-.stage_Reviewed {
-    background-color: #237;
-    color: #CCC;
-}
-
-.stage_Done {
-    background-color: #2C2;
-    color: #349;
 }
 
 .report_table {

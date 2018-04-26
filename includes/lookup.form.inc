@@ -31,10 +31,18 @@ function islandora_digital_workflow_lookup_form_submit($searchterm = '') {
   // with a batch.
   $batch_record = islandora_digital_workflow_get_batch_record_by_name($searchterm);
   if (is_array($batch_record)) {
-    echo "<pre>".print_r($batch_record, true)."</pre>";
+    drupal_set_message(t('Located batch "') . $searchterm . '"');
+    drupal_goto('islandora/islandora_digital_workflow/edit_batch/' . $searchterm);
+  }
+  $batch_record = islandora_digital_workflow_get_batch_record_by_items_identifier($searchterm);
+  if (is_array($batch_record)) {
+    drupal_set_message(t('Located batch "') . $batch_record['batch_name'] . '" ' .
+        t('by an item that matched identifier value "') . $searchterm . '".');
+    drupal_goto('islandora/islandora_digital_workflow/edit_batch/' . $batch_record['batch_name']);
   }
   else {
-    echo '<b>barcode: ' . $searchterm . "<hr>";
+    drupal_set_message('"' . $searchterm . '" ' . t('could not be located.'));
+    drupal_goto('islandora/islandora_digital_workflow/');
   }
 
 }
