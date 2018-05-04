@@ -16,7 +16,7 @@ function islandora_digital_workflow_create_batch() {
   $batch_name = arg(3);
   $form = (!$batch_name) ?
     drupal_get_form('islandora_digital_workflow_create_empty_batch_form') :
-    drupal_get_form('islandora_digital_workflow_create_batch_form', arg(3));
+    drupal_get_form('islandora_digital_workflow_create_batch_form', $batch_name);
   $markup .= drupal_render($form);
   return $markup;
 }

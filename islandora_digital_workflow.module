@@ -64,6 +64,13 @@ function islandora_digital_workflow_menu() {
       'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW),
       'file' => 'includes/create_batch.form.inc',
     ),
+    'islandora/islandora_digital_workflow/delete_batch/%' => array(
+      'title' => t('Islandora Digital Workflow - Delete Batch'),
+      'type' => MENU_NORMAL_ITEM,
+      'page callback' => array('islandora_digital_workflow_delete_batch'),
+      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW),
+      'file' => 'includes/delete_batch.form.inc',
+    ),
     // Callback to serve up the dynamically generated CSS file
     'islandora/islandora_digital_workflow_css.css' => array(
       'type' => MENU_CALLBACK,
@@ -161,6 +168,14 @@ function islandora_digital_workflow_theme() {
         'batch_records' => array(),
         'results_count' => 0,
         'searchterm' => NULL,
+      ),
+    ),
+    'islandora_digital_workflow_batch_records_table' => array(
+      'template' => 'theme/islandora-digital-workflow-batch-records-table',
+      'variables' => array(
+        'batch_records' => array(),
+        'table_title' => '',
+        'table_description' => '',
       ),
     ),
   );

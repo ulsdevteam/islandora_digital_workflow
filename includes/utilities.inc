@@ -85,6 +85,11 @@ function islandora_digital_workflow_create_batch_record_by_form($form_state, $no
     $batch_request_date = strtotime($form_state['values']['batch_request_due_date']['year'] . '/' .
         $form_state['values']['batch_request_due_date']['month'] . '/' .
         $form_state['values']['batch_request_due_date']['day']);
+
+    // Since the form can be modified and potentially may not include some
+    // values, check whether or not these form_state fields exist before
+    // trying to access their values.  This is the reason for some of these
+    // fields to have a logic test for setting the record's value.
     $field_values = array(
         'batch_name' => $batch_name,
         'batch_description' => $form_state['values']['batch_description'],
@@ -94,7 +99,8 @@ function islandora_digital_workflow_create_batch_record_by_form($form_state, $no
         'batch_request_due_date' => $batch_request_date,
         'item_count' => $form_state['values']['object_count'],
         'ingest_namespace' => $form_state['values']['ingest_namespace'],
-        'default_ead_id' => $form_state['values']['default_ead_id'],
+        'default_ead_id' => (array_key_exists('default_ead_id', $form_state['values'])) ?
+          $form_state['values']['default_ead_id'] : '',
         'default_depositor' => $form_state['values']['default_depositor'],
 	'batch_host' => $form_state['values']['batch_host'],
 	'default_genre' => $form_state['values']['default_genre'],
@@ -121,6 +127,7 @@ function islandora_digital_workflow_create_batch_record_by_form($form_state, $no
         'batch_condition_handling' => '',
         */
       );
+
     // if configured, set the site_id field and value
     //   mapto_site_id_values / sites_select
     if (variable_get('islandora_digital_workflow_use_isMemberOfSite', 0)) {
@@ -180,7 +187,7 @@ function islandora_digital_workflow_sync_node_to_barcode_items($batch_record, $n
     $barcodes = explode("\n", $node->field_barcodes[$node->language][0]['value']);
     // Set a variable for this for readibility on the subsequent function call.
     $keep_created_MODS_files = ($csv_filename <> '');
-    $csv_file_sources = islandora_digital_workflow_prepare_csv2mods($csv_filename, $batch_record['default_depositor'], $keep_created_MODS_files);
+    $csv_file_sources = islandora_digital_workflow_prepare_csv2mods($csv_filename, $batch_record, $keep_created_MODS_files);
     if (count($csv_file_sources) > 0) {
       // Delete any pre-existing batch_items records for this batch's batch_id.
       if (db_delete('islandora_digital_workflow_batch_items')
@@ -199,7 +206,7 @@ function islandora_digital_workflow_sync_node_to_barcode_items($batch_record, $n
 function islandora_digital_workflow_sync_batch_item_record($batch_record, $csv_file_sources) {
   if (file_exists($csv_file_sources['mods_filename'])) {
     $mods_content = file_get_contents($csv_file_sources['mods_filename']);
-    unlink($csv_file_sources['mods_filename']);
+    // unlink($csv_file_sources['mods_filename']);
   }
   else {
     $mods_content = '';
@@ -260,6 +267,15 @@ function islandora_digital_workflow_get_batch_record_by_items_identifier($identi
   else {
     return NULL;
   }
+}
+
+function islandora_digital_workflow_find_batch_records_no_details() {
+  $query = db_select('islandora_digital_workflow_batch', 'b')
+      ->fields('b')
+      ->condition('b.ingest_namespace', NULL);
+  $results = $query->execute();
+  $rows = $results->fetchAll();
+  return $rows;
 }
 
 /**
@@ -775,11 +791,14 @@ function islandora_digital_workflow_models_table() {
  * $prepared_filepath = The path to the folder that contains the MODS and image TIF.
  * $identifier - the identifier value (if provided in the spreadsheet).
  */
-function islandora_digital_workflow_prepare_csv2mods($input_filename, $default_depositor = '', $keep_created_MODS_files = FALSE) {
+function islandora_digital_workflow_prepare_csv2mods($input_filename, $batch_record, $keep_created_MODS_files = FALSE) {
   if (!$input_filename) {
     return array();
   }
 
+  $batch_path = islandora_digital_workflow_batch_path($batch_record);
+
+  $default_depositor = $batch_record['default_depositor'];
   ini_set('auto_detect_line_endings', true);
   $outputFilename   = 'MODS.xml';
   // Open csv to read
@@ -791,9 +810,9 @@ function islandora_digital_workflow_prepare_csv2mods($input_filename, $default_d
     return FALSE;
   }
 
-  $working_directory = dirname(drupal_realpath($input_filename));
+//  $working_directory = dirname(drupal_realpath($input_filename));
 
-  echo "<h3>Working directory " . $working_directory . "</h3>";
+  echo "<h3>Working directory " . $batch_path . "</h3>";
 
   $st = " style='background-color:#F2F2F2;border:1px solid #222'";  $toggle = false;  $row_counter = 1;
 
@@ -820,14 +839,14 @@ function islandora_digital_workflow_prepare_csv2mods($input_filename, $default_d
           if ($header == 'identifier') {
             $row_mods_id = trim($row[$i]);
             if ($keep_created_MODS_files) {
-              $mods_directory_path = $working_directory . '/' . $row_mods_id;
+              $mods_directory_path = $batch_path . '/' . $row_mods_id;
               if (!file_exists($mods_directory_path)) {
                 mkdir($mods_directory_path);
               }
             }
           }
           elseif (($header == 'file_name' || $header == 'filename') && array_key_exists($i, $row)) {
-            $row_file_name = $working_directory . '/' . $row[$i];
+            $row_file_name = $batch_path . '/' . $row[$i];
             $outputFilename = str_replace(array('.tiff', '.tif'), '.xml', $row[$i]);
           }
           elseif ($header == 'normalized_date' && array_key_exists($i, $row)) {
@@ -855,9 +874,9 @@ function islandora_digital_workflow_prepare_csv2mods($input_filename, $default_d
     // MOVE the file into the row's working directory
     if ($row_file_name) {
       if (file_exists($row_file_name)) {
-        $command = "cp $row_file_name $working_directory" . '/' . $row_mods_id . '/.';
+        $command = "cp $row_file_name $batch_path" . '/' . $row_mods_id . '/.';
         exec($command);
-        echo "COPY $row_file_name to $working_directory" . '/' . $row_mods_id ."/.<br>";
+        echo "COPY $row_file_name to $batch_path" . '/' . $row_mods_id ."/.<br>";
         $files_copied++;
       }
     }
@@ -903,12 +922,12 @@ function islandora_digital_workflow_prepare_csv2mods($input_filename, $default_d
     echo "<blockquote><pre style='color:#c55'>".htmlspecialchars($strxml) ."</pre></blockquote>";
 
     if ($keep_created_MODS_files) {
-      $handle = fopen($working_directory . '/' . $row_mods_id . '/' . $outputFilename, "w");
+      $handle = fopen($batch_path . '/' . $row_mods_id . '/' . $outputFilename, "w");
       $bytes_written += fwrite($handle, $strxml);
       fclose($handle);
     }
     echo "</div>";
-    $filename = ($keep_created_MODS_files) ? islandora_digital_workflow_XMLtoMODS($working_directory . '/' . $row_mods_id . '/' . $outputFilename) : "";
+    $filename = ($keep_created_MODS_files) ? islandora_digital_workflow_XMLtoMODS($batch_path . '/' . $row_mods_id . '/' . $outputFilename) : "";
     $mods_created += ($keep_created_MODS_files) ? ($filename <> '') : 1;
     echo "<p>created MODS from spreadsheet for <b>" . $row_mods_id . "</b></p>";
 
@@ -919,7 +938,7 @@ function islandora_digital_workflow_prepare_csv2mods($input_filename, $default_d
         'mods_filename' => $filename);
     $row_counter++;
   }
-  echo "<p>" . number_format($files_copied) . " files copied to incoming directory <b>" . $working_directory . "</b></p>";
+  echo "<p>" . number_format($files_copied) . " files copied to incoming directory <b>" . $batch_path . "</b></p>";
   echo "<p>" . number_format($mods_created) . " MODS files created.</p>";
 
   return $identifiers_and_filepaths;

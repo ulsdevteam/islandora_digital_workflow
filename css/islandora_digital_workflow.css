@@ -147,3 +147,12 @@ a .highlighted {
 .lookup_result_indent {
     margin: 4px 0;
 }
+
+.big_red_warning_button {
+    padding: 6px;
+    font-size: 1.4em;
+    color: red;
+    corner-radius: 10px;
+    border: 2px solid #999;
+    box-shadow: 3px 3px 3px #ddd;    
+}
