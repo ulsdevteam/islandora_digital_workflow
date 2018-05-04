@@ -1,15 +1,16 @@
 <?php
 
 function islandora_digital_workflow_dashboard() {
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/lookup.form');
+  $markup = theme('islandora_digital_workflow_lookup', array('searchterm' => ''));
   module_load_include('inc', 'islandora_digital_workflow', 'includes/access_permissions');
   $dashboard_data = islandora_digital_workflow_get_user_role_dashboard();
-  return theme('islandora_digital_workflow_dashboard', array('dashboard_data' => $dashboard_data));
+  return $markup . theme('islandora_digital_workflow_dashboard', array('dashboard_data' => $dashboard_data));
 }
 
 /**
  * This will set up the values for the dashboard view template.
  *
- * @global type $user
  * @return type
  */
 function islandora_digital_workflow_get_user_role_dashboard() {

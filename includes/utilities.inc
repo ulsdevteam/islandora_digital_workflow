@@ -36,6 +36,43 @@ function islandora_digital_workflow_content_type_to_islandora_model($content_typ
   return (array_key_exists($content_type, $islandora_content_type_mapping)) ? $islandora_content_type_mapping[$content_type] : '';
 }
 
+function islandora_digital_workflow_create_stub_batch_record($form_state) {
+  global $user;
+  // TODO: add a validate call instead of checking the values of $form_state here.
+  if (is_array($form_state) && isset($form_state['values']['batch_name'])
+    && $form_state['values']['batch_name']) {
+    $batch_name = $form_state['values']['batch_name'];
+    $batch_record = islandora_digital_workflow_get_batch_record_by_name($batch_name);
+
+    $field_values = array(
+        'batch_name' => $batch_name,
+        'batch_description' => $form_state['values']['batch_description'],
+        'default_type_of_resource' => islandora_digital_workflow_get_name_of_tid($form_state['values']['cmodel_select']),
+        'is_batch_active' => 0,
+        'is_batch_request' => 0,
+        'user' => $user->name,
+        'lastmod' => time(),
+      );
+
+    if ((!is_array($batch_record))) {
+      $batch_id = db_insert('islandora_digital_workflow_batch')
+      ->fields($field_values)
+      ->execute();
+    }
+    else {
+      $batch_id = db_update('islandora_digital_workflow_batch')
+      ->fields($field_values)
+      ->condition('batch_name', $batch_name)
+      ->execute();
+    }
+    $updated_batch_record = islandora_digital_workflow_get_batch_record_by_name($batch_name);
+    return $updated_batch_record;
+  }
+  else {
+    return NULL;
+  }
+}
+
 function islandora_digital_workflow_create_batch_record_by_form($form_state, $node, $csv_filename) {
   global $user;
   // TODO: add a validate call instead of checking the values of $form_state here.
@@ -110,7 +147,7 @@ function islandora_digital_workflow_create_batch_record_by_form($form_state, $no
     }
     $updated_batch_record = islandora_digital_workflow_get_batch_record_by_name($batch_name);
     islandora_digital_workflow_sync_node_to_barcode_items($updated_batch_record, $node, $csv_filename);
-    return islandora_digital_workflow_get_batch_record_by_name($batch_name);
+    return $updated_batch_record; // islandora_digital_workflow_get_batch_record_by_name($batch_name);
   }
   else {
     return NULL;
@@ -142,7 +179,7 @@ function islandora_digital_workflow_sync_node_to_barcode_items($batch_record, $n
       array_key_exists('value', $node->field_barcodes[$node->language][0])) {
     $barcodes = explode("\n", $node->field_barcodes[$node->language][0]['value']);
     // Set a variable for this for readibility on the subsequent function call.
-    $keep_created_MODS_files = FALSE;
+    $keep_created_MODS_files = ($csv_filename <> '');
     $csv_file_sources = islandora_digital_workflow_prepare_csv2mods($csv_filename, $batch_record['default_depositor'], $keep_created_MODS_files);
     if (count($csv_file_sources) > 0) {
       // Delete any pre-existing batch_items records for this batch's batch_id.
@@ -194,16 +231,31 @@ function islandora_digital_workflow_get_batch_record_by_name($batch_name) {
   }
 }
 
+function islandora_digital_workflow_find_batch_records_by_name($batch_name) {
+  if ($batch_name) {
+    $query = db_select('islandora_digital_workflow_batch', 'b')
+        ->fields('b')
+        ->condition('b.batch_name', '%' . db_like($batch_name) . '%', 'LIKE');
+    $results = $query->execute();
+    $rows = $results->fetchAll();
+    return $rows;
+  }
+  else {
+    return NULL;
+  }
+}
+
 function islandora_digital_workflow_get_batch_record_by_items_identifier($identifier) {
   if ($identifier) {
     $query = db_select('islandora_digital_workflow_batch', 'b');
     $query->join('islandora_digital_workflow_batch_items', 'bi', 'b.batch_id = bi.batch_id');
     $query->fields('b')
-        ->condition('bi.identifier', $identifier)
-        ->range(0,1);
+        ->condition('bi.identifier', '%' . db_like($identifier) . '%', 'LIKE')
+        ->groupBy('b.batch_name');
+    $query->addExpression('GROUP_CONCAT(identifier SEPARATOR \', \')', 'identifiers');
     $results = $query->execute();
-    $row = $results->fetchAssoc();
-    return $row;
+    $rows = $results->fetchAll();
+    return $rows;
   }
   else {
     return NULL;
@@ -392,10 +444,8 @@ function islandora_digital_workflow_batch_path($batch_values) {
         'directory and the ' . l('Available Host Alias', '/admin/islandora/islandora_digital_workflow') .
         ' configuration would need to be updated to point to the mounted location.',
         'error');
-  } else {
-    $ingest_path = $ingest_path;
   }
-  $batch_path = rtrim($ingest_path, '/') . '/batch_' . $batch_values['batch_name'];
+  $batch_path = rtrim($ingest_path, '/') . '/' . $batch_values['batch_name'];
   if (!file_exists($batch_path)) {
     $call = mkdir($batch_path);
     if (!$call) {
@@ -981,4 +1031,20 @@ function islandora_digital_workflow_get_tablefield_stats($tablename) {
       'num_numeric_fields' => $non_integer_fieldnames,
       'all_fields' => $fields
     );
+}
+
+function islandora_digital_workflow_highlight($text, $word, $case_sensitive = FALSE) {
+  $highlighted_text = "<span class='highlighted'>$word</span>";
+  $text = ($case_sensitive) ?
+      str_ireplace($word, $highlighted_text, $text) :
+      str_replace($word, $highlighted_text, $text);
+  preg_match_all("'<a.*?href=\"(.*?)\"[^>]*?>(.*?)</a>'si", $text, $matches);
+
+  foreach ($matches[1] as $messed_up_link) {
+    $updated_link = str_replace("<span class='highlighted'>" . $word . "</span>", $word, $messed_up_link);
+    if ($messed_up_link <> $updated_link) {
+      $text = str_replace($messed_up_link, $updated_link, $text);
+    }
+  }
+  return $text;
 }

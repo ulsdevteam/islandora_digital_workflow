@@ -21,33 +21,33 @@ and open the template in the editor.
     border-radius: 4px;
 }
 
-.stage_New {
+.stage_New .stage_New a {
     background-color: #48d;
     color: #FFF;
 }
 
-.stage_Scanned {
+.stage_Scanned,  .stage_Scanned a {
     background-color: #472;
     color: #FFF;
 }
 
-.stage_Problem {
+.stage_Problem, .stage_Problem a {
     background-color: #F00;
     color: #FF3;
 }
 
-.stage_Reviewed {
+.stage_Reviewed, .stage_Reviewed a {
     background-color: #DDD;
     color: #888;
 }
 
-.stage_Done {
+.stage_Done, .stage_Done a{
     background-color: #2C2;
     color: #FFF;
 }
 /* The above block could be customized in the dynamically created CSS */
 
-.dashboard-report, #islandora-digital-workflow-batch {
+.dashboard-report, #islandora-digital-workflow-batch-defaults {
     border-radius: 12px;
     padding: 10px;
     border: 2px solid #777;
@@ -76,17 +76,17 @@ and open the template in the editor.
     font-size: 93%;
 }
 
-#islandora-digital-workflow-batch h3 {
+#islandora-digital-workflow-batch-defaults h3 {
     margin-top: 2px;
 }
 
-#islandora-digital-workflow-batch label {
+#islandora-digital-workflow-batch-defaults label {
     margin-bottom: 4px;
     float: left;
     width: 24%;
 }
 
-#islandora-digital-workflow-batch div {
+#islandora-digital-workflow-batch-defaults div {
     clear: left;
 }
 
@@ -112,4 +112,38 @@ and open the template in the editor.
 
 .fieldset_div_wrapper {
     overflow: scroll;
+}
+
+/* ---- for the lookup results display ---- */
+.highlighted {
+    margin: -2px;
+    padding: 1px;
+    border: 1px solid #CCCC00;
+    background-color: #FFFF22;
+    color: #0022FF;    
+}
+
+a .highlighted {
+    background-color: #FFFFD8;
+    color: #0022FF;    
+}
+
+.lookup_result {
+    border-radius: 6px;
+    padding: 10px;
+    border: 2px solid #999;
+    box-shadow: 3px 3px 3px #ddd;
+    margin-bottom: 8px;
+}
+
+.lookup_result.oddrow {
+    background-color: #f2f2f2;
+}
+
+.lookup_result div h2 {
+    margin-top: 0;
+}
+
+.lookup_result_indent {
+    margin: 4px 0;
 }

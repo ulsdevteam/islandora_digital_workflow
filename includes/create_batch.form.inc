@@ -13,12 +13,147 @@ if (!defined('UPDATE_BUTTON_TEXT')) {
 function islandora_digital_workflow_create_batch() {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/lookup.form');
   $markup = theme('islandora_digital_workflow_lookup', array('searchterm' => ''));
-  $form = drupal_get_form('islandora_digital_workflow_create_batch_form', arg(3));
+  $batch_name = arg(3);
+  $form = (!$batch_name) ?
+    drupal_get_form('islandora_digital_workflow_create_empty_batch_form') :
+    drupal_get_form('islandora_digital_workflow_create_batch_form', arg(3));
   $markup .= drupal_render($form);
   return $markup;
 }
 
+/**
+ * Create empty batch form for islandora_digital_workflow.
+ *
+ * @ingroup forms
+ *
+ * @todo break out non-settings elements into their own form.
+ *
+ * @return array
+ *   The Drupal form definition.
+ */
+function islandora_digital_workflow_create_empty_batch_form(array $form, array &$form_state) {
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/access_permissions');
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy-utilities');
 
+  $readable_models = islandora_digital_workflow_get_reduced_readable_cmodels();
+  $configured_supported_models = variable_get('islandora_digital_workflow_islandora_models', array());
+  $return_form_elements = array();
+  $content_types_vocab = taxonomy_vocabulary_machine_name_load(IDW_CONTENT_TYPE_TAXONOMY_MACHINE_NAME);
+
+  $accessible_models = array('' => 'Select Object Model');
+  foreach ($readable_models as $cmodel => $model) {
+    if (isset($configured_supported_models[$cmodel]) && $configured_supported_models[$cmodel] == 1) {
+      // Now, check that the user has access to this model
+      $permission = islandora_digital_workflow_permission_of_model($model);
+      if (user_access($permission)) {
+        $tid = islandora_digital_workflow_get_tid_by_name($model, $content_types_vocab);
+        $accessible_models[$tid] = $model;
+      }
+    }
+  }
+  if (count($accessible_models) < 2) {
+    drupal_set_message(t('There are no Islandora Object models available for creating ' .
+        'batches.  Please contact an administrator to ask them to ') . l('configure models', '/admin/islandora/islandora_digital_workflow') .
+        t(' and ') . l('set up permissions', '/admin/people/permissions') . t(' to any models.'), 'error');
+    return array(
+      'about' => array(
+        '#type' => 'item',
+        '#markup' => '<i>It is not possible to create any batches until models ' .
+          'are configured and permissions granted.</i>',
+      )
+    );
+  }
+
+  $batch_name = '';
+  $batch_description = '';
+  $button_text = SAVE_BUTTON_TEXT;
+  $batch_path = rtrim(variable_get('islandora_digital_workflow_ingest_prepared_path', '/ingest/islandora_ingest'), '/') . '/batch_0_not_named';
+  $tid_for_cmodel_selected = '';
+
+  // If the user can administer site config, then display the link to the
+  // supported models here.
+  //
+  // admin/islandora/islandora_digital_workflow
+  $supported_models_description = 'Select the type of objects from the ' .
+      'available content models that this batch will contain.' .
+      (user_access('administer site configuration') ?
+          '  Configuration for ' . l('Islandora Digital Workflow',
+          'admin/islandora/islandora_digital_workflow',
+          array('attributes'=>array('target' => '_blank'))) . '.  ' : '');
+
+  $form = array('about' => array(
+      '#type' => 'item',
+      '#markup' => '<i>A batch should <strong>ALWAYS</strong> be a group of similar ' .
+        'objects that need to be tracked through the workflow together.  They are ' .
+        'usually added to the <strong>same collection</strong>, <strong>use the ' .
+        'same object model</strong>, and usually have many of the <strong>same ' .
+        'properties</strong>.</i>',
+    ));
+  $form['batch_edit_frame'] = array(
+      '#type' => 'fieldset',
+      '#title' => 'Create Batch',
+      'batch_name' => array(
+        '#type' => 'textfield',
+        '#title' => t('Batch name'),
+        '#required' => true,
+        '#description' => t('Human readable name for the batch of digital objects.'),
+        '#default_value' => $batch_name,
+      ),
+      'cmodel_select' => array(
+        '#title' => t('Destination Islandora Content Model'),
+        '#type' => 'select',
+        '#required' => true,
+        '#options' => $accessible_models,
+        '#description' => $supported_models_description,
+        '#default_value' => $tid_for_cmodel_selected,
+      ),
+      'batch_description' => array(
+        '#type' => 'textarea',
+        '#title' => t('Batch description'),
+        '#required' => true,
+        '#description' => t('Description of the items in this batch.'),
+        '#default_value' => $batch_description,
+      ),
+    );
+
+  $form['submit'] = array(
+      '#type' => 'submit',
+      '#value' => t($button_text),
+    );
+  $form['cancel'] = array(
+      '#type' => 'submit',
+      '#value' => t('Cancel'),
+    );
+  return $form;
+}
+
+/**
+ * Function that sets the Drupal variables with user's input.
+ *
+ * @param array $form
+ *   The Drupal form definition.
+ * @param array $form_state
+ *   The Drupal form state.
+ */
+function islandora_digital_workflow_create_empty_batch_form_submit(array $form, array &$form_state) {
+  $id = $form_state['triggering_element']['#id'];
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/node-utilities');
+  switch ($id) {
+    case 'edit-submit':
+      $batch_record = islandora_digital_workflow_create_stub_batch_record($form_state);
+      // Only two possible button text values -- edit or save.
+      $current_time = date('H:i:s');
+      $edit_batch_link = l($batch_record['batch_name'], 'islandora/islandora_digital_workflow/edit_batch/' . $batch_record['batch_name']);
+      drupal_set_message(t('[@date] Created new batch: ', array('@date' => $current_time)) . $edit_batch_link, 'status'); //  . date('H:i:s') . '] The new batch "' . . '" has been created.');
+      drupal_goto('islandora/islandora_digital_workflow/edit_batch/' . $batch_record['batch_name']);
+      break;
+    case 'edit-cancel':
+      drupal_set_message('Create Batch has been cancelled.');
+      drupal_goto('islandora/islandora_digital_workflow/');
+      break;
+  }
+}
 
 /**
  * Create batch form for islandora_digital_workflow.
@@ -51,18 +186,6 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
       }
     }
   }
-  if (count($accessible_models) < 1) {
-    drupal_set_message(t('There are no Islandora Object models available for creating ' .
-        'batches.  Please contact an administrator to ask them to ') . l('configure models', '/admin/islandora/islandora_digital_workflow') .
-        t(' and ') . l('set up permissions', '/admin/people/permissions') . t(' to any models.'), 'error');
-    return array(
-      'about' => array(
-        '#type' => 'item',
-        '#markup' => '<i>It is not possible to create any batches until models ' .
-          'are configured and permissions granted.</i>',
-      )
-    );
-  }
 
   // If this form is processing an existing batch by batch_name, set up some
   // values
@@ -94,6 +217,8 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
   else {
     $tid_for_cmodel_selected = '';
   }
+  $model_name = islandora_digital_workflow_get_name_of_tid($tid_for_cmodel_selected);
+  $file_not_allowed_for_model_names = array('Finding Aid', 'Newspaper');
 
   $current_batch_host_selection = ($batch_record && isset($batch_record['batch_host'])) ? $batch_record['batch_host'] : '';
   $batch_hosts = islandora_digital_workflow_get_batch_host_values();
@@ -114,6 +239,7 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
             'CSV file.', 'error');
       }
     }
+    @unlink($tmp_uploaded_csv_file);
   }
   // Prepare a couple variables for use with file upload options:
   $upload_size = min((int) ini_get('post_max_size'), (int) ini_get('upload_max_filesize'));
@@ -146,7 +272,7 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
     ));
   $form['batch_edit_frame'] = array(
       '#type' => 'fieldset',
-      '#title' => 'Create Batch',
+      '#title' => 'Batch details',
       'batch_name' => array(
         '#type' => 'textfield',
         '#title' => t('Batch name'),
@@ -160,6 +286,7 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
         '#type' => 'select',
         '#required' => true,
         '#options' => $accessible_models,
+        '#attributes' => $read_only_att,
         '#description' => $supported_models_description,
         '#default_value' => $tid_for_cmodel_selected,
       ),
@@ -231,22 +358,25 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
       ),
       '#default_value' => ($batch_record && isset($batch_record['object_count'])) ? $batch_record['object_count'] : 1,
     );
-  $form['batch_objects_frame']['file'] = array(
-      '#type' => 'file',
-      '#title' => t('File'),
-      '#description' => t('Select CSV file to upload.<br/>Files must be less than <strong>@size MB.</strong><br/>Allowed file types: <strong>@ext.</strong>', array('@size' => $upload_size, '@ext' => $extensions[0])) .
-                        (($batch_record && isset($batch_record['file']) && ($batch_record['file'] <> '')) ? '<br>Upload file will be stored: <em>' . str_replace($batch_path, '', $batch_record['file']) . '</em>' : ''),
-      '#upload_location' => 'temporary://',
-      '#upload_validators' => array(
-        'file_validate_extensions' => $extensions,
-         // Assume its specified in MB.
-        'file_validate_size' => array($upload_size * 1024 * 1024),
-      ),
-      '#prefix' => "<a id='file_upload'> </a>",
-      '#suffix' => (count($file_rows) ? '<div class="fieldset_div_wrapper"><div class="report_table_wrapper">' .
-          theme('table', array('rows' => $file_rows, 'header' => $file_header, 'attributes' => array('class' => array('report_table')))) .
-        '</div></div>'  : ''),
-    );
+
+  if ((array_search($model_name, $file_not_allowed_for_model_names) === FALSE)) {
+    $form['batch_objects_frame']['file'] = array(
+        '#type' => 'file',
+        '#title' => t('File'),
+        '#description' => t('Select CSV file to upload.<br/>Files must be less than <strong>@size MB.</strong><br/>Allowed file types: <strong>@ext.</strong>', array('@size' => $upload_size, '@ext' => $extensions[0])) .
+                          (($batch_record && isset($batch_record['file']) && ($batch_record['file'] <> '')) ? '<br>Upload file will be stored: <em>' . str_replace($batch_path, '', $batch_record['file']) . '</em>' : ''),
+        '#upload_location' => 'temporary://',
+        '#upload_validators' => array(
+          'file_validate_extensions' => $extensions,
+           // Assume its specified in MB.
+          'file_validate_size' => array($upload_size * 1024 * 1024),
+        ),
+        '#prefix' => "<a id='file_upload'> </a>",
+        '#suffix' => (count($file_rows) ? '<div class="fieldset_div_wrapper"><div class="report_table_wrapper">' .
+            theme('table', array('rows' => $file_rows, 'header' => $file_header, 'attributes' => array('class' => array('report_table')))) .
+          '</div></div>'  : ''),
+      );
+  }
 
   // Ingest options frame
   $form['ingest_options_frame'] = array(
@@ -345,7 +475,8 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
       '#title' => t('Default Copyright Holder Name'),
       '#default_value' => ($batch_record && isset($batch_record['batch_default_CR_holder'])) ? $batch_record['batch_default_CR_holder'] : '',
     );
-  
+
+  islandora_digital_workflow_remove_model_based_form_elements($model_name, $form);
   $form['submit'] = array(
       '#type' => 'submit',
       '#value' => t($button_text),
@@ -357,25 +488,65 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
   return $form;
 }
 
-function islandora_digital_workflow_create_batch_form_validate(&$elements, &$form_state, $form_id = NULL) {
-  // ONLY care about these validations if the batch is not in "edit_batch"
-  // mode by reading the button's text which is based on whether the mode was
-  // create_batch or edit_batch.
-  if ($form_state['clicked_button']['#value'] === SAVE_BUTTON_TEXT) {
-    // Check the csv file upload.
-    if (!islandora_digital_workflow_validate_csv_file_upload()) {
-      form_set_error('file', t('The uploaded CSV file is not valid.'));
-      return;
-    }
+function islandora_digital_workflow_remove_model_based_form_elements($model_name, &$form) {
+  switch ($model_name) {
+    case 'Large Image' || 'Basic Image':
+      unset($form['batch_objects_frame']['default_ead_id']);
+      break;
 
-    // Check for the batch name already existing.
-    $batch_name = $form_state['values']['batch_name'];
+    case 'Finding Aid':
+      unset($form['batch_objects_frame']['default_ead_id']);
+      unset($form['batch_objects_frame']['file']);
+      break;
+
+    case 'Internet Archive Book':
+      unset($form['batch_objects_frame']['default_ead_id']);
+      break;
+
+    case 'Manuscript':
+      break;
+
+    case 'Newspaper':
+      unset($form['batch_objects_frame']['file']);
+      unset($form['batch_objects_frame']['default_ead_id']);
+      break;
+
+    case 'Newspaper Issue':
+      unset($form['batch_objects_frame']['default_ead_id']);
+      break;
+
+    case 'Web ARChive':
+      unset($form['batch_objects_frame']['default_ead_id']);
+      break;
+
+    default:
+      break;
+  }
+}
+
+function islandora_digital_workflow_create_empty_batch_form_validate(&$elements, &$form_state, $form_id = NULL) {
+  // Check for the batch name already existing.
+  $batch_name = $form_state['values']['batch_name'];
+  $batch_record = islandora_digital_workflow_get_batch_record_by_name($batch_name);
+  if (is_array($batch_record)) {
+    form_set_error('batch_name', t('A batch already exists with the name @batch_name.',
+        array('@batch_name' => $batch_name)));
+    $edit_this_batch_link = l($batch_name, 'islandora/islandora_digital_workflow/edit_batch/' . $batch_name);
+    drupal_set_message('Edit existing batch "' . $edit_this_batch_link . '".', 'warning');
+  }
+}
+
+function islandora_digital_workflow_create_batch_form_validate(&$elements, &$form_state, $form_id = NULL) {
+  $batch_name = $form_state['values']['batch_name'];
+  if (isset($_FILES['files']) && array_key_exists('tmp_name', $_FILES) && isset($_FILES['tmp_name'])) {
     $batch_record = islandora_digital_workflow_get_batch_record_by_name($batch_name);
-    if (is_array($batch_record)) {
-      form_set_error('batch_name', t('A batch already exists with the name @batch_name.',
-          array('@batch_name' => $batch_name)));
-      $edit_this_batch_link = l($batch_name, 'islandora/islandora_digital_workflow/edit_batch/' . $batch_name);
-      drupal_set_message('Edit existing batch "' . $edit_this_batch_link . '".', 'warning');
+    $batch_record_uploaded_csv = array_key_exists('uploaded_csv_file', $batch_record) ? $batch_record['uploaded_csv_file'] : '';
+    if ($batch_record_uploaded_csv == '') {
+      // Check the csv file upload.
+      if (!islandora_digital_workflow_validate_csv_file_upload()) {
+        form_set_error('file', t('The uploaded CSV file is not valid.'));
+        return;
+      }
     }
   }
 }
@@ -393,9 +564,12 @@ function islandora_digital_workflow_create_batch_form_submit(array $form, array 
   module_load_include('inc', 'islandora_digital_workflow', 'includes/node-utilities');
   switch ($id) {
     case 'edit-submit':
+      if (isset($_FILES['files']) && isset($_FILES["files"]["tmp_name"]['file'])) {
+        islandora_digital_workflow_validate_csv_file_upload();
+      }
       $csv_filename = (isset($_SESSION['uploaded_csv_filename']) ? $_SESSION['uploaded_csv_filename'] : '');
       $create_new = ($form_state['clicked_button']['#value'] === SAVE_BUTTON_TEXT);
-      $batch_record = islandora_digital_workflow_sync_node_batch_record_info($form_state, $csv_filename, $create_new);
+      $batch_record = islandora_digital_workflow_sync_node_batch_record_info(NULL, $form_state, $csv_filename);
       // Only two possible button text values -- edit or save.
       $current_time = date('H:i:s');
       $edit_batch_link = l($batch_record['batch_name'], 'islandora/islandora_digital_workflow/edit_batch/' . $batch_record['batch_name']);
@@ -404,6 +578,9 @@ function islandora_digital_workflow_create_batch_form_submit(array $form, array 
       }
       else {
         drupal_set_message(t('[@date] Batch updated: ', array('@date' => $current_time)) . $edit_batch_link, 'status'); //  . date('H:i:s') . '] The batch record has been updated.');
+      }
+      if (file_exists($csv_filename)) {
+        @unlink($csv_filename);
       }
       drupal_goto('node/' . $batch_record['nid']);
       break;

@@ -13,7 +13,7 @@ function islandora_digital_workflow_update_dynamic_css() {
 
   $css = '';
   foreach ($stage_values as $stage => $colors) {
-    $css .= '.stage_' . $stage . " {\n" .
+    $css .= '.stage_' . $stage . ", .stage_" . $stage . " a {\n" .
             '  color:' . $colors['color'] . ";\n" .
             '  background-color:' . $colors['background-color'] . ";\n" .
             '}' . "\n\n";

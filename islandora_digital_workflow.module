@@ -40,8 +40,10 @@ function islandora_digital_workflow_menu() {
       'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW),
       'file' => 'includes/lookup.form.inc',
     ),
+    // Lookup submit handler - performs search, redirects if finds only one
+    // result, else displays the lookup results.
     'islandora/islandora_digital_workflow/lookup/%' => array(
-      'title' => t('Islandora Digital Workflow Item'),
+      'title' => t('Islandora Digital Workflow Search'),
       'type' => MENU_CALLBACK,
       'page callback' => array('islandora_digital_workflow_lookup_form_submit'),
       'page arguments' => array(3),
@@ -62,6 +64,7 @@ function islandora_digital_workflow_menu() {
       'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW),
       'file' => 'includes/create_batch.form.inc',
     ),
+    // Callback to serve up the dynamically generated CSS file
     'islandora/islandora_digital_workflow_css.css' => array(
       'type' => MENU_CALLBACK,
       'page callback' => 'islandora_digital_workflow_update_dynamic_css',
@@ -140,8 +143,8 @@ function islandora_digital_workflow_theme() {
         'dashboard_data' => NULL,
       ),
     ),
-    'islandora_digital_workflow_batch' => array(
-      'template' => 'theme/islandora-digital-workflow-batch',
+    'islandora_digital_workflow_batch_defaults' => array(
+      'template' => 'theme/islandora-digital-workflow-batch-defaults',
       'variables' => array(
         'islandora_digital_workflow_batch' => NULL,
       ),
@@ -151,18 +154,31 @@ function islandora_digital_workflow_theme() {
       'variables' => array(
         'searchterm' => NULL,
       )
-    )
+    ),
+    'islandora_digital_workflow_lookup_results' => array(
+      'template' => 'theme/islandora-digital-workflow-lookup-results',
+      'variables' => array(
+        'batch_records' => array(),
+        'results_count' => 0,
+        'searchterm' => NULL,
+      ),
+    ),
   );
 }
 
 function gamera_pitt_field__field_stage__workflow_batch($context) {
-  $value = (array_key_exists('element', $context) && array_key_exists('#items', $context['element']) && array_key_exists('value', $context['element']['#items'][0])) ?
-    $context['element']['#items'][0]['value'] : 0;
-  $stage_str = array('New', 'Scanned', 'Problem', 'Reviewed', 'Done');
-  return '<div class="field field-type-user-reference field-label-inline">' .
-         '<div class="stage_block stage_' . $stage_str[$value] . '">' . $stage_str[$value] . '</div>' .
-         '<br style="clear:both">' .
-         '</div>';
+  $value = (array_key_exists('element', $context) && array_key_exists('#items', $context['element']) && array_key_exists('tid', $context['element']['#items'][0])) ?
+    $context['element']['#items'][0]['tid'] : 0;
+  if ($value) {
+    module_load_include('module', 'taxonomy', 'taxonomy');
+    $term = taxonomy_term_load($value);
+    $term_link = l($term->name, 'taxonomy/term/' . $value);
+    $stage_str = array('New', 'Scanned', 'Problem', 'Reviewed', 'Done');
+    return '<div class="field field-type-user-reference field-label-inline">' .
+           '<div class="stage_block stage_' . $term->name . '">' . $term_link . '</div>' . // $stage_str[$value]
+           '<br style="clear:both">' .
+           '</div>';
+  }
 }
 
 /**
@@ -174,36 +190,10 @@ function gamera_pitt_field__field_stage__workflow_batch($context) {
  * need to be CCK fields.
  */
 function islandora_digital_workflow_node_update($node) {
-  module_load_include('inc', 'islandora_digital_workflow', 'includes/node-utilities');
-  islandora_digital_workflow_sync_node_batch_record_info($node, array(), '', FALSE);
-}
-
-//implementation of hook_block_info
-function islandora_digital_workflow_block_info() {
-  $blocks = array();
-  $blocks['batch_defaults_block'] = array(
-    'info' => t('Batch Defaults'),
-  );
-
-  return $blocks;
-}
-
-//implementation of hook_block_view
-function islandora_digital_workflow_block_view($delta='') {
-  $block = array();
-
-  switch($delta) {
-    case 'batch_defaults_block' :
-      $item = menu_get_item();
-      if ($item['path'] == 'node/%') {
-        module_load_include('inc', 'islandora_digital_workflow', 'includes/node-utilities');
-        // From the menu route, derive the $node object -- needed for contents.
-        $node = is_object($item['map'][1]) ? $item['map'][1] : NULL;
-
-        $batch_record = islandora_digital_workflow_load_batch_record_for_node($node);
-        $block['content'] = theme('islandora_digital_workflow_batch', array('islandora_digital_workflow_batch' => $batch_record));
-      }
-      break;
+  global $system_creating_nodes;
+  if (!$system_creating_nodes) {
+    module_load_include('inc', 'islandora_digital_workflow', 'includes/node-utilities');
+    islandora_digital_workflow_sync_node_batch_record_info($node, array(), '', FALSE);
   }
-  return $block;
 }
+

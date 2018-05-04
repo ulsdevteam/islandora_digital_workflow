@@ -29,16 +29,29 @@ function islandora_digital_workflow_lookup_form_submit($searchterm = '') {
   // Try to load a islandora_digital_workflow_batch record by name ... if it 
   // does not come back, the searchterm may relate to a barcode that is associated
   // with a batch.
-  $batch_record = islandora_digital_workflow_get_batch_record_by_name($searchterm);
-  if (is_array($batch_record)) {
-    drupal_set_message(t('Located batch "') . $searchterm . '"');
-    drupal_goto('islandora/islandora_digital_workflow/edit_batch/' . $searchterm);
+  $batch_records = islandora_digital_workflow_find_batch_records_by_name($searchterm);
+  if (!is_array($batch_records) || count($batch_records) < 1) {
+    $batch_records = islandora_digital_workflow_get_batch_record_by_items_identifier($searchterm);
   }
-  $batch_record = islandora_digital_workflow_get_batch_record_by_items_identifier($searchterm);
-  if (is_array($batch_record)) {
-    drupal_set_message(t('Located batch "') . $batch_record['batch_name'] . '" ' .
-        t('by an item that matched identifier value "') . $searchterm . '".');
-    drupal_goto('islandora/islandora_digital_workflow/edit_batch/' . $batch_record['batch_name']);
+  if (is_array($batch_records)) {
+    // If there is only one result, jump to that page --- else, present the
+    // results as a list that can be used to jump to each.
+    if (count($batch_records) < 2) {
+      drupal_set_message(t('Located batch "') . $batch_records[0]->batch_name . '" ' .
+          t('by an item that matched identifier value "') . $searchterm . '".');
+      drupal_goto('islandora/islandora_digital_workflow/edit_batch/' . $batch_records[0]->batch_name);
+    }
+    else {
+      module_load_include('inc', 'islandora_digital_workflow', 'includes/lookup.form');
+      $markup = theme('islandora_digital_workflow_lookup', array('searchterm' => ''));
+
+      return $markup . islandora_digital_workflow_highlight(theme('islandora_digital_workflow_lookup_results', array(
+          'batch_records' => $batch_records,
+          'results_count' => count($batch_records),
+          'searchterm' => $searchterm
+        )
+      ), $searchterm);
+    }
   }
   else {
     drupal_set_message('"' . $searchterm . '" ' . t('could not be located.'));
@@ -46,3 +59,4 @@ function islandora_digital_workflow_lookup_form_submit($searchterm = '') {
   }
 
 }
+
