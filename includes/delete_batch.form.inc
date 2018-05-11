@@ -7,10 +7,10 @@
 
 function islandora_digital_workflow_delete_batch() {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/lookup.form');
-  $markup = theme('islandora_digital_workflow_lookup', array('searchterm' => ''));
+  $lookup_form_markup = theme('islandora_digital_workflow_lookup', array('searchterm' => ''));
   $batch_name = arg(3);
   $form = drupal_get_form('islandora_digital_workflow_delete_batch_form', $batch_name);
-  $markup .= drupal_render($form);
+  $markup = $lookup_form_markup . drupal_render($form);
   return $markup;
 }
 
@@ -102,12 +102,6 @@ function islandora_digital_workflow_delete_batch_form(array $form, array &$form_
           '  Configuration for ' . l('Islandora Digital Workflow',
           'admin/islandora/islandora_digital_workflow',
           array('attributes'=>array('target' => '_blank'))) . '.  ' : '');
-
-  $form = array('delete_top' => array(
-      '#type' => 'submit',
-//       '#attributes' => array('class' => 'big_red_warning_button'),
-      '#value' => t('Delete'),
-    ));
 
   $form['batch_edit_frame'] = array(
       '#type' => 'fieldset',

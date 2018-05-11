@@ -138,7 +138,7 @@ function islandora_digital_workflow_create_batch_record_by_form($form_state, $no
     // updating a batch record should not wipe out the previous value for
     // uploaded_csv_file.
     if ($csv_filename) {
-      $field_values['uploaded_csv_file'] = $uploaded_csv_file;
+      $field_values['uploaded_csv_file'] = mb_check_encoding($uploaded_csv_file, 'UTF-8') ? $uploaded_csv_file : utf8_encode($uploaded_csv_file);
     }
 
     if ((!is_array($batch_record))) {
@@ -153,8 +153,8 @@ function islandora_digital_workflow_create_batch_record_by_form($form_state, $no
       ->execute();
     }
     $updated_batch_record = islandora_digital_workflow_get_batch_record_by_name($batch_name);
-    islandora_digital_workflow_sync_node_to_barcode_items($updated_batch_record, $node, $csv_filename);
-    return $updated_batch_record; // islandora_digital_workflow_get_batch_record_by_name($batch_name);
+    islandora_digital_workflow_sync_node_to_items($updated_batch_record, $node, $csv_filename);
+    return $updated_batch_record;
   }
   else {
     return NULL;
@@ -168,7 +168,7 @@ function islandora_digital_workflow_create_batch_record_by_form($form_state, $no
  * @return array
  */
 function islandora_digital_workflow_get_batch_host_values() {
-  $arr = explode("\r\n", variable_get('islandora_digital_workflow_hosts_for_ingest'), 2);
+  $arr = explode("\r\n", trim(variable_get('islandora_digital_workflow_hosts_for_ingest')));
   $return_array = array(variable_get('islandora_digital_workflow_ingest_prepared_path', '/ingest/islandora_ingest') => 'Default Incoming Ingest Path');
 
   foreach ($arr as $alias_and_value) {
@@ -181,10 +181,9 @@ function islandora_digital_workflow_get_batch_host_values() {
   return $return_array;
 }
 
-function islandora_digital_workflow_sync_node_to_barcode_items($batch_record, $node, $csv_filename) {
-  if (is_array($batch_record) && isset($node->field_barcodes) &&
-      array_key_exists('value', $node->field_barcodes[$node->language][0])) {
-    $barcodes = explode("\n", $node->field_barcodes[$node->language][0]['value']);
+function islandora_digital_workflow_sync_node_to_items($batch_record, $node, $csv_filename) {
+  if (is_array($batch_record) && isset($node->field_identifiers) &&
+      array_key_exists('value', $node->field_identifiers[$node->language][0])) {
     // Set a variable for this for readibility on the subsequent function call.
     $keep_created_MODS_files = ($csv_filename <> '');
     $csv_file_sources = islandora_digital_workflow_prepare_csv2mods($csv_filename, $batch_record, $keep_created_MODS_files);
@@ -196,28 +195,31 @@ function islandora_digital_workflow_sync_node_to_barcode_items($batch_record, $n
         drupal_set_message('Previous batch item record deleted for "' .
             $batch_record['batch_name'] . '".', 'status');
       }
-      foreach ($csv_file_sources as $csv_file_sources) {
-        islandora_digital_workflow_sync_batch_item_record($batch_record, $csv_file_sources);
+      foreach ($csv_file_sources as $csv_file_source) {
+        islandora_digital_workflow_sync_batch_item_record($batch_record, $csv_file_source);
       }
     }
   }
 }
 
-function islandora_digital_workflow_sync_batch_item_record($batch_record, $csv_file_sources) {
-  if (file_exists($csv_file_sources['mods_filename'])) {
-    $mods_content = file_get_contents($csv_file_sources['mods_filename']);
-    // unlink($csv_file_sources['mods_filename']);
+function islandora_digital_workflow_sync_batch_item_record($batch_record, $csv_file_source) {
+  if (file_exists($csv_file_source['mods_filename'])) {
+    $mods_content = file_get_contents($csv_file_source['mods_filename']);
+    $mods_content = mb_check_encoding($mods_content, 'UTF-8') ? $mods_content : utf8_encode($mods_content);
+    // unlink($csv_file_source['mods_filename']);
   }
   else {
     $mods_content = '';
   }
+  $title = mb_check_encoding($csv_file_source['title'], 'UTF-8') ? $csv_file_source['title'] : utf8_encode($csv_file_source['title']);
+
   // take each mods_filename and put this into the item record
   $batch_item_id = db_insert('islandora_digital_workflow_batch_items')
       ->fields(array(
         'batch_id' => $batch_record['batch_id'],
-        'identifier' => $csv_file_sources['identifier'],
-        'title' => $csv_file_sources['title'],
-        'filename' => $csv_file_sources['filename'],
+        'identifier' => $csv_file_source['identifier'],
+        'title' => $title,
+        'filename' => $csv_file_source['filename'],
         'mods' => $mods_content,
       ))
       ->execute();
@@ -454,7 +456,7 @@ function islandora_digital_workflow_batch_path($batch_values) {
   if (!$batch_values['batch_host'] || $ingest_path == 'ftp' || (ltrim($ingest_path, 'ftp:') <> $ingest_path)) {
     $ingest_path = variable_get('islandora_digital_workflow_ingest_prepared_path', '/ingest/islandora_ingest');
   } elseif (strstr($ingest_path, ":")) {
-    @list($ingest_host, $ingest_path) = explode(":", $ingest_path, 2);
+    @list($ingest_host, $ingest_path) = explode(":", $ingest_path);
     drupal_set_message('This batch is configured to use files from a different server.  ' .
         'That server needs to be configured as a mounted folder under the /ingest ' .
         'directory and the ' . l('Available Host Alias', '/admin/islandora/islandora_digital_workflow') .
@@ -895,9 +897,10 @@ function islandora_digital_workflow_prepare_csv2mods($input_filename, $batch_rec
     foreach($headers as $i => $header) {
       if (array_key_exists($header, $csv_header_xpath_mappings)) {
         if (is_array($rowcopy) && array_key_exists($i, $rowcopy) && $rowcopy[$i]) {
+          $text_node_value = mb_check_encoding($rowcopy[$i], 'UTF-8') ? $rowcopy[$i] : utf8_encode($rowcopy[$i]);
           $child = $doc->createElement($header);
           $child = $root->appendChild($child);
-          $value = $doc->createTextNode($rowcopy[$i]);
+          $value = $doc->createTextNode($text_node_value);
           $value = $child->appendChild($value);
           if (!$depositor_in_CSV && $header == 'depositor') {
             $depositor_in_CSV = TRUE;

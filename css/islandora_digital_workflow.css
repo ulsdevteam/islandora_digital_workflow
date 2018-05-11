@@ -21,7 +21,7 @@ and open the template in the editor.
     border-radius: 4px;
 }
 
-.stage_New .stage_New a {
+.stage_New, .stage_New a {
     background-color: #48d;
     color: #FFF;
 }
@@ -48,11 +48,15 @@ and open the template in the editor.
 /* The above block could be customized in the dynamically created CSS */
 
 .dashboard-report, #islandora-digital-workflow-batch-defaults {
-    border-radius: 12px;
+    border-radius: 6px;
     padding: 10px;
-    border: 2px solid #777;
-    box-shadow: 10px 10px 5px #ccc;
+    border: 2px solid #bbb;
+    box-shadow: 3px 3px 3px #ddd;
     margin-bottom: 10px;
+}
+
+.dashboard-report h3 {
+    margin: 0 0 10px 0 !important;
 }
 
 .indent-item {
@@ -124,14 +128,18 @@ and open the template in the editor.
 }
 
 a .highlighted {
-    background-color: #FFFFD8;
+    background-color: #FFFF22;
     color: #0022FF;    
+}
+
+.lookup_results {
+    clear: both;
 }
 
 .lookup_result {
     border-radius: 6px;
     padding: 10px;
-    border: 2px solid #999;
+    border: 2px solid #ccc;
     box-shadow: 3px 3px 3px #ddd;
     margin-bottom: 8px;
 }
@@ -146,13 +154,4 @@ a .highlighted {
 
 .lookup_result_indent {
     margin: 4px 0;
-}
-
-.big_red_warning_button {
-    padding: 6px;
-    font-size: 1.4em;
-    color: red;
-    corner-radius: 10px;
-    border: 2px solid #999;
-    box-shadow: 3px 3px 3px #ddd;    
 }

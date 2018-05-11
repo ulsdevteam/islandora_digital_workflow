@@ -25,8 +25,8 @@ function islandora_digital_workflow_sync_node_batch_record_info($node, $form_sta
   $node = (is_object($node)) ? $node : (($batch_record['nid'] > 0) ? node_load($batch_record['nid']) : NULL);
 
   if ($csv_filename) {
-    // parse the csv file to get the identifiers / a.k.a. barcodes and set this
-    // pass these values along to be added to the node->field_barcodes value
+    // parse the csv file to get the identifiers and set pass these values
+    // along to be added to the node->field_identifiers value
     $csv_array = islandora_digital_workflow_csv_file_as_array($csv_filename);
     $node = islandora_digital_workflow_make_or_update_node($form_state, $csv_array, $node);
   }
@@ -127,7 +127,7 @@ function islandora_digital_workflow_make_or_update_node($form_state, $csv_array,
   // Since islandora_digital_workflow_csv_file_as_array returned all headings in
   // lowercase, look for "identifier"
   $csv_values_arr = islandora_digital_workflow_get_csv_values_for_fieldname('identifier', $csv_array);
-  $node->field_barcodes[$node->language][0]['value'] = implode("\n", $csv_values_arr['identifier']);
+  $node->field_identifiers[$node->language][0]['value'] = implode("\n", $csv_values_arr['identifier']);
 
   $node = node_submit($node); // Prepare node for saving
   node_save($node);

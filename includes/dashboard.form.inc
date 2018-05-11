@@ -2,11 +2,30 @@
 
 function islandora_digital_workflow_dashboard() {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/lookup.form');
-  $markup = theme('islandora_digital_workflow_lookup', array('searchterm' => ''));
+  $lookup_form_markup = theme('islandora_digital_workflow_lookup', array('searchterm' => ''));
   module_load_include('inc', 'islandora_digital_workflow', 'includes/access_permissions');
   $dashboard_data = islandora_digital_workflow_get_user_role_dashboard();
   $tasks_table = islandora_digital_workflow_get_tasks_tables();
-  return $markup . $tasks_table . theme('islandora_digital_workflow_dashboard', array('dashboard_data' => $dashboard_data));
+  $links = islandora_digital_workflow_get_stage_links();
+  return $lookup_form_markup .
+      theme('islandora_digital_workflow_dashboard', array(
+          'dashboard_data' => $dashboard_data,
+          'links' => $links)) .
+      $tasks_table;
+}
+
+function islandora_digital_workflow_get_stage_links() {
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy-utilities');
+  // first link is "All" stages
+  // remaining links are all based on the stage taxonomy terms  
+  $content_types_vocab = taxonomy_vocabulary_machine_name_load(IDW_STAGE_TAXONOMY_MACHINE_NAME);
+  $links = array(l('All Batches', '/islandora/islandora_digital_workflow/batches/all'));
+  $stages = array('New', 'Scanned', 'Problem', 'Reviewed', 'Done');
+  foreach ($stages as $stage) {
+    $tid = islandora_digital_workflow_get_tid_by_name($stage, $content_types_vocab);
+    $links[] = l($stage, '/islandora/islandora_digital_workflow/batches/' . $tid);
+  }
+  return $links;  
 }
 
 /**
@@ -31,11 +50,10 @@ function islandora_digital_workflow_get_tasks_tables() {
   // have not been entered.
   $batch_records_no_details = islandora_digital_workflow_find_batch_records_no_details();
   if (count($batch_records_no_details)) {
-    dpm($batch_records_no_details);
     $tables[] = theme('islandora_digital_workflow_batch_records_table', array(
       'batch_records' => $batch_records_no_details,
       'table_title' => 'Batch records with no details',
-      'table_description' => 'Please complete or delete the following batch records.',
+      'table_description' => 'Please complete or delete the following batch records:',
     ));
   }
   // make links to edit those batches like: islandora/islandora_digital_workflow/edit_batch/test12

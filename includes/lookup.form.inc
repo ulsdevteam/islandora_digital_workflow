@@ -27,8 +27,8 @@ function islandora_digital_workflow_lookup() {
 function islandora_digital_workflow_lookup_form_submit($searchterm = '') {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
   // Try to load a islandora_digital_workflow_batch record by name ... if it 
-  // does not come back, the searchterm may relate to a barcode that is associated
-  // with a batch.
+  // does not come back, the searchterm may relate to an identifier that is
+  // associated with a batch.
   $batch_records = islandora_digital_workflow_find_batch_records_by_name($searchterm);
   if (!is_array($batch_records) || count($batch_records) < 1) {
     $batch_records = islandora_digital_workflow_get_batch_record_by_items_identifier($searchterm);

@@ -12,12 +12,12 @@ if (!defined('UPDATE_BUTTON_TEXT')) {
 
 function islandora_digital_workflow_create_batch() {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/lookup.form');
-  $markup = theme('islandora_digital_workflow_lookup', array('searchterm' => ''));
+  $lookup_form_markup = theme('islandora_digital_workflow_lookup', array('searchterm' => ''));
   $batch_name = arg(3);
   $form = (!$batch_name) ?
     drupal_get_form('islandora_digital_workflow_create_empty_batch_form') :
     drupal_get_form('islandora_digital_workflow_create_batch_form', $batch_name);
-  $markup .= drupal_render($form);
+  $markup = $lookup_form_markup . drupal_render($form);
   return $markup;
 }
 
@@ -398,7 +398,6 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
         '#type' => 'textfield',
         '#title' => t('Ingest namespace'),
         '#required' => true,
-        '#attributes' => $read_only_att,
         '#default_value' => variable_get('islandora_digital_workflow_ingest_namespace', 'islandora'),
       ),
     );
