@@ -1,5 +1,3 @@
-
-
 ## Islandora Digital Workflow
 To prepare and track digital content for possible ingest into Islandora.
 
@@ -44,10 +42,16 @@ To prepare and track digital content for possible ingest into Islandora.
 		- Requests not going online? Should they be part of this workflow or not?
 
 ## Installation
-This module does require one manual step in order to be able to update the dynamic CSS file.  The configuration will provide these instructions if an attempt is made to update the settings before performing this step to change the ownership of this file.
+Each Islandora model requires a specific module to be installed.  Additionally, the ability to assign PID value for objects as they ingest as well as to add the "isMemberOfSite" relationship would require the ulsdevteam instance of each module.  The configuration page provides links to each of the required modules so that they can be installed.  These are:
+ - [Basic Image](https://github.com/Islandora/islandora_batch.git), [ulsdevteam](https://github.com/ulsdevteam/islandora_batch.git)
+ - [Finding Aid](//) (not developed)
+ - [Internet Archive Book](https://github.com/Islandora/islandora_book_batch.git), [ulsdevteam](https://github.com/ulsdevteam/islandora_book_batch.git)
+ - [Large Image]() [ulsdevteam](https://github.com/ulsdevteam/islandora_batch.git)
+ - [Manuscript](https://github.com/ulsdevteam/islandora_manuscript_batch.git) *ulsdevteam version is the only instance.*
+ - [Newspaper](https://github.com/Islandora/islandora_newspaper_batch.git), [ulsdevteam](https://github.com/ulsdevteam/islandora_newspaper_batch.git)
+ - [Newspaper Issue](https://github.com/Islandora/islandora_newspaper_batch.git), [ulsdevteam](https://github.com/ulsdevteam/islandora_newspaper_batch.git)
+ - [Web ARChive](//) (not developed)
 
-    $ cd islandora_digital_workflow/css
-    $ sudo chown apache islandora_digital_workflow_dynamic.css
 Installing this module will also set up the following:
  - workflow_batch Drupal node content type with CCK fields for each batch property
  - Drupal taxonomy and several vocabularies to track batch "Stage", and "Content Type" (correlates to Islandora object models).

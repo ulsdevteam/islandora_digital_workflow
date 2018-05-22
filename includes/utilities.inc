@@ -768,23 +768,101 @@ function islandora_digital_workflow_get_csv_values_for_fieldname($fieldname, $cs
   return $ret_array;
 }
 
+/**
+ * This returns the table of checkboxes based on the islandora models.
+ *
+ * Checkboxes are checked based on the islandora_digital_workflow_islandora_models
+ * variable.  Also, this will check whether or not the module is installed 
+ * (see: islandora_digital_workflow_model_ingest_module_info).
+ *
+ * @return array
+ *   The array of Drupal form definitions.
+ */
 function islandora_digital_workflow_models_table() {
   $readable_models = islandora_digital_workflow_get_reduced_readable_cmodels();
   $configured_models = $return_form_elements = array();
   $configured_supported_models = variable_get('islandora_digital_workflow_islandora_models', array());
 
   foreach ($readable_models as $cmodel => $model) {
+    // Each model depends on a specific module in order to be able to ingest.
+    // The models that are not supported should be disabled.
+    $this_model_module_info = islandora_digital_workflow_model_ingest_module_info($model);
+    $title = ($this_model_module_info['exists']) ? $model : $title . ' (not installed)';
     $configured_models[$cmodel] = array(
       '#type' => 'checkbox',
-      '#title' => $model,
+      '#title' => $title,
       // Mark the checkboxes as checked based on islandora_digital_workflow_islandora_models
       '#default_value' => isset($configured_supported_models[$cmodel]) ? (($configured_supported_models[$cmodel] <> 0) ? 1 : 0) : 0,
       '#prefix' => '<div class="major-item">',
       '#suffix' => '</div>',
     );
+    if (!$this_model_module_info['exists'] && $configured_supported_models[$cmodel] <> 0) {
+      $configured_supported_models[$cmodel] = 0;
+      drupal_set_message($model . ' was set to be enabled by the configuration, but the module code ' .
+          $this_model_module_info['git_link'] . ', ' . $this_model_module_info['uls_git_link'] .
+          ' is missing, so the option was removed.');
+      $configured_models[$cmodel]['#disabled'] = TRUE;
+    }
     $return_form_elements[str_replace(" ", "+", $model)] = $configured_models[$cmodel];
   }
   return $return_form_elements;
+}
+
+/**
+ * Returns the information for each model's ingest module.
+ *
+ * @param array $model
+ *   The array will contain the following key values:
+ *   'exists' - whether or not the module exists (is installed)
+ *   'module_name' - the name of the module
+ *   'git_link' - link to the git repository link to the module code.
+ *   'uls_git_link' - link to the git repository link to the ulsdevteam module code.
+ */
+function islandora_digital_workflow_model_ingest_module_info($model) {
+  // The easiest way to achieve this is to use a switch case -- this may be rewritten
+  // to have a configurable set of models => module_names for preparing the batch
+  // for each model type, but that is potentially a big can of worms since each module
+  // replacement could potentially have a different batch prepare function name.
+  $retval = array(
+    'exists' => FALSE,
+    'module_name' => '',
+    'git_link' => '',
+    'uls_git_link' => '',
+  );
+  switch ($model) {
+    case "Basic Image": case "Large Image":
+      $retval['module_name'] = 'islandora_batch';
+      $retval['git_link'] = l($retval['module_name'], 'https://github.com/Islandora/islandora_batch.git');
+      $retval['uls_git_link'] = l($retval['module_name'], 'https://github.com/ulsdevteam/islandora_batch.git');
+      break;
+    case "Finding Aid":
+      $retval['module_name'] = 'islandora_batch';
+      $retval['git_link'] = l($retval['module_name'], 'https://github.com/Islandora/islandora_book_batch.git');
+      $retval['uls_git_link'] = l($retval['module_name'], 'https://github.com/ulsdevteam/islandora_book_batch.git');
+      break;
+    case "Internet Archive Book":
+      $retval['module_name'] = 'islandora_batch';
+      $retval['git_link'] = l($retval['module_name'], 'https://github.com/Islandora/islandora_book_batch.git');
+      $retval['uls_git_link'] = l($retval['module_name'], 'https://github.com/ulsdevteam/islandora_book_batch.git');
+      break;
+    case "Manuscript":
+      $retval['module_name'] = 'islandora_batch';
+      $retval['git_link'] = l($retval['module_name'], '//');
+      $retval['uls_git_link'] = l($retval['module_name'], 'https://github.com/ulsdevteam/islandora_manuscript_batch.git');
+      break;
+    case "Newspaper": case "Newspaper Issue":
+      $retval['module_name'] = 'islandora_batch';
+      $retval['git_link'] = l($retval['module_name'], 'https://github.com/Islandora/islandora_newspaper_batch.git');
+      $retval['uls_git_link'] = l($retval['module_name'], 'https://github.com/ulsdevteam/islandora_newspaper_batch.git');
+      break;
+    case "Web ARChive":
+      $retval['module_name'] = 'islandora_batch';
+      $retval['git_link'] = l($retval['module_name'], 'https://github.com/Islandora/islandora_book_batch.git');
+      $retval['uls_git_link'] = l($retval['module_name'], 'https://github.com/ulsdevteam/islandora_book_batch.git');
+      break;
+  }
+  $retval['exists'] = module_exists($retval['module_name']);
+  return $retval;
 }
 
 /**

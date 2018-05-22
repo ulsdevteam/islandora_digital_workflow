@@ -115,6 +115,12 @@ function islandora_digital_workflow_admin_form() {
       '#title' => t('Stages'),
       '#collapsible' => TRUE,
       '#collapsed' => TRUE,
+      'taxonomy_manage_link' => array(
+        '#type' => 'item',
+        '#title' => l('Islandora Digital Workflow Stage vocabulary', 'admin/structure/taxonomy/workflow_stage_vocab'),
+        '#description' => t('These terms use the Drupal core Taxonomy and should only ' .
+          'be changed by advanced users.'),
+      ),
       'colors' => array(
         '#type' => 'container',
         '#prefix' => 'For the color settings, use any legal CSS color definition.',
@@ -214,14 +220,20 @@ function islandora_digital_workflow_admin_form() {
     // Rules
     'rules_frame' => array(
       '#type' => 'fieldset',
-      '#title' => t('Rules'),
+      '#title' => t('Workflow rules'),
       '#collapsible' => TRUE,
       '#collapsed' => TRUE,
       'rules_one' => array(
-        '#type' => 'textfield',
-        '#title' => t('Rules "One"'),
-        '#description' => t('Placeholder for actual settings.'),
-        '#default_value' => variable_get('islandora_digital_workflow_rules_one', ''),
+        '#type' => 'item',
+        '#title' => t('Rules are defined and managed within the Drupal core ') .
+          l('Workflow module', 'admin/config/workflow/rules', array(
+              'query' => array(
+                  'event' => 0,
+                  'tag' => 'Islandora Digital Workflow'
+              ))) .
+          '.',
+        '#description' => t('Any new rules should be tagged with "Islandora%20Digital%20Workflow" ' .
+          'so that they appear in this filtered list of rules for ease of management'),
       ),
     ),
     'submit' => array(
