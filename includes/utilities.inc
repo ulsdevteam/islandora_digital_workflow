@@ -6,7 +6,9 @@
  * Provided here as a function so that key lookup is possible as well as 
  * searching for the "Content type" name given the model name.
  *
- * @return type
+ * @return array
+ *   The mapping between Islandora models and the human readable names.  The
+ * key is human readable and the value is the Islandora model.
  */
 function islandora_digital_workflow_content_type_to_islandora_model_mappings() {
   return array(
@@ -28,14 +30,28 @@ function islandora_digital_workflow_content_type_to_islandora_model_mappings() {
 /**
  * This will return the islandora model name for a given content type.
  *
- * @param type $content_type
- * @return type
+ * @param string $content_type
+ *   The human-readable (Islandora) content type name.
+ * @return string
+ *   The Islandora model name for the content type provided.
  */
 function islandora_digital_workflow_content_type_to_islandora_model($content_type) {
   $islandora_content_type_mapping = islandora_digital_workflow_content_type_to_islandora_model_mappings();
   return (array_key_exists($content_type, $islandora_content_type_mapping)) ? $islandora_content_type_mapping[$content_type] : '';
 }
 
+/**
+ * Creates a minimal batch stub record that will be updated in other parts of
+ * the code.
+ *
+ * @global object $user
+ *   Drupal user object.
+ * @param array $form_state
+ *   Drupal representation of form_state as an array.
+ * @return mixed
+ *   Either redurns the batch record OR NULL if there is not enough info to
+ * create the record
+ */
 function islandora_digital_workflow_create_stub_batch_record($form_state) {
   global $user;
   // TODO: add a validate call instead of checking the values of $form_state here.
@@ -73,6 +89,22 @@ function islandora_digital_workflow_create_stub_batch_record($form_state) {
   }
 }
 
+/**
+ * Given a form submission and related workflow_batch node, this should update
+ * the batch record.
+ *
+ * @global object $user
+ *   Drupal user object.
+ * @param array $form_state
+ *   Drupal representation of form_state as an array.
+ * @param object $node
+ *   Drupal node object.
+ * @param string $csv_filename
+ *   The filename that points to the CSV file.
+ * @return mixed
+ *   Either redurns the batch record OR NULL if there is not enough info to
+ * create the record
+ */
 function islandora_digital_workflow_create_batch_record_by_form($form_state, $node, $csv_filename) {
   global $user;
   // TODO: add a validate call instead of checking the values of $form_state here.
@@ -162,10 +194,15 @@ function islandora_digital_workflow_create_batch_record_by_form($form_state, $no
 }
 
 /**
+ * Gets the batch_host values from the module configuration.
+ *
  * This function will fetch the config value for "Available Host Aliases for Batch ingest"
  * and split the alias_and_value value at the "=" character and then add items to the return
  * associative array with the actual host value as the array keys and the alias is the value.
+ *
  * @return array
+ *   batch host values as an array where the key is the actual file path and the
+ * value is the friendly alias name that has been configured.
  */
 function islandora_digital_workflow_get_batch_host_values() {
   $arr = explode("\r\n", trim(variable_get('islandora_digital_workflow_hosts_for_ingest')));
@@ -181,6 +218,17 @@ function islandora_digital_workflow_get_batch_host_values() {
   return $return_array;
 }
 
+/**
+ * Helper function to sync the islandora_digital_workflow_batch_items records
+ * to a given workflow_batch node or batch_record.
+ *
+ * @param array $batch_record
+ *   The batch record as an array.
+ * @param object $node
+ *   Drupal node object.
+ * @param string $csv_filename
+ *   The filename that points to the CSV file.
+*/
 function islandora_digital_workflow_sync_node_to_items($batch_record, $node, $csv_filename) {
   if (is_array($batch_record) && isset($node->field_identifiers) &&
       array_key_exists('value', $node->field_identifiers[$node->language][0])) {
@@ -202,6 +250,15 @@ function islandora_digital_workflow_sync_node_to_items($batch_record, $node, $cs
   }
 }
 
+/**
+ * Helper function to sync the islandora_digital_workflow_batch_items based on
+ * the rows of the uploaded CSV file.
+ *
+ * @param array $batch_record
+ *   The batch record as an array.
+ * @param string $csv_filename
+ *   The filename that points to the CSV file.
+ */
 function islandora_digital_workflow_sync_batch_item_record($batch_record, $csv_file_source) {
   if (file_exists($csv_file_source['mods_filename'])) {
     $mods_content = file_get_contents($csv_file_source['mods_filename']);
@@ -225,6 +282,14 @@ function islandora_digital_workflow_sync_batch_item_record($batch_record, $csv_f
       ->execute();
 }
 
+/**
+ * Gets a SINGLE batch record for a `batch_name` value.
+ *
+ * @param string $batch_name
+ *   The value of the `batch_name` field.
+ * @return mixed
+ *   Either returns the batch record object or NULL if it cannot be found.
+ */
 function islandora_digital_workflow_get_batch_record_by_name($batch_name) {
   if ($batch_name) {
     $query = db_select('islandora_digital_workflow_batch', 'b')
@@ -240,6 +305,14 @@ function islandora_digital_workflow_get_batch_record_by_name($batch_name) {
   }
 }
 
+/**
+ * Returns all batch records that match part of the batch_name field.
+ *
+ * @param string $batch_name
+ *   The value of the `batch_name` field.
+ * @return mixed
+ *   Either returns an array of batch record objects or NULL if it cannot be found.
+ */
 function islandora_digital_workflow_find_batch_records_by_name($batch_name) {
   if ($batch_name) {
     $query = db_select('islandora_digital_workflow_batch', 'b')
@@ -254,6 +327,15 @@ function islandora_digital_workflow_find_batch_records_by_name($batch_name) {
   }
 }
 
+/**
+ * Returns all batch records that have a partial match for the `identifier` field
+ * in the islandora_digital_workflow_batch_items table.
+ *
+ * @param string $identifier
+ *   The value of the islandora_digital_workflow_batch_items.`identifier` field.
+ * @return mixed
+ *   Either returns an array of batch record objects or NULL if it cannot be found.
+ */
 function islandora_digital_workflow_get_batch_record_by_items_identifier($identifier) {
   if ($identifier) {
     $query = db_select('islandora_digital_workflow_batch', 'b');
@@ -271,6 +353,41 @@ function islandora_digital_workflow_get_batch_record_by_items_identifier($identi
   }
 }
 
+/**
+ * Returns all batch records that have a partial match for the `uploaded_csv_file` field
+ * in the islandora_digital_workflow_batch table.
+ *
+ * @param string $identifier
+ *   The value of the islandora_digital_workflow_batch.`uploaded_csv_file` field.
+ * @return mixed
+ *   Either returns an array of batch record objects or NULL if it cannot be found.
+ */
+function islandora_digital_workflow_search_batch_csv_by_items_identifier($identifier) {
+  if ($identifier) {
+    $query = db_select('islandora_digital_workflow_batch', 'b');
+    $query->fields('b')
+        ->condition('b.uploaded_csv_file', '%' . db_like($identifier) . '%', 'LIKE')
+        ->groupBy('b.batch_name');
+    $results = $query->execute();
+    $rows = $results->fetchAll();
+    return $rows;
+  }
+  else {
+    return NULL;
+  }
+}
+
+/**
+ * This returns an array of batch record objects that have no value set for
+ * `ingest_namespace`.
+ *
+ * These records represent "stub records" and only exist if the user has not completed
+ * the second page of a new batch to provide all of the details.  Stub records are
+ * created with only the name, the model type, and a description value.
+ *
+ * @return array
+ *   Either returns an array of batch record objects or NULL if it cannot be found.
+ */
 function islandora_digital_workflow_find_batch_records_no_details() {
   $query = db_select('islandora_digital_workflow_batch', 'b')
       ->fields('b')
@@ -281,8 +398,36 @@ function islandora_digital_workflow_find_batch_records_no_details() {
 }
 
 /**
- * This still provides a test as to whether or not a field gets into the initial XML from the sheet - and the headings title
- * that would match for that field.
+ * This will get all of the transactions records related to a given Drupal node's nid.
+ *
+ * @param integer $nid
+ *   $nid value from a Drupal node object.
+ * @return array
+ *   Either returns an array of batch record objects or NULL if it cannot be found.
+ */
+function islandora_digital_workflow_get_batch_transactions_by_nid($nid) {
+  $query = db_select('islandora_digital_workflow_batch', 'b');
+  $query->join('islandora_digital_workflow_transactions', 'bt', 'b.batch_id = bt.batch_id');
+  $query->fields('bt', array('timestamp'));
+  $query->join('islandora_digital_workflow_actions', 'a', 'a.action_id = bt.action_id');
+  $query->fields('a', array('description'));
+  $query->condition('b.nid', $nid)
+      ->orderBy('bt.timestamp', 'DESC');
+
+  $results = $query->execute();
+  $rows = $results->fetchAll();
+  return $rows;
+}
+
+/**
+ * Helper function for field to xpath mappings used for creating MODS from CSV.
+ *
+ * This still provides a test as to whether or not a field gets into the initial XML
+ * from the sheet - and the headings title that would match for that field.
+ *
+ * @return array
+ *   The key matches a CSV column heading and the value is the xpath mapping for
+ * that field.
  */
 function islandora_digital_workflow_get_csv_header_xpath_mappings() {
   return array(
@@ -341,6 +486,24 @@ function islandora_digital_workflow_get_csv_header_xpath_mappings() {
   );
 }
 
+/**
+ * Helper function to get a field value/s from any Drupal table.
+ *
+ * @param string $table_name
+ *   Name of the table.
+ * @param string $option_name
+ *   Optional - name of the field to pull from the table (if not the primary key field).
+ * @param string $key_field
+ *   Name of the primary key field of the table.
+ * @param string $value_field
+ *   Additional field name to pull from the table.
+ * @param string $sort_field
+ *   Optional - name of field to sort by.
+ * @param integer $option_value
+ *   Optional - which option value to return when selecting more than one field.
+ * @return array
+ *   Returns an array of objects that represent database rows.
+ */
 function islandora_digital_workflow_get_mysql_options($table_name, $option_name = '', $key_field, $value_field, $sort_field = '', $option_value = 0) {
   $query = 'SELECT ' . $key_field . ', ' . $value_field . ' FROM ' . $table_name . ($sort_field ? ' ORDER BY ' . $sort_field : '');
   $results = db_query($query);
@@ -352,6 +515,20 @@ function islandora_digital_workflow_get_mysql_options($table_name, $option_name 
   return $rows;
 }
 
+/**
+ * Gets any values from Solr for a given query.
+ *
+ * @param string $solr_query
+ *   The Solr query to run.
+ * @param string $key_field
+ *   The field to return.
+ * @param string $value_field
+ *   Additional value field to return
+ * @param string $sort_field
+ *   Optional - field to sort results by.
+ * @return array
+ *   Returns an array of values where the distinct set is keyed on the $key_field.
+ */
 function islandora_digital_workflow_get_solr_options($solr_query, $key_field, $value_field, $sort_field = '') {
   $query_processor = new IslandoraSolrQueryProcessor();
   $query_processor->solrQuery = $solr_query;
@@ -380,6 +557,23 @@ function islandora_digital_workflow_get_solr_options($solr_query, $key_field, $v
   return $results;
 }
 
+/**
+ * Gets Solr fields for multiple fields and can be limited to a specific number
+ * of results.
+ *
+ * @param string $solr_query
+ *   The Solr query to run.
+ * @param string $key_field
+ *   The field to return.
+ * @param string $value_fields_csv
+ *   Additional values field to return (multiple fields separated by commas).
+ * @param string $sort_field
+ *   Optional - field to sort results by.
+ * @param integer $limit
+ *   Optional - how many results to return.
+ * @return array
+ *   Returns an array of results based on parameters.
+ */
 function islandora_digital_workflow_get_solr_values($solr_query, $key_field, $value_fields_csv, $sort_field = '', $limit = 5000) {
   $query_processor = new IslandoraSolrQueryProcessor();
   $query_processor->solrQuery = $solr_query;
@@ -408,27 +602,21 @@ function islandora_digital_workflow_get_solr_values($solr_query, $key_field, $va
   return $results;
 }
 
+/**
+ * Helper function to fetch the possible Sites objects from Solr.
+ *
+ * If no values are found, an array is still returned so that will display in the
+ * dropdown box in the Create Batch form.
+ *
+ * @return array
+ *   Returns an array of PID values that point to siteCModel objects from Solr.
+ */
 function islandora_digital_workflow_get_sites_options() {
   $sites = islandora_digital_workflow_get_solr_options('RELS_EXT_hasModel_uri_ms:*siteCModel', 'PID', 'fgs_label_s');
   if (count($sites) < 1) {
     $sites[0] = 'No sites objects configured.';
   }
   return $sites;
-}
-
-/**
- * Helper function to look up the names of the collections based on a possible comma-separated list
- */
-function islandora_digital_workflow_lookup_collection_names() {
-  $rows = array();
-
-  $query = 'SELECT * FROM collection ORDER BY `name`';
-
-  $result = db_query($query);
-  while ($row = mysqli_fetch_assoc($result)) {
-    $rows[$row['id']] = $row;
-  }
-  return $rows;
 }
 
 /**
@@ -444,7 +632,10 @@ function islandora_digital_workflow_lookup_collection_names() {
  *   The folder must be writable by apache as well as by other admin members of our department.
  *
  * @param array $batch_values
+ *   Array of values from the islandora_digital_workflow_batch table that represents
+ * a single batch.
  * @return string
+ *   The batch_path for the given batch_values record.
  */
 function islandora_digital_workflow_batch_path($batch_values) {
   if (!is_array($batch_values) || !array_key_exists('batch_name', $batch_values)) {
@@ -477,6 +668,9 @@ function islandora_digital_workflow_batch_path($batch_values) {
 /**
  * Helper function to return the value of the
  * islandora_digital_workflow_ingest_namespace - with the right trailing colon.
+ *
+ * @return string
+ *   The sanitized ingest_namespace value.
  */
 function islandora_digital_workflow_get_ingest_namespace() {
   return rtrim(variable_get('islandora_digital_workflow_ingest_namespace', 'islandora'), ':') . ':';
@@ -597,6 +791,14 @@ function islandora_digital_workflow_get_cmodels_from_readable_name($all_models, 
   }
 }
 
+/**
+ * Performs validation on a CSV file to see that it can be used with a batch.
+ *
+ * @param string $csv_filename
+ *   Filename pointing to the CSV file.
+ * @return boolean
+ *   Whether or not the CSV file is valid for a batch.
+ */
 function islandora_digital_workflow_validate_csv($csv_filename) {
   $validation_success = TRUE;
   $csv_file_arr = islandora_digital_workflow_csv_file_as_array($csv_filename);
@@ -647,7 +849,10 @@ function islandora_digital_workflow_validate_csv($csv_filename) {
  * it as an associative array.  This will make sure that the headers are all lowercase.
  *
  * @param string $csv_file
- * @return array('header' => $file_header, 'rows' => $file_rows)
+ *   Filename pointing to the CSV file.
+ * @return array
+ *   The array contains two keys that each contain an array of values:
+ *     ('header' => $file_header, 'rows' => $file_rows).
  * @throws Exception
  */
 function islandora_digital_workflow_csv_file_as_array($csv_file) {
@@ -680,6 +885,8 @@ function islandora_digital_workflow_csv_file_as_array($csv_file) {
 }
 
 /**
+ * Helper function to get a valid date value from CSV file.
+ *
  * Will handle the CSV values for dates and create a "display date" and a "sort date" value as best as it can assuming:
  *      CSV value		Display date				Sort date
  * -------------------------------------------------------------------------------------------------
@@ -689,6 +896,13 @@ function islandora_digital_workflow_csv_file_as_array($csv_file) {
  * a	1945-03/1955-04 	ca. March 1945- April 1955		1945-03-01T00:00:00-05:00
  * 	1945-03-05/1955-04-23	March 5, 1945- April 23, 1955		1945-03-05T00:00:00-05:00
  * a	1945-03-05/1955-04-23 	ca. March 5, 1945- April 23, 1955	1945-03-05T00:00:00-05:00
+ *
+ * @param string $short_date
+ *   The value of the date to check.
+ * @param boolean $suppress_display_messages
+ *   Optional - whether or not to display messages of what was wrong with the date.
+ * @return string
+ *   The sanitized date value that can be used for the Islandora object.
  */
 function islandora_digital_workflow_make_custom_csv_dates($short_date, $suppress_display_messages = FALSE) {
   $short_date = trim($short_date);
@@ -782,12 +996,11 @@ function islandora_digital_workflow_models_table() {
   $readable_models = islandora_digital_workflow_get_reduced_readable_cmodels();
   $configured_models = $return_form_elements = array();
   $configured_supported_models = variable_get('islandora_digital_workflow_islandora_models', array());
-
   foreach ($readable_models as $cmodel => $model) {
     // Each model depends on a specific module in order to be able to ingest.
     // The models that are not supported should be disabled.
     $this_model_module_info = islandora_digital_workflow_model_ingest_module_info($model);
-    $title = ($this_model_module_info['exists']) ? $model : $title . ' (not installed)';
+    $title = ($this_model_module_info['exists']) ? $model : $model . ' (not installed)';
     $configured_models[$cmodel] = array(
       '#type' => 'checkbox',
       '#title' => $title,
@@ -796,12 +1009,15 @@ function islandora_digital_workflow_models_table() {
       '#prefix' => '<div class="major-item">',
       '#suffix' => '</div>',
     );
-    if (!$this_model_module_info['exists'] && $configured_supported_models[$cmodel] <> 0) {
-      $configured_supported_models[$cmodel] = 0;
-      drupal_set_message($model . ' was set to be enabled by the configuration, but the module code ' .
+    if (!$this_model_module_info['exists']) {
+      $configured_models[$cmodel]['#default_value'] = 0;
+      drupal_set_message('The module is not installed that can ingest ' . $model . ' objects, ' .
+          ' so they can not be managed using the workflow until that module is installed (' .
           $this_model_module_info['git_link'] . ', ' . $this_model_module_info['uls_git_link'] .
-          ' is missing, so the option was removed.');
+          ').');
       $configured_models[$cmodel]['#disabled'] = TRUE;
+      $configured_models[$cmodel]['#attributes'] = array('readonly' => 'readonly', 'disabled' => 'disabled');
+
     }
     $return_form_elements[str_replace(" ", "+", $model)] = $configured_models[$cmodel];
   }
@@ -841,17 +1057,17 @@ function islandora_digital_workflow_model_ingest_module_info($model) {
       $retval['uls_git_link'] = l($retval['module_name'], 'https://github.com/ulsdevteam/islandora_book_batch.git');
       break;
     case "Internet Archive Book":
-      $retval['module_name'] = 'islandora_batch';
+      $retval['module_name'] = 'islandora_book_batch';
       $retval['git_link'] = l($retval['module_name'], 'https://github.com/Islandora/islandora_book_batch.git');
       $retval['uls_git_link'] = l($retval['module_name'], 'https://github.com/ulsdevteam/islandora_book_batch.git');
       break;
     case "Manuscript":
-      $retval['module_name'] = 'islandora_batch';
+      $retval['module_name'] = 'islandora_manuscript_batch';
       $retval['git_link'] = l($retval['module_name'], '//');
       $retval['uls_git_link'] = l($retval['module_name'], 'https://github.com/ulsdevteam/islandora_manuscript_batch.git');
       break;
     case "Newspaper": case "Newspaper Issue":
-      $retval['module_name'] = 'islandora_batch';
+      $retval['module_name'] = 'islandora_newspaper_batch';
       $retval['git_link'] = l($retval['module_name'], 'https://github.com/Islandora/islandora_newspaper_batch.git');
       $retval['uls_git_link'] = l($retval['module_name'], 'https://github.com/ulsdevteam/islandora_newspaper_batch.git');
       break;
@@ -870,6 +1086,17 @@ function islandora_digital_workflow_model_ingest_module_info($model) {
  *
  * $prepared_filepath = The path to the folder that contains the MODS and image TIF.
  * $identifier - the identifier value (if provided in the spreadsheet).
+ *
+ * @param type $input_filename
+ * @param type $batch_record
+ * @param type $keep_created_MODS_files
+ * @return mixed
+ *   Either returns FALSE or an array that contains an array of values related
+ * to each of the CSV rows.  Each array element contains the following fields:
+ *  'title' - the Title for the row's object
+ *  'identifier' - the PID for the row
+ *  'filename' - the filename to the MASTER / OBJ resource
+ *  'mods_filename' - the filename where the MODS has been saved.
  */
 function islandora_digital_workflow_prepare_csv2mods($input_filename, $batch_record, $keep_created_MODS_files = FALSE) {
   if (!$input_filename) {
@@ -1028,6 +1255,12 @@ function islandora_digital_workflow_prepare_csv2mods($input_filename, $batch_rec
 /**
  * Helper function for creating MODS from CSV - this will inspect the active row for the value in the
  * 'normalized_date_qualifier' field to see whether or not the date field value supplied row is approximate.
+ *
+ * @param array $headers
+ *   An array of headers that match the CSV file so that the correct date field
+ * can be found and updated if needed.
+ * @param array $row
+ *   VARIABLE parameter - can be changed to an approximate date value.
  */
 function islandora_digital_workflow_fix_if_csv_date_approximate($headers, &$row) {
   $normalized_date_qualifier_index = array_search('normalized_date_qualifier', $headers);
@@ -1040,13 +1273,17 @@ function islandora_digital_workflow_fix_if_csv_date_approximate($headers, &$row)
 }
 
 /**
- * This will run XML to MODS transformation and save resultant MODS
+ * Helper function to perform XML to MODS transformation and save resultant MODS
  * over the original file.
  *
  * This same effect could be achieved using a template system because xslt is
  * relatively slow.  For now, the xslt transform method is used.
  *
- * Returns the filename for the new MODS file.
+ * @param string $xml_filename
+ *   Filename that points to the CSV "sheet" xml file.  NOTE:  This file will be
+ * updated if the transform can run.
+ * @return string
+ *   the filename for the new MODS file.
  */
 function islandora_digital_workflow_XMLtoMODS($xml_filename) {
   $xsl = str_replace("/includes", "", dirname(__FILE__).'/transforms/sheet2mods.xsl');
@@ -1067,6 +1304,14 @@ function islandora_digital_workflow_XMLtoMODS($xml_filename) {
   return ($bytes_written) ? $xml_filename : '';
 }
 
+/**
+ * Helper function to run an XSL transform on the provided $info['input'] file.
+ *
+ * @param array $info
+ *   This array contains the xsl value and the input (xml) filenames.
+ * @return string
+ *   The content of the transformed result.
+ */
 function islandora_digital_workflow_runXslTransform($info) {
   $xsl = new DOMDocument();
   $xsl->load($info['xsl']);
@@ -1133,6 +1378,18 @@ function islandora_digital_workflow_get_tablefield_stats($tablename) {
     );
 }
 
+/**
+ * Helper function to highight any instances of any word in the provided text.
+ *
+ * @param string $text
+ *   The text that needs to be highlighted.
+ * @param string $word
+ *   The word to highlight in that text.
+ * @param boolean $case_sensitive
+ *   Optional - whether or not the search is case-sensitive.  Defaults to FALSE.
+ * @return string
+ *   The modified markup that could contain highlights.
+ */
 function islandora_digital_workflow_highlight($text, $word, $case_sensitive = FALSE) {
   $highlighted_text = "<span class='highlighted'>$word</span>";
   $text = ($case_sensitive) ?

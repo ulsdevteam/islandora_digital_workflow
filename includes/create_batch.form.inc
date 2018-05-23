@@ -1,15 +1,24 @@
 <?php
 
+/**
+ * @file
+ * Create batch form and submit handling for Islandora Digital Workflow module.
+ */
+
 if (!defined('UPDATE_BUTTON_TEXT')) {
   define('UPDATE_BUTTON_TEXT', 'Update Batch');
   define('SAVE_BUTTON_TEXT', 'Save Batch');
 }
 
 /**
- * @file
- * Create batch form and submit handling for Islandora Digital Workflow module.
+ * Displays the form to either create or edit a workflow batch.
+ *
+ * Even though the batch_name value is not passed as an argument, it can be
+ * derived by using the arg() function.
+ *
+ * @return string
+ *   HTML markup.
  */
-
 function islandora_digital_workflow_create_batch() {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/lookup.form');
   $lookup_form_markup = theme('islandora_digital_workflow_lookup', array('searchterm' => ''));
@@ -487,6 +496,16 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
   return $form;
 }
 
+/**
+ * This will remove elements from the default "create batch" form based on the
+ * Islandora model.
+ *
+ * @param string $model_name
+ *   The name of the Islandora model for which the form is being generated.
+ * @param array $form
+ *   Drupal form representation as an array.
+ *
+ */
 function islandora_digital_workflow_remove_model_based_form_elements($model_name, &$form) {
   switch ($model_name) {
     case 'Large Image' || 'Basic Image':
@@ -523,6 +542,19 @@ function islandora_digital_workflow_remove_model_based_form_elements($model_name
   }
 }
 
+/**
+ * Validates the form input.
+ *
+ * Checks the batch_name to see if it exists -- displays a link to that batch
+ * in the event that the user wanted to view or edit that batch instead.
+ *
+ * @param array $elements
+ *   Drupal elements representation as an array.
+ * @param array $form_state
+ *   Drupal form_state representation as passed to the validate function. *
+ * @param string $form_id
+ *   The form_id that is being validated -- optional.
+ */
 function islandora_digital_workflow_create_empty_batch_form_validate(&$elements, &$form_state, $form_id = NULL) {
   // Check for the batch name already existing.
   $batch_name = $form_state['values']['batch_name'];
@@ -535,6 +567,18 @@ function islandora_digital_workflow_create_empty_batch_form_validate(&$elements,
   }
 }
 
+/**
+ * Validates the form input.
+ *
+ * Checks the uploaded_csv_file file to determine whether or not it is valid.
+ *
+ * @param array $elements
+ *   Drupal elements representation as an array.
+ * @param array $form_state
+ *   Drupal form_state representation as passed to the validate function. *
+ * @param string $form_id
+ *   The form_id that is being validated -- optional.
+ */
 function islandora_digital_workflow_create_batch_form_validate(&$elements, &$form_state, $form_id = NULL) {
   $batch_name = $form_state['values']['batch_name'];
   if (isset($_FILES['files']) && array_key_exists('tmp_name', $_FILES) && isset($_FILES['tmp_name'])) {
@@ -544,7 +588,6 @@ function islandora_digital_workflow_create_batch_form_validate(&$elements, &$for
       // Check the csv file upload.
       if (!islandora_digital_workflow_validate_csv_file_upload()) {
         form_set_error('file', t('The uploaded CSV file is not valid.'));
-        return;
       }
     }
   }
@@ -590,7 +633,15 @@ function islandora_digital_workflow_create_batch_form_submit(array $form, array 
   }
 }
 
-// This operates on the current $_FILES -- so it can only be called on form post.
+/**
+ * Helper function to validate the uploaded_csv_file.
+ *
+ * This operates on the current $_FILES -- so it can only be called on form post
+ * and potentially sets a $_SESSION variable for use in the submit function,
+ * see: islandora_digital_workflow_create_batch_form_submit() above.
+ *
+ * @return boolean
+ */
 function islandora_digital_workflow_validate_csv_file_upload() {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
   $valid_upload = FALSE;

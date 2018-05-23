@@ -1,5 +1,11 @@
 <?php
 
+/**
+ * Get the dashboard output.
+ *
+ * @return string
+ *   Markup that represents the digital workflow dashboard for the user.
+ */
 function islandora_digital_workflow_dashboard() {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/lookup.form');
   $lookup_form_markup = theme('islandora_digital_workflow_lookup', array('searchterm' => ''));
@@ -14,6 +20,12 @@ function islandora_digital_workflow_dashboard() {
       $tasks_table;
 }
 
+/**
+ * Gets links to the Drupal view for each of the various stages.
+ *
+ * @return array
+ *   An array to the links to Drupal views.
+ */
 function islandora_digital_workflow_get_stage_links() {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy-utilities');
   // first link is "All" stages
@@ -43,6 +55,14 @@ function islandora_digital_workflow_get_user_role_dashboard() {
   return $template_variables;
 }
 
+/**
+ * Gets markup relative to the tasks that a given user can perform to be
+ * displayed on their dashboard.
+ *
+ * @return string
+ *   Markup that represents batch details / links to objects relevant to the
+ * dashboard.
+ */
 function islandora_digital_workflow_get_tasks_tables() {
   $tables = array();
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');

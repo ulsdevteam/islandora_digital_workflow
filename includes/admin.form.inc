@@ -22,20 +22,6 @@ function islandora_digital_workflow_admin_form() {
   drupal_add_js('misc/collapse.js');
   $about_islandora_digital_workflow_markup = '<p>These are the settings for ' .
       'the <strong>Islandora Digital Workflow</strong> system.</p>';
-  $default_colors_json = '{"New":{"background-color":"#997","color":"#220"},"Scanned"' .
-      ':{"background-color":"#472","color":"#FFF"},"Problem":{"' .
-      'background-color":"#F00","color":"#FF3"},"Reviewed":{"' .
-      'background-color":"#237","color":"#CCC"},"Done":{"' .
-      'background-color":"#2C2","color":"#349"}}';
-  $default_colors = json_decode($default_colors_json, TRUE);
-  $stage_values = array_merge($default_colors, json_decode(variable_get('islandora_digital_workflow_stages', $default_colors_json), TRUE));
-
-  $rendered_stages = array();
-  foreach ($stage_values as $stage => $colors) {
-    $rendered_stages[$stage] = '<span id="color_' . $stage . '" style="width:110px; color:' .
-        $colors['color'] . ';background-color:' . $colors['background-color'] .
-        '" class="stage_block stage_' . $stage . '">' . $stage . '</span>';
-  }
   $models_table = islandora_digital_workflow_models_table();
 
   $form = array(
@@ -48,14 +34,48 @@ function islandora_digital_workflow_admin_form() {
       '#type' => 'fieldset',
       '#title' => t('Supported Models'),
       '#collapsible' => TRUE,
-      '#collapsed' => TRUE,
+      '#collapsed' => FALSE,
       'user_roles_frame' => $models_table,
+    ),
+
+    // Stages
+    'stages_frame' => array(
+      '#type' => 'fieldset',
+      '#title' => t('Stages'),
+      '#collapsible' => TRUE,
+      '#collapsed' => FALSE,
+      'taxonomy_manage_link' => array(
+        '#type' => 'item',
+        '#title' => l('Islandora Digital Workflow Stage vocabulary', 'admin/structure/taxonomy/workflow_stage_vocab'),
+        '#description' => t('These terms use the Drupal core Taxonomy and should only ' .
+          'be changed by advanced users.'),
+      ),
+    ),
+
+    // Rules
+    'rules_frame' => array(
+      '#type' => 'fieldset',
+      '#title' => t('Workflow rules'),
+      '#collapsible' => TRUE,
+      '#collapsed' => FALSE,
+      'rules_one' => array(
+        '#type' => 'item',
+        '#title' => l('Islandora Digital Workflow rules', 'admin/config/workflow/rules', array(
+            'query' => array(
+                'event' => 0,
+                'tag' => 'Islandora Digital Workflow'
+            ))),
+        '#description' => t('Any new rules should be tagged with "Islandora Digital Workflow" ' .
+          'so that they appear in this filtered list of rules for ease of management'),
+      ),
     ),
 
     // Ingest Options
     'ingest_fields' => array(
       '#type' => 'fieldset',
       '#title' => t('Ingest options'),
+      '#collapsible' => TRUE,
+      '#collapsed' => FALSE,
       'ingest_namespace' => array(
         '#type' => 'textfield',
         '#title' => t('Ingest namespace'),
@@ -92,6 +112,8 @@ function islandora_digital_workflow_admin_form() {
     'extra_options' => array(
       '#type' => 'fieldset',
       '#title' => t('Extra batch properties & options'),
+      '#collapsible' => TRUE,
+      '#collapsed' => FALSE,
       'batch_isMemberOfSite_property' => array(
         '#type' => 'item',
         '#title' => t('Batch "isMemberOfSite" property'),
@@ -109,133 +131,6 @@ function islandora_digital_workflow_admin_form() {
       ),
     ),
 
-    // Stages
-    'stages_frame' => array(
-      '#type' => 'fieldset',
-      '#title' => t('Stages'),
-      '#collapsible' => TRUE,
-      '#collapsed' => TRUE,
-      'taxonomy_manage_link' => array(
-        '#type' => 'item',
-        '#title' => l('Islandora Digital Workflow Stage vocabulary', 'admin/structure/taxonomy/workflow_stage_vocab'),
-        '#description' => t('These terms use the Drupal core Taxonomy and should only ' .
-          'be changed by advanced users.'),
-      ),
-      'colors' => array(
-        '#type' => 'container',
-        '#prefix' => 'For the color settings, use any legal CSS color definition.',
-        'stage_problem_frame' => array(
-          '#type' => 'fieldset',
-          '#title' => $rendered_stages['Problem'],
-          '#collapsible' => TRUE,
-          '#collapsed' => TRUE,
-          'stage_Problem_background_color' => array(
-            '#type' => 'textfield',
-            '#title' => t('Background'),
-            '#description' => 'Default value: ' . $stage_values['Problem']['background-color'],
-            '#default_value' => $stage_values['Problem']['background-color'],
-          ),
-          'stage_Problem_color' => array(
-            '#type' => 'textfield',
-            '#title' => t('Text Color'),
-            '#description' => 'Default value: ' . $stage_values['Problem']['color'],
-            '#default_value' => $stage_values['Problem']['color'],
-          ),
-        ),
-        'stage_new_frame' => array(
-          '#type' => 'fieldset',
-          '#title' => $rendered_stages['New'],
-          '#collapsible' => TRUE,
-          '#collapsed' => TRUE,
-          'stage_New_background_color' => array(
-            '#type' => 'textfield',
-            '#title' => t('Background'),
-            '#description' => 'Default value: ' . $stage_values['New']['background-color'],
-            '#default_value' => $stage_values['New']['background-color'],
-          ),
-          'stage_New_color' => array(
-            '#type' => 'textfield',
-            '#title' => t('Text Color'),
-            '#description' => 'Default value: ' . $stage_values['New']['color'],
-            '#default_value' => $stage_values['New']['color'],
-          ),
-        ),
-        'stage_scanned_frame' => array(
-          '#type' => 'fieldset',
-          '#title' => $rendered_stages['Scanned'],
-          '#collapsible' => TRUE,
-          '#collapsed' => TRUE,
-          'stage_Scanned_background_color' => array(
-            '#type' => 'textfield',
-            '#title' => t('Background'),
-            '#description' => 'Default value: ' . $stage_values['Scanned']['background-color'],
-            '#default_value' => $stage_values['Scanned']['background-color'],
-          ),
-          'stage_Scanned_color' => array(
-            '#type' => 'textfield',
-            '#title' => t('Text Color'),
-            '#description' => 'Default value: ' . $stage_values['Scanned']['color'],
-            '#default_value' => $stage_values['Scanned']['color'],
-          ),
-        ),
-        'stage_reviewed_frame' => array(
-          '#type' => 'fieldset',
-          '#title' => $rendered_stages['Reviewed'],
-          '#collapsible' => TRUE,
-          '#collapsed' => TRUE,
-          'stage_Reviewed_background_color' => array(
-            '#type' => 'textfield',
-            '#title' => t('Background'),
-            '#description' => 'Default value: ' . $stage_values['Reviewed']['background-color'],
-            '#default_value' => $stage_values['Reviewed']['background-color'],
-          ),
-          'stage_Reviewed_color' => array(
-            '#type' => 'textfield',
-            '#title' => t('Text Color'),
-            '#description' => 'Default value: ' . $stage_values['Reviewed']['color'],
-            '#default_value' => $stage_values['Reviewed']['color'],
-          ),
-        ),
-        'stage_done_frame' => array(
-          '#type' => 'fieldset',
-          '#title' => $rendered_stages['Done'],
-          '#collapsible' => TRUE,
-          '#collapsed' => TRUE,
-          'stage_Done_background_color' => array(
-            '#type' => 'textfield',
-            '#title' => t('Background'),
-            '#description' => 'Default value: ' . $stage_values['Done']['background-color'],
-            '#default_value' => $stage_values['Done']['background-color'],
-          ),
-          'stage_Done_color' => array(
-            '#type' => 'textfield',
-            '#title' => t('Text Color'),
-            '#description' => 'Default value: ' . $stage_values['Done']['color'],
-            '#default_value' => $stage_values['Done']['color'],
-          ),
-        ),
-      ),
-    ),
-
-    // Rules
-    'rules_frame' => array(
-      '#type' => 'fieldset',
-      '#title' => t('Workflow rules'),
-      '#collapsible' => TRUE,
-      '#collapsed' => TRUE,
-      'rules_one' => array(
-        '#type' => 'item',
-        '#title' => t('Rules are defined and managed within the Drupal core ') .
-          l('Workflow module', 'admin/config/workflow/rules', array(
-              'query' => array(
-                  'event' => 0,
-                  'tag' => 'Islandora Digital Workflow'
-              ))) .
-          '.',
-        '#description' => t('Any new rules should be tagged with "Islandora%20Digital%20Workflow" ' .
-          'so that they appear in this filtered list of rules for ease of management'),
-      ),
-    ),
     'submit' => array(
       '#type' => 'submit',
       '#value' => t('Save Settings'),
@@ -249,7 +144,7 @@ function islandora_digital_workflow_admin_form() {
 }
 
 /**
- * Function that sets the Drupal variables with user's input.
+ * To store the Drupal variables based on user's input.
  *
  * @param array $form
  *   The Drupal form definition.
@@ -259,7 +154,6 @@ function islandora_digital_workflow_admin_form() {
 function islandora_digital_workflow_admin_form_submit(array $form, array &$form_state) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/access_permissions');
   $id = $form_state['triggering_element']['#id'];
-  module_load_include('inc', 'islandora_digital_workflow', 'includes/islandora_digital_workflow_css');
   switch ($id) {
     case 'edit-submit':
       $stage_values = json_encode(array(
@@ -286,25 +180,21 @@ function islandora_digital_workflow_admin_form_submit(array $form, array &$form_
       ));
       islandora_digital_workflow_save_models($form_state['values']);
       variable_set('islandora_digital_workflow_stages', $stage_values);
-      variable_set('islandora_digital_workflow_rules_one', $form_state['values']['rules_one']);
       variable_set('islandora_digital_workflow_ingest_namespace', $form_state['values']['ingest_namespace']);
       variable_set('islandora_digital_workflow_ingest_prepared_path', $form_state['values']['ingest_prepared_path']);
       variable_set('islandora_digital_workflow_hosts_for_ingest', $form_state['values']['batch_hosts']);
       variable_set('islandora_digital_workflow_use_isMemberOfSite', $form_state['values']['batch_use_isMemberOfSite']);
-      islandora_digital_workflow_update_dynamic_css();
       drupal_set_message('[' . date('H:i:s') . '] The settings have been saved.');
       // drupal_goto('admin/islandora/islandora_digital_workflow');
       break;
     case 'edit-reset':
       variable_del('islandora_digital_workflow_islandora_models');
       variable_del('islandora_digital_workflow_stages');
-      variable_del('islandora_digital_workflow_rules_one');
       variable_del('islandora_digital_workflow_ingest_namespace');
       variable_del('islandora_digital_workflow_ingest_prepared_path');
       variable_del('islandora_digital_workflow_hosts_for_ingest');
       variable_del('islandora_digital_workflow_use_isMemberOfSite');
 
-      islandora_digital_workflow_update_dynamic_css();
       drupal_set_message('[' . date('H:i:s') . '] The settings have been reset.');
       break;
   }

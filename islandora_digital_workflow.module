@@ -11,6 +11,7 @@ define('IDW_CONTENT_TYPE_TAXONOMY_MACHINE_NAME', 'workflow_content_type_vocab');
 // islandora_digital_workflow_permission_name_of_model() will do.
 define('ISLANDORA_DIGITAL_WORKFLOW', 'digital workflow access');
 define('ISLANDORA_DIGITAL_WORKFLOW_CREATE_NEW_BATCH', 'digital workflow create batches');
+define('ISLANDORA_DIGITAL_WORKFLOW_VIEW_TRANSACTIONS', 'digital workflow view transactions');
 
 /**
  * Implements hook_menu().
@@ -71,12 +72,26 @@ function islandora_digital_workflow_menu() {
       'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW),
       'file' => 'includes/delete_batch.form.inc',
     ),
-    // Callback to serve up the dynamically generated CSS file
-    'islandora/islandora_digital_workflow_css.css' => array(
-      'type' => MENU_CALLBACK,
-      'page callback' => 'islandora_digital_workflow_update_dynamic_css',
-      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW),
-      'file' => 'includes/islandora_digital_workflow_css.inc',
+    // Node enhancement functions
+    'node/%node/batch' => array(
+      'title' => 'Batch Record',
+      'page callback' => 'islandora_digital_workflow_batch',
+      'page arguments' => array(1),
+      'access callback' => 'islandora_digital_workflow_access_node',
+      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW, 1),
+      'type' => MENU_LOCAL_TASK,
+      'file' => 'includes/batch.form.inc',
+      'weight' => 100,
+    ),
+    'node/%node/transactions' => array(
+      'title' => 'Transactions',
+      'page callback' => 'islandora_digital_workflow_transactions',
+      'page arguments' => array(1),
+      'access callback' => 'islandora_digital_workflow_access_node',
+      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_VIEW_TRANSACTIONS, 1),
+      'type' => MENU_LOCAL_TASK,
+      'file' => 'includes/transactions.form.inc',
+      'weight' => 100,
     ),
   );
 }
@@ -95,6 +110,10 @@ function islandora_digital_workflow_permission() {
     ISLANDORA_DIGITAL_WORKFLOW_CREATE_NEW_BATCH => array(
       'title' => t('Create new digital workflow batches.'),
       'description' => t('User can create new batches within the Islandora Digital Workflow system.'),
+    ),
+    ISLANDORA_DIGITAL_WORKFLOW_VIEW_TRANSACTIONS => array(
+      'title' => t('View Batch Transactions'),
+      'description' => t('User can view batch transaction details'),
     ),
   );
   $model_based_permissions = array();
@@ -124,12 +143,7 @@ function islandora_digital_workflow_preprocess_html(&$vars) {
   $item = menu_get_item();
   if (is_array($item)) {
     $public_files_path = drupal_realpath('public://');
-    $base_public_files_path = str_replace(realpath("."), "", $public_files_path);
-    // Remove the leading slash.
-    $base_public_files_path = substr($base_public_files_path, 1);
-    islandora_digital_workflow_ensure_dynamic_css_copied($path, $public_files_path);
     drupal_add_css($path . '/css/islandora_digital_workflow.css');
-    drupal_add_css($base_public_files_path . '/islandora_digital_workflow_dynamic.css');
     // Just the admin form needs the /js/admin_form.js added.
     if ($item['path'] == 'admin/islandora/islandora_digital_workflow') {
       drupal_add_js($path . '/js/admin_form.js');
@@ -137,13 +151,9 @@ function islandora_digital_workflow_preprocess_html(&$vars) {
   }
 }
 
-function islandora_digital_workflow_ensure_dynamic_css_copied($path, $public_files_path) {
-  if (!file_exists($public_files_path . '/islandora_digital_workflow_dynamic.css')) {
-    dpm('copy ' . $path . '/css/islandora_digital_workflow_dynamic.css to ' . $public_files_path . '/islandora_digital_workflow_dynamic.css');
-    copy($path . '/css/islandora_digital_workflow_dynamic.css', $public_files_path . '/islandora_digital_workflow_dynamic.css');
-  }
-}
-
+/**
+ * Implements hook_theme()
+ */
 function islandora_digital_workflow_theme() {
   return array(
     'islandora_digital_workflow_dashboard' => array(
@@ -172,6 +182,7 @@ function islandora_digital_workflow_theme() {
         'batch_records' => array(),
         'results_count' => 0,
         'searchterm' => NULL,
+        'matched_csv_only' => FALSE,
       ),
     ),
     'islandora_digital_workflow_batch_records_table' => array(
@@ -182,22 +193,16 @@ function islandora_digital_workflow_theme() {
         'table_description' => '',
       ),
     ),
+    'islandora_digital_workflow_transactions' => array(
+      'template' => 'theme/islandora-digital-workflow-transactions',
+      'variables' => array(
+        'batch_record' => array(),
+        'transaction_records' => array(),
+        'table_title' => '',
+        'table_description' => '',
+      ),
+    ),
   );
-}
-
-function gamera_pitt_field__field_stage__workflow_batch($context) {
-  $value = (array_key_exists('element', $context) && array_key_exists('#items', $context['element']) && array_key_exists('tid', $context['element']['#items'][0])) ?
-    $context['element']['#items'][0]['tid'] : 0;
-  if ($value) {
-    module_load_include('module', 'taxonomy', 'taxonomy');
-    $term = taxonomy_term_load($value);
-    $term_link = l($term->name, 'taxonomy/term/' . $value);
-    $stage_str = array('New', 'Scanned', 'Problem', 'Reviewed', 'Done');
-    return '<div class="field field-type-user-reference field-label-inline">' .
-           '<div class="stage_block stage_' . $term->name . '">' . $term_link . '</div>' . // $stage_str[$value]
-           '<br style="clear:both">' .
-           '</div>';
-  }
 }
 
 /**
@@ -216,3 +221,22 @@ function islandora_digital_workflow_node_update($node) {
   }
 }
 
+/**
+ * Checks whether the node is a workflow_batch - and potentially whether or not
+ * the user has access to this permission.
+ *
+ * @param string $permission
+ *   Name of the permission to check.
+ * @param object $node
+ *   Drupal node
+ * @return boolean
+ *   Whether or not the user has access to the node view.
+ */
+function islandora_digital_workflow_access_node($permission, $node) {
+  if ($node->type <> 'workflow_batch') {
+    return FALSE;
+  }
+  else {
+    return user_access($permission);
+  }
+}

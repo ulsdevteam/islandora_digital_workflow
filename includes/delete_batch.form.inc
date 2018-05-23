@@ -5,6 +5,12 @@
  * Create batch form and submit handling for Islandora Digital Workflow module.
  */
 
+/**
+ * The Drupal delete batch form representation.
+ *
+ * @return array
+ *   The Drupal form definition.
+ */
 function islandora_digital_workflow_delete_batch() {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/lookup.form');
   $lookup_form_markup = theme('islandora_digital_workflow_lookup', array('searchterm' => ''));

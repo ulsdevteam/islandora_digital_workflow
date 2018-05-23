@@ -50,45 +50,6 @@ function islandora_digital_workflow_uninstall() {
   variable_del('islandora_digital_workflow_use_isMemberOfSite');
 }
 
-function islandora_digital_workflow_add_workflow_stage_taxonomy_terms() {
-  $vocab = taxonomy_vocabulary_machine_name_load(IDW_STAGE_TAXONOMY_MACHINE_NAME);
-
-  $term = (object) array(
-   'name' => 'Problem',
-   'description' => 'This is for workflow_batch nodes that have a problem.',
-   'vid' => $vocab->vid,
-  );
-  taxonomy_term_save($term);
-
-  $term = (object) array(
-   'name' => 'New',
-   'description' => 'This is for workflow_batch nodes that are new.',
-   'vid' => $vocab->vid,
-  );
-  taxonomy_term_save($term);
-
-  $term = (object) array(
-   'name' => 'Scanned',
-   'description' => 'This is for workflow_batch nodes that have been scanned.',
-   'vid' => $vocab->vid,
-  );
-  taxonomy_term_save($term);
-
-  $term = (object) array(
-   'name' => 'Reviewed',
-   'description' => 'This is for workflow_batch nodes that have been reviewed.',
-   'vid' => $vocab->vid,
-  );
-  taxonomy_term_save($term);
-
-  $term = (object) array(
-   'name' => 'Done',
-   'description' => 'This is for workflow_batch nodes that are done.',
-   'vid' => $vocab->vid,
-  );
-  taxonomy_term_save($term);
-}
-
 /**
 * Implementation of hook_schema().
 */
@@ -303,6 +264,9 @@ function islandora_digital_workflow_schema() {
   return $schema;
 }
 
+/**
+ * Helper function to create the content type taxonomy vocabulary.
+ */
 function islandora_digital_workflow_add_workflow_content_type_taxonomy_terms() {
   $vocab = taxonomy_vocabulary_machine_name_load(IDW_CONTENT_TYPE_TAXONOMY_MACHINE_NAME);
 
@@ -317,4 +281,46 @@ function islandora_digital_workflow_add_workflow_content_type_taxonomy_terms() {
     );
     taxonomy_term_save($term);
   }
+}
+
+/**
+ * Helper function to create the workflow stage taxonomy vocabulary.
+ */
+function islandora_digital_workflow_add_workflow_stage_taxonomy_terms() {
+  $vocab = taxonomy_vocabulary_machine_name_load(IDW_STAGE_TAXONOMY_MACHINE_NAME);
+
+  $term = (object) array(
+   'name' => 'Problem',
+   'description' => 'This is for workflow_batch nodes that have a problem.',
+   'vid' => $vocab->vid,
+  );
+  taxonomy_term_save($term);
+
+  $term = (object) array(
+   'name' => 'New',
+   'description' => 'This is for workflow_batch nodes that are new.',
+   'vid' => $vocab->vid,
+  );
+  taxonomy_term_save($term);
+
+  $term = (object) array(
+   'name' => 'Scanned',
+   'description' => 'This is for workflow_batch nodes that have been scanned.',
+   'vid' => $vocab->vid,
+  );
+  taxonomy_term_save($term);
+
+  $term = (object) array(
+   'name' => 'Reviewed',
+   'description' => 'This is for workflow_batch nodes that have been reviewed.',
+   'vid' => $vocab->vid,
+  );
+  taxonomy_term_save($term);
+
+  $term = (object) array(
+   'name' => 'Done',
+   'description' => 'This is for workflow_batch nodes that are done.',
+   'vid' => $vocab->vid,
+  );
+  taxonomy_term_save($term);
 }
