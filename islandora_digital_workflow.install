@@ -28,6 +28,8 @@ function islandora_digital_workflow_install() {
   taxonomy_vocabulary_save($new_vocab);
   // add the individual "Content Type" vocabulary terms
   islandora_digital_workflow_add_workflow_content_type_taxonomy_terms();
+  // Insert any MySQL records.
+  islandora_digital_workflow_insert_islandora_digital_workflow_actions();
 }
 
 /**
@@ -56,7 +58,8 @@ function islandora_digital_workflow_uninstall() {
 function islandora_digital_workflow_schema() {
   // create the database table that stores the solr session user keys
   $schema['islandora_digital_workflow_batch'] = array(
-    'description' => t('The additional batch properties and defaults that are not stored on the node object.'),
+    'description' => t('The additional batch properties and defaults that are ' .
+        'not stored on the node object.'),
     'fields' => array(
       'batch_id' => array(
         'description' => 'The primary identifier for the record',
@@ -115,7 +118,7 @@ function islandora_digital_workflow_schema() {
         'length' => 50,
         'not null' => FALSE,
       ),
-      'item_count' => array(
+      'object_count' => array(
         'description' => 'Number of objects in batch',
         'type' => 'int',
         'size' => 'small', // limit goes to 8388607
@@ -222,7 +225,8 @@ function islandora_digital_workflow_schema() {
         'not null' => TRUE,
       ),
       'batch_id' => array(
-        'description' => 'The batch_id for  related islandora_digital_workflow_batch record',
+        'description' => 'The batch_id for related ' .
+          'islandora_digital_workflow_batch record',
         'type' => 'int',
         'size' => 'medium',
         'unsigned' => TRUE,
@@ -261,6 +265,68 @@ function islandora_digital_workflow_schema() {
     ),
     'primary key' => array('batch_item_id'),
   );
+  $schema['islandora_digital_workflow_actions'] = array(
+    'description' => t('Stores the actions that can be performed for each batch ' .
+        'related to a defined islandora_digital_workflow_model_sequence'),
+    'fields' => array(
+      'action_id' => array(
+        'description' => 'The primary identifier for the record',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'name' => array(
+        'type' => 'varchar',
+        'length' => 50,
+        'not null' => TRUE,
+      ),
+      'description' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+    ),
+    'indexes' => array(
+      'ss_name' => array('name'),
+    ),
+    'primary key' => array('action_id'),
+  );
+  $schema['islandora_digital_workflow_transactions'] = array(
+    'description' => t('Stores transactions related to batch and batch items'),
+    'fields' => array(
+      'action_id' => array(
+        'description' => 'The action_id for the transction for a related ' .
+          'islandora_digital_workflow_actions record',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'batch_id' => array(
+        'description' => 'The batch_id for related ' .
+          'islandora_digital_workflow_batch record',
+        'type' => 'int',
+        'size' => 'medium',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+      'batch_item_id' => array(
+        'description' => 'The batch_item_id for a related ' .
+          'islandora_digital_workflow_batch_items record',
+        'type' => 'int',
+        'size' => 'medium',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+      'timestamp' => array(
+        'description' => 'Last modified date of the record',
+        'type' => 'int',
+        'not null' => FALSE,
+      ),
+    ),
+    'indexes' => array(
+      'ss_action_id_batch_item_id_batch_id' => array('action_id', 'batch_item_id', 'batch_id'),
+    ),
+  );
   return $schema;
 }
 
@@ -276,7 +342,8 @@ function islandora_digital_workflow_add_workflow_content_type_taxonomy_terms() {
   foreach ($models as $cmodel => $readable_name) {
     $term = (object) array(
      'name' => $readable_name,
-     'description' => 'This is for workflow_batch nodes for creating Islandora objects of the ' . $cmodel . ' content model.',
+     'description' => 'This is for workflow_batch nodes for creating Islandora ' .
+        'objects of the ' . $cmodel . ' content model.',
      'vid' => $vocab->vid,
     );
     taxonomy_term_save($term);
@@ -323,4 +390,59 @@ function islandora_digital_workflow_add_workflow_stage_taxonomy_terms() {
    'vid' => $vocab->vid,
   );
   taxonomy_term_save($term);
+}
+
+/**
+ * Helper routine to insert islandora_digital_workflow_actions records.
+ */
+function islandora_digital_workflow_insert_islandora_digital_workflow_actions() {
+  $islandora_digital_workflow_actions = array(
+    // defaults for batch_item actions
+    1 => array(
+      'name' => 'check-in',
+      'description' => 'Check in physical item',
+    ),
+    2 => array(
+      'name' => 'scan',
+      'description' => 'Scan the item',
+    ),
+    3 => array(
+      'name' => 'ingest',
+      'description' => 'Ingest item into repository',
+    ),
+    4 => array(
+      'name' => 'check-out',
+      'description' => 'Check out physical item',
+    ),
+    5 => array(
+      'name' => 'rescan',
+      'description' => 'Rescanned the item',
+    ),
+    // batch-level actions (action_id values greater than 100).
+    101 => array(
+      'name' => 'all-check-in',
+      'description' => 'Check in all physical items',
+    ),
+    102 => array(
+      'name' => 'all-scan',
+      'description' => 'Scanned all items',
+    ),
+    103 => array(
+      'name' => 'all-ingest',
+      'description' => 'Ingested all items into repository',
+    ),
+    104 => array(
+      'name' => 'all-check-out',
+      'description' => 'Checked out all physical items',
+    ),
+  );
+  foreach ($islandora_digital_workflow_actions as $action_id => $values) {
+    $values = db_insert('islandora_digital_workflow_actions')
+      ->fields(array(
+        'action_id' => $action_id,
+        'name' => $values['name'],
+        'description' => $values['description'],
+      ))
+    ->execute();
+  }
 }

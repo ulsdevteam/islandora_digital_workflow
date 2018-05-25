@@ -129,7 +129,7 @@ function islandora_digital_workflow_create_batch_record_by_form($form_state, $no
         'is_batch_request' => $form_state['values']['is_batch_request'],
         'batch_requestor' => $form_state['values']['batch_requestor'],
         'batch_request_due_date' => $batch_request_date,
-        'item_count' => $form_state['values']['object_count'],
+        'object_count' => $form_state['values']['object_count'],
         'ingest_namespace' => $form_state['values']['ingest_namespace'],
         'default_ead_id' => (array_key_exists('default_ead_id', $form_state['values'])) ?
           $form_state['values']['default_ead_id'] : '',
@@ -362,7 +362,7 @@ function islandora_digital_workflow_get_batch_record_by_items_identifier($identi
  * @return mixed
  *   Either returns an array of batch record objects or NULL if it cannot be found.
  */
-function islandora_digital_workflow_search_batch_csv_by_items_identifier($identifier) {
+function islandora_digital_workflow_search_batch_csv_by_identifier($identifier) {
   if ($identifier) {
     $query = db_select('islandora_digital_workflow_batch', 'b');
     $query->fields('b')
@@ -406,6 +406,8 @@ function islandora_digital_workflow_find_batch_records_no_details() {
  *   Either returns an array of batch record objects or NULL if it cannot be found.
  */
 function islandora_digital_workflow_get_batch_transactions_by_nid($nid) {
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
+
   $query = db_select('islandora_digital_workflow_batch', 'b');
   $query->join('islandora_digital_workflow_transactions', 'bt', 'b.batch_id = bt.batch_id');
   $query->fields('bt', array('timestamp'));
@@ -416,8 +418,176 @@ function islandora_digital_workflow_get_batch_transactions_by_nid($nid) {
 
   $results = $query->execute();
   $rows = $results->fetchAll();
+  foreach ($rows as $index => $row) {
+    $rows[$index]->how_long_ago = islandora_digital_workflow_timeago_from_timestamp($row->timestamp);
+  }
   return $rows;
 }
+
+/**
+ * This will get all of the transactions records related to a given Drupal batch_item.
+ *
+ * @param integer $nid
+ *   $nid value from a Drupal node object.
+ * @return array
+ *   Either returns an array of batch record objects or NULL if it cannot be found.
+ */
+function islandora_digital_workflow_get_batch_item_transactions($batch_item_id) {
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
+
+  $query = db_select('islandora_digital_workflow_transactions', 'bt');
+  $query->fields('bt', array('timestamp'));
+  $query->join('islandora_digital_workflow_actions', 'a', 'a.action_id = bt.action_id');
+  $query->fields('a', array('description'));
+  $query->condition('bt.batch_item_id', $batch_item_id)
+      ->orderBy('bt.timestamp', 'DESC');
+
+  $results = $query->execute();
+  $rows = $results->fetchAll();
+  foreach ($rows as $index => $row) {
+    $rows[$index]->how_long_ago = islandora_digital_workflow_timeago_from_timestamp($row->timestamp);
+  }
+  return $rows;
+}
+
+/**
+ * Returns all batch records that have a partial match for the `identifier` field
+ * in the islandora_digital_workflow_batch_items table.
+ *
+ * @param integer $nid
+ *   The value of the islandora_digital_workflow_batch_items.`identifier` field.
+ * @return mixed
+ *   Either returns an array of batch record objects or NULL if it cannot be found.
+ */
+function islandora_digital_workflow_get_batch_files_by_nid($nid) {
+  if ($nid) {
+    $query = db_select('islandora_digital_workflow_batch', 'b');
+    $query->join('islandora_digital_workflow_batch_items', 'bi', 'b.batch_id = bi.batch_id');
+    $query->fields('bi')
+        ->condition('b.nid', $nid);
+    $results = $query->execute();
+    $rows = $results->fetchAll();
+    foreach ($rows as $index => $row) {
+      $filename_pathinfo = pathinfo($row->filename);
+      $rows[$index]->filename_basename = $filename_pathinfo['basename'];
+      $rows[$index]->filesize = (file_exists($row->filename)) ? filesize($row->filename) : NULL;
+    }
+    return $rows;
+  }
+  else {
+    return NULL;
+  }
+}
+
+/**
+ * This will get all of the batch_items records and their transactions related to
+ * a given Drupal node's nid.
+ *
+ * @param integer $nid
+ *   $nid value from a Drupal node object.
+ * @return array
+ *   Either returns an array of batch record objects or NULL if it cannot be found.
+ */
+function islandora_digital_workflow_get_batch_items_by_nid($nid) {
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
+
+  // Due to the nature of this query and how stubborn the db_select is with creating
+  // a LEFT JOIN query that uses GROUP BY and GROUP_CONCAT to display the needed
+  // field values, this is much MUCH MUCH easier to write out as a SQL statement.
+  $query = db_query('SELECT bi.identifier, bi.title, bi.filename, 
+    GROUP_CONCAT(a.description) as `transaction_actions`, bi.batch_item_id
+FROM islandora_digital_workflow_batch b
+JOIN islandora_digital_workflow_batch_items bi ON b.batch_id = bi.batch_id
+LEFT JOIN islandora_digital_workflow_transactions bt ON bi.batch_item_id = bt.batch_item_id
+LEFT JOIN islandora_digital_workflow_actions a ON a.action_id = bt.action_id
+WHERE b.nid = ' . $nid . '
+GROUP BY bi.batch_item_id
+ORDER BY bi.batch_item_id ASC, bt.`timestamp` DESC');
+  $rows = $query->fetchAll();
+  // Loop through and calculate values for filename_basename by using the
+  // pathinfo ~ basename element.
+  foreach ($rows as $index => $row) {
+    $filename_pathinfo = pathinfo($row->filename);
+    $rows[$index]->filename_basename = $filename_pathinfo['basename'];
+    $rows[$index]->transaction_actions = str_replace(",", "<br>", $row->transaction_actions);
+  }
+  return $rows;
+}
+
+/**
+ * This returns the batch item record for $batch_item_id.
+ *
+ * @return array
+ *   Either returns an array of a single batch item record objects.
+ */
+function islandora_digital_workflow_get_batch_item_record($batch_item_id) {
+  $query = db_select('islandora_digital_workflow_batch_items', 'bi')
+      ->fields('bi')
+      ->condition('bi.batch_item_id', $batch_item_id);
+  $results = $query->execute();
+  $rows = $results->fetchAll();
+  foreach ($rows as $index => $row) {
+    $filename_pathinfo = pathinfo($row->filename);
+    $rows[$index]->filename_basename = $filename_pathinfo['basename'];
+  }
+  return $rows;
+}
+
+/**
+ * Updates an existing batch_item record.
+ *
+ * @param integer $batch_item_id
+ * @param array $update_values
+ *   The array of values for the update where the key is the fieldname and the
+ * value is the value to use for updating.
+ * @param array $original_values
+ *   The array of values that represent the record's previous values.
+ */
+function islandora_digital_workflow_update_batch_item_record($batch_item_id, $update_values, $original_values) {
+  $num_updated = db_update('islandora_digital_workflow_batch_items')
+      ->fields(array(
+        'title' => $update_values['title'],
+        'identifier' => $update_values['identifier'],
+        'filename' => $update_values['filename'],
+        'mods' => $update_values['mods'],
+      ))
+      ->condition('batch_item_id', $batch_item_id)
+      ->execute();
+
+  if ($num_updated) {
+    // Compare the filename value to the previous filename value to see
+    // if the underlying file needs to be renamed.
+    if ($update_values['filename'] <> $original_values->filename) {
+      if (file_exists($update_values['filename'])) {
+        drupal_set_message('A file already existed with the updated filename, so nothing needed to be renamed.', 'status');
+      }
+      if (file_exists($original_values->filename)) {
+        $renamed_file = rename($original_values->filename, $update_values['filename']);
+        if ($renamed_file) {
+          drupal_set_message('The underlying file has been renamed to match the value that was supplied.', 'status');
+        }
+        else {
+          drupal_set_message('There was a problem renaming the underlying file from "' .
+              $original_values->filename . '" to "' . $update_values['filename'] . '".  It could be a file permissions issue.', 'error');
+        }
+      }
+    }
+
+    // Compare the underlying MODS file to the value that is passed by $update_values --
+    // and overwrite that file if needed.
+    if ($update_values['mods'] <> $original_values->mods) {
+      $orig_filename_pathinfo = pathinfo($original_values->filename);
+      $calculated_mods_filename = str_replace('.' . $orig_filename_pathinfo['extension'], '.xml', $original_values->filename);
+      $bytes_written = file_put_contents($calculated_mods_filename, $update_values['mods']);
+      if ($bytes_written <> strlen($update_values['mods'])) {
+        drupal_set_message('There was a problem saving the updated MODS value to the file system at "' .
+          $calculated_mods_filename . '".  It may be a file permissions issue.', 'error');
+      }
+    }
+  }
+  return $num_updated;
+}
+
 
 /**
  * Helper function for field to xpath mappings used for creating MODS from CSV.
@@ -638,6 +808,9 @@ function islandora_digital_workflow_get_sites_options() {
  *   The batch_path for the given batch_values record.
  */
 function islandora_digital_workflow_batch_path($batch_values) {
+  if (is_object($batch_values)) {
+    $batch_values = (array) $batch_values;
+  }
   if (!is_array($batch_values) || !array_key_exists('batch_name', $batch_values)) {
     drupal_set_message('The batch path could not be determined.  Either the values are missing or ' .
             'there is no value for the batch "Name" (batch_name field) yet.', 'warning');
@@ -1242,7 +1415,7 @@ function islandora_digital_workflow_prepare_csv2mods($input_filename, $batch_rec
     $identifiers_and_filepaths[] = array(
         'title' => $title,
         'identifier' => $ingest_namespace . $row_mods_id,
-        'filename' => $row_file_name,
+        'filename' => $row_mods_id . '/' . $row_file_name,
         'mods_filename' => $filename);
     $row_counter++;
   }
@@ -1404,4 +1577,86 @@ function islandora_digital_workflow_highlight($text, $word, $case_sensitive = FA
     }
   }
   return $text;
+}
+
+
+/**
+ * This will return a human readable version of "how long ago" for a given timetamp.
+ *
+ * @param integer $timestamp
+ *   Linux timestamp from a MySQL record.
+ * @return string
+ *   The human readable "how long ago" value.
+ */
+function islandora_digital_workflow_timeago_from_timestamp($timestamp) {
+  $dbDate = new DateTime($timestamp);
+  $currDate = new DateTime(date('Ymd H:i:s'));
+  $interval = $currDate->diff($dbDate);
+  $ago_arr = array();
+  if ($interval->y > 0) {
+    $ago_arr[] = $interval->y . " yr" . ($interval->y == 1 ? '' : 's');
+  }
+  if ($interval->m > 0) {
+    $ago_arr[] = $interval->m . " mo";
+  }
+  if ($interval->d > 0) {
+    $ago_arr[] = $interval->d . " d";
+  }
+  if ($interval->h > 0) {
+    $ago_arr[] = $interval->h . " h";
+  }
+  if ($interval->i > 0) {
+    $ago_arr[] = $interval->i . " m";
+  }
+  if ($interval->s > 0) {
+    $ago_arr[] = $interval->s . " s";
+  }
+  return implode(", ", $ago_arr) . ((count($ago_arr) > 0) ? ' ago' : '');
+}
+
+/**
+ * This will return the set of files that are found in the $scan_path.
+ *
+ * This will also check the expected set of filenames to mark which ones are
+ * missing -- ignoring the ".xml" files.
+ *
+ * @param type $scan_path
+ */
+function islandora_digital_workflow_scan_files($scan_path, $expected_file_records = array()) {
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/file_utilities');
+  $files = islandora_digital_workflow_file_scan_directory($scan_path, '', TRUE);
+  $ret_arr = array();
+  $count_of_expected_file_records = count($expected_file_records);
+  foreach ($files as $folder => $folder_files) {
+    foreach ($folder_files as $file) {
+      $relative_file_path = $folder . '/' . $file;
+      $full_file_path = $scan_path . '/' . $relative_file_path;
+      if (file_exists($full_file_path)) {
+        $size = filesize($full_file_path);
+        $found_file_pathinfo = pathinfo($full_file_path);
+        $ext = $found_file_pathinfo['extension'];
+        if ($ext <> 'xml') {
+          $expected_file_records_index = 0;
+          $found_matching_file = FALSE;
+          while (!$found_matching_file && $expected_file_records_index < $count_of_expected_file_records) {
+            $compare_file_record = $expected_file_records[$expected_file_records_index];
+            if ($compare_file_record->filename_basename == $file) {
+              $found_matching_file = TRUE;
+            }
+            $expected_file_records_index++;
+          }
+          $class = ($found_matching_file) ? '' : 'bad';
+        }
+        else {
+          $class = '';
+        }
+        $ret_arr[$relative_file_path] = array(
+            'filesize' => $size,
+            'class' => $class,
+        );
+      }
+    }
+  }
+  ksort($ret_arr);
+  return $ret_arr;
 }

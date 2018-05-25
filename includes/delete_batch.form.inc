@@ -12,11 +12,9 @@
  *   The Drupal form definition.
  */
 function islandora_digital_workflow_delete_batch() {
-  module_load_include('inc', 'islandora_digital_workflow', 'includes/lookup.form');
-  $lookup_form_markup = theme('islandora_digital_workflow_lookup', array('searchterm' => ''));
   $batch_name = arg(3);
   $form = drupal_get_form('islandora_digital_workflow_delete_batch_form', $batch_name);
-  $markup = $lookup_form_markup . drupal_render($form);
+  $markup = drupal_render($form);
   return $markup;
 }
 

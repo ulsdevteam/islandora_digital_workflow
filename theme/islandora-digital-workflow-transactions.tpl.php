@@ -13,7 +13,7 @@
 */
 ?>
 <div id="no-sidebars">
-  <div class="transactions-report">
+  <div class="report_table">
     <h3><?php print $table_title; ?></h3>
     <?php if (isset($table_description)) { ?>
     <p><?php print $table_description; ?></p>
@@ -29,16 +29,25 @@
         </div>
     </div>
 
-    <?php foreach ($transaction_records as $transaction_record) { ?>
-    <div class="lookup_result <?php print ($toggle) ? 'evenrow' : 'oddrow'; ?>">
-        <?php
-        $toggle = !$toggle;
-        ?>
-        <div class="lookup_result_indent">
-          <pre><?php echo print_r($transaction_record, true); ?></pre>
-        </div>
-    </div>
-    <?php } ?>
+    <?php if (count($transaction_records) > 0) : ?>
+    <table>
+        <tr>
+            <th>Description</th>
+            <th>When</th>
+            <th>Timestamp</th>
+        </tr>
+      <?php foreach ($transaction_records as $transaction_record) { ?>
+          <?php
+          $toggle = !$toggle;
+          ?>
+          <tr class="<?php print ($toggle) ? 'evenrow' : 'oddrow'; ?>">
+              <td><?php print $transaction_record->description; ?></td>
+              <td><?php print $transaction_record->how_long_ago; ?></td>
+              <td><?php print $transaction_record->timestamp; ?></td>
+          </tr>
+      <?php } ?>
+    </table>
+    <?php endif; ?>
   </div><!-- /end dashboard-report -->
 
 </div><!-- /end no-sidebars -->

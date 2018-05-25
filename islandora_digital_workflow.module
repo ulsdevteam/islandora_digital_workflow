@@ -12,6 +12,7 @@ define('IDW_CONTENT_TYPE_TAXONOMY_MACHINE_NAME', 'workflow_content_type_vocab');
 define('ISLANDORA_DIGITAL_WORKFLOW', 'digital workflow access');
 define('ISLANDORA_DIGITAL_WORKFLOW_CREATE_NEW_BATCH', 'digital workflow create batches');
 define('ISLANDORA_DIGITAL_WORKFLOW_VIEW_TRANSACTIONS', 'digital workflow view transactions');
+define('ISLANDORA_DIGITAL_WORKFLOW_UPDATE_ITEMS', 'digital workflow update items');
 
 /**
  * Implements hook_menu().
@@ -74,14 +75,43 @@ function islandora_digital_workflow_menu() {
     ),
     // Node enhancement functions
     'node/%node/batch' => array(
-      'title' => 'Batch Record',
+      'title' => 'Edit Batch Record',
       'page callback' => 'islandora_digital_workflow_batch',
       'page arguments' => array(1),
       'access callback' => 'islandora_digital_workflow_access_node',
       'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW, 1),
       'type' => MENU_LOCAL_TASK,
       'file' => 'includes/batch.form.inc',
-      'weight' => 100,
+      'weight' => 89,
+    ),
+    'node/%node/files' => array(
+      'title' => 'Batch Files',
+      'page callback' => 'islandora_digital_workflow_files',
+      'page arguments' => array(1),
+      'access callback' => 'islandora_digital_workflow_access_node',
+      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW, 1),
+      'type' => MENU_LOCAL_TASK,
+      'file' => 'includes/files.form.inc',
+      'weight' => 90,
+    ),
+    'node/%node/items' => array(
+      'title' => 'Batch Items',
+      'page callback' => 'islandora_digital_workflow_items',
+      'page arguments' => array(1),
+      'access callback' => 'islandora_digital_workflow_access_node',
+      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW, 1),
+      'type' => MENU_LOCAL_TASK,
+      'file' => 'includes/items.form.inc',
+      'weight' => 90,
+    ),
+    'node/%node/item/%' => array(
+      'title' => 'Batch Item',
+      'page callback' => 'islandora_digital_workflow_items_view_item',
+      'page arguments' => array(1, 3),
+      'access callback' => 'islandora_digital_workflow_access_node',
+      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW, 1),
+      'file' => 'includes/item.form.inc',
+      'weight' => 90,
     ),
     'node/%node/transactions' => array(
       'title' => 'Transactions',
@@ -91,7 +121,7 @@ function islandora_digital_workflow_menu() {
       'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_VIEW_TRANSACTIONS, 1),
       'type' => MENU_LOCAL_TASK,
       'file' => 'includes/transactions.form.inc',
-      'weight' => 100,
+      'weight' => 90,
     ),
   );
 }
@@ -114,6 +144,10 @@ function islandora_digital_workflow_permission() {
     ISLANDORA_DIGITAL_WORKFLOW_VIEW_TRANSACTIONS => array(
       'title' => t('View Batch Transactions'),
       'description' => t('User can view batch transaction details'),
+    ),
+    ISLANDORA_DIGITAL_WORKFLOW_UPDATE_ITEMS => array(
+      'title' => t('Update Batch Items'),
+      'description' => t('User can update batch items details'),
     ),
   );
   $model_based_permissions = array();
@@ -183,6 +217,37 @@ function islandora_digital_workflow_theme() {
         'results_count' => 0,
         'searchterm' => NULL,
         'matched_csv_only' => FALSE,
+      ),
+    ),
+    'islandora_digital_workflow_files' => array(
+      'template' => 'theme/islandora-digital-workflow-files',
+      'variables' => array(
+        'batch_record' => array(),
+        'batch_path' => '',
+        'item_file_records' => array(),
+        'scanned_files' => array(),
+        'table_title' => '',
+        'node' => NULL,
+        'table_description' => '',
+      ),
+    ),
+    'islandora_digital_workflow_items' => array(
+      'template' => 'theme/islandora-digital-workflow-items',
+      'variables' => array(
+        'batch_record' => array(),
+        'item_records' => array(),
+        'table_title' => '',
+        'node' => NULL,
+        'table_description' => '',
+      ),
+    ),
+    'islandora_digital_workflow_item' => array(
+      'template' => 'theme/islandora-digital-workflow-item',
+      'variables' => array(
+        'batch_record' => array(),
+        'item' => array(),
+        'can_update' => FALSE,
+        'item_record_transactions' => array(),
       ),
     ),
     'islandora_digital_workflow_batch_records_table' => array(

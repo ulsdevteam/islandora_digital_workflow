@@ -35,7 +35,7 @@ function islandora_digital_workflow_lookup_form_submit($searchterm = '') {
     $batch_records = islandora_digital_workflow_get_batch_record_by_items_identifier($searchterm);
   }
   if (!is_array($batch_records) || count($batch_records) < 1) {
-    $batch_records = islandora_digital_workflow_search_batch_csv_by_items_identifier($searchterm);
+    $batch_records = islandora_digital_workflow_search_batch_csv_by_identifier($searchterm);
     $matched_csv_only = TRUE;
   }
   if (is_array($batch_records)) {

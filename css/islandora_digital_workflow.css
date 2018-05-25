@@ -102,16 +102,33 @@ and open the template in the editor.
     color: red;
 }
 
+.numeric {
+    text-align: right;
+}
+
 .report_table {
-    font-size: 0.825em;
-    font-family: Andale Mono, monospace;
+}
+
+.report_table table {
+    font-size: 0.9em;
     max-height: 600px;
+    overflow: auto;
+}
+
+.report_table table tr.oddrow {
+    background-color: #f2f2f2;
 }
 
 .report_table_wrapper {
     max-height: 330px;
     height: 330px;
     width: 20px;
+}
+
+.short-text-area {
+    width: 99%;
+    font-size: 0.825em;
+    font-family: Andale Mono, monospace;
 }
 
 .fieldset_div_wrapper {
@@ -145,7 +162,7 @@ a .highlighted {
 }
 
 .lookup_result.oddrow {
-    background-color: #f2f2f2;
+    background-color: #e8e8e8;
 }
 
 .lookup_result div h2 {
@@ -154,4 +171,26 @@ a .highlighted {
 
 .lookup_result_indent {
     margin: 4px 0;
+}
+
+.lookup_result_indent label, .lookup_result_indent input {
+    float: left;
+}
+
+.lookup_result_indent label {
+    min-width: 160px;
+    clear: left;
+    width: 15%;
+    padding-top: 8px;
+}
+
+.lookup_result_indent input {
+    width: 84%;
+    display: block;
+}
+
+.lookup_result fieldset {
+    background-color: #fafafa;
+    border: 3px solid #aaa;
+    border-radius: 6px;
 }
