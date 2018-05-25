@@ -7,4 +7,7 @@ dependencies[] = islandora
 # Several Drupal core modules that must be enabled in order to use:
 dependencies[] = rules_admin
 dependencies[] = taxonomy
+
+files[] = islandora_digital_workflow.views_default.inc
+
 configure = admin/islandora/islandora_digital_workflow

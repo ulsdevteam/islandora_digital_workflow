@@ -17,7 +17,7 @@ function islandora_digital_workflow_install() {
    );
   taxonomy_vocabulary_save($new_vocab);
   // add the individual "Stage" vocabulary terms
-  islandora_digital_workflow_add_workflow_stage_taxonomy_terms();
+  list($stage_tid, $stage_vid) = islandora_digital_workflow_add_workflow_stage_taxonomy_terms();
 
   $new_vocab = (object) array(
       'name' => 'Islandora Digital Workflow Content Type vocabulary',
@@ -28,8 +28,12 @@ function islandora_digital_workflow_install() {
   taxonomy_vocabulary_save($new_vocab);
   // add the individual "Content Type" vocabulary terms
   islandora_digital_workflow_add_workflow_content_type_taxonomy_terms();
-  // Insert any MySQL records.
+  // Insert any `islandora_digital_workflow` MySQL records.
   islandora_digital_workflow_insert_islandora_digital_workflow_actions();
+
+  // Insert workflow_batch node_type and create required CCK fields.
+  islandora_digital_workflow_insert_workflow_batch_node_type();
+  islandora_digital_workflow_create_cck_fields($stage_tid, $stage_vid);
 }
 
 /**
@@ -50,6 +54,18 @@ function islandora_digital_workflow_uninstall() {
   variable_del('islandora_digital_workflow_ingest_prepared_path');
   variable_del('islandora_digital_workflow_hosts_for_ingest');
   variable_del('islandora_digital_workflow_use_isMemberOfSite');
+
+  foreach (array_keys(_islandora_digital_workflow_installed_fields()) as $field) {
+    field_delete_field($field);
+  }
+
+  // Loop over any remaining field instances attached to the node_example
+  // content type (such as the body field) and delete them individually.
+  // http://api.drupal.org/api/function/field_delete_field/7
+  $instances = field_info_instances('node', 'workflow_batch');
+  foreach ($instances as $instance_name => $instance) {
+    field_delete_instance($instance);
+  }
 }
 
 /**
@@ -368,7 +384,7 @@ function islandora_digital_workflow_add_workflow_stage_taxonomy_terms() {
    'description' => 'This is for workflow_batch nodes that are new.',
    'vid' => $vocab->vid,
   );
-  taxonomy_term_save($term);
+  $new_tid = taxonomy_term_save($term);
 
   $term = (object) array(
    'name' => 'Scanned',
@@ -390,6 +406,8 @@ function islandora_digital_workflow_add_workflow_stage_taxonomy_terms() {
    'vid' => $vocab->vid,
   );
   taxonomy_term_save($term);
+  // Need to return the term id for the "New" term:
+  return array($vocab->vid, $new_tid);
 }
 
 /**
@@ -445,4 +463,719 @@ function islandora_digital_workflow_insert_islandora_digital_workflow_actions() 
       ))
     ->execute();
   }
+}
+
+function islandora_digital_workflow_insert_workflow_batch_node_type() {
+  // This is so much easier as a single SQL:
+  db_query("REPLACE INTO `node_type` (`type`, `name`, `base`, `module`, " .
+      "`description`, `help`, `has_title`, `title_label`, `custom`, `modified`, " .
+      "`locked`, `disabled`, `orig_type`) VALUES ('workflow_batch', " .
+      "'Workflow Batch', 'node_content', 'node', '', '', 1, 'Title', 1, 1, 0, " .
+      "0, 'workflow_batch');");
+}
+
+function islandora_digital_workflow_create_cck_fields($stage_tid, $stage_vid) {
+  foreach (_islandora_digital_workflow_installed_fields() as $field) {
+    if (!field_info_field($field['field_name'])) {
+      field_create_field($field);
+    }
+  }
+
+  foreach (_islandora_digital_workflow_installed_instances() as $instance) {
+    if (!field_info_instance($instance['entity_type'], $instance['field_name'], $instance['bundle'])) {
+      field_create_instance($instance);
+    }
+  }
+}
+
+function _islandora_digital_workflow_installed_instances($stage_tid = 0, $stage_vid = 0) {
+  return array(
+    'field_pid_count' => array(
+      'field_name' => 'field_pid_count',
+      'entity_type' => 'node',
+      'bundle' => 'workflow_batch',
+      'required' => 0,
+      'description' => '',
+      'label' => 'Object Count',
+      'widget' => array(
+        'weight' => 4,
+        'type' => 'number',
+        'module' => 'number',
+        'active' => 0,
+        'settings' => array(),
+      ),
+      'settings' => array(
+        'min' => 1,
+        'max' => '',
+        'prefix' => '',
+        'suffix' => '',
+        'user_register_form' => '',
+      ),
+      'display' => array(
+        'default' => array(
+          'label' => 'inline',
+          'type' => 'number_integer',
+          'weight' => 0,
+          'settings' => array(
+            'thousand_separator' => ',',
+            'prefix_suffix' => 1,
+            'decimal_separator' => '.',
+            'scale' => 0,
+          ),
+          'module' => 'number',
+        ),
+        'full' => array(
+          'label' => 'inline',
+          'type' => 'number_integer',
+          'weight' => 2,
+          'settings' => array(
+            'thousand_separator' => ',',
+            'decimal_separator' => '.',
+            'scale' => 0,
+            'prefix_suffix' => 1,
+          ),
+          'module' => 'number',
+        ),
+        'teaser' => array(
+          'label' => 'inline',
+          'type' => 'number_integer',
+          'weight' => 2,
+          'settings' => array(
+            'thousand_separator' => ',',
+            'decimal_separator' => '.',
+            'scale' => 0,
+            'prefix_suffix' => 1,
+          ),
+          'module' => 'number',
+        ),
+      ),
+      'default_value' => array(
+        '0' => array('value' => 1,),
+      ),
+    ),
+    'field_batch_name' => array(
+      'field_name' => 'field_batch_name',
+      'entity_type' => 'node',
+      'bundle' => 'workflow_batch',
+      'required' => 0,
+      'description' => '',
+      'label' => 'Batch name',
+      'widget' => array(
+        'weight' => 3,
+        'type' => 'text_textfield',
+        'module' => 'text',
+        'active' => 1,
+        'settings' => array('size' => 60,),
+      ),
+      'settings' => array(
+        'text_processing' => 0,
+        'user_register_form' => '',
+      ),
+      'display' => array(
+        'default' => array(
+          'label' => 'inline',
+          'type' => 'text_default',
+          'weight' => 4,
+          'settings' => array(),
+          'module' => 'text',
+        ),
+        'full' => array(
+          'label' => 'inline',
+          'type' => 'text_default',
+          'weight' => 0,
+          'settings' => array(),
+          'module' => 'text',
+        ),
+        'teaser' => array(
+          'label' => 'inline',
+          'type' => 'text_default',
+          'weight' => 0,
+          'settings' => array(),
+          'module' => 'text',
+        ),
+      ),
+      'default_value' => '',
+    ),
+    'field_collections_mapping' => array(
+      'field_name' => 'field_collections_mapping',
+      'entity_type' => 'node',
+      'bundle' => 'workflow_batch',
+      'required' => 0,
+      'description' => '',
+      'label' => 'Collections mapping',
+      'widget' => array(
+        'weight' => 7,
+        'type' => 'text_textfield',
+        'module' => 'text',
+        'active' => 1,
+        'settings' => array('size' => 60,),
+      ),
+      'settings' => array(
+        'text_processing' => 0,
+        'user_register_form' => '',
+      ),
+      'display' => array(
+        'default' => array(
+          'label' => 'inline',
+          'type' => 'text_default',
+          'weight' => 5,
+          'settings' => array(),
+          'module' => 'text',
+        ),
+        'full' => array(
+          'label' => 'inline',
+          'type' => 'text_default',
+          'weight' => 4,
+          'settings' => array(),
+          'module' => 'text',
+        ),
+        'teaser' => array(
+          'label' => 'inline',
+          'type' => 'text_default',
+          'weight' => 4,
+          'settings' => array(),
+          'module' => 'text',
+        ),
+      ),
+      'default_value' => '',
+    ),
+    'field_sites_mapping' => array(
+      'field_name' => 'field_sites_mapping',
+      'entity_type' => 'node',
+      'bundle' => 'workflow_batch',
+      'required' => 0,
+      'description' => '',
+      'label' => 'Sites mapping',
+      'widget' => array(
+        'weight' => 8,
+        'type' => 'text_textfield',
+        'module' => 'text',
+        'active' => 1,
+        'settings' => array('size' => 60,),
+      ),
+      'settings' => array(
+        'text_processing' => 0,
+        'user_register_form' => '',
+      ),
+      'display' => array(
+        'default' => array(
+          'label' => 'inline',
+          'type' => 'text_default',
+          'weight' => 6,
+          'settings' => array(),
+          'module' => 'text',
+        ),
+        'full' => array(
+          'label' => 'inline',
+          'type' => 'text_default',
+          'weight' => 3,
+          'settings' => array(),
+          'module' => 'text',
+        ),
+        'teaser' => array(
+          'label' => 'inline',
+          'type' => 'text_default',
+          'weight' => 3,
+          'settings' => array(),
+          'module' => 'text',
+        ),
+      ),
+      'default_value' => '',
+    ),
+    'field_batch_defaults' => array(
+      'field_name' => 'field_batch_defaults',
+      'entity_type' => 'node',
+      'bundle' => 'workflow_batch',
+      'required' => 0,
+      'description' => '',
+      'label' => 'Batch Defaults',
+      'widget' => array(
+        'weight' => 9,
+        'type' => 'text_textarea',
+        'module' => 'text',
+        'active' => 1,
+        'settings' => array('rows' => 5,),
+      ),
+      'settings' => array(
+        'text_processing' => 1,
+        'user_register_form' => '',
+      ),
+      'display' => array(
+        'default' => array(
+          'label' => 'hidden',
+          'type' => 'text_default',
+          'weight' => 7,
+          'settings' => array(),
+          'module' => 'text',
+        ),
+        'full' => array(
+          'label' => 'hidden',
+          'type' => 'text_default',
+          'weight' => 7,
+          'settings' => array(),
+          'module' => 'text',
+        ),
+        'teaser' => array(
+          'label' => 'above',
+          'type' => 'hidden',
+          'weight' => 5,
+          'settings' => array(),
+        ),
+      ),
+      'default_value' => '',
+    ),
+
+    'field_stage' => array(
+      'field_name' => 'field_stage',
+      'entity_type' => 'node',
+      'bundle' => 'workflow_batch',
+      'required' => 0,
+      'description' => '',
+      'label' => 'Stage',
+      'widget' => array(
+        'weight' => 1,
+        'type' => 'taxonomy_autocomplete',
+        'module' => 'taxonomy',
+        'active' => 0,
+        'settings' => array(
+          'size' => 60,
+          'autocomplete_path' => 'taxonomy/autocomplete',
+        ),
+      ),
+      'settings' => array('user_register_form' => '',),
+      'display' => array(
+        'default' => array(
+          'label' => 'inline',
+          'type' => 'taxonomy_term_reference_link',
+          'weight' => 1,
+          'settings' => array(),
+          'module' => 'taxonomy',
+        ),
+        'teaser' => array(
+          'label' => 'above',
+          'type' => 'taxonomy_term_reference_link',
+          'weight' => 1,
+          'settings' => array(),
+          'module' => 'taxonomy',
+        ),
+        'full' => array(
+          'label' => 'above',
+          'type' => 'taxonomy_term_reference_link',
+          'weight' => 1,
+          'settings' => array(),
+          'module' => 'taxonomy',
+        ),
+      ),
+      'default_value' => array(
+        '0' => array(
+          'tid' => $stage_tid,
+          'vid' => $stage_vid,
+          'name' => 'New',
+          'description' => 'This is for workflow_batch nodes that are new.',
+          'format' => '',
+          'weight' => 0,
+          'vocabulary_machine_name' => 'workflow_stage_vocab',
+          'rdf_mapping' => array(
+            'rdftype' => array('0' => 'skos:Concept',),
+            'name' => array(
+              'predicates' => array(
+                '0' => 'rdfs:label',
+                '1' => 'skos:prefLabel',
+              ),
+            ),
+            'description' => array(
+              'predicates' => array('0' => 'skos:definition',),
+            ),
+            'vid' => array(
+              'predicates' => array('0' => 'skos:inScheme',),
+              'type' => 'rel',
+            ),
+            'parent' => array(
+              'predicates' => array('0' => 'skos:broader',),
+              'type' => 'rel',
+            ),
+          ),
+        ),
+      ),
+    ),
+    'field_identifiers' => array(
+      'field_name' => 'field_identifiers',
+      'entity_type' => 'node',
+      'bundle' => 'workflow_batch',
+      'required' => 0,
+      'description' => 'This should not be edited manually.  The system populates ' .
+        'this by parsing the batch\'s uploaded CSV file.',
+      'label' => 'Identifiers',
+      'widget' => array(
+        'weight' => 5,
+        'type' => 'text_textarea',
+        'module' => 'text',
+        'active' => 1,
+        'settings' => array(
+          'rows' => 5,
+        ),
+      ),
+      'settings' => array(
+        'text_processing' => 0,
+        'user_register_form' => '',
+      ),
+      'display' => array(
+        'default' => array(
+          'label' => 'hidden',
+          'type' => 'text_default',
+          'weight' => 2,
+          'settings' => array(),
+          'module' => 'text',
+        ),
+        'full' => array(
+          'label' => 'above',
+          'type' => 'text_default',
+          'weight' => 5,
+          'settings' => array(),
+          'module' => 'text',
+        ),
+      ),
+      'default_value' => '',
+    ),
+  );
+}
+
+function _islandora_digital_workflow_installed_fields() {
+  return array(
+    'field_pid_count' => array(
+      'field_name' => 'field_pid_count',
+      'type' => 'number_integer',
+      'entity_types' => array('node'),
+      'module' => 'number',
+      'active' => 1,
+      'storage_type' => 'field_sql_storage',
+      'storage_module' => 'field_sql_storage',
+      'storage_active' => 1,
+      'locked' => 0,
+      'cardinality' => 1,
+      'translatable' => 0,
+      'deleted' => 0,
+      'settings' => array(
+        'translatable' => 0,
+        'entity_types' => array(),
+        'settings' => array(),
+        'storage' => array(
+          'type' => 'field_sql_storage',
+          'module' => 'field_sql_storage',
+          'active' => 1,
+          'details' => array(
+            'sql' => array(
+              'FIELD_LOAD_CURRENT' => array(
+                'field_data_field_pid_count' => array('value' => 'field_pid_count_value'),
+              ),
+              'FIELD_LOAD_REVISION' => array(
+                'field_revision_field_pid_count' => array('value' => 'field_pid_count_value'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    ),
+    'field_batch_name' => array(
+      'field_name' => 'field_batch_name',
+      'type' => 'text',
+      'entity_types' => array('node'),
+      'module' => 'text',
+      'active' => 1,
+      'storage_type' => 'field_sql_storage',
+      'storage_module' => 'field_sql_storage',
+      'storage_active' => 1,
+      'locked' => 0,
+      'cardinality' => 1,
+      'translatable' => 0,
+      'deleted' => 0,
+      'settings' => array(
+        'translatable' => 0,
+        'entity_types' => array(),
+        'settings' => array('max_length' => 255),
+        'storage' => array(
+          'type' => 'field_sql_storage',
+          'settings' => array(),
+          'module' => 'field_sql_storage',
+          'active' => 1,
+          'details' => array(
+            'sql' => array(
+              'FIELD_LOAD_CURRENT' => array(
+                'field_data_field_batch_name' => array(
+                  'value' => 'field_batch_name_value',
+                  'format' => 'field_batch_name_format',
+                ),
+              ),
+              'FIELD_LOAD_REVISION' => array(
+                'field_revision_field_batch_name' => array(
+                  'value' => 'field_batch_name_value',
+                  'format' => 'field_batch_name_format',
+                ),
+              ),
+            ),
+          ),
+        ),
+        'foreign keys' => array(
+          'format' => array(
+            'table' => 'filter_format',
+            'columns' => array('format' => 'format',),
+          ),
+        ),
+        'indexes' => array(
+          'format' => array('0' => 'format',),
+        ),
+      ),
+    ),
+    'field_collections_mapping' => array(
+      'field_name' => 'field_collections_mapping',
+      'type' => 'text',
+      'entity_types' => array('node'),
+      'module' => 'text',
+      'active' => 1,
+      'storage_type' => 'field_sql_storage',
+      'storage_module' => 'field_sql_storage',
+      'storage_active' => 1,
+      'locked' => 0,
+      'cardinality' => 1,
+      'translatable' => 0,
+      'deleted' => 0,
+      'settings' => array(
+        'translatable' => 0,
+        'entity_types' => array(),
+        'settings' => array('max_length' => 255),
+        'storage' => array(
+          'type' => 'field_sql_storage',
+          'settings' => array(),
+          'module' => 'field_sql_storage',
+          'active' => 1,
+          'details' => array(
+            'sql' => array(
+              'FIELD_LOAD_CURRENT' => array(
+                'field_data_field_collections_mapping' => array(
+                  'value' => 'field_collections_mapping_value',
+                  'format' => 'field_collections_mapping_format',
+                ),
+              ),
+              'FIELD_LOAD_REVISION' => array(
+                'field_revision_field_collections_mapping' => array(
+                  'value' => 'field_collections_mapping_value',
+                  'format' => 'field_collections_mapping_format',
+                ),
+              ),
+            ),
+          ),
+        ),
+        'foreign keys' => array(
+          'format' => array(
+            'table' => 'filter_format',
+            'columns' => array('format' => 'format',),
+          ),
+        ),
+        'indexes' => array(
+          'format' => array('0' => 'format',),
+        ),
+      ),
+    ),
+    'field_sites_mapping' => array(
+      'field_name' => 'field_sites_mapping',
+      'type' => 'text',
+      'entity_types' => array('node'),
+      'module' => 'text',
+      'active' => 1,
+      'storage_type' => 'field_sql_storage',
+      'storage_module' => 'field_sql_storage',
+      'storage_active' => 1,
+      'locked' => 0,
+      'cardinality' => 1,
+      'translatable' => 0,
+      'deleted' => 0,
+      'settings' => array(
+        'translatable' => 0,
+        'entity_types' => array(),
+        'settings' => array('max_length' => 255,),
+        'storage' => array(
+          'type' => 'field_sql_storage',
+          'settings' => array(),
+          'module' => 'field_sql_storage',
+          'active' => 1,
+          'details' => array(
+            'sql' => array(
+              'FIELD_LOAD_CURRENT' => array(
+                'field_data_field_sites_mapping' => array(
+                  'value' => 'field_sites_mapping_value',
+                  'format' => 'field_sites_mapping_format',
+                ),
+              ),
+              'FIELD_LOAD_REVISION' => array(
+                'field_revision_field_sites_mapping' => array(
+                  'value' => 'field_sites_mapping_value',
+                  'format' => 'field_sites_mapping_format',
+                ),
+              ),
+            ),
+          ),
+        ),
+        'foreign keys' => array(
+          'format' => array(
+            'table' => 'filter_format',
+            'columns' => array('format' => 'format',),
+          ),
+        ),
+        'indexes' => array(
+          'format' => array('0' => 'format',),
+        ),
+      ),
+    ),
+    'field_batch_defaults' => array(
+      'field_name' => 'field_batch_defaults',
+      'type' => 'text_long',
+      'entity_types' => array('node'),
+      'module' => 'text',
+      'active' => 1,
+      'storage_type' => 'field_sql_storage',
+      'storage_module' => 'field_sql_storage',
+      'storage_active' => 1,
+      'locked' => 0,
+      'cardinality' => 1,
+      'translatable' => 0,
+      'deleted' => 0,
+      'settings' => array(
+        'translatable' => 0,
+        'entity_types' => array(),
+        'settings' => array(),
+        'storage' => array(
+          'type' => 'field_sql_storage',
+          'settings' => array(),
+          'module' => 'field_sql_storage',
+          'active' => 1,
+          'details' => array(
+            'sql' => array(
+              'FIELD_LOAD_CURRENT' => array(
+                'field_data_field_batch_defaults' => array(
+                  'value' => 'field_batch_defaults_value',
+                  'format' => 'field_batch_defaults_format',
+                ),
+              ),
+              'FIELD_LOAD_REVISION' => array(
+                'field_revision_field_batch_defaults' => array(
+                  'value' => 'field_batch_defaults_value',
+                  'format' => 'field_batch_defaults_format',
+                ),
+              ),
+            ),
+          ),
+        ),
+        'foreign keys' => array(
+          'format' => array(
+            'table' => 'filter_format',
+            'columns' => array('format' => 'format'),
+          ),
+        ),
+        'indexes' => array(
+          'format' => array('0' => 'format',),
+        ),
+      ),
+    ),
+    'field_stage' => array(
+      'field_name' => 'field_stage',
+      'type' => 'taxonomy_term_reference',
+      'entity_types' => array('node'),
+      'module' => 'taxonomy',
+      'active' => 1,
+      'storage_type' => 'field_sql_storage',
+      'storage_module' => 'field_sql_storage',
+      'storage_active' => 1,
+      'locked' => 0,
+      'cardinality' => 1,
+      'translatable' => 0,
+      'deleted' => 0,
+      'settings' => array(
+        'translatable' => 0,
+        'entity_types' => array(),
+        'settings' => array(
+          'allowed_values' => array(
+            '0' => array(
+              'vocabulary' => 'workflow_stage_vocab',
+              'parent' => 0,
+            ),
+          ),
+        ),
+        'storage' => array(
+          'type' => 'field_sql_storage',
+          'settings' => array(),
+          'module' => 'field_sql_storage',
+          'active' => 1,
+          'details' => array(
+            'sql' => array(
+              'FIELD_LOAD_CURRENT' => array(
+                'field_data_field_stage' => array('tid' => 'field_stage_tid',),
+              ),
+              'FIELD_LOAD_REVISION' => array(
+                'field_revision_field_stage' => array('tid' => 'field_stage_tid',),
+              ),
+            ),
+          ),
+        ),
+        'foreign keys' => array(
+          'tid' => array(
+            'table' => 'taxonomy_term_data',
+            'columns' => array('tid' => 'tid',),
+          ),
+        ),
+        'indexes' => array(
+          'tid' => array('0' => 'tid',),
+        ),
+      ),
+    ),
+    'field_identifiers' => array(
+      'field_name' => 'field_identifiers',
+      'type' => 'text_long',
+      'entity_types' => array('node'),
+      'module' => 'text',
+      'active' => 1,
+      'storage_type' => 'field_sql_storage',
+      'storage_module' => 'field_sql_storage',
+      'storage_active' => 1,
+      'locked' => 0,
+      'cardinality' => 1,
+      'translatable' => 0,
+      'deleted' => 0,
+      'settings' => array(
+        'translatable' => 0,
+        'entity_types' => array(),
+        'settings' => array(),
+        'storage' => array(
+          'type' => 'field_sql_storage',
+          'settings' => array(),
+          'module' => 'field_sql_storage',
+          'active' => 1,
+          'details' => array(
+            'sql' => array(
+              'FIELD_LOAD_CURRENT' => array(
+                'field_data_field_identifiers' => array(
+                  'value' => 'field_identifiers_value',
+                  'format' => 'field_identifiers_format',
+                ),
+              ),
+              'FIELD_LOAD_REVISION' => array(
+                'field_revision_field_identifiers' => array(
+                  'value' => 'field_identifiers_value',
+                  'format' => 'field_identifiers_format',
+                ),
+              ),
+            ),
+          ),
+        ),
+        'foreign keys' => array(
+          'format' => array(
+            'table' => 'filter_format',
+            'columns' => array('format' => 'format',),
+          ),
+        ),
+        'indexes' => array(
+          'format' => array('0' => 'format',),
+        ),
+      ),
+    ),
+  );
 }

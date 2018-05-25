@@ -305,3 +305,13 @@ function islandora_digital_workflow_access_node($permission, $node) {
     return user_access($permission);
   }
 }
+
+/**
+ * Implementation of hook_views_api().
+ */
+function islandora_digital_workflow_views_api() {
+  return array(
+    'api' => 3,
+    'path' => drupal_get_path('module', 'islandora_digital_workflow'),
+  );
+}
