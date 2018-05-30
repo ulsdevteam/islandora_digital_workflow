@@ -8,7 +8,6 @@
     <?php foreach ($batch_records as $batch_record) { ?>
     <div class="lookup_result <?php print ($toggle) ? 'evenrow' : 'oddrow'; ?>">
         <div class="lookup_result_indent">
-          Edit batch: "<a href="/islandora/islandora_digital_workflow/edit_batch/<?php print $batch_record->batch_name; ?>"><?php print $batch_record->batch_name; ?></a>"<br>
           <b>Description:</b> <?php print $batch_record->batch_description; ?>
           <?php if (isset($batch_record->identifiers)) { ?>
           <div><b>Matched Identifiers:</b> <?php print $batch_record->identifiers; ?></div>

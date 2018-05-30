@@ -170,9 +170,14 @@ function islandora_digital_workflow_create_batch_record_by_form($form_state, $no
     // updating a batch record should not wipe out the previous value for
     // uploaded_csv_file.
     if ($csv_filename) {
-      $field_values['uploaded_csv_file'] = mb_check_encoding($uploaded_csv_file, 'UTF-8') ? $uploaded_csv_file : utf8_encode($uploaded_csv_file);
+       // replace Microsoft Word version of single  and double quotations marks (“ ” ‘ ’) with  regular quotes (' and ")
+      $field_values['uploaded_csv_file'] = islandora_digital_workflow_convert_smart_quotes($uploaded_csv_file);
+/*
+      $field_values['uploaded_csv_file'] = mb_check_encoding($field_values['uploaded_csv_file'], 'UTF-8') ?
+          $field_values['uploaded_csv_file'] : utf8_encode($field_values['uploaded_csv_file']);
+ */
     }
-
+    db_query("SET NAMES utf8");
     if ((!is_array($batch_record))) {
       $batch_id = db_insert('islandora_digital_workflow_batch')
       ->fields($field_values)
@@ -191,6 +196,30 @@ function islandora_digital_workflow_create_batch_record_by_form($form_state, $no
   else {
     return NULL;
   }
+}
+
+/**
+ * Helper function to prevent bad Microsoft UTF8 quote characters from breaking
+ * the SQL insert.  Nobody needs those curly quotes.
+ *
+ * @param string $string
+ *   The text that needs to be converted
+ * @return string
+ *   The converted string value.
+ */
+function islandora_digital_workflow_convert_smart_quotes($string) {
+  return str_replace(
+      array(chr(145),
+            chr(146),
+            chr(147),
+            chr(148),
+            chr(151)),
+      array("'",
+            "'",
+            '"',
+            '"',
+            '-'),
+      $string);
 }
 
 /**
@@ -262,14 +291,15 @@ function islandora_digital_workflow_sync_node_to_items($batch_record, $node, $cs
 function islandora_digital_workflow_sync_batch_item_record($batch_record, $csv_file_source) {
   if (file_exists($csv_file_source['mods_filename'])) {
     $mods_content = file_get_contents($csv_file_source['mods_filename']);
-    $mods_content = mb_check_encoding($mods_content, 'UTF-8') ? $mods_content : utf8_encode($mods_content);
+    $mods_content = islandora_digital_workflow_convert_smart_quotes($mods_content); // mb_check_encoding($mods_content, 'UTF-8') ? $mods_content : utf8_encode($mods_content);
     // unlink($csv_file_source['mods_filename']);
   }
   else {
     $mods_content = '';
   }
-  $title = mb_check_encoding($csv_file_source['title'], 'UTF-8') ? $csv_file_source['title'] : utf8_encode($csv_file_source['title']);
+  $title = islandora_digital_workflow_convert_smart_quotes($csv_file_source['title']); //mb_check_encoding($csv_file_source['title'], 'UTF-8') ? $csv_file_source['title'] : utf8_encode($csv_file_source['title']);
 
+  db_query("SET NAMES utf8");
   // take each mods_filename and put this into the item record
   $batch_item_id = db_insert('islandora_digital_workflow_batch_items')
       ->fields(array(
@@ -318,6 +348,28 @@ function islandora_digital_workflow_find_batch_records_by_name($batch_name) {
     $query = db_select('islandora_digital_workflow_batch', 'b')
         ->fields('b')
         ->condition('b.batch_name', '%' . db_like($batch_name) . '%', 'LIKE');
+    $results = $query->execute();
+    $rows = $results->fetchAll();
+    return $rows;
+  }
+  else {
+    return NULL;
+  }
+}
+
+/**
+ * Returns all batch records that match part of the batch_description field.
+ *
+ * @param string $searchterm
+ *   The value of the `batch_name` field.
+ * @return mixed
+ *   Either returns an array of batch record objects or NULL if it cannot be found.
+ */
+function islandora_digital_workflow_find_batch_records_by_description($searchterm) {
+  if ($searchterm) {
+    $query = db_select('islandora_digital_workflow_batch', 'b')
+        ->fields('b')
+        ->condition('b.batch_description', '%' . db_like($searchterm) . '%', 'LIKE');
     $results = $query->execute();
     $rows = $results->fetchAll();
     return $rows;
@@ -1279,6 +1331,9 @@ function islandora_digital_workflow_prepare_csv2mods($input_filename, $batch_rec
   $batch_path = islandora_digital_workflow_batch_path($batch_record);
 
   $default_depositor = $batch_record['default_depositor'];
+  // TODO: capture batch-level values for default_genre, batch_default_CR_status,
+  // batch_default_pub_status, and batch_default_CR_holder -- to potentially set
+  // when creating MODS below.
   ini_set('auto_detect_line_endings', true);
   $outputFilename   = 'MODS.xml';
   // Open csv to read
@@ -1301,23 +1356,44 @@ function islandora_digital_workflow_prepare_csv2mods($input_filename, $batch_rec
 
   $ingest_namespace = islandora_digital_workflow_get_ingest_namespace();
   $identifiers_and_filepaths = array();
+  $auto_number = 0;
   // Loop through each row creating a <row> node with the correct data
   while (($row = fgetcsv($inputFile)) !== FALSE) {
+    // $row = array_map("utf8_encode", $row);
     // First, scan the entire row to get the identifier and the file_name value
     $toggle = !$toggle;
     echo '<div' . ($toggle ? $st : " style='border:1px solid #222'") . '>';
     echo "<h3>row " . $row_counter . "</h3>";
     $title = $row_file_name = $row_mods_id = '';
     $rowcopy = $row;
+
+    // Loop through the row to get the $row_mods_id value before further 
+    // processing since this field may be the last one in the row.
     foreach($headers as $i => $header) {
+      $header = str_replace(" ", "_", strtolower(trim($header)));
+      // Some partner decided to end the row of headers with a few commas like "depositor,,,,," - so must
+      // check that the header actually has a value.
+      if ($header && !$row_mods_id) {
+        if (array_key_exists($i, $row)) {
+          if ($header == 'identifier') {
+            $row_mods_id = trim($row[$i]);
+          }
+        }
+      }
+    }
+
+    if (!$row_mods_id) {
+      $auto_number++;
+      $row_mods_id = str_pad($auto_number, 4, '0', STR_PAD_LEFT);
+    }
+    foreach($headers as $i => $header) {
+      // ALL LOWERCASE, replace spaces with "_"
       $header = str_replace(" ", "_", strtolower(trim($header)));
       // Some partner decided to end the row of headers with a few commas like "depositor,,,,," - so must
       // check that the header actually has a value.
       if ($header) {
         if (array_key_exists($i, $row)) {
-          // ALL LOWERCASE, replace spaces with "_"
           if ($header == 'identifier') {
-            $row_mods_id = trim($row[$i]);
             if ($keep_created_MODS_files) {
               $mods_directory_path = $batch_path . '/' . $row_mods_id;
               if (!file_exists($mods_directory_path)) {
@@ -1326,7 +1402,7 @@ function islandora_digital_workflow_prepare_csv2mods($input_filename, $batch_rec
             }
           }
           elseif (($header == 'file_name' || $header == 'filename') && array_key_exists($i, $row)) {
-            $row_file_name = $batch_path . '/' . $row[$i];
+            $row_file_name = $batch_path . '/' . $row_mods_id . '/' . $row[$i];
             $outputFilename = str_replace(array('.tiff', '.tif'), '.xml', $row[$i]);
           }
           elseif ($header == 'normalized_date' && array_key_exists($i, $row)) {
@@ -1362,7 +1438,7 @@ function islandora_digital_workflow_prepare_csv2mods($input_filename, $batch_rec
     }
 
     // Create a new dom document with pretty formatting
-    $doc  = new DomDocument();
+    $doc  = new DOMDocument('1.0', 'utf-8'); // DomDocument();
     $doc->formatOutput   = true;
 
     // Start creating the MODS XML by adding the root node to the document.
@@ -1375,7 +1451,7 @@ function islandora_digital_workflow_prepare_csv2mods($input_filename, $batch_rec
     foreach($headers as $i => $header) {
       if (array_key_exists($header, $csv_header_xpath_mappings)) {
         if (is_array($rowcopy) && array_key_exists($i, $rowcopy) && $rowcopy[$i]) {
-          $text_node_value = mb_check_encoding($rowcopy[$i], 'UTF-8') ? $rowcopy[$i] : utf8_encode($rowcopy[$i]);
+          $text_node_value = $rowcopy[$i]; // mb_check_encoding($rowcopy[$i], 'UTF-8') ? $rowcopy[$i] : utf8_encode($rowcopy[$i]);
           $child = $doc->createElement($header);
           $child = $root->appendChild($child);
           $value = $doc->createTextNode($text_node_value);
@@ -1415,7 +1491,7 @@ function islandora_digital_workflow_prepare_csv2mods($input_filename, $batch_rec
     $identifiers_and_filepaths[] = array(
         'title' => $title,
         'identifier' => $ingest_namespace . $row_mods_id,
-        'filename' => $row_mods_id . '/' . $row_file_name,
+        'filename' => $row_file_name,
         'mods_filename' => $filename);
     $row_counter++;
   }
@@ -1461,7 +1537,7 @@ function islandora_digital_workflow_fix_if_csv_date_approximate($headers, &$row)
 function islandora_digital_workflow_XMLtoMODS($xml_filename) {
   $xsl = str_replace("/includes", "", dirname(__FILE__).'/transforms/sheet2mods.xsl');
 
-  $xml_file = file_get_contents($xml_filename);
+  $xml_file = islandora_digital_workflow_convert_smart_quotes(file_get_contents($xml_filename));
   $MODS = ($xml_file) ? islandora_digital_workflow_runXslTransform(
             array(
               'xsl' => $xsl,
@@ -1486,9 +1562,9 @@ function islandora_digital_workflow_XMLtoMODS($xml_filename) {
  *   The content of the transformed result.
  */
 function islandora_digital_workflow_runXslTransform($info) {
-  $xsl = new DOMDocument();
+  $xsl = new DOMDocument('1.0', 'utf-8');
   $xsl->load($info['xsl']);
-  $input = new DOMDocument();
+  $input = new DOMDocument('1.0', 'utf-8');
   $input->loadXML($info['input']);
 
   $processor = new XSLTProcessor();
@@ -1566,8 +1642,8 @@ function islandora_digital_workflow_get_tablefield_stats($tablename) {
 function islandora_digital_workflow_highlight($text, $word, $case_sensitive = FALSE) {
   $highlighted_text = "<span class='highlighted'>$word</span>";
   $text = ($case_sensitive) ?
-      str_ireplace($word, $highlighted_text, $text) :
-      str_replace($word, $highlighted_text, $text);
+      str_replace($word, $highlighted_text, $text) :
+      str_ireplace($word, $highlighted_text, $text);
   preg_match_all("'<a.*?href=\"(.*?)\"[^>]*?>(.*?)</a>'si", $text, $matches);
 
   foreach ($matches[1] as $messed_up_link) {

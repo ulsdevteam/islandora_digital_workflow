@@ -42,7 +42,7 @@
         <form action="" method="POST">
           <fieldset class="lookup_result_indent evenrow"<?php print ($can_update) ? '' : ' disabled' ?>>
               <label for="edit-title">Title: </label>
-              <input id="edit-title" name="title" value="<?php print $item->title; ?>">
+              <input id="edit-title" name="title" value="<?php print htmlspecialchars($item->title); ?>">
               <label for="edit-identifier">Identifier: </label>
               <input id="edit-identifier" name="identifier" value="<?php print $item->identifier; ?>">
               <label for="edit-filename">Filename: </label>

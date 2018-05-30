@@ -32,13 +32,16 @@ function islandora_digital_workflow_lookup_form_submit($searchterm = '') {
   $matched_csv_only = FALSE;
   $batch_records = islandora_digital_workflow_find_batch_records_by_name($searchterm);
   if (!is_array($batch_records) || count($batch_records) < 1) {
+    $batch_records = islandora_digital_workflow_find_batch_records_by_description($searchterm);
+  }
+  if (!is_array($batch_records) || count($batch_records) < 1) {
     $batch_records = islandora_digital_workflow_get_batch_record_by_items_identifier($searchterm);
   }
   if (!is_array($batch_records) || count($batch_records) < 1) {
     $batch_records = islandora_digital_workflow_search_batch_csv_by_identifier($searchterm);
     $matched_csv_only = TRUE;
   }
-  if (is_array($batch_records)) {
+  if (is_array($batch_records) && count($batch_records) > 0) {
     // If there is only one result, jump to that page --- else, present the
     // results as a list that can be used to jump to each.
     if (count($batch_records) < 2) {

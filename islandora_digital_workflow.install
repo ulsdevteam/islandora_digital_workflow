@@ -55,6 +55,9 @@ function islandora_digital_workflow_uninstall() {
   variable_del('islandora_digital_workflow_hosts_for_ingest');
   variable_del('islandora_digital_workflow_use_isMemberOfSite');
 
+  // Loop through the fields that are created for this module and delete them.
+  // As a side-effect, this results in field_deleted_* tables being created on
+  // the database, but these disappear after the drupal cron runs.
   foreach (array_keys(_islandora_digital_workflow_installed_fields()) as $field) {
     field_delete_field($field);
   }

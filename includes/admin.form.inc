@@ -21,7 +21,7 @@ function islandora_digital_workflow_admin_form() {
   // Needed for collapsible fieldsets
   drupal_add_js('misc/collapse.js');
   $about_islandora_digital_workflow_markup = '<p>These are the settings for ' .
-      'the <strong>Islandora Digital Workflow</strong> system.</p>';
+      'the <strong>' . l('Islandora Digital Workflow', '/islandora/islandora_digital_workflow') . '</strong> system.</p>';
   $models_table = islandora_digital_workflow_models_table();
 
   $form = array(
@@ -156,30 +156,7 @@ function islandora_digital_workflow_admin_form_submit(array $form, array &$form_
   $id = $form_state['triggering_element']['#id'];
   switch ($id) {
     case 'edit-submit':
-      $stage_values = json_encode(array(
-        'New' => array(
-            'color' => $form_state['values']['stage_New_color'],
-            'background-color' => $form_state['values']['stage_New_background_color'],
-        ),
-        'Scanned' => array(
-            'color' => $form_state['values']['stage_Scanned_color'],
-            'background-color' => $form_state['values']['stage_Scanned_background_color'],
-        ),
-        'Problem' => array(
-            'color' => $form_state['values']['stage_Problem_color'],
-            'background-color' => $form_state['values']['stage_Problem_background_color'],
-        ),
-        'Reviewed' => array(
-            'color' => $form_state['values']['stage_Reviewed_color'],
-            'background-color' => $form_state['values']['stage_Reviewed_background_color'],
-        ),
-        'Done' => array(
-            'color' => $form_state['values']['stage_Done_color'],
-            'background-color' => $form_state['values']['stage_Done_background_color'],
-        ),
-      ));
       islandora_digital_workflow_save_models($form_state['values']);
-      variable_set('islandora_digital_workflow_stages', $stage_values);
       variable_set('islandora_digital_workflow_ingest_namespace', $form_state['values']['ingest_namespace']);
       variable_set('islandora_digital_workflow_ingest_prepared_path', $form_state['values']['ingest_prepared_path']);
       variable_set('islandora_digital_workflow_hosts_for_ingest', $form_state['values']['batch_hosts']);
@@ -189,7 +166,6 @@ function islandora_digital_workflow_admin_form_submit(array $form, array &$form_
       break;
     case 'edit-reset':
       variable_del('islandora_digital_workflow_islandora_models');
-      variable_del('islandora_digital_workflow_stages');
       variable_del('islandora_digital_workflow_ingest_namespace');
       variable_del('islandora_digital_workflow_ingest_prepared_path');
       variable_del('islandora_digital_workflow_hosts_for_ingest');

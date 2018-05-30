@@ -398,6 +398,7 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
   $form['ingest_options_frame']['batch_host'] = array(
       '#type' => 'select',
       '#title' => t('Ingest files from host'),
+      '#required' => true,
       '#options' => $batch_hosts,
       '#default_value' => $current_batch_host_selection,
       '#description' => t('Specify the location of the files that relate to the uploaded spreadsheet.'),
@@ -415,6 +416,8 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
       '#type' => 'select',
       '#multiple' => TRUE,
       '#size' => 10,
+      '#default_value' => ($batch_record && isset($batch_record['mapto_collections'])) ? explode(",", $batch_record['mapto_collections']) : array(),
+      '#attributes' => array('autocomplete' => 'off'),
       '#options' => $collections,
     );
 
@@ -426,6 +429,8 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
         '#type' => 'select',
         '#multiple' => TRUE,
         '#options' => $sites,
+        '#default_value' => ($batch_record && isset($batch_record['mapto_site_id_values'])) ? explode(",", $batch_record['mapto_site_id_values']) : array(),
+        '#attributes' => array('autocomplete' => 'off'),
       );
   }
 
