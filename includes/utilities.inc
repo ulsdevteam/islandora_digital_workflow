@@ -14,12 +14,15 @@ function islandora_digital_workflow_content_type_to_islandora_model_mappings() {
   return array(
     'Audio' => 'islandora:sp-audioCModel',
     'Book' => 'islandora:bookCModel',
+    'Internet Archive Book' => 'islandora:bookCModel',
     'Disk Image' => 'islandora:sp_disk_image',
     'Finding Aid' => 'islandora:findingAidCModel',
     'Image' => 'islandora:sp_basic_image',
     'Large Image' => 'islandora:sp_large_image_cmodel',
+    'Image' => 'islandora:sp_large_image_cmodel',
     'Manuscript' => 'islandora:manuscriptCModel',
     'Newspaper' => 'islandora:newspaperIssueCModel',
+    'Newspaper/Serial' => 'islandora:newspaperIssueCModel',
     'Oral History' => 'islandora:oralhistoriesCModel',
     'PDF' => 'islandora:sp_pdf',
     'Video' => 'islandora:sp_videoCModel',
@@ -1271,7 +1274,7 @@ function islandora_digital_workflow_model_ingest_module_info($model) {
     'uls_git_link' => '',
   );
   switch ($model) {
-    case "Basic Image": case "Large Image":
+    case "Image": case "Basic Image": case "Large Image":
       $retval['module_name'] = 'islandora_batch';
       $retval['git_link'] = l($retval['module_name'], 'https://github.com/Islandora/islandora_batch.git');
       $retval['uls_git_link'] = l($retval['module_name'], 'https://github.com/ulsdevteam/islandora_batch.git');
@@ -1281,7 +1284,7 @@ function islandora_digital_workflow_model_ingest_module_info($model) {
       $retval['git_link'] = l($retval['module_name'], 'https://github.com/Islandora/islandora_book_batch.git');
       $retval['uls_git_link'] = l($retval['module_name'], 'https://github.com/ulsdevteam/islandora_book_batch.git');
       break;
-    case "Internet Archive Book":
+    case "Internet Archive Book": case "Book":
       $retval['module_name'] = 'islandora_book_batch';
       $retval['git_link'] = l($retval['module_name'], 'https://github.com/Islandora/islandora_book_batch.git');
       $retval['uls_git_link'] = l($retval['module_name'], 'https://github.com/ulsdevteam/islandora_book_batch.git');
@@ -1291,7 +1294,7 @@ function islandora_digital_workflow_model_ingest_module_info($model) {
       $retval['git_link'] = l($retval['module_name'], '//');
       $retval['uls_git_link'] = l($retval['module_name'], 'https://github.com/ulsdevteam/islandora_manuscript_batch.git');
       break;
-    case "Newspaper": case "Newspaper Issue":
+    case "Newspaper": case "Newspaper Issue": case "Newspaper/Serial":
       $retval['module_name'] = 'islandora_newspaper_batch';
       $retval['git_link'] = l($retval['module_name'], 'https://github.com/Islandora/islandora_newspaper_batch.git');
       $retval['uls_git_link'] = l($retval['module_name'], 'https://github.com/ulsdevteam/islandora_newspaper_batch.git');

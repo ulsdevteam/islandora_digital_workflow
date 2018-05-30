@@ -513,7 +513,7 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
  */
 function islandora_digital_workflow_remove_model_based_form_elements($model_name, &$form) {
   switch ($model_name) {
-    case 'Large Image' || 'Basic Image':
+    case 'Large Image' || 'Basic Image' || 'Image':
       unset($form['batch_objects_frame']['default_ead_id']);
       break;
 
@@ -522,7 +522,7 @@ function islandora_digital_workflow_remove_model_based_form_elements($model_name
       unset($form['batch_objects_frame']['file']);
       break;
 
-    case 'Internet Archive Book':
+    case 'Internet Archive Book' || 'Book':
       unset($form['batch_objects_frame']['default_ead_id']);
       break;
 
@@ -534,7 +534,7 @@ function islandora_digital_workflow_remove_model_based_form_elements($model_name
       unset($form['batch_objects_frame']['default_ead_id']);
       break;
 
-    case 'Newspaper Issue':
+    case 'Newspaper Issue' | 'Newspaper/Serial':
       unset($form['batch_objects_frame']['default_ead_id']);
       break;
 
