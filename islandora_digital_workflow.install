@@ -37,6 +37,21 @@ function islandora_digital_workflow_install() {
 }
 
 /**
+ * Implements hook_enable().
+ *
+ * Since Drupal module schema code makes it impossible to set up a timestamp
+ * field that updates with CURRENT_TIMESTAMP, this must be done during the
+ * module_hook_enable.
+ */
+function islandora_digital_workflow_enable() {
+  db_query("ALTER TABLE `islandora_digital_workflow_batch` CHANGE COLUMN " .
+    "`lastmod` `lastmod` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+  db_query("ALTER TABLE `islandora_digital_workflow_transactions` " .
+    "CHANGE COLUMN `timestamp` `timestamp` TIMESTAMP NULL DEFAULT " .
+    "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+}
+
+/**
  * Implements hook_uninstall().
  */
 function islandora_digital_workflow_uninstall() {

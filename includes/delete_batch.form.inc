@@ -30,6 +30,7 @@ function islandora_digital_workflow_delete_batch() {
  */
 function islandora_digital_workflow_delete_batch_form(array $form, array &$form_state, $batch_name = NULL) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
   module_load_include('inc', 'islandora_digital_workflow', 'includes/access_permissions');
   module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy-utilities');
   drupal_add_js('misc/collapse.js');

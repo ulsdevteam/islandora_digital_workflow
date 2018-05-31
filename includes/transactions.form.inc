@@ -10,6 +10,7 @@
  */
 function islandora_digital_workflow_transactions($node) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/lookup.form');
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
   $lookup_form_markup = theme('islandora_digital_workflow_lookup', array('searchterm' => ''));
 
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');

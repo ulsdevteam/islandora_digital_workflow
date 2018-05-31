@@ -26,6 +26,8 @@ function islandora_digital_workflow_create_batch() {
   $form = (!$batch_name) ?
     drupal_get_form('islandora_digital_workflow_create_empty_batch_form') :
     drupal_get_form('islandora_digital_workflow_create_batch_form', $batch_name);
+  $title = 'Islandora Digital Workflow - ' . (($batch_name) ? 'Edit' : 'Create') . ' Batch';
+  drupal_set_title(t($title), CHECK_PLAIN);
   $markup = $lookup_form_markup . drupal_render($form);
   return $markup;
 }
@@ -195,6 +197,7 @@ function islandora_digital_workflow_create_empty_batch_form_submit(array $form, 
  */
 function islandora_digital_workflow_create_batch_form(array $form, array &$form_state, $batch_name = NULL) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
   module_load_include('inc', 'islandora_digital_workflow', 'includes/access_permissions');
   module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy-utilities');
   drupal_add_js('misc/collapse.js');
@@ -238,8 +241,8 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
     $button_text = SAVE_BUTTON_TEXT;
     $batch_path = rtrim(variable_get('islandora_digital_workflow_ingest_prepared_path', file_directory_temp()), '/') . '/batch_0_not_named';
   }
-  if (!(array_search($batch_record['default_type_of_resource'], $readable_models) === FALSE)) {
-    $cmodel = array_search($batch_record['default_type_of_resource'], $readable_models);
+  if (!(array_key_exists($batch_record['default_type_of_resource'], $readable_models) === FALSE)) {
+    $cmodel = $batch_record['default_type_of_resource'];
     $tid_for_cmodel_selected = islandora_digital_workflow_get_tid_by_name($cmodel, $content_types_vocab);
   }
   else {
@@ -298,6 +301,8 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
         'same object model</strong>, and usually have many of the <strong>same ' .
         'properties</strong>.</i>',
     ));
+  $cmodel_readonly = $read_only_att;
+  $cmodel_readonly['autocomplete'] = 'off';
   $form['batch_edit_frame'] = array(
       '#type' => 'fieldset',
       '#title' => 'Batch details',
@@ -580,6 +585,7 @@ function islandora_digital_workflow_remove_model_based_form_elements($model_name
  *   The form_id that is being validated -- optional.
  */
 function islandora_digital_workflow_create_empty_batch_form_validate(&$elements, &$form_state, $form_id = NULL) {
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
   // Check for the batch name already existing.
   $batch_name = $form_state['values']['batch_name'];
   $batch_record = islandora_digital_workflow_get_batch_record_by_name($batch_name);
@@ -604,6 +610,7 @@ function islandora_digital_workflow_create_empty_batch_form_validate(&$elements,
  *   The form_id that is being validated -- optional.
  */
 function islandora_digital_workflow_create_batch_form_validate(&$elements, &$form_state, $form_id = NULL) {
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
   $batch_name = $form_state['values']['batch_name'];
   if (isset($_FILES['files']) && array_key_exists('tmp_name', $_FILES) && isset($_FILES['tmp_name'])) {
     $batch_record = islandora_digital_workflow_get_batch_record_by_name($batch_name);

@@ -2,6 +2,7 @@
 
 function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
 
   $batch_name = $node->title;
   $results = islandora_digital_workflow_find_batch_records_by_name($batch_name);

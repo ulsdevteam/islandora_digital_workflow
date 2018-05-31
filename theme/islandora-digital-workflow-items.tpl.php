@@ -35,6 +35,8 @@
         </div>
     </div>
 
+    <?php if ($items_table) { print $items_table; }  ?>
+
     <?php if (count($item_records) > 0) : ?>
     <table>
         <tr>

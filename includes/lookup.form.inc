@@ -26,6 +26,7 @@ function islandora_digital_workflow_lookup() {
  */
 function islandora_digital_workflow_lookup_form_submit($searchterm = '') {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
   // Try to load a islandora_digital_workflow_batch record by name ... if it 
   // does not come back, the searchterm may relate to an identifier that is
   // associated with a batch.

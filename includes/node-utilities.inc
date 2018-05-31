@@ -15,6 +15,7 @@ function islandora_digital_workflow_sync_node_batch_record_info($node, $form_sta
   global $system_creating_nodes;
   $system_creating_nodes = TRUE;
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
 
   if (!$csv_filename && (isset($_SESSION['uploaded_csv_filename']))) {
     $csv_filename = $_SESSION['uploaded_csv_filename'];
@@ -63,7 +64,7 @@ function islandora_digital_workflow_sync_node_batch_record_info($node, $form_sta
  */
 function islandora_digital_workflow_load_batch_record_for_node($node, $form_state = array()) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
-//  $bt = debug_backtrace();die('<pre>'.print_r($bt, true));
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
   $batch_name = @$node->field_batch_name[$node->language][0]['value'];
   return islandora_digital_workflow_get_batch_record_by_name($batch_name);
 }

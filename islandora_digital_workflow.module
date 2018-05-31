@@ -96,8 +96,8 @@ function islandora_digital_workflow_menu() {
     ),
     'node/%node/items' => array(
       'title' => 'Batch Items',
-      'page callback' => 'islandora_digital_workflow_items',
-      'page arguments' => array(1),
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('islandora_digital_workflow_items', 1),
       'access callback' => 'islandora_digital_workflow_access_node',
       'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW, 1),
       'type' => MENU_LOCAL_TASK,
@@ -231,6 +231,7 @@ function islandora_digital_workflow_theme() {
         'table_description' => '',
       ),
     ),
+      /*
     'islandora_digital_workflow_items' => array(
       'template' => 'theme/islandora-digital-workflow-items',
       'variables' => array(
@@ -241,6 +242,7 @@ function islandora_digital_workflow_theme() {
         'table_description' => '',
       ),
     ),
+      */
     'islandora_digital_workflow_item' => array(
       'template' => 'theme/islandora-digital-workflow-item',
       'variables' => array(

@@ -8,19 +8,102 @@
  * @return string
  *   HTML markup.
  */
-function islandora_digital_workflow_items($node) {
+function islandora_digital_workflow_items(array $form, array &$form_state, $node) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
 
   $batch_name = $node->title;
   $results = islandora_digital_workflow_find_batch_records_by_name($batch_name);
   $batch_record = array_pop($results);
 
+  // Prepare various objects for the dynamic form generation...
   $items = islandora_digital_workflow_get_batch_items_by_nid($node->nid);
+  $options = array();
+  foreach ($items as $item) {
+    $options[$item->identifier] = array(
+      'id' => $item->identifier,
+      'Identifier' => l($item->identifier, '/node/' . $node->nid . '/item/' . $item->batch_item_id),
+      'Title' => $item->title,
+      'Filename' => $item->filename_basename,
+      'Transactions' => $item->transaction_actions,
+    );
+  }
+  $items_header = array(
+    'Identifier' => 'Identifier',
+    'Title' => 'Title',
+    'Filename' => 'Filename',
+    'Transactions' => 'Transactions',
+  );
+  $batch_items_actions = islandora_digital_workflow_get_batch_items_actions();
+  $form = array();
 
-  return theme('islandora_digital_workflow_items', array(
-        'table_title' => 'Batch Items',
-        'table_description' => 'Listed below are all of the items related to the batch:',
-        'batch_record' => $batch_record,
-        'node' => $node,
-        'item_records' => $items));
+  $form['add_batch_action'] = array(
+      '#title' => t('Add Transaction'),
+      '#type' => 'select',
+      '#options' => $batch_items_actions,
+      '#description' => 'Select the transaction to apply to the selected batch items',
+      '#default_value' => '',
+  );
+  $form['remove_batch_action'] = array(
+      '#title' => t('Remove Transaction'),
+      '#type' => 'select',
+      '#options' => $batch_items_actions,
+      '#description' => 'Select the transaction to apply to the selected batch items',
+      '#default_value' => '',
+  );
+  $form['submit'] = array(
+      '#type' => 'submit',
+      '#value' => t('Modify transactions'),
+  );
+  $form['items'] = array(
+      '#type' => 'tableselect',
+      '#header' => $items_header,
+      '#options' => $options,
+      '#empty' => 'There are no items in the batch.',
+    );
+
+  return $form;
+}
+
+/**
+ * Function that sets the Drupal variables with user's input.
+ *
+ * @param array $form
+ *   The Drupal form definition.
+ * @param array $form_state
+ *   The Drupal form state.
+ * @param object $node
+ *   Drupal node.
+ * @return string
+ *   HTML markup.
+ */
+function islandora_digital_workflow_items_submit(array $form, array &$form_state) {
+  $selected_identifiers = array_filter($form_state['values']['items']);
+  $add_action_id = $form_state['values']['add_batch_action'];
+  $remove_action_id = $form_state['values']['remove_batch_action'];
+  if ($remove_action_id == '' && $add_action_id == '') {
+    drupal_set_message('No transactions were added or removed');
+  }
+  else {
+    $could_not_be_processed = array();
+    foreach ($selected_identifiers as $identifier) {
+      $batch_item_id = islandora_digital_workflow_get_batch_item_record_by_identifier($identifier);
+      if ($add_action_id) {
+        if (!islandora_digital_workflow_insert_transactions_record($add_action_id, NULL, $batch_item_id)) {
+          $could_not_be_processed[] = $identifier;
+        }
+      }
+      else {
+        if (!islandora_digital_workflow_remove_transactions_record($remove_action_id, NULL, $batch_item_id)) {
+          $could_not_be_processed[] = $identifier;
+        }
+      }
+    }
+    if (count($could_not_be_processed) > 0) {
+      drupal_set_message(t('Some of the selected items could not be updated. ') .
+        implode(", ", $could_not_be_processed));
+    } else {
+      drupal_set_message(t('All selected items have been updated.'));
+    }
+  }
 }

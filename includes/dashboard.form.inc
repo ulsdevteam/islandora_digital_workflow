@@ -64,8 +64,10 @@ function islandora_digital_workflow_get_user_role_dashboard() {
  * dashboard.
  */
 function islandora_digital_workflow_get_tasks_tables() {
-  $tables = array();
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
+
+  $tables = array();
   // runs a query to get any batches that have been created, but the details
   // have not been entered.
   $batch_records_no_details = islandora_digital_workflow_find_batch_records_no_details();
