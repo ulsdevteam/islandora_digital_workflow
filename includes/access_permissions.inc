@@ -3,28 +3,36 @@
 /**
  * Used for setting up module permissions.
  *
- * @param string $model_name
- *   Name of the Islandora model.
+ * @param string $cmodel
+ *   Name of the Fedora content model.
  * @return type
  *   The permission constant for the given Islandora model.
  */
-function islandora_digital_workflow_permission_constant_name_of_model($model_name) {
-  return 'ISLANDORA_DIGITAL_WORKFLOW_' . str_replace(" ", "_", strtoupper($model_name));
+function islandora_digital_workflow_permission_constant_name_of_model($cmodel) {
+  return 'ISLANDORA_DIGITAL_WORKFLOW_' . str_replace(
+      array(
+          ":",
+          " ",
+      ),
+      array(
+          "",
+          "_",
+      ), strtoupper($cmodel));
 }
 
 /**
- * Given a human-readable Islandora model name, this returns the permission name.
+ * Given an Islandora model name, this returns the permission name.
  *
  * This is used for checking permissions throughout the module such as:
  *   [islandora digital workflow Manuscript]
  *
- * @param string $readable_model
- *   Human-readable name of the Islandora model.
+ * @param string $cmodel
+ *   Name of the Fedora content model.
  * @return string
  *   Permission name related to a given Islandora model.
  */
-function islandora_digital_workflow_permission_of_model($readable_model) {
-  return 'islandora digital workflow ' . $readable_model;
+function islandora_digital_workflow_permission_of_model($cmodel) {
+  return 'islandora digital workflow ' . $cmodel;
 }
 
 function islandora_digital_workflow_save_models($values) {

@@ -56,8 +56,8 @@ function islandora_digital_workflow_delete_batch_form(array $form, array &$form_
     drupal_goto('islandora/islandora_digital_workflow/');
   }
   if (!(array_search($batch_record['default_type_of_resource'], $readable_models) === FALSE)) {
-    $key = array_search($batch_record['default_type_of_resource'], $readable_models);
-    $tid_for_cmodel_selected = islandora_digital_workflow_get_tid_by_name($readable_models[$key], $content_types_vocab);
+    $cmodel = array_search($batch_record['default_type_of_resource'], $readable_models);
+    $tid_for_cmodel_selected = islandora_digital_workflow_get_tid_by_name($cmodel, $content_types_vocab);
   }
   else {
     $tid_for_cmodel_selected = '';

@@ -360,9 +360,9 @@ function islandora_digital_workflow_add_workflow_content_type_taxonomy_terms() {
 
   foreach ($models as $cmodel => $readable_name) {
     $term = (object) array(
-     'name' => $readable_name,
+     'name' => $cmodel,
      'description' => 'This is for workflow_batch nodes for creating Islandora ' .
-        'objects of the ' . $cmodel . ' content model.',
+        'objects of the ' . $readable_name . ' content model.',
      'vid' => $vocab->vid,
     );
     taxonomy_term_save($term);

@@ -46,6 +46,7 @@ function islandora_digital_workflow_create_empty_batch_form(array $form, array &
   module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy-utilities');
 
   $readable_models = islandora_digital_workflow_get_reduced_readable_cmodels();
+
   $configured_supported_models = variable_get('islandora_digital_workflow_islandora_models', array());
   $return_form_elements = array();
   $content_types_vocab = taxonomy_vocabulary_machine_name_load(IDW_CONTENT_TYPE_TAXONOMY_MACHINE_NAME);
@@ -54,10 +55,10 @@ function islandora_digital_workflow_create_empty_batch_form(array $form, array &
   foreach ($readable_models as $cmodel => $model) {
     if (isset($configured_supported_models[$cmodel]) && $configured_supported_models[$cmodel] == 1) {
       // Now, check that the user has access to this model
-      $permission = islandora_digital_workflow_permission_of_model($model);
+      $permission = islandora_digital_workflow_permission_of_model($cmodel);
       if (user_access($permission)) {
-        $tid = islandora_digital_workflow_get_tid_by_name($model, $content_types_vocab);
-        $accessible_models[$tid] = $model;
+        $tid = islandora_digital_workflow_get_tid_by_name($cmodel, $content_types_vocab);
+        $accessible_models[$tid] = $cmodel;
       }
     }
   }
@@ -188,9 +189,9 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
   foreach ($readable_models as $cmodel => $model) {
     if (isset($configured_supported_models[$cmodel]) && $configured_supported_models[$cmodel] == 1) {
       // Now, check that the user has access to this model
-      $permission = islandora_digital_workflow_permission_of_model($model);
+      $permission = islandora_digital_workflow_permission_of_model($cmodel);
       if (user_access($permission)) {
-        $tid = islandora_digital_workflow_get_tid_by_name($model, $content_types_vocab);
+        $tid = islandora_digital_workflow_get_tid_by_name($cmodel, $content_types_vocab);
         $accessible_models[$tid] = $model;
       }
     }
@@ -220,8 +221,8 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
     $batch_path = rtrim(variable_get('islandora_digital_workflow_ingest_prepared_path', '/ingest/islandora_ingest'), '/') . '/batch_0_not_named';
   }
   if (!(array_search($batch_record['default_type_of_resource'], $readable_models) === FALSE)) {
-    $key = array_search($batch_record['default_type_of_resource'], $readable_models);
-    $tid_for_cmodel_selected = islandora_digital_workflow_get_tid_by_name($readable_models[$key], $content_types_vocab);
+    $cmodel = array_search($batch_record['default_type_of_resource'], $readable_models);
+    $tid_for_cmodel_selected = islandora_digital_workflow_get_tid_by_name($cmodel, $content_types_vocab);
   }
   else {
     $tid_for_cmodel_selected = '';

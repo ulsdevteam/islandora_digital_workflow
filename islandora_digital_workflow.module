@@ -153,15 +153,15 @@ function islandora_digital_workflow_permission() {
   $model_based_permissions = array();
   $models = islandora_digital_workflow_get_reduced_readable_cmodels();
 
-  foreach ($models as $model_name => $readable_model) {
-    $permission_define_name = islandora_digital_workflow_permission_constant_name_of_model($model_name);
-    $permission = islandora_digital_workflow_permission_of_model($readable_model);
+  foreach ($models as $cmodel => $model) {
+    $permission_define_name = islandora_digital_workflow_permission_constant_name_of_model($cmodel);
+    $permission = islandora_digital_workflow_permission_of_model($cmodel);
     if (!defined($permission_define_name)) {
       define($permission_define_name, $permission);
     }
     $model_based_permissions[$permission] = array(
-      'title' => 'Create/Edit/Update ' . $readable_model . ' batches',
-      'description' => 'User can perform tasks related to the ' . $readable_model . ' objects within the Islandora Digital Workflow system',
+      'title' => 'Create/Edit/Update ' . $model . ' batches',
+      'description' => 'User can perform tasks related to the ' . $model . ' objects within the Islandora Digital Workflow system',
     );
   }
   return array_merge($static_permissions, $model_based_permissions);

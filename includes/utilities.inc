@@ -1,49 +1,6 @@
 <?php
 
 /**
- * This array mapping is needed from various places in the code.
- * 
- * Provided here as a function so that key lookup is possible as well as 
- * searching for the "Content type" name given the model name.
- *
- * @return array
- *   The mapping between Islandora models and the human readable names.  The
- * key is human readable and the value is the Islandora model.
- */
-function islandora_digital_workflow_content_type_to_islandora_model_mappings() {
-  return array(
-    'Audio' => 'islandora:sp-audioCModel',
-    'Book' => 'islandora:bookCModel',
-    'Internet Archive Book' => 'islandora:bookCModel',
-    'Disk Image' => 'islandora:sp_disk_image',
-    'Finding Aid' => 'islandora:findingAidCModel',
-    'Image' => 'islandora:sp_basic_image',
-    'Large Image' => 'islandora:sp_large_image_cmodel',
-    'Image' => 'islandora:sp_large_image_cmodel',
-    'Manuscript' => 'islandora:manuscriptCModel',
-    'Newspaper' => 'islandora:newspaperIssueCModel',
-    'Newspaper/Serial' => 'islandora:newspaperIssueCModel',
-    'Oral History' => 'islandora:oralhistoriesCModel',
-    'PDF' => 'islandora:sp_pdf',
-    'Video' => 'islandora:sp_videoCModel',
-    'Web Archive' => 'islandora:sp_web_archive',
-  );
-}
-
-/**
- * This will return the islandora model name for a given content type.
- *
- * @param string $content_type
- *   The human-readable (Islandora) content type name.
- * @return string
- *   The Islandora model name for the content type provided.
- */
-function islandora_digital_workflow_content_type_to_islandora_model($content_type) {
-  $islandora_content_type_mapping = islandora_digital_workflow_content_type_to_islandora_model_mappings();
-  return (array_key_exists($content_type, $islandora_content_type_mapping)) ? $islandora_content_type_mapping[$content_type] : '';
-}
-
-/**
  * Creates a minimal batch stub record that will be updated in other parts of
  * the code.
  *
@@ -914,20 +871,24 @@ function islandora_digital_workflow_get_ingest_namespace() {
 function islandora_digital_workflow_get_reduced_cmodels() {
   module_load_include('inc', 'islandora', 'includes/content_model.autocomplete');
   $models = islandora_get_content_model_names();
-  
+
   // If they are set, remove these models:
   $remove_models = array(
     'ir:citationCModel',
+    'islandora:sp_audioCModel',
     'islandora:sp-audioCModel',
     'islandora:collectionCModel',
+    'islandora:CollectionModel',
     'islandora:compoundCModel',
     'islandora:sp_disk_image',
     'islandora:entityCModel',
     'islandora:eventCModel',
+    'islandora:mapCModel',
     'islandora:newspaperPageCModel',
     'islandora:oralhistoriesCModel',
     'islandora:organizationCModel',
     'islandora:sp_pdf',
+    'islandora:sp_strict_pdf',
     'islandora:pageCModel',
     'islandora:personCModel',
     'islandora:placeCModel',
@@ -998,25 +959,6 @@ function islandora_digital_workflow_get_reduced_readable_cmodels() {
     }
   }
   return $return_models;
-}
-
-/**
- * This will get the Islandora model name given any content type name.
- *
- * @param array $all_models
- *   Associative array - see islandora_digital_workflow_get_reduced_readable_cmodels()
- * @param string $readable_content_type
- *   The human readable content type name (used for Taxonomy among other things).
- * @return string
- */
-function islandora_digital_workflow_get_cmodels_from_readable_name($all_models, $readable_content_type) {
-  $readable_content_type = str_replace(" Content Model", "", $readable_content_type);
-  if (!(array_search($readable_content_type, $all_models) === FALSE)) {
-    return array_search($readable_content_type, $all_models);
-  }
-  else {
-    return '';
-  }
 }
 
 /**
