@@ -88,7 +88,7 @@ function islandora_digital_workflow_admin_form() {
         '#title' => t('Ingest Working Directory'),
         '#description' => t('The working directory for prepared ingest batch files.  This path
                              should be configured to a location that has plenty of hard space.'),
-        '#default_value' => variable_get('islandora_digital_workflow_ingest_prepared_path', '/ingest/islandora_ingest'),
+        '#default_value' => variable_get('islandora_digital_workflow_ingest_prepared_path', file_directory_temp()),
       ),
       'batch_hosts' => array(
         '#type' => 'textarea',

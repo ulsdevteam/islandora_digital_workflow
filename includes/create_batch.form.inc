@@ -62,15 +62,33 @@ function islandora_digital_workflow_create_empty_batch_form(array $form, array &
       }
     }
   }
+  $configured = TRUE;
+  // Check whether or not the required configuration settings are provided.
+  $batch_hosts = islandora_digital_workflow_get_batch_host_values();
+  // 1. Check that the "Available Host Aliases for Batch ingest" is set
+  if (count($batch_hosts) < 1) {
+    drupal_set_message(t('<b>Available Host Aliases for Batch ingest</b> is ' .
+        'not configured.  Please contact an administrator to ask them to ') .
+        'configure at least one "' . l('Available Host Aliases for Batch ingest', '/admin/islandora/islandora_digital_workflow') .
+        t('" before creating any workflow batches.'), 'error');
+    $configured = FALSE;
+  }
+
+  // 2. Check that at least one model is configured
   if (count($accessible_models) < 2) {
-    drupal_set_message(t('There are no Islandora Object models available for creating ' .
-        'batches.  Please contact an administrator to ask them to ') . l('configure models', '/admin/islandora/islandora_digital_workflow') .
+    drupal_set_message(t('There are no <b>Supported Models</b> models configured ' . 
+        'for creating batches or your user does not have permission to any models.  ' .
+        'Please contact an administrator to ask them to configure the ') .
+          l('Supported Models', '/admin/islandora/islandora_digital_workflow') .
         t(' and ') . l('set up permissions', '/admin/people/permissions') . t(' to any models.'), 'error');
+    $configured = FALSE;
+  }
+  if (!$configured) {
     return array(
       'about' => array(
         '#type' => 'item',
-        '#markup' => '<i>It is not possible to create any batches until models ' .
-          'are configured and permissions granted.</i>',
+        '#markup' => '<i>It is not possible to create any batches until the module ' .
+          'has been configured and permissions granted.</i>',
       )
     );
   }
@@ -78,7 +96,7 @@ function islandora_digital_workflow_create_empty_batch_form(array $form, array &
   $batch_name = '';
   $batch_description = '';
   $button_text = SAVE_BUTTON_TEXT;
-  $batch_path = rtrim(variable_get('islandora_digital_workflow_ingest_prepared_path', '/ingest/islandora_ingest'), '/') . '/batch_0_not_named';
+  $batch_path = rtrim(variable_get('islandora_digital_workflow_ingest_prepared_path', file_directory_temp()), '/') . '/batch_0_not_named';
   $tid_for_cmodel_selected = '';
 
   // If the user can administer site config, then display the link to the
@@ -218,7 +236,7 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
     $batch_description = '';
     $read_only_att = array();
     $button_text = SAVE_BUTTON_TEXT;
-    $batch_path = rtrim(variable_get('islandora_digital_workflow_ingest_prepared_path', '/ingest/islandora_ingest'), '/') . '/batch_0_not_named';
+    $batch_path = rtrim(variable_get('islandora_digital_workflow_ingest_prepared_path', file_directory_temp()), '/') . '/batch_0_not_named';
   }
   if (!(array_search($batch_record['default_type_of_resource'], $readable_models) === FALSE)) {
     $cmodel = array_search($batch_record['default_type_of_resource'], $readable_models);

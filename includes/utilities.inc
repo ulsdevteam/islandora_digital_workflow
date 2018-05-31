@@ -195,7 +195,7 @@ function islandora_digital_workflow_convert_smart_quotes($string) {
  */
 function islandora_digital_workflow_get_batch_host_values() {
   $arr = explode("\r\n", trim(variable_get('islandora_digital_workflow_hosts_for_ingest')));
-  $return_array = array(variable_get('islandora_digital_workflow_ingest_prepared_path', '/ingest/islandora_ingest') => 'Default Incoming Ingest Path');
+  $return_array = array();
 
   foreach ($arr as $alias_and_value) {
     @list($alias, $value) = explode("=", $alias_and_value, 2);
@@ -830,7 +830,7 @@ function islandora_digital_workflow_batch_path($batch_values) {
   }
   $ingest_path = $batch_values['batch_host'];
   if (!$batch_values['batch_host'] || $ingest_path == 'ftp' || (ltrim($ingest_path, 'ftp:') <> $ingest_path)) {
-    $ingest_path = variable_get('islandora_digital_workflow_ingest_prepared_path', '/ingest/islandora_ingest');
+    $ingest_path = variable_get('islandora_digital_workflow_ingest_prepared_path', file_directory_temp());
   } elseif (strstr($ingest_path, ":")) {
     @list($ingest_host, $ingest_path) = explode(":", $ingest_path);
     drupal_set_message('This batch is configured to use files from a different server.  ' .
