@@ -8,7 +8,17 @@
  * @return string
  *   HTML markup.
  */
-function islandora_digital_workflow_items(array $form, array &$form_state, $node) {
+function islandora_digital_workflow_batch_items() {
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/lookup.form');
+  $lookup_form_markup = theme('islandora_digital_workflow_lookup', array('searchterm' => ''));
+  $nid = arg(1);
+  $node = ($nid) ? node_load($nid) : NULL;
+  $form = drupal_get_form('islandora_digital_workflow_batch_items_form', $node);
+  $markup = $lookup_form_markup . drupal_render($form);
+  return $markup;
+}
+
+function islandora_digital_workflow_batch_items_form(array $form, array &$form_state, $node) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
 
@@ -36,26 +46,25 @@ function islandora_digital_workflow_items(array $form, array &$form_state, $node
   );
   $batch_items_actions = islandora_digital_workflow_get_batch_items_actions();
   $form = array();
-
-  $form['add_batch_action'] = array(
+  $form['form_two']['add_batch_action'] = array(
       '#title' => t('Add Transaction'),
       '#type' => 'select',
       '#options' => $batch_items_actions,
       '#description' => 'Select the transaction to apply to the selected batch items',
       '#default_value' => '',
   );
-  $form['remove_batch_action'] = array(
+  $form['form_two']['remove_batch_action'] = array(
       '#title' => t('Remove Transaction'),
       '#type' => 'select',
       '#options' => $batch_items_actions,
       '#description' => 'Select the transaction to apply to the selected batch items',
       '#default_value' => '',
   );
-  $form['submit'] = array(
+  $form['form_two']['submit'] = array(
       '#type' => 'submit',
       '#value' => t('Modify transactions'),
   );
-  $form['items'] = array(
+  $form['form_two']['items'] = array(
       '#type' => 'tableselect',
       '#header' => $items_header,
       '#options' => $options,
@@ -66,7 +75,7 @@ function islandora_digital_workflow_items(array $form, array &$form_state, $node
 }
 
 /**
- * Function that sets the Drupal variables with user's input.
+ * Function that updates the items' transactions with user's input.
  *
  * @param array $form
  *   The Drupal form definition.
@@ -77,7 +86,7 @@ function islandora_digital_workflow_items(array $form, array &$form_state, $node
  * @return string
  *   HTML markup.
  */
-function islandora_digital_workflow_items_submit(array $form, array &$form_state) {
+function islandora_digital_workflow_batch_items_form_submit(array $form, array &$form_state) {
   $selected_identifiers = array_filter($form_state['values']['items']);
   $add_action_id = $form_state['values']['add_batch_action'];
   $remove_action_id = $form_state['values']['remove_batch_action'];

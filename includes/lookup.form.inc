@@ -48,7 +48,7 @@ function islandora_digital_workflow_lookup_form_submit($searchterm = '') {
     if (count($batch_records) < 2) {
       drupal_set_message(t('Located batch "') . $batch_records[0]->batch_name . '" ' .
           t('by an item that matched identifier value "') . $searchterm . '".');
-      drupal_goto('islandora/islandora_digital_workflow/edit_batch/' . $batch_records[0]->batch_name);
+      drupal_goto('node/' . $batch_records[0]->nid . '/batch');
     }
     else {
       module_load_include('inc', 'islandora_digital_workflow', 'includes/lookup.form');

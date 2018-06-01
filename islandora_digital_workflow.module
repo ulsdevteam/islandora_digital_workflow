@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @file
+ * Module code for Islandora Digital Workflow module.
+ */
+
 // Taxonomy Vocabulary
 define('IDW_STAGE_TAXONOMY_MACHINE_NAME', 'workflow_stage_vocab');
 define('IDW_CONTENT_TYPE_TAXONOMY_MACHINE_NAME', 'workflow_content_type_vocab');
@@ -38,7 +43,7 @@ function islandora_digital_workflow_menu() {
     // Lookup form
     'islandora/islandora_digital_workflow/lookup' => array(
       'page callback' => array('islandora_digital_workflow_lookup'),
-      'type' => MENU_CALLBACK,
+      'type' => MENU_LOCAL_TASK,
       'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW),
       'file' => 'includes/lookup.form.inc',
     ),
@@ -46,7 +51,7 @@ function islandora_digital_workflow_menu() {
     // result, else displays the lookup results.
     'islandora/islandora_digital_workflow/lookup/%' => array(
       'title' => t('Islandora Digital Workflow Search'),
-      'type' => MENU_CALLBACK,
+      'type' => MENU_LOCAL_TASK,
       'page callback' => array('islandora_digital_workflow_lookup_form_submit'),
       'page arguments' => array(3),
       'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW),
@@ -96,8 +101,9 @@ function islandora_digital_workflow_menu() {
     ),
     'node/%node/items' => array(
       'title' => 'Batch Items',
-      'page callback' => 'drupal_get_form',
-      'page arguments' => array('islandora_digital_workflow_items', 1),
+      // arguments are handled in islandora_digital_workflow_batch_items
+      // with arg(1).
+      'page callback' => 'islandora_digital_workflow_batch_items',
       'access callback' => 'islandora_digital_workflow_access_node',
       'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW, 1),
       'type' => MENU_LOCAL_TASK,
@@ -115,8 +121,9 @@ function islandora_digital_workflow_menu() {
     ),
     'node/%node/transactions' => array(
       'title' => 'Transactions',
-      'page callback' => 'islandora_digital_workflow_transactions',
-      'page arguments' => array(1),
+      'page callback' => 'islandora_digital_workflow_batch_transactions',
+      // arguments are handled in islandora_digital_workflow_batch_items
+      // with arg(1).
       'access callback' => 'islandora_digital_workflow_access_node',
       'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_VIEW_TRANSACTIONS, 1),
       'type' => MENU_LOCAL_TASK,

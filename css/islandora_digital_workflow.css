@@ -135,6 +135,16 @@ and open the template in the editor.
     overflow: scroll;
 }
 
+/* ---- for the lookup form itself -------- */
+#lookup_item_form {
+    display: block;
+    float: right;
+    border-radius: 6px;
+    padding: 10px;
+    border: 2px solid #ccc;
+    box-shadow: 3px 3px 3px #ddd;
+}
+
 /* ---- for the lookup results display ---- */
 .highlighted {
     margin: -2px;

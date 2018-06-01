@@ -10,7 +10,9 @@
  */
 function islandora_digital_workflow_files($node) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/lookup.form');
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
+  $lookup_form_markup = theme('islandora_digital_workflow_lookup', array('searchterm' => ''));
 
   $batch_name = $node->title;
   $results = islandora_digital_workflow_find_batch_records_by_name($batch_name);
@@ -29,7 +31,7 @@ function islandora_digital_workflow_files($node) {
     $file_records[$index]->class = (array_key_exists($relative_folder_file, $scanned_files) ? '' : 'bad');
   }
 
-  return theme('islandora_digital_workflow_files', array(
+  return $lookup_form_markup . theme('islandora_digital_workflow_files', array(
         'table_title' => 'Batch Files',
         'table_description' => 'Listed below are all of the files related to the batch:',
         'batch_record' => $batch_record,

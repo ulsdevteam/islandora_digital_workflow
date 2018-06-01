@@ -1,8 +1,20 @@
 <?php
 
+/**
+ * View a single batch_item
+ *
+ * @param object $node
+ *   Drupal node.
+ * @param integer $batch_item_id
+ *   The id value for the batch_item record to display.
+ * @return string
+ *   The rendered HTML.
+ */
 function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/lookup.form');
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
+  $lookup_form_markup = theme('islandora_digital_workflow_lookup', array('searchterm' => ''));
 
   $batch_name = $node->title;
   $results = islandora_digital_workflow_find_batch_records_by_name($batch_name);
@@ -37,7 +49,7 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
   $item = array_pop($item_record_results);
   $item_record_transactions = islandora_digital_workflow_get_batch_item_transactions($batch_item_id);
 
-  return theme('islandora_digital_workflow_item', array(
+  return $lookup_form_markup . theme('islandora_digital_workflow_item', array(
         'batch_record' => $batch_record,
         'item' => $item,
         'can_update' => user_access(ISLANDORA_DIGITAL_WORKFLOW_UPDATE_ITEMS),
