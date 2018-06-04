@@ -328,10 +328,18 @@ function islandora_digital_workflow_schema() {
   $schema['islandora_digital_workflow_transactions'] = array(
     'description' => t('Stores transactions related to batch and batch items'),
     'fields' => array(
-      'action_id' => array(
+      'transaction_id' => array(
         'description' => 'The action_id for the transction for a related ' .
           'islandora_digital_workflow_actions record',
         'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'action_id' => array(
+        'description' => 'The action_id for the transction for a related ' .
+          'islandora_digital_workflow_actions record',
+        'type' => 'int',
+        'size' => 'medium',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
@@ -357,6 +365,7 @@ function islandora_digital_workflow_schema() {
         'not null' => FALSE,
       ),
     ),
+    'primary key' => array('transaction_id'),
     'indexes' => array(
       'ss_action_id_batch_item_id_batch_id' => array('action_id', 'batch_item_id', 'batch_id'),
     ),

@@ -29,7 +29,7 @@ function islandora_digital_workflow_create_stub_batch_record($form_state) {
         'is_batch_active' => 0,
         'is_batch_request' => 0,
         'user' => $user->name,
-        'lastmod' => time(),
+//        'lastmod' => time(),
       );
 
     if ((!is_array($batch_record))) {
@@ -107,7 +107,7 @@ function islandora_digital_workflow_create_batch_record_by_form($form_state, $no
         'mapto_collections' => implode(",", $form_state['values']['collections_select']),
         'nid' => $node->nid,
         'user' => $user->name,
-        'lastmod' => time(),
+//        'lastmod' => time(),
 
         // default_type_of_resource - the text value of the selected Islandora Model
         // 
@@ -500,11 +500,16 @@ function islandora_digital_workflow_batch_path($batch_values) {
  * Helper function to return the value of the
  * islandora_digital_workflow_ingest_namespace - with the right trailing colon.
  *
+ * @param type $batch_record
+ *   [optional] The batch record in question.
  * @return string
  *   The sanitized ingest_namespace value.
  */
-function islandora_digital_workflow_get_ingest_namespace() {
-  return rtrim(variable_get('islandora_digital_workflow_ingest_namespace', 'islandora'), ':') . ':';
+function islandora_digital_workflow_get_ingest_namespace($batch_record = array()) {
+  return rtrim(($batch_record && isset($batch_record['ingest_namespace'])) ?
+      $batch_record['ingest_namespace'] :
+      variable_get('islandora_digital_workflow_ingest_namespace', 'islandora'
+    ), ':') . ':';
 }
 
 /**
@@ -816,6 +821,7 @@ function islandora_digital_workflow_models_table() {
     // Each model depends on a specific module in order to be able to ingest.
     // The models that are not supported should be disabled.
     $this_model_module_info = islandora_digital_workflow_model_ingest_module_info($model);
+
     $title = ($this_model_module_info['exists']) ? $model : $model . ' (not installed)';
     $configured_models[$cmodel] = array(
       '#type' => 'checkbox',
@@ -825,6 +831,10 @@ function islandora_digital_workflow_models_table() {
       '#prefix' => '<div class="major-item">',
       '#suffix' => '</div>',
     );
+    if ($this_model_module_info['git_branch'] <> '') {
+       $configured_models[$cmodel]['#description']  = $this_model_module_info['uls_git_link'] .
+           ' <i>' . $this_model_module_info['git_branch'] . '</i>';
+    }
     if (!$this_model_module_info['exists']) {
       $configured_models[$cmodel]['#default_value'] = 0;
       drupal_set_message('The module is not installed that can ingest ' . $model . ' objects, ' .
@@ -894,6 +904,20 @@ function islandora_digital_workflow_model_ingest_module_info($model) {
       break;
   }
   $retval['exists'] = module_exists($retval['module_name']);
+  $prev_dir = getcwd();
+  if ($retval['exists']) {
+    $path = drupal_realpath(drupal_get_path('module', $retval['module_name']));
+    chdir($path);
+    // Execute a command in git to find the branch of the underlying model
+    $output = $return_var = array();
+    exec('/usr/bin/git rev-parse --abbrev-ref HEAD', $output, $return_var);
+    $retval['git_branch'] = ((($return_var == -1 || $return_var == 255)) ? '' : implode('', $output));
+    chdir($prev_dir);
+  }
+  else {
+    $retval['git_branch'] = '';
+  }
+
   return $retval;
 }
 
@@ -916,6 +940,19 @@ function islandora_digital_workflow_model_ingest_module_info($model) {
  */
 function islandora_digital_workflow_prepare_csv2mods($input_filename, $batch_record, $keep_created_MODS_files = FALSE) {
   if (!$input_filename) {
+    // Look to see if the batch_record has a uploaded_csv_file
+    if ($batch_record['uploaded_csv_file']) {
+      $temp_csv_filename = drupal_realpath(drupal_tempnam('temporary://', 'batch_objects.csv'));
+      if ($bytes_written = file_put_contents($temp_csv_filename, $batch_record['uploaded_csv_file'])) {
+        $input_filename = $temp_csv_filename;
+        $keep_created_MODS_files = TRUE;
+      }
+    }
+  }
+  else {
+    $temp_csv_filename = '';
+  }
+  if (!$input_filename) {
     return array();
   }
 
@@ -936,8 +973,6 @@ function islandora_digital_workflow_prepare_csv2mods($input_filename, $batch_rec
     return FALSE;
   }
 
-//  $working_directory = dirname(drupal_realpath($input_filename));
-
   echo "<h3>Working directory " . $batch_path . "</h3>";
 
   $st = " style='background-color:#F2F2F2;border:1px solid #222'";  $toggle = false;  $row_counter = 1;
@@ -945,7 +980,7 @@ function islandora_digital_workflow_prepare_csv2mods($input_filename, $batch_rec
   $csv_header_xpath_mappings = islandora_digital_workflow_get_csv_header_xpath_mappings();
   $mods_created = $files_copied = $bytes_written = 0;
 
-  $ingest_namespace = islandora_digital_workflow_get_ingest_namespace();
+  $ingest_namespace = islandora_digital_workflow_get_ingest_namespace($batch_record);
   $identifiers_and_filepaths = array();
   $auto_number = 0;
   // Loop through each row creating a <row> node with the correct data
@@ -1089,6 +1124,9 @@ function islandora_digital_workflow_prepare_csv2mods($input_filename, $batch_rec
   echo "<p>" . number_format($files_copied) . " files copied to incoming directory <b>" . $batch_path . "</b></p>";
   echo "<p>" . number_format($mods_created) . " MODS files created.</p>";
 
+  if ($temp_csv_filename <> '' && file_exists($temp_csv_filename)) {
+    unlink($temp_csv_filename);
+  }
   return $identifiers_and_filepaths;
 }
 

@@ -319,7 +319,7 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
         '#type' => 'select',
         '#required' => true,
         '#options' => $accessible_models,
-        '#attributes' => $read_only_att,
+        '#attributes' => $cmodel_readonly,
         '#description' => $supported_models_description,
         '#default_value' => $tid_for_cmodel_selected,
       ),
@@ -432,7 +432,7 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
         '#type' => 'textfield',
         '#title' => t('Ingest namespace'),
         '#required' => true,
-        '#default_value' => variable_get('islandora_digital_workflow_ingest_namespace', 'islandora'),
+        '#default_value' => ($batch_record && isset($batch_record['ingest_namespace'])) ? $batch_record['ingest_namespace'] : variable_get('islandora_digital_workflow_ingest_namespace', 'islandora'),
       ),
     );
   $form['ingest_options_frame']['collections_select'] = array(

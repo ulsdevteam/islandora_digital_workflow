@@ -32,17 +32,18 @@ function islandora_digital_workflow_batch_items_form(array $form, array &$form_s
   foreach ($items as $item) {
     $options[$item->identifier] = array(
       'id' => $item->identifier,
+      'Transactions' => theme('islandora_digital_workflow_transactions_glyphs', array('transaction_actions' => $item->transactions)),
       'Identifier' => l($item->identifier, '/node/' . $node->nid . '/item/' . $item->batch_item_id),
       'Title' => $item->title,
       'Filename' => $item->filename_basename,
-      'Transactions' => $item->transaction_actions,
+
     );
   }
   $items_header = array(
+    'Transactions' => 'Transactions',
     'Identifier' => 'Identifier',
     'Title' => 'Title',
     'Filename' => 'Filename',
-    'Transactions' => 'Transactions',
   );
   $batch_items_actions = islandora_digital_workflow_get_batch_items_actions();
   $form = array();
@@ -53,13 +54,15 @@ function islandora_digital_workflow_batch_items_form(array $form, array &$form_s
       '#description' => 'Select the transaction to apply to the selected batch items',
       '#default_value' => '',
   );
-  $form['form_two']['remove_batch_action'] = array(
-      '#title' => t('Remove Transaction'),
-      '#type' => 'select',
-      '#options' => $batch_items_actions,
-      '#description' => 'Select the transaction to apply to the selected batch items',
-      '#default_value' => '',
-  );
+  if (user_access(ISLANDORA_DIGITAL_WORKFLOW_EDIT_DELETE_TRANSACTIONS)) {
+    $form['form_two']['remove_batch_action'] = array(
+        '#title' => t('Remove Transaction'),
+        '#type' => 'select',
+        '#options' => $batch_items_actions,
+        '#description' => 'Select the transaction to apply to the selected batch items',
+        '#default_value' => '',
+    );
+  }
   $form['form_two']['submit'] = array(
       '#type' => 'submit',
       '#value' => t('Modify transactions'),

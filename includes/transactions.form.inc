@@ -1,7 +1,8 @@
 <?php
 
 /**
- * Displays the form to either add / remove transactions from a batch.
+ * Displays transactions for a batch and a form to either add / remove them
+ * from a batch.
  *
  * This approache is needed in order to display two separate forms on a single
  * page.  The lookup form's action needs to be handled separately from the
@@ -20,7 +21,6 @@ function islandora_digital_workflow_batch_transactions() {
   $markup = $lookup_form_markup . drupal_render($form);
   return $markup;
 }
-
 
 /**
  * Displays transactions related to a workflow_batch node.
@@ -60,13 +60,15 @@ function islandora_digital_workflow_batch_transactions_form(array $form, array &
       '#description' => 'Select the transaction to apply to the selected batch items',
       '#default_value' => '',
   );
-  $form['remove_batch_action'] = array(
-      '#title' => t('Remove Transaction'),
-      '#type' => 'select',
-      '#options' => $batch_items_actions,
-      '#description' => 'Select the transaction to apply to the selected batch items',
-      '#default_value' => '',
-  );
+  if (user_access(ISLANDORA_DIGITAL_WORKFLOW_EDIT_DELETE_TRANSACTIONS)) {
+    $form['remove_batch_action'] = array(
+        '#title' => t('Remove Transaction'),
+        '#type' => 'select',
+        '#options' => $batch_items_actions,
+        '#description' => 'Select the transaction to apply to the selected batch items',
+        '#default_value' => '',
+    );
+  }
   $form['submit'] = array(
       '#type' => 'submit',
       '#value' => t('Modify transactions'),

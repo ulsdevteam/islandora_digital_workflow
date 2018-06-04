@@ -17,6 +17,7 @@ define('IDW_CONTENT_TYPE_TAXONOMY_MACHINE_NAME', 'workflow_content_type_vocab');
 define('ISLANDORA_DIGITAL_WORKFLOW', 'digital workflow access');
 define('ISLANDORA_DIGITAL_WORKFLOW_CREATE_NEW_BATCH', 'digital workflow create batches');
 define('ISLANDORA_DIGITAL_WORKFLOW_VIEW_TRANSACTIONS', 'digital workflow view transactions');
+define('ISLANDORA_DIGITAL_WORKFLOW_EDIT_DELETE_TRANSACTIONS', 'digital workflow edit transactions');
 define('ISLANDORA_DIGITAL_WORKFLOW_UPDATE_ITEMS', 'digital workflow update items');
 
 /**
@@ -122,12 +123,31 @@ function islandora_digital_workflow_menu() {
     'node/%node/transactions' => array(
       'title' => 'Transactions',
       'page callback' => 'islandora_digital_workflow_batch_transactions',
-      // arguments are handled in islandora_digital_workflow_batch_items
-      // with arg(1).
+      // arguments are handled with arg(1).
       'access callback' => 'islandora_digital_workflow_access_node',
       'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_VIEW_TRANSACTIONS, 1),
       'type' => MENU_LOCAL_TASK,
       'file' => 'includes/transactions.form.inc',
+      'weight' => 90,
+    ),
+    'node/%node/delete_transaction/%' => array(
+      'title' => 'Delete Transaction',
+      'page callback' => 'islandora_digital_workflow_delete_transaction',
+      // arguments are handled with arg(1) and arg(3).
+      'access callback' => 'islandora_digital_workflow_access_node',
+      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_EDIT_DELETE_TRANSACTIONS, 1),
+      'type' => MENU_NORMAL_ITEM,
+      'file' => 'includes/delete_transaction.form.inc',
+      'weight' => 90,
+    ),
+    'node/%node/edit_transaction/%' => array(
+      'title' => 'Edit Transaction',
+      'page callback' => 'islandora_digital_workflow_edit_transaction',
+      // arguments are handled with arg(1) and arg(3).
+      'access callback' => 'islandora_digital_workflow_access_node',
+      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_EDIT_DELETE_TRANSACTIONS, 1),
+      'type' => MENU_NORMAL_ITEM,
+      'file' => 'includes/edit_transaction.form.inc',
       'weight' => 90,
     ),
   );
@@ -151,6 +171,10 @@ function islandora_digital_workflow_permission() {
     ISLANDORA_DIGITAL_WORKFLOW_VIEW_TRANSACTIONS => array(
       'title' => t('View Batch Transactions'),
       'description' => t('User can view batch transaction details'),
+    ),
+    ISLANDORA_DIGITAL_WORKFLOW_EDIT_DELETE_TRANSACTIONS => array(
+      'title' => t('Edit / Delete Batch Transactions'),
+      'description' => t('User can edit / delete batch transaction details'),
     ),
     ISLANDORA_DIGITAL_WORKFLOW_UPDATE_ITEMS => array(
       'title' => t('Update Batch Items'),
@@ -180,10 +204,9 @@ function islandora_digital_workflow_permission() {
  * This code will remove the sidebar and must check to see whether or not the path is on a user page.
  */
 function islandora_digital_workflow_preprocess_html(&$vars) {
-  $path = drupal_get_path('module', 'islandora_digital_workflow');
   $item = menu_get_item();
   if (is_array($item)) {
-    $public_files_path = drupal_realpath('public://');
+    $path = drupal_get_path('module', 'islandora_digital_workflow');
     drupal_add_css($path . '/css/islandora_digital_workflow.css');
     // Just the admin form needs the /js/admin_form.js added.
     if ($item['path'] == 'admin/islandora/islandora_digital_workflow') {
@@ -274,6 +297,12 @@ function islandora_digital_workflow_theme() {
         'transaction_records' => array(),
         'table_title' => '',
         'table_description' => '',
+      ),
+    ),
+    'islandora_digital_workflow_transactions_glyphs' => array(
+      'template' => 'theme/islandora-digital-workflow-transactions-glpyhs',
+      'variables' => array(
+        'transaction_actions' => array(),
       ),
     ),
   );

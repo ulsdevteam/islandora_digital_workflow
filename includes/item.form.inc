@@ -47,7 +47,7 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
 
   $item_record_results = islandora_digital_workflow_get_batch_item_record($batch_item_id);
   $item = array_pop($item_record_results);
-  $item_record_transactions = islandora_digital_workflow_get_batch_item_transactions($batch_item_id);
+  $item_record_transactions = islandora_digital_workflow_get_batch_item_transactions($batch_item_id, $node->nid);
 
   return $lookup_form_markup . theme('islandora_digital_workflow_item', array(
         'batch_record' => $batch_record,

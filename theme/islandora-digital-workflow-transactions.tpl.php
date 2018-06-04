@@ -41,7 +41,18 @@
           $toggle = !$toggle;
           ?>
           <tr class="<?php print ($toggle) ? 'evenrow' : 'oddrow'; ?>">
-              <td><?php print $transaction_record->description; ?></td>
+              <td>
+                <div class="<?php print $transaction_record->glyph_class; ?>">&nbsp;</div>
+                <?php print $transaction_record->description; ?>
+                <?php if ($transaction_record->admin_links <> ''): ?>
+                  <div class="admin_links">
+                      <a href="/node/<?php print $transaction_record->nid; ?>/edit_transaction/<?php print $transaction_record->transaction_id; ?>" title="Edit">
+                        <div class="edit_20">&nbsp;</div></a>
+                      <a href="/node/<?php print $transaction_record->nid; ?>/delete_transaction/<?php print $transaction_record->transaction_id; ?>" title="Delete">
+                        <div class="delete_20">&nbsp;</div></a>
+                  </div>
+                <?php endif; ?>
+              </td>
               <td><?php print $transaction_record->how_long_ago; ?></td>
               <td><?php print $transaction_record->timestamp; ?></td>
           </tr>

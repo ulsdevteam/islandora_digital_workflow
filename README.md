@@ -58,9 +58,11 @@ Installing this module will also set up the following:
  - custom Drupal views to display the workflow_batch nodes
 
 ## Permissions
-Each islandora model is exposed as an "{MODEL_NAME} Islandora Digital Workflow" permission under the Drupal permissions table `/admin/people/permissions`.  User roles and individual users will need to be configured for accesss to the various models.  Even though these permissions would exist for *all islandora models*, there are settings within the Islandora Digital Workflow configuration to suppress specific object models from appearing in the various parts of the interface.
+Each islandora model is exposed as an "{MODEL_NAME} Islandora Digital Workflow" permission under the Drupal permissions table `/admin/people/permissions`.  User roles and individual users will need to be configured for accesss to the various models.  
 
 Additionally, the roles' access to specific Islandora models can be controlled with the module's configuration `/admin/islandora/islandora_digital_workflow`.
+
+***NOTE:**  even though permissions exist for **all islandora models**, the "Supported Models" settings within the Islandora Digital Workflow limit the total set of object models that could ever appearing within the various parts of the interface before consideration of the user permissions.*
 
 ## Author / License
 
