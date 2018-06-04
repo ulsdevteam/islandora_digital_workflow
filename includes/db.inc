@@ -138,6 +138,37 @@ function islandora_digital_workflow_find_batch_records_no_details() {
 }
 
 /**
+ * Gets an array of batch_item_identifiers and previous transaction_id values.
+ *
+ * For mapping the items to transactions when replacing (recreating) the
+ * batch_items records.
+ *
+ * @param integer $batch_id
+ *   The batch_id value for matching batch record
+ * @return array
+ *   An associative array where key is old transaction record's transaction_id
+ * value and the value is an array of values for batch item's identifier and timestamp
+ * for the previous batch_item -- transaction records.
+ */
+function islandora_digital_workflow_get_batch_item_ids_to_transaction_ids($batch_id) {
+  $query = db_select('islandora_digital_workflow_batch', 'b');
+  $query->join('islandora_digital_workflow_batch_items', 'bi', 'b.batch_id = bi.batch_id');
+  $query->fields('bi', array('batch_item_id','identifier'));
+  $query->join('islandora_digital_workflow_transactions', 't', 't.batch_item_id = bi.batch_item_id');
+  $query->fields('t', array('transaction_id', 'timestamp'));
+  $query->condition('b.batch_id', $batch_id)->execute();
+  $results = $query->execute();
+  $rows = $results->fetchAll();
+  $return_rows = array();
+  foreach ($rows as $row) {
+    $return_rows[$row->identifier][] = array(
+        'timestamp' => $row->timestamp,
+        'transaction_id' => $row->transaction_id);
+  }
+  return $return_rows;
+}
+
+/**
  * This will get all of the transactions records related to a given $transaction_id.
  *
  * @param integer $transaction_id
@@ -209,7 +240,7 @@ function islandora_digital_workflow_get_batch_transactions_by_nid($nid) {
   $query->join('islandora_digital_workflow_actions', 'a', 'a.action_id = bt.action_id');
   $query->fields('a', array('description'));
   $query->condition('b.nid', $nid)
-      ->orderBy('bt.timestamp', 'DESC');
+      ->orderBy('bt.timestamp', 'ASC');
 
   $access_edit_transactions = user_access(ISLANDORA_DIGITAL_WORKFLOW_EDIT_DELETE_TRANSACTIONS);
   $results = $query->execute();
@@ -241,7 +272,7 @@ function islandora_digital_workflow_get_batch_item_transactions($batch_item_id, 
   $query->join('islandora_digital_workflow_actions', 'a', 'a.action_id = bt.action_id');
   $query->fields('a', array('description'));
   $query->condition('bt.batch_item_id', $batch_item_id)
-      ->orderBy('bt.timestamp', 'DESC');
+      ->orderBy('bt.timestamp', 'ASC');
 
   $access_edit_transactions = user_access(ISLANDORA_DIGITAL_WORKFLOW_EDIT_DELETE_TRANSACTIONS);
   $results = $query->execute();
@@ -327,7 +358,7 @@ ORDER BY bi.batch_item_id ASC, bt.`timestamp` DESC');
     }
     // Also, put these in order - and insert an empty transaction for any that
     // are not set for the item.
-    for ($i = 1; $i < 6; $i++) {
+    for ($i = 1; $i < 7; $i++) {
       $exploded_key = (!array_search($i, $transaction_action_ids_array) === FALSE) ? array_search($i, $transaction_action_ids_array) : FALSE;
       $transactions[$i] = (!$exploded_key === FALSE) ?
         $transaction_actions_array[$exploded_key] : '';
@@ -523,7 +554,7 @@ function islandora_digital_workflow_get_batch_item_record_by_identifier($identif
  *   batch_item_id value corresponding to the batch_item for the transaction.
  */
 function islandora_digital_workflow_insert_transactions_record($action_id, $batch_id = NULL, $batch_item_id = NULL) {
-  db_insert('islandora_digital_workflow_transactions')
+  return db_insert('islandora_digital_workflow_transactions')
       ->fields(array(
         'action_id' => $action_id,
         'batch_id' => $batch_id,

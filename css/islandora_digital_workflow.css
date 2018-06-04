@@ -18,17 +18,20 @@ and open the template in the editor.
 
 .transaction_action_check_in_physical_item, .transaction_action_scan_the_item,
 .transaction_action_check_out_physical_item, .transaction_action_ingest_item_into_repository,
-.transaction_action_rescanned_the_item, .transaction_action_spacer,
+.transaction_action_rescanned_the_item, 
+.transaction_action_check_item_against_physical_object, .transaction_action_spacer,
 .transaction_action_ingested_all_items_into_repository,
 .transaction_action_check_in_all_physical_items,
 .transaction_action_scanned_all_items,
-.transaction_action_checked_out_all_physical_items {
+.transaction_action_checked_out_all_physical_items,
+.transaction_action_checked_all_items_against_physical_objects {
     width: 20px;
     float: left;
     padding: 0px 2px;
 }
 
-.transaction_action_check_in_physical_item, .transaction_action_check_in_all_physical_items {
+.transaction_action_check_in_physical_item, 
+.transaction_action_check_in_all_physical_items {
     background: url("../images/check-in-physical-item_20.png") top left no-repeat;
 }
 
@@ -36,12 +39,19 @@ and open the template in the editor.
     background: url("../images/scan-the-item_20.png") top left no-repeat;
 }
 
-.transaction_action_ingest_item_into_repository, .transaction_action_ingested_all_items_into_repository {
+.transaction_action_ingest_item_into_repository, 
+.transaction_action_ingested_all_items_into_repository {
     background: url("../images/ingest-item-into-repository_20.png") top left no-repeat;
 }
 
-.transaction_action_check_out_physical_item, .transaction_action_checked_out_all_physical_items {
+.transaction_action_check_out_physical_item, 
+.transaction_action_checked_out_all_physical_items {
     background: url("../images/check-out-physical-item_20.png") top left no-repeat;
+}
+
+.transaction_action_check_item_against_physical_object, 
+.transaction_action_checked_all_items_against_physical_objects {
+    background: url("../images/check-item-against-physical-object_20.png") top left no-repeat;
 }
 
 .transaction_action_rescanned_the_item {

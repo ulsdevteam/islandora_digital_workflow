@@ -463,6 +463,10 @@ function islandora_digital_workflow_insert_islandora_digital_workflow_actions() 
       'name' => 'rescan',
       'description' => 'Rescanned the item',
     ),
+    6 => array(
+      'name' => 'check-physical-items',
+      'description' => 'Check item against physical object',
+    ),
     // batch-level actions (action_id values greater than 100).
     101 => array(
       'name' => 'all-check-in',
@@ -479,6 +483,10 @@ function islandora_digital_workflow_insert_islandora_digital_workflow_actions() 
     104 => array(
       'name' => 'all-check-out',
       'description' => 'Checked out all physical items',
+    ),
+    105 => array(
+      'name' => 'all-check-physical-items',
+      'description' => 'Checked all items against physical objects',
     ),
   );
   foreach ($islandora_digital_workflow_actions as $action_id => $values) {

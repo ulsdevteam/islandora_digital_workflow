@@ -65,10 +65,13 @@ function islandora_digital_workflow_edit_transactions_form(array $form, array &$
       '#type' => 'hidden',
       '#value' => $transaction->batch_item_id,
   );
-
   $form['transaction_id'] = array(
       '#type' => 'hidden',
       '#value' => $transaction_id,
+  );
+  $form['transaction_action'] = array(
+      '#type' => 'hidden',
+      '#value' => $transaction->action_id,
   );
   $form['timestamp'] = array(
       '#type' => 'hidden',

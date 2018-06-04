@@ -230,14 +230,15 @@ function islandora_digital_workflow_sync_node_to_items($batch_record, $node, $cs
     $csv_file_sources = islandora_digital_workflow_prepare_csv2mods($csv_filename, $batch_record, $keep_created_MODS_files);
     if (count($csv_file_sources) > 0) {
       // Delete any pre-existing batch_items records for this batch's batch_id.
+      $batch_item_identifiers_to_transaction_ids = islandora_digital_workflow_get_batch_item_ids_to_transaction_ids($batch_record['batch_id']);
       if (db_delete('islandora_digital_workflow_batch_items')
           ->condition('batch_id', $batch_record['batch_id'])
           ->execute()) {
-        drupal_set_message('Previous batch item record deleted for "' .
+        drupal_set_message('Previous batch item records deleted for "' .
             $batch_record['batch_name'] . '".', 'status');
       }
       foreach ($csv_file_sources as $csv_file_source) {
-        islandora_digital_workflow_sync_batch_item_record($batch_record, $csv_file_source);
+        islandora_digital_workflow_sync_batch_item_record($batch_record, $csv_file_source, $batch_item_identifiers_to_transaction_ids);
       }
     }
   }
@@ -251,8 +252,11 @@ function islandora_digital_workflow_sync_node_to_items($batch_record, $node, $cs
  *   The batch record as an array.
  * @param string $csv_filename
  *   The filename that points to the CSV file.
+ * @param array $batch_item_identifiers_to_transaction_ids
+ *   an associative array where key is old batch_item->identifier value and the
+ * value is the old transaction_id value
  */
-function islandora_digital_workflow_sync_batch_item_record($batch_record, $csv_file_source) {
+function islandora_digital_workflow_sync_batch_item_record($batch_record, $csv_file_source, $batch_item_identifiers_to_transaction_ids) {
   if (file_exists($csv_file_source['mods_filename'])) {
     $mods_content = file_get_contents($csv_file_source['mods_filename']);
     $mods_content = islandora_digital_workflow_convert_smart_quotes($mods_content); // mb_check_encoding($mods_content, 'UTF-8') ? $mods_content : utf8_encode($mods_content);
@@ -274,6 +278,17 @@ function islandora_digital_workflow_sync_batch_item_record($batch_record, $csv_f
         'mods' => $mods_content,
       ))
       ->execute();
+  // Only update the transaction records for this identifier.
+  if (array_key_exists($csv_file_source['identifier'], $batch_item_identifiers_to_transaction_ids)) {
+    foreach ($batch_item_identifiers_to_transaction_ids[$csv_file_source['identifier']] as $timestamp_transaction_id) {
+      db_update('islandora_digital_workflow_transactions')
+        ->fields(array(
+            'timestamp' => $timestamp_transaction_id['timestamp'],
+            'batch_item_id' => $batch_item_id))
+        ->condition('transaction_id', $timestamp_transaction_id['transaction_id'])
+        ->execute();
+    }
+  }
 }
 
 /**
