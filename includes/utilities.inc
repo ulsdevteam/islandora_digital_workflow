@@ -1330,3 +1330,16 @@ function islandora_digital_workflow_scan_files($scan_path, $expected_file_record
   ksort($ret_arr);
   return $ret_arr;
 }
+
+/**
+ * Returns all applicable content models that respond to the datasream ingested
+ * hook -- for the purpose of saving the derivative back to the parent object.
+ *
+ * @return array
+ */
+function islandora_digital_workflow_retrieve_applicable_paged_content_cmodels() {
+  return array(
+      'islandora:manuscriptCModel',
+      'islandora:bookCModel',
+      'islandora:newspaperIssueCModel');
+}

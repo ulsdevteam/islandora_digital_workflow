@@ -327,6 +327,9 @@ function islandora_digital_workflow_get_batch_files_by_nid($nid) {
 function islandora_digital_workflow_get_batch_items_by_nid($nid) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
 
+  $count_val = db_query('SELECT COUNT(action_id) `count` FROM islandora_digital_workflow_actions WHERE action_id < 100')->fetchAll();
+  $count_val = array_pop($count_val);
+
   // Due to the nature of this query and how stubborn the db_select is with creating
   // a LEFT JOIN query that uses GROUP BY and GROUP_CONCAT to display the needed
   // field values, this is much MUCH MUCH easier to write out as a SQL statement.
@@ -358,7 +361,7 @@ ORDER BY bi.batch_item_id ASC, bt.`timestamp` DESC');
     }
     // Also, put these in order - and insert an empty transaction for any that
     // are not set for the item.
-    for ($i = 1; $i < 7; $i++) {
+    for ($i = 1; $i <= $count_val->count; $i++) {
       $exploded_key = (!array_search($i, $transaction_action_ids_array) === FALSE) ? array_search($i, $transaction_action_ids_array) : FALSE;
       $transactions[$i] = (!$exploded_key === FALSE) ?
         $transaction_actions_array[$exploded_key] : '';
@@ -534,6 +537,13 @@ function islandora_digital_workflow_get_batch_items_actions() {
   return $options;
 }
 
+/**
+ * Returns the matching islandora_digital_workflow_batch_items record.
+ *
+ * @param string $identifier
+ * @return stdObject
+ *   The batch_item record object.
+ */
 function islandora_digital_workflow_get_batch_item_record_by_identifier($identifier) {
   $results = db_select('islandora_digital_workflow_batch_items', 'bi')
         ->fields('bi', array('batch_item_id'))

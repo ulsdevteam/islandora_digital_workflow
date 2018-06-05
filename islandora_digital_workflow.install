@@ -443,29 +443,33 @@ function islandora_digital_workflow_add_workflow_stage_taxonomy_terms() {
 function islandora_digital_workflow_insert_islandora_digital_workflow_actions() {
   $islandora_digital_workflow_actions = array(
     // defaults for batch_item actions
-    1 => array(
+    IDW_ACTION_CHECK_IN => array(
       'name' => 'check-in',
       'description' => 'Check in physical item',
     ),
-    2 => array(
+    IDW_ACTION_SCAN => array(
       'name' => 'scan',
       'description' => 'Scan the item',
     ),
-    3 => array(
+    IDW_ACTION_SYSTEM_INGEST => array(
       'name' => 'ingest',
       'description' => 'Ingest item into repository',
     ),
-    4 => array(
+    IDW_ACTION_CHECK_OUT => array(
       'name' => 'check-out',
       'description' => 'Check out physical item',
     ),
-    5 => array(
+    IDW_ACTION_RESCANNED => array(
       'name' => 'rescan',
       'description' => 'Rescanned the item',
     ),
-    6 => array(
+    IDW_ACTION_CHECK_PHYSICAL_ITEMS => array(
       'name' => 'check-physical-items',
       'description' => 'Check item against physical object',
+    ),
+    IDW_ACTION_SYSTEM_MADE_DERIVATIVES => array(
+      'name' => 'system-made-derivatives',
+      'description' => 'System made derivatives',
     ),
     // batch-level actions (action_id values greater than 100).
     101 => array(
@@ -928,37 +932,37 @@ function _islandora_digital_workflow_installed_fields() {
         'translatable' => 0,
         'entity_types' => array(),
         'settings' => array('max_length' => 255),
-        'storage' => array(
-          'type' => 'field_sql_storage',
-          'settings' => array(),
-          'module' => 'field_sql_storage',
-          'active' => 1,
-          'details' => array(
-            'sql' => array(
-              'FIELD_LOAD_CURRENT' => array(
-                'field_data_field_batch_name' => array(
-                  'value' => 'field_batch_name_value',
-                  'format' => 'field_batch_name_format',
-                ),
+      ),
+      'storage' => array(
+        'type' => 'field_sql_storage',
+        'settings' => array(),
+        'module' => 'field_sql_storage',
+        'active' => 1,
+        'details' => array(
+          'sql' => array(
+            'FIELD_LOAD_CURRENT' => array(
+              'field_data_field_batch_name' => array(
+                'value' => 'field_batch_name_value',
+                'format' => 'field_batch_name_format',
               ),
-              'FIELD_LOAD_REVISION' => array(
-                'field_revision_field_batch_name' => array(
-                  'value' => 'field_batch_name_value',
-                  'format' => 'field_batch_name_format',
-                ),
+            ),
+            'FIELD_LOAD_REVISION' => array(
+              'field_revision_field_batch_name' => array(
+                'value' => 'field_batch_name_value',
+                'format' => 'field_batch_name_format',
               ),
             ),
           ),
         ),
-        'foreign keys' => array(
-          'format' => array(
-            'table' => 'filter_format',
-            'columns' => array('format' => 'format',),
-          ),
+      ),
+      'foreign keys' => array(
+        'format' => array(
+          'table' => 'filter_format',
+          'columns' => array('format' => 'format',),
         ),
-        'indexes' => array(
-          'format' => array('0' => 'format',),
-        ),
+      ),
+      'indexes' => array(
+        'format' => array('0' => 'format',),
       ),
     ),
     'field_collections_mapping' => array(
@@ -978,37 +982,37 @@ function _islandora_digital_workflow_installed_fields() {
         'translatable' => 0,
         'entity_types' => array(),
         'settings' => array('max_length' => 255),
-        'storage' => array(
-          'type' => 'field_sql_storage',
-          'settings' => array(),
-          'module' => 'field_sql_storage',
-          'active' => 1,
-          'details' => array(
-            'sql' => array(
-              'FIELD_LOAD_CURRENT' => array(
-                'field_data_field_collections_mapping' => array(
-                  'value' => 'field_collections_mapping_value',
-                  'format' => 'field_collections_mapping_format',
-                ),
+      ),
+      'storage' => array(
+        'type' => 'field_sql_storage',
+        'settings' => array(),
+        'module' => 'field_sql_storage',
+        'active' => 1,
+        'details' => array(
+          'sql' => array(
+            'FIELD_LOAD_CURRENT' => array(
+              'field_data_field_collections_mapping' => array(
+                'value' => 'field_collections_mapping_value',
+                'format' => 'field_collections_mapping_format',
               ),
-              'FIELD_LOAD_REVISION' => array(
-                'field_revision_field_collections_mapping' => array(
-                  'value' => 'field_collections_mapping_value',
-                  'format' => 'field_collections_mapping_format',
-                ),
+            ),
+            'FIELD_LOAD_REVISION' => array(
+              'field_revision_field_collections_mapping' => array(
+                'value' => 'field_collections_mapping_value',
+                'format' => 'field_collections_mapping_format',
               ),
             ),
           ),
         ),
-        'foreign keys' => array(
-          'format' => array(
-            'table' => 'filter_format',
-            'columns' => array('format' => 'format',),
-          ),
+      ),
+      'foreign keys' => array(
+        'format' => array(
+          'table' => 'filter_format',
+          'columns' => array('format' => 'format',),
         ),
-        'indexes' => array(
-          'format' => array('0' => 'format',),
-        ),
+      ),
+      'indexes' => array(
+        'format' => array('0' => 'format',),
       ),
     ),
     'field_sites_mapping' => array(
@@ -1028,37 +1032,37 @@ function _islandora_digital_workflow_installed_fields() {
         'translatable' => 0,
         'entity_types' => array(),
         'settings' => array('max_length' => 255,),
-        'storage' => array(
-          'type' => 'field_sql_storage',
-          'settings' => array(),
-          'module' => 'field_sql_storage',
-          'active' => 1,
-          'details' => array(
-            'sql' => array(
-              'FIELD_LOAD_CURRENT' => array(
-                'field_data_field_sites_mapping' => array(
-                  'value' => 'field_sites_mapping_value',
-                  'format' => 'field_sites_mapping_format',
-                ),
+      ),
+      'storage' => array(
+        'type' => 'field_sql_storage',
+        'settings' => array(),
+        'module' => 'field_sql_storage',
+        'active' => 1,
+        'details' => array(
+          'sql' => array(
+            'FIELD_LOAD_CURRENT' => array(
+              'field_data_field_sites_mapping' => array(
+                'value' => 'field_sites_mapping_value',
+                'format' => 'field_sites_mapping_format',
               ),
-              'FIELD_LOAD_REVISION' => array(
-                'field_revision_field_sites_mapping' => array(
-                  'value' => 'field_sites_mapping_value',
-                  'format' => 'field_sites_mapping_format',
-                ),
+            ),
+            'FIELD_LOAD_REVISION' => array(
+              'field_revision_field_sites_mapping' => array(
+                'value' => 'field_sites_mapping_value',
+                'format' => 'field_sites_mapping_format',
               ),
             ),
           ),
         ),
-        'foreign keys' => array(
-          'format' => array(
-            'table' => 'filter_format',
-            'columns' => array('format' => 'format',),
-          ),
+      ),
+      'foreign keys' => array(
+        'format' => array(
+          'table' => 'filter_format',
+          'columns' => array('format' => 'format',),
         ),
-        'indexes' => array(
-          'format' => array('0' => 'format',),
-        ),
+      ),
+      'indexes' => array(
+        'format' => array('0' => 'format',),
       ),
     ),
     'field_batch_defaults' => array(
@@ -1078,43 +1082,43 @@ function _islandora_digital_workflow_installed_fields() {
         'translatable' => 0,
         'entity_types' => array(),
         'settings' => array(),
-        'storage' => array(
-          'type' => 'field_sql_storage',
-          'settings' => array(),
-          'module' => 'field_sql_storage',
-          'active' => 1,
-          'details' => array(
-            'sql' => array(
-              'FIELD_LOAD_CURRENT' => array(
-                'field_data_field_batch_defaults' => array(
-                  'value' => 'field_batch_defaults_value',
-                  'format' => 'field_batch_defaults_format',
-                ),
+      ),
+      'storage' => array(
+        'type' => 'field_sql_storage',
+        'settings' => array(),
+        'module' => 'field_sql_storage',
+        'active' => 1,
+        'details' => array(
+          'sql' => array(
+            'FIELD_LOAD_CURRENT' => array(
+              'field_data_field_batch_defaults' => array(
+                'value' => 'field_batch_defaults_value',
+                'format' => 'field_batch_defaults_format',
               ),
-              'FIELD_LOAD_REVISION' => array(
-                'field_revision_field_batch_defaults' => array(
-                  'value' => 'field_batch_defaults_value',
-                  'format' => 'field_batch_defaults_format',
-                ),
+            ),
+            'FIELD_LOAD_REVISION' => array(
+              'field_revision_field_batch_defaults' => array(
+                'value' => 'field_batch_defaults_value',
+                'format' => 'field_batch_defaults_format',
               ),
             ),
           ),
         ),
-        'foreign keys' => array(
-          'format' => array(
-            'table' => 'filter_format',
-            'columns' => array('format' => 'format'),
-          ),
+      ),
+      'foreign keys' => array(
+        'format' => array(
+          'table' => 'filter_format',
+          'columns' => array('format' => 'format'),
         ),
-        'indexes' => array(
-          'format' => array('0' => 'format',),
-        ),
+      ),
+      'indexes' => array(
+        'format' => array('0' => 'format',),
       ),
     ),
     'field_stage' => array(
       'field_name' => 'field_stage',
       'type' => 'taxonomy_term_reference',
-      'entity_types' => array('node'),
+      'entity_types' => array(),
       'module' => 'taxonomy',
       'active' => 1,
       'storage_type' => 'field_sql_storage',
@@ -1125,41 +1129,37 @@ function _islandora_digital_workflow_installed_fields() {
       'translatable' => 0,
       'deleted' => 0,
       'settings' => array(
-        'translatable' => 0,
-        'entity_types' => array(),
-        'settings' => array(
-          'allowed_values' => array(
-            '0' => array(
-              'vocabulary' => 'workflow_stage_vocab',
-              'parent' => 0,
+        'allowed_values' => array(
+          '0' => array(
+            'vocabulary' => 'workflow_stage_vocab',
+            'parent' => 0,
+          ),
+        ),
+      ),
+      'storage' => array(
+        'type' => 'field_sql_storage',
+        'settings' => array(),
+        'module' => 'field_sql_storage',
+        'active' => 1,
+        'details' => array(
+          'sql' => array(
+            'FIELD_LOAD_CURRENT' => array(
+              'field_data_field_stage' => array('tid' => 'field_stage_tid',),
+            ),
+            'FIELD_LOAD_REVISION' => array(
+              'field_revision_field_stage' => array('tid' => 'field_stage_tid',),
             ),
           ),
         ),
-        'storage' => array(
-          'type' => 'field_sql_storage',
-          'settings' => array(),
-          'module' => 'field_sql_storage',
-          'active' => 1,
-          'details' => array(
-            'sql' => array(
-              'FIELD_LOAD_CURRENT' => array(
-                'field_data_field_stage' => array('tid' => 'field_stage_tid',),
-              ),
-              'FIELD_LOAD_REVISION' => array(
-                'field_revision_field_stage' => array('tid' => 'field_stage_tid',),
-              ),
-            ),
-          ),
+      ),
+      'foreign keys' => array(
+        'tid' => array(
+          'table' => 'taxonomy_term_data',
+          'columns' => array('tid' => 'tid',),
         ),
-        'foreign keys' => array(
-          'tid' => array(
-            'table' => 'taxonomy_term_data',
-            'columns' => array('tid' => 'tid',),
-          ),
-        ),
-        'indexes' => array(
-          'tid' => array('0' => 'tid',),
-        ),
+      ),
+      'indexes' => array(
+        'tid' => array('0' => 'tid',),
       ),
     ),
     'field_identifiers' => array(
@@ -1179,37 +1179,37 @@ function _islandora_digital_workflow_installed_fields() {
         'translatable' => 0,
         'entity_types' => array(),
         'settings' => array(),
-        'storage' => array(
-          'type' => 'field_sql_storage',
-          'settings' => array(),
-          'module' => 'field_sql_storage',
-          'active' => 1,
-          'details' => array(
-            'sql' => array(
-              'FIELD_LOAD_CURRENT' => array(
-                'field_data_field_identifiers' => array(
-                  'value' => 'field_identifiers_value',
-                  'format' => 'field_identifiers_format',
-                ),
+      ),
+      'storage' => array(
+        'type' => 'field_sql_storage',
+        'settings' => array(),
+        'module' => 'field_sql_storage',
+        'active' => 1,
+        'details' => array(
+          'sql' => array(
+            'FIELD_LOAD_CURRENT' => array(
+              'field_data_field_identifiers' => array(
+                'value' => 'field_identifiers_value',
+                'format' => 'field_identifiers_format',
               ),
-              'FIELD_LOAD_REVISION' => array(
-                'field_revision_field_identifiers' => array(
-                  'value' => 'field_identifiers_value',
-                  'format' => 'field_identifiers_format',
-                ),
+            ),
+            'FIELD_LOAD_REVISION' => array(
+              'field_revision_field_identifiers' => array(
+                'value' => 'field_identifiers_value',
+                'format' => 'field_identifiers_format',
               ),
             ),
           ),
         ),
-        'foreign keys' => array(
-          'format' => array(
-            'table' => 'filter_format',
-            'columns' => array('format' => 'format',),
-          ),
+      ),
+      'foreign keys' => array(
+        'format' => array(
+          'table' => 'filter_format',
+          'columns' => array('format' => 'format',),
         ),
-        'indexes' => array(
-          'format' => array('0' => 'format',),
-        ),
+      ),
+      'indexes' => array(
+        'format' => array('0' => 'format',),
       ),
     ),
   );

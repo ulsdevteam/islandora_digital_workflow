@@ -9,6 +9,16 @@
 define('IDW_STAGE_TAXONOMY_MACHINE_NAME', 'workflow_stage_vocab');
 define('IDW_CONTENT_TYPE_TAXONOMY_MACHINE_NAME', 'workflow_content_type_vocab');
 
+// action constants
+define('IDW_ACTION_CHECK_IN', 1);
+define('IDW_ACTION_SCAN', 2);
+define('IDW_ACTION_SYSTEM_INGEST', 3);
+define('IDW_ACTION_CHECK_OUT', 4);
+define('IDW_ACTION_RESCANNED', 5);
+define('IDW_ACTION_CHECK_PHYSICAL_ITEMS', 6);
+define('IDW_ACTION_SYSTEM_MADE_DERIVATIVES', 7);
+
+
 // Permissions -- NOTE: there are additional permission constants defined in
 // islandora_digital_workflow_permission that use the naming convention of
 // 'ISLANDORA_DIGITAL_WORKFLOW_' . strtoupper($model_name) - for which a helper
@@ -36,7 +46,7 @@ function islandora_digital_workflow_menu() {
     ),
     'islandora/islandora_digital_workflow' => array(
       'title' => t('Islandora Digital Workflow Dashboard'),
-      'type' => MENU_NORMAL_ITEM,
+      'type' => MENU_LOCAL_TASK,
       'page callback' => array('islandora_digital_workflow_dashboard'),
       'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW),
       'file' => 'includes/dashboard.form.inc',
@@ -44,7 +54,7 @@ function islandora_digital_workflow_menu() {
     // Lookup form
     'islandora/islandora_digital_workflow/lookup' => array(
       'page callback' => array('islandora_digital_workflow_lookup'),
-      'type' => MENU_LOCAL_TASK,
+      'type' => MENU_NORMAL_ITEM,
       'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW),
       'file' => 'includes/lookup.form.inc',
     ),
@@ -52,7 +62,7 @@ function islandora_digital_workflow_menu() {
     // result, else displays the lookup results.
     'islandora/islandora_digital_workflow/lookup/%' => array(
       'title' => t('Islandora Digital Workflow Search'),
-      'type' => MENU_LOCAL_TASK,
+      'type' => MENU_NORMAL_ITEM,
       'page callback' => array('islandora_digital_workflow_lookup_form_submit'),
       'page arguments' => array(3),
       'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW),
@@ -308,6 +318,83 @@ function islandora_digital_workflow_theme() {
   );
 }
 
+
+/**
+ * Implements hook_islandora_object_ingested().
+ *
+ * This will check the workflow database to insert a transaction record for it.
+ * This hook is not to be confused with the one for datastreams.
+ *
+ * @param AbstractObject $object
+ *   The object that was just ingested.
+ */
+function islandora_digital_workflow_islandora_object_ingested(AbstractObject $object) {
+  $pid = $object->id;
+  @list($ns, $identifier) = explode(":", $pid, 2);
+  if ($identifier) {
+    $batch_id_obj = islandora_digital_workflow_get_batch_record_by_items_identifier($identifier);
+    $batch_id_obj = array_pop($batch_id_obj);
+    if (is_object($batch_id_obj) && $batch_id_obj->batch_id) {
+      islandora_digital_workflow_insert_transactions_record(IDW_ACTION_SYSTEM_MADE_DERIVATIVES, $batch_id_obj->batch_id, NULL);
+    }
+  }
+}
+
+/**
+ * Implements hook_islandora_datastream_ingested().
+ *
+ * This will need to inspect the object to see whether or not ALL required
+ * derivatives for this model have been created -- if so, it will create a
+ * transaction record for "system-made-derivatives" for the underlying batch_item.
+ *
+ * @param AbstractObject $object
+ * @param AbstractDatastream $datastream
+ */
+function islandora_digital_workflow_islandora_datastream_ingested(AbstractObject $object, AbstractDatastream $datastream) {
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
+  $applicable_paged_content_cmodels = islandora_digital_workflow_retrieve_applicable_paged_content_cmodels();
+  $object->models;
+  $object_datastreams = $required_datastreams = array();
+  foreach ($object as $datatream) {
+    $object_datastreams[strtoupper($datastream->id)] = strtoupper($datastream->id);
+  }
+  foreach ($object->models as $model_pid) {
+    if ($model_pid <> 'fedora-system:FedoraObject-3.0') {
+      if (array_key_exists($model_pid, $required_datastreams) === FALSE) {
+        $model = @islandora_object_load($model_pid);
+        if (isset($model) && $model) {
+          $model_pids[] = $model_pid;
+          $ds_reqs = islandora_get_datastreams_requirements_from_content_model($model);
+          // ONLY want to check the required derivatives here.
+          foreach ($ds_reqs as $ds_req_dsid => $ds_req) {
+            if (array_key_exists('optional', $ds) && $ds['optional']) {
+              $required_datastreams[] = strtoupper($ds_req_dsid);
+            }
+          }
+        }
+      }
+    }
+  }
+  // Loop through the $required_datastreams, assume TRUE - set to FALSE if any
+  // not found in $object_datastreams
+  $success = TRUE;
+  $required_datastream_index = 0;
+  while ($success && $required_datastream_index < count($required_datastreams)) {
+    $dsid = $required_datastreams[$required_datastream_index];
+    $success |= (array_key_exists($dsid, $object_datastreams));
+    $required_datastream_index++;
+  }
+  // if $success is still TRUE, all derivatives have been created according to
+  // the object model's requirements.
+  if ($success) {
+    module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
+    $pid = $object->id;
+    @list($ns, $identifier) = explode(":", $pid, 2);
+    $batch_item_obj = islandora_digital_workflow_get_batch_item_record_by_identifier($identifier);
+    islandora_digital_workflow_insert_transactions_record(IDW_ACTION_SYSTEM_MADE_DERIVATIVES, NULL, $batch_item_obj->batch_item_id);
+  }
+}
+
 /**
  * Hook for hook_node_update.
  *
@@ -353,3 +440,4 @@ function islandora_digital_workflow_views_api() {
     'path' => drupal_get_path('module', 'islandora_digital_workflow'),
   );
 }
+

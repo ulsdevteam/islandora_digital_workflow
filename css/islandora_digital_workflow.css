@@ -18,7 +18,7 @@ and open the template in the editor.
 
 .transaction_action_check_in_physical_item, .transaction_action_scan_the_item,
 .transaction_action_check_out_physical_item, .transaction_action_ingest_item_into_repository,
-.transaction_action_rescanned_the_item, 
+.transaction_action_rescanned_the_item, .transaction_action_system_made_derivatives,
 .transaction_action_check_item_against_physical_object, .transaction_action_spacer,
 .transaction_action_ingested_all_items_into_repository,
 .transaction_action_check_in_all_physical_items,
@@ -27,7 +27,7 @@ and open the template in the editor.
 .transaction_action_checked_all_items_against_physical_objects {
     width: 20px;
     float: left;
-    padding: 0px 2px;
+    padding: 0px 1px;
 }
 
 .transaction_action_check_in_physical_item, 
@@ -42,6 +42,10 @@ and open the template in the editor.
 .transaction_action_ingest_item_into_repository, 
 .transaction_action_ingested_all_items_into_repository {
     background: url("../images/ingest-item-into-repository_20.png") top left no-repeat;
+}
+
+.transaction_action_system_made_derivatives {
+    background: url("../images/system-made-derivatives_20.png") top left no-repeat;
 }
 
 .transaction_action_check_out_physical_item, 
@@ -233,7 +237,7 @@ and open the template in the editor.
     float: right;
     border-radius: 6px;
     padding: 8px;
-    margin: -4px 4px;
+    margin: 4px;
     border: 1px solid #aaa;
     box-shadow: 1px 1px 3px #888;
     background-color:#fafafa;
