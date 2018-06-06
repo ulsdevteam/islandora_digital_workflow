@@ -547,10 +547,10 @@ function islandora_digital_workflow_get_batch_items_actions() {
 function islandora_digital_workflow_get_batch_item_record_by_identifier($identifier) {
   $results = db_select('islandora_digital_workflow_batch_items', 'bi')
         ->fields('bi', array('batch_item_id'))
-        ->condition('identifier', $identifier)
+        ->condition('identifier', '%' . db_like($identifier), 'LIKE')
         ->execute();
   $row = $results->fetchAssoc();
-  return array_pop($row);
+  return (is_array($row)) ? array_pop($row) : $row;
 }
 
 /**

@@ -318,7 +318,6 @@ function islandora_digital_workflow_theme() {
   );
 }
 
-
 /**
  * Implements hook_islandora_object_ingested().
  *
@@ -329,12 +328,13 @@ function islandora_digital_workflow_theme() {
  *   The object that was just ingested.
  */
 function islandora_digital_workflow_islandora_object_ingested(AbstractObject $object) {
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
   $pid = $object->id;
   @list($ns, $identifier) = explode(":", $pid, 2);
   if ($identifier) {
-    $batch_id_obj = islandora_digital_workflow_get_batch_record_by_items_identifier($identifier);
-    $batch_id_obj = array_pop($batch_id_obj);
-    if (is_object($batch_id_obj) && $batch_id_obj->batch_id) {
+    $batch_ids = islandora_digital_workflow_get_batch_record_by_items_identifier($identifier);
+    if (is_array($batch_ids) && array_key_exists(0, $batch_ids) && is_object($batch_ids[0])) {
+      $batch_id_obj = $batch_ids[0];
       islandora_digital_workflow_insert_transactions_record(IDW_ACTION_SYSTEM_MADE_DERIVATIVES, $batch_id_obj->batch_id, NULL);
     }
   }
@@ -367,7 +367,7 @@ function islandora_digital_workflow_islandora_datastream_ingested(AbstractObject
           $ds_reqs = islandora_get_datastreams_requirements_from_content_model($model);
           // ONLY want to check the required derivatives here.
           foreach ($ds_reqs as $ds_req_dsid => $ds_req) {
-            if (array_key_exists('optional', $ds) && $ds['optional']) {
+            if (array_key_exists('optional', $ds_req) && $ds_req['optional']) {
               $required_datastreams[] = strtoupper($ds_req_dsid);
             }
           }
@@ -390,8 +390,8 @@ function islandora_digital_workflow_islandora_datastream_ingested(AbstractObject
     module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
     $pid = $object->id;
     @list($ns, $identifier) = explode(":", $pid, 2);
-    $batch_item_obj = islandora_digital_workflow_get_batch_item_record_by_identifier($identifier);
-    islandora_digital_workflow_insert_transactions_record(IDW_ACTION_SYSTEM_MADE_DERIVATIVES, NULL, $batch_item_obj->batch_item_id);
+    $batch_item_arr = islandora_digital_workflow_get_batch_item_record_by_identifier($identifier);
+    islandora_digital_workflow_insert_transactions_record(IDW_ACTION_SYSTEM_MADE_DERIVATIVES, NULL, $batch_item_arr['batch_item_id']);
   }
 }
 
