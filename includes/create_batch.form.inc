@@ -397,7 +397,10 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
         '#type' => 'file',
         '#title' => t('File'),
         '#description' => t('Select CSV file to upload.<br/>Files must be less than <strong>@size MB.</strong><br/>Allowed file types: <strong>@ext.</strong>', array('@size' => $upload_size, '@ext' => $extensions[0])) .
-                          (($batch_record && isset($batch_record['file']) && ($batch_record['file'] <> '')) ? '<br>Upload file will be stored: <em>' . str_replace($batch_path, '', $batch_record['file']) . '</em>' : ''),
+          (($batch_record && isset($batch_record['uploaded_csv_file']) && ($batch_record['uploaded_csv_file'] <> '')) ?
+          '<br>Upload file will <em>completely replace any existing items records ' .
+          'and any transactions on them.  To add additional CSV files, use the ' .
+          '"Add items" option on the ' . l('Batch Items page', 'node/' . $batch_record['nid'] . '/items') . '.</em>' : ''),
         '#upload_location' => 'temporary://',
         '#upload_validators' => array(
           'file_validate_extensions' => $extensions,
@@ -634,6 +637,7 @@ function islandora_digital_workflow_create_batch_form_validate(&$elements, &$for
  */
 function islandora_digital_workflow_create_batch_form_submit(array $form, array &$form_state) {
   $id = $form_state['triggering_element']['#id'];
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
   module_load_include('inc', 'islandora_digital_workflow', 'includes/node-utilities');
   switch ($id) {
     case 'edit-submit':
@@ -662,33 +666,4 @@ function islandora_digital_workflow_create_batch_form_submit(array $form, array 
       drupal_goto('islandora/islandora_digital_workflow/');
       break;
   }
-}
-
-/**
- * Helper function to validate the uploaded_csv_file.
- *
- * This operates on the current $_FILES -- so it can only be called on form post
- * and potentially sets a $_SESSION variable for use in the submit function,
- * see: islandora_digital_workflow_create_batch_form_submit() above.
- *
- * @return boolean
- */
-function islandora_digital_workflow_validate_csv_file_upload() {
-  module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
-  $valid_upload = FALSE;
-
-  if (isset($_FILES['files']) && isset($_FILES["files"]["tmp_name"]['file'])) {
-    $dest = drupal_tempnam('temporary://', 'batch_objects.csv');
-    if ($_FILES['files']['error']['file'] == UPLOAD_ERR_OK) {
-      $tmp_name = $_FILES["files"]["tmp_name"]['file'];
-      if (move_uploaded_file($tmp_name, $dest)) {
-        $valid_upload = islandora_digital_workflow_validate_csv($dest);
-        $_SESSION['uploaded_csv_filename'] = $dest;
-      }
-      else {
-        drupal_set_message(t('File move operation from "' . $tmp_name . '" to "' . $dest . '" failed'), 'error');
-      }
-    }
-  }
-  return $valid_upload;
 }

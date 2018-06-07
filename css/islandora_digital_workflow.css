@@ -302,3 +302,35 @@ a .highlighted {
     border: 3px solid #aaa;
     border-radius: 8px;
 }
+
+/* ---- for inline_form fieldsets to display form-item divs inline ---- */
+.inline_form {
+    border: 3px solid #ddd;
+}
+
+.inline_form .fieldset-wrapper .form-item {
+    width: 32%;
+    max-width: 32%;
+    display: inline-block;
+    float: left;
+}
+
+.inline_form .fieldset-wrapper .form-type-file {
+    width: 100% !important;
+    max-width: none;
+}
+
+.inline_form .fieldset-wrapper .fieldset_div_wrapper {
+    clear: left;
+}
+
+.inline_form .fieldset-wrapper .form-item input {
+    width: 95%;
+}
+
+.inline_form .fieldset-wrapper input[type="submit"] {
+    clear: both;
+    float: left;
+}
+
+

@@ -116,13 +116,15 @@ function islandora_digital_workflow_make_or_update_node($form_state, $csv_array,
     $node->field_stage[$node->language][] = array('tid' => $stage_new_tid);
   }
 
-  $node->field_pid_count[$node->language][]['value'] = $form_state['values']['object_count'];
-  foreach ($form_state['values']['collections_select'] as $collection_pid) {
-    $node->field_collections_mapping[$node->language][]['value'] = $collection_pid;
-  }
-  if (variable_get('islandora_digital_workflow_use_isMemberOfSite', 0)) {
-    foreach ($form_state['values']['sites_select'] as $site_pid) {
-      $node->field_sites_mapping[$node->language][]['value'] = $site_pid;
+  if (array_key_exists('values', $form_state)) {
+    $node->field_pid_count[$node->language][]['value'] = $form_state['values']['object_count'];
+    foreach ($form_state['values']['collections_select'] as $collection_pid) {
+      $node->field_collections_mapping[$node->language][]['value'] = $collection_pid;
+    }
+    if (variable_get('islandora_digital_workflow_use_isMemberOfSite', 0)) {
+      foreach ($form_state['values']['sites_select'] as $site_pid) {
+        $node->field_sites_mapping[$node->language][]['value'] = $site_pid;
+      }
     }
   }
   // Since islandora_digital_workflow_csv_file_as_array returned all headings in

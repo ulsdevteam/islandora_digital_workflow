@@ -24,6 +24,74 @@ function islandora_digital_workflow_get_batch_record_by_name($batch_name) {
 }
 
 /**
+ * Gets a SINGLE batch record for a `batch_id` value.
+ *
+ * @param string $batch_id
+ *   The `batch_id` value for a batch record.
+ * @return mixed
+ *   Either returns the batch record object or NULL if it cannot be found.
+ */
+function islandora_digital_workflow_get_batch_record_by_batch_id($batch_id) {
+  if ($batch_id) {
+    $query = db_select('islandora_digital_workflow_batch', 'b')
+        ->fields('b')
+        ->condition('b.batch_id', $batch_id)
+        ->range(0,1);
+    $results = $query->execute();
+    $row = $results->fetchAssoc();
+    return $row;
+  }
+  else {
+    return NULL;
+  }
+}
+
+/**
+ * Gets the batch_item records identifier values related to a given batch.
+ *
+ * @param integer $batch_id
+ *   batch_id for which to get the related batch_item records' identifier values.
+ *
+ * @return array
+ *   An associative array of results.
+ */
+function islandora_digital_workflow_get_existing_identifiers($batch_id) {
+  if ($batch_id) {
+    $query = db_select('islandora_digital_workflow_batch', 'b');
+    $query->join('islandora_digital_workflow_batch_items', 'bi', 'b.batch_id = bi.batch_id');
+    $query->fields('bi', array('batch_item_id','identifier'));
+    $query->condition('b.batch_id', $batch_id)->execute();
+    $results = $query->execute();
+    $rows = $results->fetchAll();
+    $return_array = array();
+    foreach ($rows as $item_identifier_object) {
+      $return_array[$item_identifier_object->batch_item_id] = $item_identifier_object->identifier;
+    }
+    return $return_array;
+  }
+  else {
+    return NULL;
+  }
+}
+
+/**
+ * This will update a batch record related to a given $batch_id.
+ *
+ * @param integer $batch_id
+ *   batch_id for which to update a batch record.
+ * @param array $field_values
+ *   associative array of values to set on the batch record.
+ * @return integer
+ *   The number of records that have been updated (expect 1 or 0).
+ */
+function islandora_digital_workflow_update_batch($batch_id, $field_values) {
+    return db_update('islandora_digital_workflow_batch')
+      ->fields($field_values)
+      ->condition('batch_id', $batch_id)
+      ->execute();
+}
+
+/**
  * Returns all batch records that match part of the batch_name field.
  *
  * @param string $batch_name
@@ -207,12 +275,15 @@ function islandora_digital_workflow_delete_batch_transaction($transaction_id) {
 }
 
 /**
- * This will delete a transaction record related to a given $transaction_id.
+ * This will update a transaction record related to a given $transaction_id.
  *
  * @param integer $transaction_id
  *   transaction_id representing a islandora_digital_workflow_transactions record.
  * @param integer $action_id
  *   action_id for which to update this transaction.
+ * @param integer $timestamp
+ *   timestamp value to set for the record (taken from previous instance of record
+ * that is being updated).
  * @return integer
  *   The number of records that have been updated (expect 1 or 0).
  */
@@ -551,6 +622,20 @@ function islandora_digital_workflow_get_batch_item_record_by_identifier($identif
         ->execute();
   $row = $results->fetchAssoc();
   return (is_array($row)) ? array_pop($row) : $row;
+}
+
+/**
+ * Insert a record to islandora_digital_workflow_batch_items.
+ *
+ * @param array $fields
+ *   Associative array of fieldnames and their values.
+ * @return integer
+ */
+function islandora_digital_workflow_insert_batch_item($fields) {
+  db_query("SET NAMES utf8");
+  return db_insert('islandora_digital_workflow_batch_items')
+      ->fields($fields)
+      ->execute();
 }
 
 /**

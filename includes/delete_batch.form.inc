@@ -168,11 +168,6 @@ function islandora_digital_workflow_delete_batch_form_submit(array $form, array 
   module_load_include('inc', 'islandora_digital_workflow', 'includes/node-utilities');
   switch ($id) {
     case 'edit-submit':
-      if (isset($_FILES['files']) && isset($_FILES["files"]["tmp_name"]['file'])) {
-        islandora_digital_workflow_validate_csv_file_upload();
-      }
-      $csv_filename = (isset($_SESSION['uploaded_csv_filename']) ? $_SESSION['uploaded_csv_filename'] : '');
-      $create_new = ($form_state['clicked_button']['#value'] === SAVE_BUTTON_TEXT);
       $batch_record = islandora_digital_workflow_sync_node_batch_record_info(NULL, $form_state, $csv_filename);
       // Only two possible button text values -- edit or save.
       $current_time = date('H:i:s');
