@@ -211,6 +211,19 @@ function islandora_digital_workflow_add_items_form(array $form, array &$form_sta
   return $form;
 }
 
+/**
+ * Validates the form input.
+ *
+ * Checks if the uploaded CSV file is valid -- also checks that the CSV does
+ * not contain any identifiers that already exist for the batch.
+ *
+ * @param array $elements
+ *   Drupal elements representation as an array.
+ * @param array $form_state
+ *   Drupal form_state representation as passed to the validate function. *
+ * @param string $form_id
+ *   The form_id that is being validated -- optional.
+ */
 function islandora_digital_workflow_add_items_form_validate(&$elements, &$form_state, $form_id = NULL) {
   if (isset($_FILES['files']) && array_key_exists('tmp_name', $_FILES['files']) && isset($_FILES['files']['tmp_name'])) {
     // Check the csv file upload.

@@ -524,7 +524,7 @@ function islandora_digital_workflow_batch_path($batch_values) {
  * Helper function to return the value of the
  * islandora_digital_workflow_ingest_namespace - with the right trailing colon.
  *
- * @param type $batch_record
+ * @param array $batch_record
  *   [optional] The batch record in question.
  * @return string
  *   The sanitized ingest_namespace value.
@@ -1394,6 +1394,16 @@ function islandora_digital_workflow_validate_csv_file_upload() {
   return $valid_upload;
 }
 
+/**
+ * To merge a new CSV upload with that of an existing batch record.
+ *
+ * @param array $batch_record
+ *   The batch record as an array.
+ * @param object $node
+ *   Drupal node object.
+ * @param string $new_csv_filename
+ *   The filename that points to the CSV file.
+ */
 function islandora_digital_workflow_merge_uploaded_csv_files(&$batch_record, $node, $new_csv_filename) {
   $csv_array = islandora_digital_workflow_csv_file_as_array($new_csv_filename, TRUE);
   if (is_array($csv_array)) {

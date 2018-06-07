@@ -472,23 +472,23 @@ function islandora_digital_workflow_insert_islandora_digital_workflow_actions() 
       'description' => 'System made derivatives',
     ),
     // batch-level actions (action_id values greater than 100).
-    101 => array(
+    IDW_ACTION_ALL_CHECK_IN => array(
       'name' => 'all-check-in',
       'description' => 'Check in all physical items',
     ),
-    102 => array(
+    IDW_ACTION_ALL_SCAN => array(
       'name' => 'all-scan',
       'description' => 'Scanned all items',
     ),
-    103 => array(
+    IDW_ACTION_ALL_SYSTEM_INGEST => array(
       'name' => 'all-ingest',
       'description' => 'Ingested all items into repository',
     ),
-    104 => array(
+    IDW_ACTION_ALL_CHECK_OUT => array(
       'name' => 'all-check-out',
       'description' => 'Checked out all physical items',
     ),
-    105 => array(
+    IDW_ACTION_ALL_CHECK_PHYSICAL_ITEMS => array(
       'name' => 'all-check-physical-items',
       'description' => 'Checked all items against physical objects',
     ),
@@ -504,6 +504,9 @@ function islandora_digital_workflow_insert_islandora_digital_workflow_actions() 
   }
 }
 
+/**
+ * Helper function to update the node_type for workflow batch objects
+ */
 function islandora_digital_workflow_insert_workflow_batch_node_type() {
   // This is so much easier as a single SQL:
   db_query("REPLACE INTO `node_type` (`type`, `name`, `base`, `module`, " .
@@ -513,6 +516,14 @@ function islandora_digital_workflow_insert_workflow_batch_node_type() {
       "0, 'workflow_batch');");
 }
 
+/**
+ * Helper function to create the CCK fields needed for this module.
+ *
+ * @param integer $stage_tid
+ *   The taxonomy term tid value for the term in the vocabulary.
+ * @param integer $stage_vid
+ *   The taxonomy term vid value for the vocabulary.
+ */
 function islandora_digital_workflow_create_cck_fields($stage_tid, $stage_vid) {
   foreach (_islandora_digital_workflow_installed_fields() as $field) {
     if (!field_info_field($field['field_name'])) {
@@ -527,6 +538,14 @@ function islandora_digital_workflow_create_cck_fields($stage_tid, $stage_vid) {
   }
 }
 
+/**
+ * Returns the field instances needed to create the View object.
+ *
+ * @param integer $stage_tid
+ *   The taxonomy term tid value for the term in the vocabulary.
+ * @param integer $stage_vid
+ *   The taxonomy term vid value for the vocabulary.
+ */
 function _islandora_digital_workflow_installed_instances($stage_tid = 0, $stage_vid = 0) {
   return array(
     'field_pid_count' => array(
@@ -879,6 +898,9 @@ function _islandora_digital_workflow_installed_instances($stage_tid = 0, $stage_
   );
 }
 
+/**
+ * Returns the fields needed to create the View object.
+ */
 function _islandora_digital_workflow_installed_fields() {
   return array(
     'field_pid_count' => array(

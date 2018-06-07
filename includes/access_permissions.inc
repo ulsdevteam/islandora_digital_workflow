@@ -35,6 +35,12 @@ function islandora_digital_workflow_permission_of_model($cmodel) {
   return 'islandora digital workflow ' . $cmodel;
 }
 
+/**
+ * Saves the islandora model configuration settings.
+ *
+ * @param array $values
+ *   Associative array of model setting values for module configuration.
+ */
 function islandora_digital_workflow_save_models($values) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
   $readable_models = islandora_digital_workflow_get_reduced_readable_cmodels();

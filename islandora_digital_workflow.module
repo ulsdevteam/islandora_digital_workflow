@@ -17,6 +17,11 @@ define('IDW_ACTION_CHECK_OUT', 4);
 define('IDW_ACTION_RESCANNED', 5);
 define('IDW_ACTION_CHECK_PHYSICAL_ITEMS', 6);
 define('IDW_ACTION_SYSTEM_MADE_DERIVATIVES', 7);
+define('IDW_ACTION_ALL_CHECK_IN', 101);
+define('IDW_ACTION_ALL_SCAN', 102);
+define('IDW_ACTION_ALL_SYSTEM_INGEST', 103);
+define('IDW_ACTION_ALL_CHECK_OUT', 104);
+define('IDW_ACTION_ALL_CHECK_PHYSICAL_ITEMS', 105);
 
 
 // Permissions -- NOTE: there are additional permission constants defined in
