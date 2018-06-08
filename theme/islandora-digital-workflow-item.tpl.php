@@ -67,6 +67,26 @@
         <?php endif; ?>
         </form>
     </div>
+
+    <?php if (count($scanned_files) > 0) : ?>
+    <?php $toggle = FALSE; ?>
+    <h3>Files</h3>
+      <table>
+        <tr>
+          <th>Filename</th>
+          <th class="numeric">Size</th>
+        </tr>
+        <?php foreach ($scanned_files as $filename => $file_info) { ?>
+            <?php $toggle = !$toggle; ?>
+        <tr class="<?php print (($toggle) ? 'evenrow' : 'oddrow') .
+            (($file_info['class'] <> '') ? ' ' . $file_info['class'] : ''); ?>">
+          <td><?php print $filename; ?></td>
+          <td class="numeric"><?php print number_format($file_info['filesize']); ?></td>
+        </tr>
+        <?php } ?>
+      </table>
+    <?php endif; ?>
+
   </div><!-- /end dashboard-report -->
 
 </div><!-- /end no-sidebars -->

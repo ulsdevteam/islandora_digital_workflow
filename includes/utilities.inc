@@ -1308,7 +1308,11 @@ function islandora_digital_workflow_timeago_from_timestamp($timestamp) {
  * This will also check the expected set of filenames to mark which ones are
  * missing -- ignoring the ".xml" files.
  *
- * @param type $scan_path
+ * @param string $scan_path
+ *   Folder to scan.
+ * @param array $expected_file_records
+ *   Array of stdObjects that have properties for each batch item that needs
+ * to be scanned.
  */
 function islandora_digital_workflow_scan_files($scan_path, $expected_file_records = array()) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/file_utilities');
@@ -1316,37 +1320,69 @@ function islandora_digital_workflow_scan_files($scan_path, $expected_file_record
   $ret_arr = array();
   $count_of_expected_file_records = count($expected_file_records);
   foreach ($files as $folder => $folder_files) {
-    foreach ($folder_files as $file) {
-      $relative_file_path = $folder . '/' . $file;
-      $full_file_path = $scan_path . '/' . $relative_file_path;
-      if (file_exists($full_file_path)) {
-        $size = filesize($full_file_path);
-        $found_file_pathinfo = pathinfo($full_file_path);
-        $ext = (array_key_exists('extension', $found_file_pathinfo) ? $found_file_pathinfo['extension'] : '');
-        if ($ext <> 'xml') {
-          $expected_file_records_index = 0;
-          $found_matching_file = FALSE;
-          while (!$found_matching_file && $expected_file_records_index < $count_of_expected_file_records) {
-            $compare_file_record = $expected_file_records[$expected_file_records_index];
-            if ($compare_file_record->filename_basename == $file) {
-              $found_matching_file = TRUE;
-            }
-            $expected_file_records_index++;
-          }
-          $class = ($found_matching_file) ? '' : 'bad';
-        }
-        else {
-          $class = '';
-        }
-        $ret_arr[$relative_file_path] = array(
-            'filesize' => $size,
-            'class' => $class,
-        );
+    if (is_array($folder_files)) {
+      foreach ($folder_files as $file) {
+        $ret_arr[$folder . '/' . $file] = islandora_digital_workflow_get_filesize_class($scan_path, $folder, $file);
       }
+    }
+    else {
+      $ret_arr[$folder_files] = islandora_digital_workflow_get_filesize_class($scan_path, '', $folder_files);
     }
   }
   ksort($ret_arr);
   return $ret_arr;
+}
+
+/**
+ * This will return the set of files that are found in the $scan_path that 
+ * likely relate to any paged content files.
+ *
+ * This will also check the expected set of filenames to mark which ones are
+ * missing -- ignoring the ".xml" files.
+ *
+ * @param type $scan_path
+ */
+function islandora_digital_workflow_scan_paged_content_files($scan_path) {
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/file_utilities');
+  $files = islandora_digital_workflow_file_scan_directory($scan_path, '', TRUE);
+  $ret_arr = array();
+  foreach ($files as $folder => $folder_files) {
+    if (is_array($folder_files)) {
+      foreach ($folder_files as $file) {
+        $ret_arr[$folder . '/' . $file] = islandora_digital_workflow_get_filesize_class($scan_path, $folder, $file);
+      }
+    }
+    else {
+      $ret_arr[$folder_files] = islandora_digital_workflow_get_filesize_class($scan_path, '', $folder_files);
+    }
+  }
+  ksort($ret_arr);
+  return $ret_arr;
+}
+
+function islandora_digital_workflow_get_filesize_class($scan_path, $folder, $file) {
+  $relative_file_path = (($folder) ? $folder . '/' : '') . $file;
+  $full_file_path = $scan_path . '/' . $relative_file_path;
+  if (file_exists($full_file_path)) {
+    $size = filesize($full_file_path);
+    $found_file_pathinfo = pathinfo($full_file_path);
+    $ext = (array_key_exists('extension', $found_file_pathinfo) ? $found_file_pathinfo['extension'] : '');
+    $filename = (array_key_exists('filename', $found_file_pathinfo) ? $found_file_pathinfo['filename'] : '');
+    if ($ext <> 'xml') {
+      if ($ext == 'tif' && is_numeric($filename)) {
+        $class = '';
+      } else {
+        $class = 'bad';
+      }
+    }
+    else {
+      $class = '';
+    }
+    return array(
+      'filesize' => $size,
+      'class' => $class,
+    );
+  }
 }
 
 /**

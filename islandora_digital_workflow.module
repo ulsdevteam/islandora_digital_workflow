@@ -295,6 +295,8 @@ function islandora_digital_workflow_theme() {
         'item' => array(),
         'can_update' => FALSE,
         'item_record_transactions' => array(),
+        'pid' => '',
+        'scanned_files' => array(),
       ),
     ),
     'islandora_digital_workflow_batch_records_table' => array(

@@ -19,7 +19,8 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
   $batch_name = $node->title;
   $results = islandora_digital_workflow_find_batch_records_by_name($batch_name);
   $batch_record = array_pop($results);
-  
+  $batch_path = islandora_digital_workflow_batch_path($batch_record);
+
   // Did the user post an update to this batch item data?  If so, handle that update here
   if (isset($_POST['title'])) {
     $item_record_results = islandora_digital_workflow_get_batch_item_record($batch_item_id);
@@ -46,12 +47,26 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
   }
 
   $item_record_results = islandora_digital_workflow_get_batch_item_record($batch_item_id);
+
   $item = array_pop($item_record_results);
+  @list($namespace, $pid) = explode(":", $item->identifier);
+
+  $paged_content_models = islandora_digital_workflow_retrieve_applicable_paged_content_cmodels();
+  if (!(array_search($batch_record->default_type_of_resource, $paged_content_models) === FALSE)) {
+    $scanned_files = islandora_digital_workflow_scan_paged_content_files($batch_path . '/' . $pid);
+  }
+  else {
+    $file_records = islandora_digital_workflow_get_batch_files_by_nid($batch_record->nid);
+    $scanned_files = islandora_digital_workflow_scan_files($batch_path . '/' . $pid, $file_records);
+  }
+
   $item_record_transactions = islandora_digital_workflow_get_batch_item_transactions($batch_item_id, $node->nid);
 
   return $lookup_form_markup . theme('islandora_digital_workflow_item', array(
         'batch_record' => $batch_record,
         'item' => $item,
         'can_update' => user_access(ISLANDORA_DIGITAL_WORKFLOW_UPDATE_ITEMS),
-        'item_record_transactions' => $item_record_transactions));
+        'item_record_transactions' => $item_record_transactions,
+        'pid' => $pid,
+        'scanned_files' => $scanned_files));
 }

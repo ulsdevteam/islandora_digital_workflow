@@ -335,27 +335,34 @@ function islandora_digital_workflow_batch_items_form(array $form, array &$form_s
   );
   $batch_items_actions = islandora_digital_workflow_get_batch_items_actions();
   $form = array();
-  $form['form_two']['add_batch_action'] = array(
+  $form['wrapper'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Add / Remove Transactions'),
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
+  );
+
+  $form['wrapper']['add_batch_action'] = array(
       '#title' => t('Add Transaction'),
       '#type' => 'select',
       '#options' => $batch_items_actions,
-      '#description' => 'Select the transaction to apply to the selected batch items',
+      '#description' => 'Select the transaction to add to the selected batch items below.',
       '#default_value' => '',
   );
   if (user_access(ISLANDORA_DIGITAL_WORKFLOW_EDIT_DELETE_TRANSACTIONS)) {
-    $form['form_two']['remove_batch_action'] = array(
+    $form['wrapper']['remove_batch_action'] = array(
         '#title' => t('Remove Transaction'),
         '#type' => 'select',
         '#options' => $batch_items_actions,
-        '#description' => 'Select the transaction to apply to the selected batch items',
+        '#description' => 'Select the transaction to remove from the selected batch items below.',
         '#default_value' => '',
     );
   }
-  $form['form_two']['submit'] = array(
+  $form['wrapper']['submit'] = array(
       '#type' => 'submit',
       '#value' => t('Modify transactions'),
   );
-  $form['form_two']['items'] = array(
+  $form['items'] = array(
       '#type' => 'tableselect',
       '#header' => $items_header,
       '#options' => $options,

@@ -57,7 +57,7 @@ function islandora_digital_workflow_batch_transactions_form(array $form, array &
       '#title' => t('Add Transaction'),
       '#type' => 'select',
       '#options' => $batch_items_actions,
-      '#description' => 'Select the transaction to apply to the selected batch items',
+      '#description' => 'Select the transaction to add to the entire batch.',
       '#default_value' => '',
   );
   if (user_access(ISLANDORA_DIGITAL_WORKFLOW_EDIT_DELETE_TRANSACTIONS)) {
@@ -65,7 +65,7 @@ function islandora_digital_workflow_batch_transactions_form(array $form, array &
         '#title' => t('Remove Transaction'),
         '#type' => 'select',
         '#options' => $batch_items_actions,
-        '#description' => 'Select the transaction to apply to the selected batch items',
+        '#description' => 'Select the transaction to remove from the batch.',
         '#default_value' => '',
     );
   }

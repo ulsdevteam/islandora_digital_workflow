@@ -358,8 +358,9 @@ function islandora_digital_workflow_get_batch_item_transactions($batch_item_id, 
 }
 
 /**
- * Returns all batch records that have a partial match for the `identifier` field
- * in the islandora_digital_workflow_batch_items table.
+ * Returns all batch records that are related to a node's nid value (through
+ * the relationship between islandora_digital_workflow_batch and
+ * islandora_digital_workflow_batch_items.
  *
  * @param integer $nid
  *   The value of the islandora_digital_workflow_batch_items.`identifier` field.

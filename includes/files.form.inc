@@ -12,6 +12,8 @@ function islandora_digital_workflow_files($node) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
   module_load_include('inc', 'islandora_digital_workflow', 'includes/lookup.form');
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
+  drupal_add_js('misc/collapse.js');
+
   $lookup_form_markup = theme('islandora_digital_workflow_lookup', array('searchterm' => ''));
 
   $batch_name = $node->title;
@@ -23,7 +25,13 @@ function islandora_digital_workflow_files($node) {
 
   // Scan for files in that directory - this will mark any files that are expected,
   // but not found with "bad" class.
-  $scanned_files = islandora_digital_workflow_scan_files($batch_path, $file_records);
+  $paged_content_models = islandora_digital_workflow_retrieve_applicable_paged_content_cmodels();
+  if (!(array_search($batch_record->default_type_of_resource, $paged_content_models) === FALSE)) {
+    $scanned_files = islandora_digital_workflow_scan_paged_content_files($batch_path);
+  }
+  else {
+    $scanned_files = islandora_digital_workflow_scan_files($batch_path, $file_records);
+  }
 
   // Loop through the $file_records and see which ones are missing from the file system
   foreach ($file_records as $index => $file_item) {

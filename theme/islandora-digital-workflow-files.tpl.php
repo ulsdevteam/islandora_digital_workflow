@@ -48,7 +48,7 @@
           <tr class="<?php print (($toggle) ? 'evenrow' : 'oddrow') .
               (($item->class <> '') ?  ' ' . $item->class : '') ; ?>">
               <td><?php print $item->title; ?></td>
-              <td><?php print $item->identifier; ?></td>
+              <td><a href="/node/<?php print $node->nid; ?>/item/<?php print $item->batch_item_id; ?>"><?php print $item->identifier; ?></a></td>
               <td><?php print $item->filename_basename; ?></td>
               <td><?php print $item->filesize; ?></td>
           </tr>
@@ -61,20 +61,39 @@
     <p>The batch folder "<?php print $batch_path; ?>" contains the following files.
     Files that are marked in green are expected, while the red files are not referenced
     by the batch items; it is possible that those files may not cause any problems.</p>
-    <table style="width: 50%">
+      <?php $otoggle = FALSE; ?>
+      <?php foreach ($item_file_records as $item) { ?>
+        <?php $otoggle = !$otoggle; ?>
+
+        <?php $toggle = FALSE; ?>
+
+        <?php @list($ns, $pid) = explode(":", $item->identifier); ?>
+<fieldset  class="<?php print (($otoggle) ? 'evenrow' : 'oddrow'); ?>" id="<?php print $pid; ?>">
+    <legend>
+      <span class="fieldset-legend">
+          <a href="/node/<?php print $node->nid; ?>/item/<?php print $item->batch_item_id; ?>"><?php print $item->identifier; ?></a></span>
+    </legend>
+    <div class="fieldset-wrapper fieldset_scrollable_div_wrapper">
+      <table>
         <tr>
-            <th>Filename</th>
-            <th class="numeric">Size</th>
+          <th>Filename</th>
+          <th class="numeric">Size</th>
         </tr>
-      <?php foreach ($scanned_files as $filename => $file_info) { ?>
-          <?php $toggle = !$toggle; ?>
-          <tr class="<?php print (($toggle) ? 'evenrow' : 'oddrow') .
-              (($file_info['class'] <> '') ? ' ' . $file_info['class'] : ''); ?>">
-              <td><?php print $filename; ?></td>
-              <td class="numeric"><?php print number_format($file_info['filesize']); ?></td>
-          </tr>
-      <?php } ?>
-    </table>
+        <?php foreach ($scanned_files as $filename => $file_info) { ?>
+          <?php if (strstr($filename, $pid) <> '') : ?>
+            <?php $toggle = !$toggle; ?>
+        <tr class="<?php print (($toggle) ? 'evenrow' : 'oddrow') .
+            (($file_info['class'] <> '') ? ' ' . $file_info['class'] : ''); ?>">
+          <td><?php print $filename; ?></td>
+          <td class="numeric"><?php print number_format($file_info['filesize']); ?></td>
+        </tr>
+          <?php endif; ?>
+        <?php } ?>
+      </table>
+    </div>
+</fieldset>
+
+    <?php } ?>
     <?php endif; ?>
 
   </div><!-- /end dashboard-report -->

@@ -211,7 +211,14 @@ and open the template in the editor.
     line-height: 26px;
 }
 
-.report_table table tr.oddrow {
+.report_table fieldset {
+    border-radius: 6px;
+    margin: 4px;
+    border: 1px solid #aaa;
+    box-shadow: 1px 1px 3px #888;
+}
+
+.report_table fieldset.oddrow, .report_table table tr.oddrow {
     background-color: #f2f2f2;
 }
 
@@ -229,6 +236,11 @@ and open the template in the editor.
 
 .fieldset_div_wrapper {
     overflow: scroll;
+}
+
+.fieldset_scrollable_div_wrapper {
+    max-height: 330px;
+    overflow: auto;
 }
 
 /* ---- for the lookup form itself -------- */
@@ -332,5 +344,4 @@ a .highlighted {
     clear: both;
     float: left;
 }
-
 
