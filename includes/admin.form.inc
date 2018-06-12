@@ -17,7 +17,6 @@
  */
 function islandora_digital_workflow_admin_form() {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
-  // module_load_include('inc', 'islandora_digital_workflow', 'includes/access_permissions');
   // Needed for collapsible fieldsets
   drupal_add_js('misc/collapse.js');
   $about_islandora_digital_workflow_markup = '<p>These are the settings for ' .
@@ -59,6 +58,11 @@ function islandora_digital_workflow_admin_form() {
       '#collapsible' => TRUE,
       '#collapsed' => FALSE,
       'rules_one' => array(
+        '#type' => 'item',
+        '#title' => l('Islandora Digital Workflow - Workflow Sequences', 'admin/islandora/islandora_digital_workflow/workflow_sequences'),
+        '#description' => t('Manage Workflow sequence actions related to each islandora model.'),
+      ),
+      'rules_two' => array(
         '#type' => 'item',
         '#title' => l('Islandora Digital Workflow rules', 'admin/config/workflow/rules', array(
             'query' => array(

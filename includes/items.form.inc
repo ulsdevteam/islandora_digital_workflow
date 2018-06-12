@@ -3,8 +3,6 @@
 /**
  * Displays items related to a workflow_batch node.
  *
- * @param object $node
- *   Drupal node.
  * @return string
  *   HTML markup.
  */
@@ -324,7 +322,6 @@ function islandora_digital_workflow_batch_items_form(array $form, array &$form_s
       'Identifier' => l($item->identifier, '/node/' . $node->nid . '/item/' . $item->batch_item_id),
       'Title' => $item->title,
       'Filename' => $item->filename_basename,
-
     );
   }
   $items_header = array(
@@ -333,7 +330,8 @@ function islandora_digital_workflow_batch_items_form(array $form, array &$form_s
     'Title' => 'Title',
     'Filename' => 'Filename',
   );
-  $batch_items_actions = islandora_digital_workflow_get_batch_items_actions();
+  $batch_items_actions = islandora_digital_workflow_get_batch_items_actions($batch_record->default_type_of_resource);
+
   $form = array();
   $form['wrapper'] = array(
       '#type' => 'fieldset',

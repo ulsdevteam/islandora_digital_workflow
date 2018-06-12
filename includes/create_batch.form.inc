@@ -44,26 +44,8 @@ function islandora_digital_workflow_create_batch() {
  */
 function islandora_digital_workflow_create_empty_batch_form(array $form, array &$form_state) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
-  module_load_include('inc', 'islandora_digital_workflow', 'includes/access_permissions');
-  module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy-utilities');
 
-  $readable_models = islandora_digital_workflow_get_reduced_readable_cmodels();
-
-  $configured_supported_models = variable_get('islandora_digital_workflow_islandora_models', array());
-  $return_form_elements = array();
-  $content_types_vocab = taxonomy_vocabulary_machine_name_load(IDW_CONTENT_TYPE_TAXONOMY_MACHINE_NAME);
-
-  $accessible_models = array('' => 'Select Object Model');
-  foreach ($readable_models as $cmodel => $model) {
-    if (isset($configured_supported_models[$cmodel]) && $configured_supported_models[$cmodel] == 1) {
-      // Now, check that the user has access to this model
-      $permission = islandora_digital_workflow_permission_of_model($cmodel);
-      if (user_access($permission)) {
-        $tid = islandora_digital_workflow_get_tid_by_name($cmodel, $content_types_vocab);
-        $accessible_models[$tid] = $cmodel;
-      }
-    }
-  }
+  $accessible_models = islandora_digital_workflow_get_accessible_cmodels();
   $configured = TRUE;
   // Check whether or not the required configuration settings are provided.
   $batch_hosts = islandora_digital_workflow_get_batch_host_values();
@@ -204,7 +186,7 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
 
   $readable_models = islandora_digital_workflow_get_reduced_readable_cmodels();
   $configured_supported_models = variable_get('islandora_digital_workflow_islandora_models', array());
-  $accessible_models = $return_form_elements = array();
+  $accessible_models = array();
   $content_types_vocab = taxonomy_vocabulary_machine_name_load(IDW_CONTENT_TYPE_TAXONOMY_MACHINE_NAME);
 
   foreach ($readable_models as $cmodel => $model) {

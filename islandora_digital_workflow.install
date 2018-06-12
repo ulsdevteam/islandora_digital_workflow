@@ -471,6 +471,10 @@ function islandora_digital_workflow_insert_islandora_digital_workflow_actions() 
       'name' => 'system-made-derivatives',
       'description' => 'System made derivatives',
     ),
+    IDW_ACTION_ADD_MARC_RECORD => array(
+      'name' => 'add-marc-record',
+      'description' => 'Add MARC record',
+    ),
     // batch-level actions (action_id values greater than 100).
     IDW_ACTION_ALL_CHECK_IN => array(
       'name' => 'all-check-in',

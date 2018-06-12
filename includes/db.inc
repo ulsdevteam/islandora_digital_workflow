@@ -596,10 +596,19 @@ function islandora_digital_workflow_get_batch_actions() {
  * @return mixed
  *   Either returns an array of actions record objects or NULL if it cannot be found.
  */
-function islandora_digital_workflow_get_batch_items_actions() {
+function islandora_digital_workflow_get_batch_items_actions($model = '') {
+  // If no model is provided, display the sequence_action for the default
+  // batch_item record.
   $query = db_select('islandora_digital_workflow_actions', 'ba')
       ->fields('ba')
       ->condition('ba.action_id', 100, '<');
+  $query->join('islandora_digital_workflow_sequence_actions', 'sa', 'sa.action_id = ba.action_id');
+  $query->orderBy('sa.order');
+  $query->join('islandora_digital_workflow_sequence', 's', 's.workflow_sequence_id = sa.workflow_sequence_id');
+  $query->fields('s', array('name'));
+  $query->join('islandora_digital_workflow_model_sequence', 'm', 'm.workflow_sequence_id = s.workflow_sequence_id');
+  $query->condition('m.islandora_model', $model);
+
   $results = $query->execute();
   $rows = $results->fetchAll();
   $options = array('' => 'Select an action');
@@ -607,6 +616,99 @@ function islandora_digital_workflow_get_batch_items_actions() {
     $options[$row->action_id] = $row->description;
   }
   return $options;
+}
+
+/**
+ * Returns the list of workflow sequence name values.
+ *
+ * @return array
+ *   An array of workflow sequence records' name values.
+ */
+function islandora_digital_workflow_get_workflow_sequences() {
+  $query = db_select('islandora_digital_workflow_sequence', 's')
+      ->fields('s')
+      ->orderBy('s.workflow_sequence_id');
+  $results = $query->execute();
+  $rows = $results->fetchAll();
+  $return_array = array();
+  foreach ($rows as $i => $row) {
+    $return_array[$row->workflow_sequence_id] = array(
+        'workflow_sequence_id' => $row->workflow_sequence_id,
+        'name' => $row->name,
+        'description' => $row->description,
+    );
+  }
+  return $return_array;
+}
+
+function islandora_digital_workflow_get_item_actions() {
+  $rows = db_query('SELECT * FROM islandora_digital_workflow_actions WHERE action_id < 100')->fetchAll();
+  $return_array = array();
+  foreach ($rows as $i => $row_obj) {
+    $return_array[$row_obj->action_id] = array(
+        'action_id' => $row_obj->action_id,
+        'name' => $row_obj->name,
+        'description' => $row_obj->description,
+      );
+  }
+  return $return_array;
+}
+
+/**
+ * Returns the list of workflow sequence name values.
+ *
+ * These values are grouped by workflow_sequence_id and action_id - and ordered
+ * by each sequence's order field.
+ *
+ * @return array
+ *   An array of workflow sequence records' name values.
+ */
+function islandora_digital_workflow_get_workflow_sequence_actions() {
+  $query = db_select('islandora_digital_workflow_sequence_actions', 'sa')
+      ->fields('sa')
+      ->orderBy('sa.workflow_sequence_id')
+      ->orderBy('sa.order');
+  $query->join('islandora_digital_workflow_actions', 'a', 'a.action_id = sa.action_id');
+  $query->addField('a', 'action_id', 'action_id');
+  $query->addField('a', 'name', 'action_name');
+  $query->addField('a', 'description', 'action_description');
+  $query->join('islandora_digital_workflow_sequence', 's', 's.workflow_sequence_id = sa.workflow_sequence_id');
+  $query->addField('s', 'name', 'sequence_name');
+  $query->addField('s', 'description', 'sequence_description');
+  $results = $query->execute();
+  $rows = $results->fetchAll();
+  $return_array = array();
+  foreach ($rows as $i => $row) {
+    $return_array[$row->workflow_sequence_id][] = array(
+        'sequence_name' => $row->sequence_name,
+        'sequence_description' => $row->sequence_description,
+        'order' => $row->order,
+        'action_id' => $row->action_id,
+        'action_name' => $row->action_name,
+        'action_description' => $row->action_description,
+        'is_required' => $row->is_required,
+    );
+  }
+  return $return_array;
+}
+
+/**
+ * Returns all model to workflow sequences mappings.
+ *
+ * @return array
+ *   An array of workflow sequence records' name values.
+ */
+function islandora_digital_workflow_get_workflow_model_sequences() {
+  $query = db_select('islandora_digital_workflow_model_sequence', 'ms')
+      ->fields('ms')
+      ->orderBy('ms.workflow_sequence_id');
+  $results = $query->execute();
+  $rows = $results->fetchAll();
+  $return_array = array();
+  foreach ($rows as $i => $row) {
+    $return_array[$row->workflow_sequence_id][$row->islandora_model] = $row->islandora_model;
+  }
+  return $return_array;
 }
 
 /**

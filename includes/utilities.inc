@@ -607,6 +607,36 @@ function islandora_digital_workflow_get_reduced_cmodels() {
 }
 
 /**
+ * This will get all configured models and filter them to display only the ones
+ * that the user has access to use.
+ *
+ * @return array
+ *   An associative array where the key is the taxonomy id for that content type
+ * and the value is the name.
+ */
+function islandora_digital_workflow_get_accessible_cmodels() {
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/access_permissions');
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy-utilities');
+  $readable_models = islandora_digital_workflow_get_reduced_readable_cmodels();
+
+  $configured_supported_models = variable_get('islandora_digital_workflow_islandora_models', array());
+  $content_types_vocab = taxonomy_vocabulary_machine_name_load(IDW_CONTENT_TYPE_TAXONOMY_MACHINE_NAME);
+
+  $accessible_models = array('' => 'Select Object Model');
+  foreach ($readable_models as $cmodel => $model) {
+    if (isset($configured_supported_models[$cmodel]) && $configured_supported_models[$cmodel] == 1) {
+      // Now, check that the user has access to this model
+      $permission = islandora_digital_workflow_permission_of_model($cmodel);
+      if (user_access($permission)) {
+        $tid = islandora_digital_workflow_get_tid_by_name($cmodel, $content_types_vocab);
+        $accessible_models[$tid] = $cmodel;
+      }
+    }
+  }
+  return $accessible_models;
+}
+
+/**
  * Returns all content types for the current Islandora deployment.
  *
  * This will also strip off the " Content Model" suffix.
@@ -912,8 +942,8 @@ function islandora_digital_workflow_model_ingest_module_info($model) {
       break;
     case "Finding Aid":
       $retval['module_name'] = 'islandora_batch';
-      $retval['git_link'] = l($retval['module_name'], 'https://github.com/Islandora/islandora_book_batch.git');
-      $retval['uls_git_link'] = l($retval['module_name'], 'https://github.com/ulsdevteam/islandora_book_batch.git');
+      $retval['git_link'] = l($retval['module_name'], 'https://github.com/Islandora/islandora_batch.git');
+      $retval['uls_git_link'] = l($retval['module_name'], 'https://github.com/ulsdevteam/islandora_batch.git');
       break;
     case "Internet Archive Book": case "Book":
       $retval['module_name'] = 'islandora_book_batch';

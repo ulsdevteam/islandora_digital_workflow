@@ -17,6 +17,8 @@ define('IDW_ACTION_CHECK_OUT', 4);
 define('IDW_ACTION_RESCANNED', 5);
 define('IDW_ACTION_CHECK_PHYSICAL_ITEMS', 6);
 define('IDW_ACTION_SYSTEM_MADE_DERIVATIVES', 7);
+define('IDW_ACTION_ADD_MARC_RECORD', 8);
+
 define('IDW_ACTION_ALL_CHECK_IN', 101);
 define('IDW_ACTION_ALL_SCAN', 102);
 define('IDW_ACTION_ALL_SYSTEM_INGEST', 103);
@@ -34,6 +36,7 @@ define('ISLANDORA_DIGITAL_WORKFLOW_CREATE_NEW_BATCH', 'digital workflow create b
 define('ISLANDORA_DIGITAL_WORKFLOW_VIEW_TRANSACTIONS', 'digital workflow view transactions');
 define('ISLANDORA_DIGITAL_WORKFLOW_EDIT_DELETE_TRANSACTIONS', 'digital workflow edit transactions');
 define('ISLANDORA_DIGITAL_WORKFLOW_UPDATE_ITEMS', 'digital workflow update items');
+define('ISLANDORA_DIGITAL_WORKFLOW_MANAGE_SEQUENCES', 'digital workflow manage sequences');
 
 /**
  * Implements hook_menu().
@@ -43,19 +46,37 @@ function islandora_digital_workflow_menu() {
     'admin/islandora/islandora_digital_workflow' => array(
       'title' => 'Islandora Digital Workflow',
       'description' => 'Settings for the Islandora Digital Workflow module.',
-      'type' => MENU_NORMAL_ITEM,
+      'type' => MENU_LOCAL_TASK,
       'page callback' => 'drupal_get_form',
       'page arguments' => array('islandora_digital_workflow_admin_form'),
       'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW),
       'file' => 'includes/admin.form.inc',
     ),
-    'islandora/islandora_digital_workflow' => array(
-      'title' => t('Islandora Digital Workflow Dashboard'),
+    'admin/islandora/islandora_digital_workflow/workflow_sequences' => array(
+      'title' => t('Islandora Digital Workflow - Workflow Sequences'),
       'type' => MENU_LOCAL_TASK,
-      'page callback' => array('islandora_digital_workflow_dashboard'),
-      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW),
-      'file' => 'includes/dashboard.form.inc',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('islandora_digital_workflow_sequences'),
+      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_MANAGE_SEQUENCES),
+      'file' => 'includes/workflow_sequences.form.inc',
     ),
+    'admin/islandora/islandora_digital_workflow/workflow_sequences/%' => array(
+      'title' => t('Islandora Digital Workflow - Workflow Sequences'),
+      'type' => MENU_NORMAL_ITEM,
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('islandora_digital_workflow_order_manage', 4),
+      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_MANAGE_SEQUENCES),
+      'file' => 'includes/workflow_sequences.form.inc',
+    ),
+    'admin/islandora/islandora_digital_workflow/workflow_sequence_models/%' => array(
+      'title' => t('Islandora Digital Workflow - Workflow Sequence Model Associations'),
+      'type' => MENU_NORMAL_ITEM,
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('islandora_digital_workflow_workflow_sequence_models_form', 4),
+      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_MANAGE_SEQUENCES),
+      'file' => 'includes/workflow_sequences.form.inc',
+    ),
+
     // Lookup form
     'islandora/islandora_digital_workflow/lookup' => array(
       'page callback' => array('islandora_digital_workflow_lookup'),
@@ -195,6 +216,10 @@ function islandora_digital_workflow_permission() {
       'title' => t('Update Batch Items'),
       'description' => t('User can update batch items details'),
     ),
+    ISLANDORA_DIGITAL_WORKFLOW_MANAGE_SEQUENCES => array(
+      'title' => t('Manage Workflow Sequences'),
+      'description' => t('User can manage workflow sequences and required actions'),
+    ),
   );
   $model_based_permissions = array();
   $models = islandora_digital_workflow_get_reduced_readable_cmodels();
@@ -223,10 +248,6 @@ function islandora_digital_workflow_preprocess_html(&$vars) {
   if (is_array($item)) {
     $path = drupal_get_path('module', 'islandora_digital_workflow');
     drupal_add_css($path . '/css/islandora_digital_workflow.css');
-    // Just the admin form needs the /js/admin_form.js added.
-    if ($item['path'] == 'admin/islandora/islandora_digital_workflow') {
-      drupal_add_js($path . '/js/admin_form.js');
-    }
   }
 }
 
@@ -317,10 +338,14 @@ function islandora_digital_workflow_theme() {
       ),
     ),
     'islandora_digital_workflow_transactions_glyphs' => array(
-      'template' => 'theme/islandora-digital-workflow-transactions-glpyhs',
+      'template' => 'theme/islandora-digital-workflow-transactions-glyphs',
       'variables' => array(
         'transaction_actions' => array(),
       ),
+    ),
+    'islandora_digital_workflow_order_manage' => array(
+      'render element' => 'form',
+      'file' => 'includes/workflow_sequences.form.inc',
     ),
   );
 }
@@ -448,3 +473,45 @@ function islandora_digital_workflow_views_api() {
   );
 }
 
+/**
+ * Theme function to display order_manage objects.
+ *
+ * These rows are draggable and need to be themed in this way (from what I read).
+ *
+ * @param array $variables
+ *   Drupal template variables.
+ * @return string
+ *   Markup of the themed order_manage object
+ */
+function theme_islandora_digital_workflow_order_manage($variables) {
+  $form = $variables['form'];
+  $sequence_id = 9999;
+  $rows = array();
+  foreach (element_children($form['wrapper']['rows']) as $action_id) {
+    @list($keep, $junk) = explode(" [", $form['wrapper']['rows'][$action_id]['action_description']['#default_value']);
+    $class_name = 'transaction_action_' . strtolower(str_replace(" ", "_", $keep));
+    $form['wrapper']['rows'][$action_id]['weight']['#attributes']['class'] = array('rows-order-weight');
+    $sequence_id = $form['wrapper']['rows'][$action_id]['workflow_sequence_id']['#value'];
+
+    $rows[] = array(
+      'data' => array(
+        array('class' => array('slide-cross')),
+        drupal_render($form['wrapper']['rows'][$action_id]['action_id']),
+        drupal_render($form['wrapper']['rows'][$action_id]['action_name']),
+        drupal_render($form['wrapper']['rows'][$action_id]['is_required']),
+        drupal_render($form['wrapper']['rows'][$action_id]['weight']),
+        drupal_render($form['wrapper']['rows'][$action_id]['op']),
+      ),
+      'class' => array('draggable', $class_name),
+    );
+  }
+
+  $header = array('', '', t('Action (If empty, title is used)'), t('Is required?'), t('Weight'), t('Operations'));
+  $output = drupal_render($form['note']);
+  $output .= theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => array('id' => 'rows-order-' . $sequence_id)));
+  $output .= drupal_render_children($form);
+
+  drupal_add_tabledrag('rows-order-' . $sequence_id, 'order', 'sibling', 'rows-order-weight', NULL, NULL, FALSE);
+
+  return $output;
+}
