@@ -370,6 +370,86 @@ function islandora_digital_workflow_schema() {
       'ss_action_id_batch_item_id_batch_id' => array('action_id', 'batch_item_id', 'batch_id'),
     ),
   );
+  $schema['islandora_digital_workflow_sequence'] = array(
+    'description' => t('Stores the workflow sequences'),
+    'fields' => array(
+      'workflow_sequence_id' => array(
+        'description' => 'The primary identifier for the record',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'name' => array(
+        'type' => 'varchar',
+        'length' => 50,
+        'not null' => TRUE,
+      ),
+      'description' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+    ),
+    'indexes' => array(
+      'ss_name' => array('name'),
+    ),
+    'primary key' => array('workflow_sequence_id'),
+  );
+  $schema['islandora_digital_workflow_model_sequence'] = array(
+    'description' => t('Stores the workflow sequence to models relationship'),
+    'fields' => array(
+      'workflow_sequence_id' => array(
+        'description' => 'Identifier to match an islandora_digital_workflow_sequence record',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'islandora_model' => array(
+        'type' => 'varchar',
+        'length' => 50,
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array('workflow_sequence_id', 'islandora_model'),
+  );
+  $schema['islandora_digital_workflow_sequence_actions'] = array(
+    'description' => t('Stores the workflow sequence actions, their order, and whether they are required'),
+    'fields' => array(
+      'workflow_sequence_id' => array(
+        'description' => 'The primary identifier for the record',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'action_id' => array(
+        'type' => 'int',
+        'size' => 'medium',
+        'default' => 0,
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'order' => array(
+        'type' => 'int',
+        'size' => 'medium',
+        'size' => 'tiny',
+        'default' => 0,
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'is_required' => array(
+        'type' => 'int',
+        'size' => 'tiny',
+        'default' => 0,
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+    ),
+    'indexes' => array(
+      'ss_workflow_sequence_id_action_id_order' => array('workflow_sequence_id', 'action_id', 'order'),
+    ),
+    'primary key' => array('workflow_sequence_id'),
+  );
+
   return $schema;
 }
 

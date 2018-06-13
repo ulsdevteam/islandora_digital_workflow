@@ -359,3 +359,7 @@ a .highlighted {
     float: left;
 }
 
+.small_right_float {
+    font-size: 0.8em;
+    float: right;
+}

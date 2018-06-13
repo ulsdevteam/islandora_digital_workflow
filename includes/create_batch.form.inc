@@ -390,7 +390,7 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
           'file_validate_size' => array($upload_size * 1024 * 1024),
         ),
         '#prefix' => "<a id='file_upload'> </a>",
-        '#suffix' => (count($file_rows) ? '<div class="fieldset_div_wrapper"><div class="report_table_wrapper">' .
+        '#suffix' => (count($file_rows) ? '<div class="fieldset_scrollable_div_wrapper"><div class="report_table_wrapper">' .
             theme('table', array('rows' => $file_rows, 'header' => $file_header, 'attributes' => array('class' => array('report_table')))) .
           '</div></div>'  : ''),
       );

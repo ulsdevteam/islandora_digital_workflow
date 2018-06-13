@@ -25,11 +25,13 @@ function islandora_digital_workflow_sequences() {
   $workflow_sequence_actions = islandora_digital_workflow_get_workflow_sequence_actions();
   $workflow_model_sequences = islandora_digital_workflow_get_workflow_model_sequences();
 
-  $form = array(
-    'wrapper' => array(
+  $form['wrapper'] = array(
       '#type' => 'fieldset',
       '#title' => t('Workflow Sequences'),
-    ),
+  );
+  $form['wrapper']['add_new'] = array(
+      '#type' => 'item',
+      '#markup' => l('Create new sequence', 'admin/islandora/islandora_digital_workflow/create_workflow_sequences'),
   );
   $models_arr = array();
   foreach ($workflow_model_sequences as $workflow_sequence_id => $models) {
@@ -41,8 +43,8 @@ function islandora_digital_workflow_sequences() {
   }
 
   foreach ($workflow_sequences as $workflow_sequence_id => $name_description) {
-    $models = implode(", ", $models_arr[$workflow_sequence_id]);
-    $this_workflow_sequence_actions = $workflow_sequence_actions[$workflow_sequence_id];
+    $models = array_key_exists($workflow_sequence_id, $models_arr) ? implode(", ", $models_arr[$workflow_sequence_id]) : '';
+    $this_workflow_sequence_actions = array_key_exists($workflow_sequence_id, $workflow_sequence_actions) ? $workflow_sequence_actions[$workflow_sequence_id] : array();
     $markup_actions = array();
     foreach ($this_workflow_sequence_actions as $action_record_array) {
       $class = ($action_record_array['is_required']) ? 'required_action' : 'optional_action';
@@ -50,15 +52,165 @@ function islandora_digital_workflow_sequences() {
     }
     $form['wrapper']['workflow_sequence_id_' . $workflow_sequence_id] = array(
       '#type' => 'item',
-      '#markup' => '<h3>' . $name_description['description'] . '</h3>' . 
-        '<blockquote><p><b>' . 
+      '#markup' =>
+        '<div class="dashboard-report"><div class="small_right_float">' .
+        l('Edit', 'admin/islandora/islandora_digital_workflow/edit_workflow_sequence/' . $workflow_sequence_id) . ' | ' . 
+        l('Delete', 'admin/islandora/islandora_digital_workflow/delete_workflow_sequence/' . $workflow_sequence_id) .
+        '</div><h3>' . $name_description['name'] . '</h3>' .
+        '<p>' . $name_description['description'] . '</p>' . 
+        '<blockquote><p><b>' .
         l('Models', 'admin/islandora/islandora_digital_workflow/workflow_sequence_models/' . $workflow_sequence_id) . ':</b> ' . $models .
         '</p><p><b>' .
         l('Actions', 'admin/islandora/islandora_digital_workflow/workflow_sequences/' . $workflow_sequence_id) .
-        ':</b> ' . implode(" | " , $markup_actions) . '</p></blockquote>',
+        ':</b> ' . implode(" | " , $markup_actions) . '</p></blockquote></div>',
     );
   }
+
+  if (count($workflow_sequences) < 1) {
+    $form['wrapper']['none'] = array(
+      '#type' => 'item',
+      '#markup' => '<em class="bad">There are no workflow sequences yet.</em>  ' .
+        'This area would allow each sequence to be managed.',
+    );
+  }
+
   return $form;
+}
+
+function islandora_digital_workflow_order_delete(array $form, array &$form_state, $workflow_sequence_id) {
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
+
+  $workflow_sequence_actions = islandora_digital_workflow_get_workflow_sequence_actions();
+  $workflow_model_sequences = islandora_digital_workflow_get_workflow_model_sequences();
+  $actions = islandora_digital_workflow_get_item_actions();
+  $workflow_sequences = islandora_digital_workflow_get_workflow_sequences();
+  $form = array(
+      'workflow_sequence_id' => array(
+          '#type' => 'hidden',
+          '#default_value' => $workflow_sequence_id
+      ),
+      'warning' => array(
+          '#type' => 'item',
+          '#markup' => '<span class="bad"><b>This can not be undone!</b>  Are ' . 
+            'you certain that you want to delete this workflow sequence and any ' . 
+            'action / Islandora model relationships?',
+      ),
+      'confirm' => array(
+          '#type' => 'submit',
+          '#value' => t('Confirm DELETE'),
+      ),
+      'cancel' => array(
+          '#type' => 'submit',
+          '#value' => t('Cancel'),
+      ));
+  return $form;
+}
+
+function islandora_digital_workflow_order_delete_submit(array $form, array &$form_state) {
+  // If cancel is clicked, redirect to the workflow_sequences page
+  if ($form_state['triggering_element']['#value'] == 'Cancel') {
+    drupal_set_message('Delete was cancelled for workflow sequence.');
+  }
+  else {
+    $workflow_sequence_id = $form_state['values']['workflow_sequence_id'];
+    db_query('DELETE FROM {islandora_digital_workflow_sequence} WHERE ' .
+        'workflow_sequence_id = :workflow_sequence_id',
+            array(':workflow_sequence_id' => $workflow_sequence_id));
+    drupal_set_message('Deleted workflow sequence.');
+  }
+  drupal_goto('admin/islandora/islandora_digital_workflow/workflow_sequences');
+}
+
+//    'admin/islandora/islandora_digital_workflow/create_workflow_sequences' => array(
+function islandora_digital_workflow_workflow_sequence_create(array $form, array &$form_state) {
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
+  $form['add_new'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Create new sequence'),
+      'sequence_name' => array(
+          '#title' => t('New sequence name'),
+          '#description' => t('Enter a name for the sequence.'),
+          '#type' => 'textfield',
+          '#default_value' => '',
+      ),
+      'sequence_description' => array(
+          '#title' => t('Sequence description'),
+          '#description' => t('Enter a description for the sequence.'),
+          '#type' => 'text',
+          '#default_value' => '',
+      ),
+      'submit' => array(
+          '#type' => 'submit',
+          '#value' => t('Save changes')
+      ),
+      '#submit' => array('islandora_digital_workflow_workflow_sequence_edit_submit'),
+  );
+  return $form;
+}
+
+//    'admin/islandora/islandora_digital_workflow/edit_workflow_sequences/%' => array(
+function islandora_digital_workflow_workflow_sequence_edit(array $form, array &$form_state, $workflow_sequence_id) {
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
+  $workflow_sequences = islandora_digital_workflow_get_workflow_sequences();
+  $form['add_new'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Edit Sequence'),
+      'workflow_sequence_id' => array(
+          '#type' => 'hidden',
+          '#default_value' => $workflow_sequence_id,
+      ),
+      'sequence_name' => array(
+          '#type' => 'textfield',
+          '#title' => t('Sequence name'),
+          '#description' => t('Enter a name for the sequence.'),
+          '#required' => TRUE,
+          '#default_value' => $workflow_sequences[$workflow_sequence_id]['name'],
+      ),
+      'sequence_description' => array(
+          '#type' => 'textarea',
+          '#title' => t('Sequence description'),
+          '#description' => t('Enter a description for the sequence.'),
+          '#default_value' => $workflow_sequences[$workflow_sequence_id]['description'],
+      ),
+      'submit' => array(
+          '#type' => 'submit',
+          '#value' => t('Save changes')
+      ),
+  );
+  return $form;
+}
+
+function islandora_digital_workflow_workflow_sequence_edit_submit($form, &$form_state) {
+  $workflow_sequence_id = (array_key_exists('workflow_sequence_id', $form_state['values']) ?
+    $form_state['values']['workflow_sequence_id'] : NULL);
+  $creating = FALSE;
+  if ($workflow_sequence_id) {
+    $updated = db_query('REPLACE INTO {islandora_digital_workflow_sequence} ' .
+        '(`name`, `description`, `workflow_sequence_id`) VALUES (:name, ' .
+        ':description, :workflow_sequence_id)', array(
+            ':name' => $form_state['values']['sequence_name'],
+            ':description' => $form_state['values']['sequence_description'],
+            ':workflow_sequence_id' => $workflow_sequence_id,
+    ));
+  }
+  else {
+    $workflow_sequence_id = db_query('INSERT INTO {islandora_digital_workflow_sequence} ' .
+        '(`name`, `description`) VALUES (:name, ' .
+        ':description, :workflow_sequence_id)', array(
+            ':name' => $form_state['values']['sequence_name'],
+            ':description' => $form_state['values']['sequence_description'],
+    ));
+    $creating = ($workflow_sequence_id);
+  }
+  if ($workflow_sequence_id) {
+    $edit_models_link = l('Models', 'admin/islandora/islandora_digital_workflow/workflow_sequence_models/' . $workflow_sequence_id);
+    $edit_actions_link = l('Actions', 'admin/islandora/islandora_digital_workflow/workflow_sequences/' . $workflow_sequence_id);
+    drupal_set_message('The ' . ($creating ? 'new ' : '') . 'workflow sequence has been saved.  Manage ' . $edit_models_link . ' | ' . $edit_actions_link);
+    drupal_goto('admin/islandora/islandora_digital_workflow/workflow_sequences');
+  }
 }
 
 /**
@@ -201,43 +353,39 @@ function islandora_digital_workflow_order_manage_submit($form, &$form_state) {
     $form_state['values']['wrapper']['rows'][$index] = $insert_row;
   }
   if (count($current_action_ids) > 0 && $workflow_sequence_id && $remove_action_id) {
-    db_query('DELETE FROM {islandora_digital_workflow_sequence_actions} WHERE workflow_sequence_id = :workflow_sequence_id AND action_id NOT IN (' . implode(', ', $current_action_ids) . ')',
+    $deleted = db_query('DELETE FROM {islandora_digital_workflow_sequence_actions} WHERE workflow_sequence_id = :workflow_sequence_id AND action_id NOT IN (' . implode(', ', $current_action_ids) . ')',
       array(
           ':workflow_sequence_id' => $item['workflow_sequence_id'],
       ));
   }
   // Because the form elements were keyed with the item ids from the database,
   // we can simply iterate through the submitted values.
-  foreach ($form_state['values']['wrapper']['rows'] as $id => $item) {
-    db_query('REPLACE INTO {islandora_digital_workflow_sequence_actions} ' .
-            '(workflow_sequence_id, action_id, is_required, `order`) VALUES (' .
-            ':workflow_sequence_id, :action_id, :is_required, :weight)',
-      array(
-          ':weight' => $item['weight'],
-          ':is_required' => $item['is_required'],
-          ':workflow_sequence_id' => $item['workflow_sequence_id'],
-          ':action_id' => $item['action_id'],
-      ));
+  $remove_button_id = array_key_exists('#id', $form_state['triggering_element']) ? 
+      $form_state['triggering_element']['#id'] : '';
+  $remove_button_parts = explode("-", $remove_action_id);
+  $remove_item_action_id = 0;
+  foreach ($remove_button_parts as $id_part) {
+    if (!$remove_item_action_id && is_numeric($id_part)) {
+      $remove_item_action_id = $id_part;
+    }
   }
-
-  foreach ($form_state['values']['wrapper']['rows'] as $i => $slide) {
-    preg_match('/\[(\d+)\]$/', $slide['action_name'], $matches);
-    if ($action_id = !empty($matches[1]) ? (int)$matches[1] : 0) {
-      $slides[] = array(
-        'action_id' => $slide['action_id'],
-        'action_name' => $slide['action_name'],
-        'is_required' => $slide['is_required'],
-        'order' => $slide['weight']
-      );
+  foreach ($form_state['values']['wrapper']['rows'] as $id => $item) {
+    if ($item['action_id'] <> $remove_item_action_id) {
+      $replaced = db_query('REPLACE INTO {islandora_digital_workflow_sequence_actions} ' .
+              '(workflow_sequence_id, action_id, is_required, `order`) VALUES (' .
+              ':workflow_sequence_id, :action_id, :is_required, :weight)',
+        array(
+            ':weight' => $item['weight'],
+            ':is_required' => $item['is_required'],
+            ':workflow_sequence_id' => $item['workflow_sequence_id'],
+            ':action_id' => $item['action_id'],
+        ));
     }
   }
 
-  if (!empty($slides)) {
-    usort($slides, '_islandora_digital_workflow_arraysort');
+  if ($replaced) {
+    drupal_set_message(t('Actions have been saved.'));
   }
-
-  // variable_set('slideshow_slides', $slides);
-  drupal_set_message(t('Slides have been saved.'));
 }
 
 /**
@@ -278,8 +426,16 @@ function islandora_digital_workflow_workflow_sequence_models_form(array $form, a
   $sequence_title = $workflow_sequences[$workflow_sequence_id]['description'];
   $add_model_options = array();
   foreach ($accessible_models as $tid => $accessible_model) {
-    if (array_search($accessible_model, $workflow_model_sequences[$workflow_sequence_id]) === FALSE) {
-      $add_model_options[(($tid) ? $accessible_model : '')] = $accessible_model;
+    if ($accessible_model) {
+      $this_model_is_used = FALSE;
+      foreach ($workflow_model_sequences as $sequence) {
+        if ($sequence && $accessible_model == $sequence) {
+          $this_model_is_used = TRUE;
+        }
+      }
+      if (!$this_model_is_used) {
+        $add_model_options[(($tid) ? $accessible_model : '')] = $accessible_model;
+      }
     }
   }
   $title = t('Islandora Digital Workflow' . ($sequence_title ? ' "' . $sequence_title . '"' : ''));
