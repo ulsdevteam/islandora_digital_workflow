@@ -122,7 +122,6 @@ function islandora_digital_workflow_order_delete_submit(array $form, array &$for
   drupal_goto('admin/islandora/islandora_digital_workflow/workflow_sequences');
 }
 
-//    'admin/islandora/islandora_digital_workflow/create_workflow_sequences' => array(
 function islandora_digital_workflow_workflow_sequence_create(array $form, array &$form_state) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
@@ -138,19 +137,30 @@ function islandora_digital_workflow_workflow_sequence_create(array $form, array 
       'sequence_description' => array(
           '#title' => t('Sequence description'),
           '#description' => t('Enter a description for the sequence.'),
-          '#type' => 'text',
+          '#type' => 'textarea',
           '#default_value' => '',
       ),
       'submit' => array(
           '#type' => 'submit',
           '#value' => t('Save changes')
       ),
-      '#submit' => array('islandora_digital_workflow_workflow_sequence_edit_submit'),
   );
   return $form;
 }
 
-//    'admin/islandora/islandora_digital_workflow/edit_workflow_sequences/%' => array(
+function islandora_digital_workflow_workflow_sequence_create_submit($form, &$form_state) {
+  $workflow_sequence_id = db_query('INSERT INTO {islandora_digital_workflow_sequence} ' .
+      '(`name`, `description`) VALUES (:name, ' .
+      ':description)', array(
+          ':name' => $form_state['values']['sequence_name'],
+          ':description' => $form_state['values']['sequence_description'],
+  ));
+  $edit_models_link = l('Models', 'admin/islandora/islandora_digital_workflow/workflow_sequence_models/' . $workflow_sequence_id);
+  $edit_actions_link = l('Actions', 'admin/islandora/islandora_digital_workflow/workflow_sequences/' . $workflow_sequence_id);
+  drupal_set_message('The new workflow sequence has been saved.  Manage ' . $edit_models_link . ' | ' . $edit_actions_link);
+  drupal_goto('admin/islandora/islandora_digital_workflow/workflow_sequences');
+}
+
 function islandora_digital_workflow_workflow_sequence_edit(array $form, array &$form_state, $workflow_sequence_id) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
@@ -186,7 +196,6 @@ function islandora_digital_workflow_workflow_sequence_edit(array $form, array &$
 function islandora_digital_workflow_workflow_sequence_edit_submit($form, &$form_state) {
   $workflow_sequence_id = (array_key_exists('workflow_sequence_id', $form_state['values']) ?
     $form_state['values']['workflow_sequence_id'] : NULL);
-  $creating = FALSE;
   if ($workflow_sequence_id) {
     $updated = db_query('REPLACE INTO {islandora_digital_workflow_sequence} ' .
         '(`name`, `description`, `workflow_sequence_id`) VALUES (:name, ' .
@@ -195,20 +204,9 @@ function islandora_digital_workflow_workflow_sequence_edit_submit($form, &$form_
             ':description' => $form_state['values']['sequence_description'],
             ':workflow_sequence_id' => $workflow_sequence_id,
     ));
-  }
-  else {
-    $workflow_sequence_id = db_query('INSERT INTO {islandora_digital_workflow_sequence} ' .
-        '(`name`, `description`) VALUES (:name, ' .
-        ':description, :workflow_sequence_id)', array(
-            ':name' => $form_state['values']['sequence_name'],
-            ':description' => $form_state['values']['sequence_description'],
-    ));
-    $creating = ($workflow_sequence_id);
-  }
-  if ($workflow_sequence_id) {
     $edit_models_link = l('Models', 'admin/islandora/islandora_digital_workflow/workflow_sequence_models/' . $workflow_sequence_id);
     $edit_actions_link = l('Actions', 'admin/islandora/islandora_digital_workflow/workflow_sequences/' . $workflow_sequence_id);
-    drupal_set_message('The ' . ($creating ? 'new ' : '') . 'workflow sequence has been saved.  Manage ' . $edit_models_link . ' | ' . $edit_actions_link);
+    drupal_set_message('The workflow sequence has been saved.  Manage ' . $edit_models_link . ' | ' . $edit_actions_link);
     drupal_goto('admin/islandora/islandora_digital_workflow/workflow_sequences');
   }
 }
