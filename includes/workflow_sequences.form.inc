@@ -453,7 +453,8 @@ function islandora_digital_workflow_workflow_sequence_models_form(array $form, a
       '#type' => 'item',
       '#title' => t('Configured Models'),
   );
-  foreach ($workflow_model_sequences[$workflow_sequence_id] as $configured_model) {
+  $use = array_key_exists($workflow_sequence_id, $workflow_model_sequences) ? $workflow_model_sequences[$workflow_sequence_id] : array();
+  foreach ($use as $configured_model) {
     if ($configured_model) {
       $form['configured_models']['models'][] = array(
           '#type' => 'item',
@@ -469,12 +470,12 @@ function islandora_digital_workflow_workflow_sequence_models_form(array $form, a
         '#options' => $add_model_options,
       );
   $tmp = array('' => 'Select Object Model');
-  $removable_models = $tmp + $workflow_model_sequences[$workflow_sequence_id];
+  $removable_models = $tmp + (array_key_exists($workflow_sequence_id, $workflow_model_sequences) ? $workflow_model_sequences[$workflow_sequence_id] : array());
   //  array_unshift($workflow_model_sequences[$workflow_sequence_id], 'Select Object Model');
   $form['remove'] = array(
         '#type' => 'select',
         '#title' => t('Remove a Model'),
-        '#options' => $workflow_model_sequences[$workflow_sequence_id],
+        '#options' => array_key_exists($workflow_sequence_id, $workflow_model_sequences) ? $workflow_model_sequences[$workflow_sequence_id] : array(),
       );
   $form['workflow_sequence_id'] = array(
       '#type' => 'hidden',
