@@ -433,7 +433,7 @@ function islandora_digital_workflow_schema() {
         'size' => 'medium',
         'size' => 'tiny',
         'default' => 0,
-        'unsigned' => TRUE,
+        'unsigned' => FALSE,
         'not null' => TRUE,
       ),
       'is_required' => array(
@@ -447,7 +447,7 @@ function islandora_digital_workflow_schema() {
     'indexes' => array(
       'ss_workflow_sequence_id_action_id_order' => array('workflow_sequence_id', 'action_id', 'order'),
     ),
-    'primary key' => array('workflow_sequence_id'),
+    'primary key' => array('workflow_sequence_id', 'action_id'),
   );
 
   return $schema;

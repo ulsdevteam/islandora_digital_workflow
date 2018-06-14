@@ -363,3 +363,10 @@ a .highlighted {
     font-size: 0.8em;
     float: right;
 }
+
+/* ---- some themes do not have a graphic for this class ---- */
+ul.action-links a {
+    padding-left: 15px;
+    background: transparent url("../images/add.png") no-repeat 0 center;
+    line-height: 30px;
+}

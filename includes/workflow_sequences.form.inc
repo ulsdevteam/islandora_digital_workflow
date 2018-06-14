@@ -31,7 +31,9 @@ function islandora_digital_workflow_sequences() {
   );
   $form['wrapper']['add_new'] = array(
       '#type' => 'item',
-      '#markup' => l('Create new sequence', 'admin/islandora/islandora_digital_workflow/create_workflow_sequences'),
+      '#markup' => '<ul class="action-links"><li>' . 
+        l('Create new sequence', 'admin/islandora/islandora_digital_workflow/create_workflow_sequences') .
+      '</li></ul>',
   );
   $models_arr = array();
   foreach ($workflow_model_sequences as $workflow_sequence_id => $models) {
@@ -56,7 +58,7 @@ function islandora_digital_workflow_sequences() {
         '<div class="dashboard-report"><div class="small_right_float">' .
         l('Edit', 'admin/islandora/islandora_digital_workflow/edit_workflow_sequence/' . $workflow_sequence_id) . ' | ' . 
         l('Delete', 'admin/islandora/islandora_digital_workflow/delete_workflow_sequence/' . $workflow_sequence_id) .
-        '</div><h3>' . $name_description['name'] . '</h3>' .
+        '</div><h3>' . l($name_description['name'], 'admin/islandora/islandora_digital_workflow/edit_workflow_sequence/' . $workflow_sequence_id) . '</h3>' .
         '<p>' . $name_description['description'] . '</p>' . 
         '<blockquote><p><b>' .
         l('Models', 'admin/islandora/islandora_digital_workflow/workflow_sequence_models/' . $workflow_sequence_id) . ':</b> ' . $models .
@@ -426,7 +428,7 @@ function islandora_digital_workflow_workflow_sequence_models_form(array $form, a
   foreach ($accessible_models as $tid => $accessible_model) {
     if ($accessible_model) {
       $this_model_is_used = FALSE;
-      foreach ($workflow_model_sequences as $sequence) {
+      foreach ($workflow_model_sequences[$workflow_sequence_id] as $sequence) {
         if ($sequence && $accessible_model == $sequence) {
           $this_model_is_used = TRUE;
         }

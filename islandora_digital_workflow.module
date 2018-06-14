@@ -101,6 +101,13 @@ function islandora_digital_workflow_menu() {
       'file' => 'includes/workflow_sequences.form.inc',
     ),
 
+    'islandora/islandora_digital_workflow' => array(
+      'title' => t('Islandora Digital Workflow Dashboard'),
+      'type' => MENU_NORMAL_ITEM,
+      'page callback' => array('islandora_digital_workflow_dashboard'),
+      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW),
+      'file' => 'includes/dashboard.form.inc',
+    ),
     // Lookup form
     'islandora/islandora_digital_workflow/lookup' => array(
       'page callback' => array('islandora_digital_workflow_lookup'),
