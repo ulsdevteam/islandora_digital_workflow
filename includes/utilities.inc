@@ -105,6 +105,7 @@ function islandora_digital_workflow_create_batch_record_by_form($form_state, $no
 	'batch_default_CR_holder' => $form_state['values']['batch_default_CR_holder'],
         'default_type_of_resource' => islandora_digital_workflow_get_name_of_tid($form_state['values']['cmodel_select']),
         'mapto_collections' => implode(",", $form_state['values']['collections_select']),
+        'workflow_sequence_id' => $form_state['values']['workflow_sequence_id'],
         'nid' => $node->nid,
         'user' => $user->name,
 //        'lastmod' => time(),

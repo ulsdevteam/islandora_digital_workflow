@@ -778,3 +778,26 @@ function islandora_digital_workflow_remove_transactions_record($action_id, $batc
       ->condition('batch_item_id', $batch_item_id)
       ->execute();
 }
+
+/**
+ * Returns each sequence that relates to a given Islandora model.
+ *
+ * @param string $model_name
+ *   The Islandora model name.
+ * @return array
+ *   The sequences that apply to the given Islandora model.
+ */
+function islandora_digital_workflow_get_workflow_sequences_for_model($model_name) {
+  $results = db_query('SELECT s.workflow_sequence_id, s.`name` ' .
+      'FROM {islandora_digital_workflow_sequence} s ' .
+      'JOIN {islandora_digital_workflow_model_sequence} ms ON ' .
+      '(ms.workflow_sequence_id = s.workflow_sequence_id) WHERE islandora_model ' .
+      '= :islandora_model', array(
+          ':islandora_model' => $model_name,
+      ))->fetchAll();
+  $sequences = array('' => 'Select workflow sequence');
+  foreach ($results as $row) {
+    $sequences[$row->workflow_sequence_id] = $row->name;
+  }
+  return $sequences;
+}

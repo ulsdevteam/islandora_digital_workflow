@@ -231,8 +231,8 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
     $tid_for_cmodel_selected = '';
   }
   $model_name = islandora_digital_workflow_get_name_of_tid($tid_for_cmodel_selected);
+  $sequences = islandora_digital_workflow_get_workflow_sequences_for_model($model_name);
   $file_not_allowed_for_model_names = array('Finding Aid', 'Newspaper');
-
   $current_batch_host_selection = ($batch_record && isset($batch_record['batch_host'])) ? $batch_record['batch_host'] : '';
   $batch_hosts = islandora_digital_workflow_get_batch_host_values();
 
@@ -295,6 +295,14 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
         '#attributes' => $read_only_att,
         '#description' => t('Human readable name for the batch of digital objects.'),
         '#default_value' => $batch_name,
+      ),
+      'workflow_sequence_id' => array(
+        '#title' => t('Workflow Sequence'),
+        '#type' => 'select',
+        '#required' => true,
+        '#description' => t('The workflow sequence configuration relates the actions that are required for this object type.'),
+        '#options' => $sequences,
+        '#default_value' => ($batch_record && isset($batch_record['workflow_sequence_id'])) ? $batch_record['workflow_sequence_id'] : '',
       ),
       'cmodel_select' => array(
         '#title' => t('Destination Islandora Content Model'),

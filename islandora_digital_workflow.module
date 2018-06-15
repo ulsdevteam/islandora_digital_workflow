@@ -398,7 +398,7 @@ function islandora_digital_workflow_islandora_object_ingested(AbstractObject $ob
     $batch_ids = islandora_digital_workflow_get_batch_record_by_items_identifier($identifier);
     if (is_array($batch_ids) && array_key_exists(0, $batch_ids) && is_object($batch_ids[0])) {
       $batch_id_obj = $batch_ids[0];
-      islandora_digital_workflow_insert_transactions_record(IDW_ACTION_SYSTEM_MADE_DERIVATIVES, $batch_id_obj->batch_id, NULL);
+      islandora_digital_workflow_insert_transactions_record(IDW_ACTION_SYSTEM_INGEST, $batch_id_obj->batch_id, NULL);
     }
   }
 }

@@ -228,6 +228,14 @@ function islandora_digital_workflow_schema() {
         'default' => 0,
         'not null' => FALSE,
       ),
+      'workflow_sequence_id' => array(
+        'description' => 'Workflow sequence',
+        'type' => 'int',
+        'size' => 'medium',
+        'unsigned' => TRUE,
+        'default' => 0,
+        'not null' => FALSE,
+      ),
       'user' => array(
         'description' => 'Drupal user',
         'type' => 'varchar',
