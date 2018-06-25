@@ -161,12 +161,19 @@ div.transaction_action_checked_all_items_against_physical_objects {
     clear: left;
 }
 
+.required_action, .optional_action {
+    padding-left: 25px;
+    line-height: 22px;
+    background-position: 0px -3px;
+}
+
 .required_action {
     color: black;
-    font-weight: bold;
 }
+
 .optional_action {
-    color: #888;
+    color: black;
+    opacity: 0.45;
 }
 
 .good {

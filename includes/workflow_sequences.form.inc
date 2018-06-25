@@ -51,8 +51,10 @@ function islandora_digital_workflow_sequences() {
     $markup_actions = array();
     foreach ($this_workflow_sequence_actions as $action_record_array) {
       $class = ($action_record_array['is_required']) ? 'required_action' : 'optional_action';
-      $markup_actions[] = '<span class="' . $class . '">' . $action_record_array['action_description'] . '</span>';
+      $glyph_class = 'transaction_action_' . (($action_record_array['action_description']) ? strtolower(str_replace(" ", "_", $action_record_array['action_description'])) : 'spacer');
+      $markup_actions[] = '<span class="' . $glyph_class . ' ' . $class . '">' . $action_record_array['action_description'] . '</span>';
     }
+
     $form['wrapper']['workflow_sequence_id_' . $workflow_sequence_id] = array(
       '#type' => 'item',
       '#markup' =>
@@ -65,7 +67,7 @@ function islandora_digital_workflow_sequences() {
         l('Models', 'admin/islandora/islandora_digital_workflow/workflow_sequence_models/' . $workflow_sequence_id) . ':</b> ' . $models .
         '</p><p><b>' .
         l('Actions', 'admin/islandora/islandora_digital_workflow/workflow_sequences/' . $workflow_sequence_id) .
-        ':</b> ' . implode(" | " , $markup_actions) . '</p></blockquote></div>',
+        ':</b><ul><li>' . implode("</li><li>" , $markup_actions) . '</li></ul></p></blockquote></div>',
     );
   }
 
@@ -278,7 +280,7 @@ function islandora_digital_workflow_order_manage(array $form, array &$form_state
     $form['wrapper']['rows'][$sequence_array['action_id']] = array(
       'action_name' => array(
         '#type' => 'textfield',
-        '#default_value' => $sequence_array['action_name'] . ' [' . $sequence_array['action_id'] . ']',
+        '#default_value' => $sequence_array['action_description'],
       ),
       'is_required' => array(
         '#type' => 'checkbox',
@@ -304,7 +306,6 @@ function islandora_digital_workflow_order_manage(array $form, array &$form_state
       'op' => array(
         '#type' => 'submit',
         '#value' => 'Remove',
-//        '#markup' => '<a href="#" class="remove-row">' . t('Remove') . '</a>',
       ),
     );
   }
