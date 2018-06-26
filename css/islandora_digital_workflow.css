@@ -163,15 +163,26 @@ div.transaction_action_checked_all_items_against_physical_objects {
 
 .required_action, .optional_action {
     padding-left: 25px;
-    line-height: 22px;
+    line-height: 25px;
     background-position: 0px -3px;
 }
 
-.required_action {
+.required_dsid, .required_action {
     color: black;
 }
 
-.optional_action {
+.indent_small_text {
+    margin-top: 4px;
+    padding-left: 32px;
+    font-size: 0.8em;
+    margin-bottom: 0px;
+}
+
+.indent_small_text p {
+    margin-bottom: 0px;
+}
+
+.optional_dsid, .optional_action {
     color: black;
     opacity: 0.45;
 }
@@ -335,6 +346,13 @@ a .highlighted {
     border: 3px solid #aaa;
     border-radius: 8px;
 }
+
+.lookup_result ul {
+    list-style: none inside none;
+}
+.lookup_result ul li {
+    background-position: 0px 2px;
+}            
 
 /* ---- for inline_form fieldsets to display form-item divs inline ---- */
 .inline_form {

@@ -881,9 +881,23 @@ function islandora_digital_workflow_models_table() {
   $readable_models = islandora_digital_workflow_get_reduced_readable_cmodels();
   $configured_models = $return_form_elements = array();
   $configured_supported_models = variable_get('islandora_digital_workflow_islandora_models', array());
+
   foreach ($readable_models as $cmodel => $model) {
     // Each model depends on a specific module in order to be able to ingest.
     // The models that are not supported should be disabled.
+    $model_requirements = array();
+    $model_requirements = islandora_digital_workflow_object_model_datastream_requirements($cmodel);
+
+    $dsid_requirements_table_arr = array();
+    foreach ($model_requirements['required'] as $dsid => $ds_mime_and_id) {
+      $dsid_requirements_table_arr[] = '<span class="required_dsid" title="For &quot;' . $model . "&quot;, the " . $dsid . ' datastream derivative is required">' . $dsid . '</span>';
+    }
+    foreach ($model_requirements['optional'] as $dsid => $ds_mime_and_id) {
+      $dsid_requirements_table_arr[] = '<span class="optional_dsid" title="For &quot;' . $model . "&quot;, the " . $dsid . ' datastream derivative is optional">' . $dsid . '</span>';
+    }
+    $dsid_requirements_table = '<p><b>Datastream requirements:</b> ' .
+            implode(" | ", $dsid_requirements_table_arr) . '</p></div>';
+    
     $this_model_module_info = islandora_digital_workflow_model_ingest_module_info($model);
 
     $title = ($this_model_module_info['exists']) ? $model : $model . ' (not installed)';
@@ -893,11 +907,14 @@ function islandora_digital_workflow_models_table() {
       // Mark the checkboxes as checked based on islandora_digital_workflow_islandora_models
       '#default_value' => isset($configured_supported_models[$cmodel]) ? (($configured_supported_models[$cmodel] <> 0) ? 1 : 0) : 0,
       '#prefix' => '<div class="major-item">',
-      '#suffix' => '</div>',
+      '#suffix' => $dsid_requirements_table . '</div>',
     );
     if ($this_model_module_info['git_branch'] <> '') {
-       $configured_models[$cmodel]['#description']  = $this_model_module_info['uls_git_link'] .
-           ' <i>' . $this_model_module_info['git_branch'] . '</i>';
+       $configured_models[$cmodel]['#suffix']  = '<div class="indent_small_text">' .
+           '<b>Module: </b>' . 
+           $this_model_module_info['uls_git_link'] .
+           ' <i>' . $this_model_module_info['git_branch'] . '</i>' .
+           $configured_models[$cmodel]['#suffix'];
     }
     if (!$this_model_module_info['exists']) {
       $configured_models[$cmodel]['#default_value'] = 0;
@@ -938,35 +955,41 @@ function islandora_digital_workflow_model_ingest_module_info($model) {
   switch ($model) {
     case "Image": case "Basic Image": case "Large Image":
       $retval['module_name'] = 'islandora_batch';
-      $retval['git_link'] = l($retval['module_name'], 'https://github.com/Islandora/islandora_batch.git');
-      $retval['uls_git_link'] = l($retval['module_name'], 'https://github.com/ulsdevteam/islandora_batch.git');
+      $git_link = 'https://github.com/Islandora/islandora_batch.git';
+      $uls_git_link = 'https://github.com/ulsdevteam/islandora_batch.git';
       break;
     case "Finding Aid":
       $retval['module_name'] = 'islandora_batch';
-      $retval['git_link'] = l($retval['module_name'], 'https://github.com/Islandora/islandora_batch.git');
-      $retval['uls_git_link'] = l($retval['module_name'], 'https://github.com/ulsdevteam/islandora_batch.git');
+      $git_link = 'https://github.com/Islandora/islandora_batch.git';
+      $uls_git_link = 'https://github.com/ulsdevteam/islandora_batch.git';
       break;
     case "Internet Archive Book": case "Book":
       $retval['module_name'] = 'islandora_book_batch';
-      $retval['git_link'] = l($retval['module_name'], 'https://github.com/Islandora/islandora_book_batch.git');
-      $retval['uls_git_link'] = l($retval['module_name'], 'https://github.com/ulsdevteam/islandora_book_batch.git');
+      $git_link = 'https://github.com/Islandora/islandora_book_batch.git';
+      $uls_git_link = 'https://github.com/ulsdevteam/islandora_book_batch.git';
       break;
     case "Manuscript":
       $retval['module_name'] = 'islandora_manuscript_batch';
-      $retval['git_link'] = l($retval['module_name'], '//');
-      $retval['uls_git_link'] = l($retval['module_name'], 'https://github.com/ulsdevteam/islandora_manuscript_batch.git');
+      $git_link = '//';
+      $uls_git_link = 'https://github.com/ulsdevteam/islandora_manuscript_batch.git';
       break;
     case "Newspaper": case "Newspaper Issue": case "Newspaper/Serial":
       $retval['module_name'] = 'islandora_newspaper_batch';
-      $retval['git_link'] = l($retval['module_name'], 'https://github.com/Islandora/islandora_newspaper_batch.git');
-      $retval['uls_git_link'] = l($retval['module_name'], 'https://github.com/ulsdevteam/islandora_newspaper_batch.git');
+      $git_link = 'https://github.com/Islandora/islandora_newspaper_batch.git';
+      $uls_git_link = 'https://github.com/ulsdevteam/islandora_newspaper_batch.git';
       break;
     case "Web ARChive":
       $retval['module_name'] = 'islandora_batch';
-      $retval['git_link'] = l($retval['module_name'], 'https://github.com/Islandora/islandora_book_batch.git');
-      $retval['uls_git_link'] = l($retval['module_name'], 'https://github.com/ulsdevteam/islandora_book_batch.git');
+      $git_link = 'https://github.com/Islandora/islandora_book_batch.git';
+      $uls_git_link = 'https://github.com/ulsdevteam/islandora_book_batch.git';
       break;
   }
+  $link_options = array('attributes'=>array(
+      'title' => 'Drupal module source code',
+      'target' => '_blank'));
+  $retval['git_link'] = l($retval['module_name'], $git_link, $link_options);
+  $retval['uls_git_link'] = l($retval['module_name'], $uls_git_link, $link_options);
+
   $retval['exists'] = module_exists($retval['module_name']);
   $prev_dir = getcwd();
   if ($retval['exists']) {
@@ -1166,8 +1189,6 @@ function islandora_digital_workflow_prepare_csv2mods($input_filename, $batch_rec
     }
     $strxml = $doc->saveXML();
 
-    // echo "<blockquote><pre style='color:#c55'>".htmlspecialchars($strxml) ."</pre></blockquote>";
-
     if ($keep_created_MODS_files) {
       $handle = fopen($batch_path . '/' . $row_mods_id . '/' . $outputFilename, "w");
       $bytes_written += fwrite($handle, $strxml);
@@ -1240,8 +1261,6 @@ function islandora_digital_workflow_XMLtoMODS($xml_filename) {
 
   // This file must be deleted in the process function that called this.
   $bytes_written = file_put_contents($xml_filename, $MODS);
-
-  // echo "<h3>after XSL transform</h3><blockquote><pre style='color:#28f'>" . htmlspecialchars(print_r($MODS, true)) . "</pre></blockquote>";
 
   return ($bytes_written) ? $xml_filename : '';
 }
@@ -1578,4 +1597,52 @@ function islandora_digital_workflow_merge_uploaded_csv_files(&$batch_record, $no
     $node->field_identifiers[$node->language][0]['value'] = implode("\n", $csv_values_arr['identifier']);
     node_save($node);
   }
+}
+
+/**
+ * Inspect the datastream requirements for a given model PID.
+ *
+ * This will return an array of optional and required datastreams.
+ *
+ * @param string $model_pid
+ *   Fedora content model PID
+ * @return array
+ *   Array of required / optional dasastreams for model_requirements
+ */
+function islandora_digital_workflow_object_model_datastream_requirements($model_pid) {
+  $model = @islandora_object_load($model_pid);
+  if (isset($model) && $model) {
+    $ds_reqs = islandora_get_datastreams_requirements_from_content_model($model);
+    if (array_key_exists('RELS-EXT', $ds_reqs)) {
+      if (array_key_exists('RELS-EXT', $ds_reqs) && $ds_reqs['RELS-EXT']['optional']) {
+        $ds_reqs['RELS-EXT']['optional'] = FALSE;
+      }
+      if (array_key_exists('TN', $ds_reqs) && $ds_reqs['TN']['optional']) {
+        $ds_reqs['TN']['optional'] = FALSE;
+      }
+    }
+    // We want to override the value for RELS-INT here - it's required.
+    if (is_array($ds_reqs)) {
+      $model_requirements = $ds_reqs;
+    }
+  }
+  // RELS-EXT
+  // Structure the return array to have two subarrays -- one with "required"
+  // datastreams and another with "optional" datastreams.
+  $return_array = array();
+  foreach ($model_requirements as $dsid => $model_requirement) {
+    if ($model_requirement['optional'] == FALSE) {
+      $return_array['required'][$dsid] = array(
+          'id' => $model_requirement['id'],
+          'mime' => $model_requirement['mime'],
+      );
+    }
+    else {
+      $return_array['optional'][$dsid] = array(
+          'id' => $model_requirement['id'],
+          'mime' => $model_requirement['mime'],
+      );
+    }
+  }
+  return $return_array;
 }

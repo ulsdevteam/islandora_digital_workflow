@@ -331,6 +331,23 @@ function islandora_digital_workflow_batch_items_form(array $form, array &$form_s
     'Filename' => 'Filename',
   );
   $batch_items_actions = islandora_digital_workflow_get_batch_items_actions($batch_record->default_type_of_resource);
+  $required_batch_actions = islandora_digital_workflow_get_required_batch_actions($batch_record->batch_id);
+
+  if (is_array($required_batch_actions)) {
+    $first_required_batch_actions = array_shift($required_batch_actions);
+    $sequence_name = $first_required_batch_actions['sequence_name'];
+    $workflow_sequence_text = '<div style="padding-left:38px"><b>"' . $sequence_name .
+        '" sequence actions:</b> <br>' .
+        theme('islandora_digital_workflow_transactions_glyphs', array('transaction_actions' => $required_batch_actions)) .
+        '</div>';
+  }
+  else {
+    $workflow_sequence_text = '<em>Either there are no actions configured for this ' . 
+        'batch\'s "Workflow Sequence", or this batch does not have a workflow ' . 
+        'sequence associated with it.</em>  In order to enforce that certain transactions ' .
+        'occur for this batch\'s objects, ' . 
+        l('select a "Workflow Sequence" for this batch', '/node/' . $node->nid . '/batch') . '.';
+  }
 
   $form = array();
   $form['wrapper'] = array(
@@ -338,6 +355,7 @@ function islandora_digital_workflow_batch_items_form(array $form, array &$form_s
       '#title' => t('Add / Remove Transactions'),
       '#collapsible' => TRUE,
       '#collapsed' => TRUE,
+      '#suffix' => $workflow_sequence_text,
   );
 
   $form['wrapper']['add_batch_action'] = array(
@@ -356,6 +374,10 @@ function islandora_digital_workflow_batch_items_form(array $form, array &$form_s
         '#default_value' => '',
     );
   }
+  $form['wrapper']['using__batch_id'] = array(
+      '#type' => 'hidden',
+      '#default_value' => $batch_record->batch_id,
+  );
   $form['wrapper']['submit'] = array(
       '#type' => 'submit',
       '#value' => t('Modify transactions'),
@@ -382,6 +404,7 @@ function islandora_digital_workflow_batch_items_form(array $form, array &$form_s
  */
 function islandora_digital_workflow_batch_items_form_submit(array $form, array &$form_state) {
   $selected_identifiers = array_filter($form_state['values']['items']);
+  $using__batch_id = $form_state['values']['using__batch_id'];
   $add_action_id = $form_state['values']['add_batch_action'];
   $remove_action_id = $form_state['values']['remove_batch_action'];
   if ($remove_action_id == '' && $add_action_id == '') {
@@ -390,7 +413,7 @@ function islandora_digital_workflow_batch_items_form_submit(array $form, array &
   else {
     $could_not_be_processed = array();
     foreach ($selected_identifiers as $identifier) {
-      $batch_item_id = islandora_digital_workflow_get_batch_item_record_by_identifier($identifier);
+      $batch_item_id = islandora_digital_workflow_get_batch_item_record_by_identifier($identifier, $using__batch_id);
       if ($add_action_id) {
         if (!islandora_digital_workflow_insert_transactions_record($add_action_id, NULL, $batch_item_id)) {
           $could_not_be_processed[] = $identifier;

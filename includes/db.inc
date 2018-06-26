@@ -399,9 +399,7 @@ function islandora_digital_workflow_get_batch_files_by_nid($nid) {
 function islandora_digital_workflow_get_batch_items_by_nid($nid) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
 
-  $count_val = db_query('SELECT COUNT(action_id) `count` FROM islandora_digital_workflow_actions WHERE action_id < 100')->fetchAll();
-  $count_val = array_pop($count_val);
-
+  $required_batch_actions = islandora_digital_workflow_get_required_batch_actions(NULL, $nid);
   // Due to the nature of this query and how stubborn the db_select is with creating
   // a LEFT JOIN query that uses GROUP BY and GROUP_CONCAT to display the needed
   // field values, this is much MUCH MUCH easier to write out as a SQL statement.
@@ -433,10 +431,13 @@ ORDER BY bi.batch_item_id ASC, bt.`timestamp` DESC');
     }
     // Also, put these in order - and insert an empty transaction for any that
     // are not set for the item.
-    for ($i = 1; $i <= $count_val->count; $i++) {
-      $exploded_key = (!array_search($i, $transaction_action_ids_array) === FALSE) ? array_search($i, $transaction_action_ids_array) : FALSE;
+    $i = 1;
+    foreach ($required_batch_actions as $required_batch_action) {
+      $required_action_id = $required_batch_action['action_id'];
+      $exploded_key = (!array_search($required_action_id, $transaction_action_ids_array) === FALSE) ? array_search($required_action_id, $transaction_action_ids_array) : FALSE;
       $transactions[$i] = (!$exploded_key === FALSE) ?
         $transaction_actions_array[$exploded_key] : '';
+      $i++;
     }
     $rows[$index]->transactions = $transactions;
   }
@@ -718,11 +719,20 @@ function islandora_digital_workflow_get_workflow_model_sequences() {
  * @return stdObject
  *   The batch_item record object.
  */
-function islandora_digital_workflow_get_batch_item_record_by_identifier($identifier) {
-  $results = db_select('islandora_digital_workflow_batch_items', 'bi')
-        ->fields('bi', array('batch_item_id'))
-        ->condition('identifier', '%' . db_like($identifier), 'LIKE')
-        ->execute();
+function islandora_digital_workflow_get_batch_item_record_by_identifier($identifier, $use__batch_id = NULL) {
+  if ($use__batch_id) {
+    $results = db_select('islandora_digital_workflow_batch_items', 'bi')
+          ->fields('bi', array('batch_item_id'))
+          ->condition('batch_id', $use__batch_id)
+          ->condition('identifier', '%' . db_like($identifier), 'LIKE')
+          ->execute();
+  }
+  else {
+    $results = db_select('islandora_digital_workflow_batch_items', 'bi')
+          ->fields('bi', array('batch_item_id'))
+          ->condition('identifier', '%' . db_like($identifier), 'LIKE')
+          ->execute();
+  }
   $row = $results->fetchAssoc();
   return (is_array($row)) ? array_pop($row) : $row;
 }
@@ -800,4 +810,37 @@ function islandora_digital_workflow_get_workflow_sequences_for_model($model_name
     $sequences[$row->workflow_sequence_id] = $row->name;
   }
   return $sequences;
+}
+
+function islandora_digital_workflow_get_required_batch_actions($batch_id = NULL, $nid = NULL) {
+  $query = db_select('islandora_digital_workflow_batch', 'b');
+  $query->fields('b', array('batch_id', 'workflow_sequence_id'));
+  $query->join('islandora_digital_workflow_sequence', 'ws', 'b.workflow_sequence_id = ws.workflow_sequence_id');
+  $query->fields('ws', array('name'));
+  $query->join('islandora_digital_workflow_sequence_actions', 'wsa', 'ws.workflow_sequence_id = wsa.workflow_sequence_id');
+  $query->fields('wsa', array('is_required'));
+  $query->addField('wsa', 'order', 'action_order');
+  $query->join('islandora_digital_workflow_actions', 'wa', 'wsa.action_id = wa.action_id');
+  $query->fields('wa', array('description', 'action_id'));
+  if ($batch_id) {
+    $query->condition('b.batch_id', $batch_id);
+  }
+  elseif ($nid) {
+    $query->condition('b.nid', $nid);
+  }
+  $query->orderBy('wsa.order', 'ASC');
+  $results = $query->execute();
+  $rows = $results->fetchAll();
+  $return_rows = array();
+  foreach ($rows as $row) {
+    $return_rows[$row->action_order] = array(
+        'batch_id' => $row->batch_id,
+        'batch_action_description' => $row->description,
+        'is_required' => $row->is_required,
+        'sequence_name' => $row->name,
+        'action_id' => $row->action_id,
+        'batch_action_description' => $row->description,
+    );
+  }
+  return $return_rows;
 }

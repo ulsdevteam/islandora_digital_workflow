@@ -11,7 +11,16 @@
 ?>
 <div class="transactions_glyphs">
     <?php foreach ($transaction_actions as $transaction_action) {
-      $class_name = ($transaction_action) ? strtolower(str_replace(" ", "_", $transaction_action)) : 'spacer'; ?>
-    <div class="transaction_action_<?php print $class_name;?>" title="<?php print $transaction_action; ?>">&nbsp;</div>
+      // Since this set of actions can be used for a batch to represent required
+      // actions AS WELL AS to display just the descriptions of the actions that 
+      // are related to the batch / batch_item, this needs to inspect the variable
+      $transaction_action_description = (is_array($transaction_action) &&
+          array_key_exists('batch_action_description', $transaction_action)) ?
+              $transaction_action['batch_action_description'] : $transaction_action;
+      $required_class = (is_array($transaction_action) &&
+          array_key_exists('is_required', $transaction_action)) ?
+              ($transaction_action['is_required'] == 1 ? ' required_action' : ' optional_action') : '';
+      $class_name = ($transaction_action) ? strtolower(str_replace(" ", "_", $transaction_action_description)) : 'spacer'; ?>
+    <div class="transaction_action_<?php print $class_name . $required_class;?>" title="<?php print $transaction_action_description; ?>">&nbsp;</div>
     <?php } ?>
 </div>

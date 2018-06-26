@@ -52,7 +52,7 @@ function islandora_digital_workflow_sequences() {
     foreach ($this_workflow_sequence_actions as $action_record_array) {
       $class = ($action_record_array['is_required']) ? 'required_action' : 'optional_action';
       $glyph_class = 'transaction_action_' . (($action_record_array['action_description']) ? strtolower(str_replace(" ", "_", $action_record_array['action_description'])) : 'spacer');
-      $markup_actions[] = '<span class="' . $glyph_class . ' ' . $class . '">' . $action_record_array['action_description'] . '</span>';
+      $markup_actions[] = '<li class="' . $glyph_class . ' ' . $class . '">' . $action_record_array['action_description'] . '</li>';
     }
 
     $form['wrapper']['workflow_sequence_id_' . $workflow_sequence_id] = array(
@@ -63,11 +63,11 @@ function islandora_digital_workflow_sequences() {
         l('Delete', 'admin/islandora/islandora_digital_workflow/delete_workflow_sequence/' . $workflow_sequence_id) .
         '</div><h3>' . l($name_description['name'], 'admin/islandora/islandora_digital_workflow/edit_workflow_sequence/' . $workflow_sequence_id) . '</h3>' .
         '<p>' . $name_description['description'] . '</p>' . 
-        '<blockquote><p><b>' .
+        '<div class="lookup_result"><p><b>' .
         l('Models', 'admin/islandora/islandora_digital_workflow/workflow_sequence_models/' . $workflow_sequence_id) . ':</b> ' . $models .
         '</p><p><b>' .
         l('Actions', 'admin/islandora/islandora_digital_workflow/workflow_sequences/' . $workflow_sequence_id) .
-        ':</b><ul><li>' . implode("</li><li>" , $markup_actions) . '</li></ul></p></blockquote></div>',
+        ':</b><ul>' . implode("\n" , $markup_actions) . '</ul></p></div></div>',
     );
   }
 
