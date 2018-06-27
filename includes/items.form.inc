@@ -330,11 +330,17 @@ function islandora_digital_workflow_batch_items_form(array $form, array &$form_s
     'Title' => 'Title',
     'Filename' => 'Filename',
   );
-  $batch_items_actions = islandora_digital_workflow_get_batch_items_actions($batch_record->default_type_of_resource);
   $required_batch_actions = islandora_digital_workflow_get_required_batch_actions($batch_record->batch_id);
+  // Easy to loop through the set of $required_batch_actions to set the ones that
+  // are valid for this batch's sequence.
+  $batch_items_actions = array('' => 'Select an action');
+  foreach ($required_batch_actions as $required_batch_action) {
+    $batch_items_actions[$required_batch_action['action_id']] = $required_batch_action['batch_action_description'];
+  }
 
   if (is_array($required_batch_actions)) {
-    $first_required_batch_actions = array_shift($required_batch_actions);
+    $copy_required_batch_actions = $required_batch_actions;
+    $first_required_batch_actions = array_shift($copy_required_batch_actions);
     $sequence_name = $first_required_batch_actions['sequence_name'];
     $workflow_sequence_text = '<div style="padding-left:38px"><b>"' . $sequence_name .
         '" sequence actions:</b> <br>' .

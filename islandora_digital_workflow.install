@@ -295,7 +295,13 @@ function islandora_digital_workflow_schema() {
       'mods' => array(
         'description' => 'MODS xml created from CSV row for object',
         'type' => 'text',
-        'size' => 'normal',
+        'size' => 'big',
+        'not null' => TRUE,
+      ),
+      'marc' => array(
+        'description' => 'MARC (MAchine-Readable Cataloging) record for object',
+        'type' => 'text',
+        'size' => 'big',
         'not null' => TRUE,
       ),
     ),

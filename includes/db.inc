@@ -474,17 +474,19 @@ function islandora_digital_workflow_get_batch_item_record($batch_item_id) {
  *   The array of values that represent the record's previous values.
  */
 function islandora_digital_workflow_update_batch_item_record($batch_item_id, $update_values, $original_values) {
-  $num_updated = db_update('islandora_digital_workflow_batch_items')
+  db_query("SET NAMES utf8");
+  $results = db_update('islandora_digital_workflow_batch_items')
       ->fields(array(
         'title' => $update_values['title'],
         'identifier' => $update_values['identifier'],
         'filename' => $update_values['filename'],
         'mods' => $update_values['mods'],
+        'marc' => (array_key_exists('marc', $update_values) ? $update_values['marc'] : ''),
       ))
       ->condition('batch_item_id', $batch_item_id)
       ->execute();
 
-  if ($num_updated) {
+  if ($results) {
     // Compare the filename value to the previous filename value to see
     // if the underlying file needs to be renamed.
     if ($update_values['filename'] <> $original_values->filename) {
@@ -507,15 +509,18 @@ function islandora_digital_workflow_update_batch_item_record($batch_item_id, $up
     // and overwrite that file if needed.
     if ($update_values['mods'] <> $original_values->mods) {
       $orig_filename_pathinfo = pathinfo($original_values->filename);
-      $calculated_mods_filename = str_replace('.' . $orig_filename_pathinfo['extension'], '.xml', $original_values->filename);
-      $bytes_written = file_put_contents($calculated_mods_filename, $update_values['mods']);
+      $calculated_mods_filename = (array_key_exists('extension', $orig_filename_pathinfo)) ?
+          str_replace('.' . $orig_filename_pathinfo['extension'], '.xml', $original_values->filename) :
+          $original_values->filename . '.xml';
+      $bytes_written = ($calculated_mods_filename) ?
+          file_put_contents($calculated_mods_filename, $update_values['mods']) : 0;
       if ($bytes_written <> strlen($update_values['mods'])) {
         drupal_set_message('There was a problem saving the updated MODS value to the file system at "' .
           $calculated_mods_filename . '".  It may be a file permissions issue.', 'error');
       }
     }
   }
-  return $num_updated;
+  return $results;
 }
 
 /**

@@ -20,7 +20,7 @@
       $required_class = (is_array($transaction_action) &&
           array_key_exists('is_required', $transaction_action)) ?
               ($transaction_action['is_required'] == 1 ? ' required_action' : ' optional_action') : '';
-      $class_name = ($transaction_action) ? strtolower(str_replace(" ", "_", $transaction_action_description)) : 'spacer'; ?>
+      $class_name = ($transaction_action_description) ? strtolower(str_replace(" ", "_", $transaction_action_description)) : 'spacer'; ?>
     <div class="transaction_action_<?php print $class_name . $required_class;?>" title="<?php print $transaction_action_description; ?>">&nbsp;</div>
     <?php } ?>
 </div>

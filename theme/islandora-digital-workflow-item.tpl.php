@@ -48,9 +48,11 @@
     </table>
     <?php endif; ?>
 
+    <?php print $workflow_sequence_text; ?>
+    
     <h3>Item Details</h3>
     <div class="lookup_result oddrow">
-        <form action="" method="POST">
+        <form action="" method="POST" enctype="multipart/form-data">
           <fieldset class="lookup_result_indent evenrow"<?php print ($can_update) ? '' : ' disabled' ?>>
               <label for="edit-title">Title: </label>
               <input id="edit-title" name="title" value="<?php print htmlspecialchars($item->title); ?>">
@@ -61,6 +63,14 @@
               <label for="edit-mods">MODS: </label>
               <textarea rows=8 class="short-text-area" id="edit-mods" name="mods"><?php print $item->mods; ?></textarea>
               <em>NOTE:</em> The MODS is generated from the CSV upload and editing this here may not be the right thing to do.
+              <?php if ($is_paged_content) : ?>
+              <div>
+                  <label for="edit-marc-file">MARC (MAchine-Readable Cataloging) record:</label><br>
+                  <input type="file" id="edit-marc-file" name="marc_file" />
+              </div>
+              <textarea rows=8 class="short-text-area" id="edit-marc" name="marc"><?php print $item->marc; ?></textarea>
+
+              <?php endif; ?>
           </fieldset>
         <?php if ($can_update) : ?>
         <input type="submit" value="Update Batch Item">

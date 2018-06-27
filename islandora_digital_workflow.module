@@ -345,6 +345,8 @@ function islandora_digital_workflow_theme() {
       'variables' => array(
         'batch_record' => array(),
         'item' => array(),
+        'is_paged_content' => FALSE,
+        'workflow_sequence_text' => '',
         'can_update' => FALSE,
         'item_record_transactions' => array(),
         'pid' => '',

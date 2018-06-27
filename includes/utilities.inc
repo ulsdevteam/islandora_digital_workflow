@@ -1143,8 +1143,10 @@ function islandora_digital_workflow_prepare_csv2mods($input_filename, $batch_rec
     // MOVE the file into the row's working directory
     if ($row_file_name) {
       if (file_exists($row_file_name)) {
-        $command = "cp $row_file_name $batch_path" . '/' . $row_mods_id . '/.';
-        exec($command);
+        // Try to use drupal_move_uploaded_file instead of issuing "exec" commands like this
+        drupal_move_uploaded_file($row_file_name, $batch_path . '/' . $row_mods_id . '/' . $row_file_name);
+        // $command = "cp $row_file_name $batch_path" . '/' . $row_mods_id . '/.';
+        // exec($command);
         // echo "COPY $row_file_name to $batch_path" . '/' . $row_mods_id ."/.<br>";
         $files_copied++;
       }
