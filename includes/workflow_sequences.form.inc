@@ -48,17 +48,23 @@ function islandora_digital_workflow_sequences() {
   foreach ($workflow_sequences as $workflow_sequence_id => $name_description) {
     $models = array_key_exists($workflow_sequence_id, $models_arr) ? implode(", ", $models_arr[$workflow_sequence_id]) : '';
     $this_workflow_sequence_actions = array_key_exists($workflow_sequence_id, $workflow_sequence_actions) ? $workflow_sequence_actions[$workflow_sequence_id] : array();
-    $markup_actions = array();
+    $markup_item_actions = $markup_batch_actions = array();
     foreach ($this_workflow_sequence_actions as $action_record_array) {
       $class = ($action_record_array['is_required']) ? 'required_action' : 'optional_action';
       $glyph_class = 'transaction_action_' . (($action_record_array['action_description']) ? strtolower(str_replace(" ", "_", $action_record_array['action_description'])) : 'spacer');
-      $markup_actions[] = '<li class="' . $glyph_class . ' ' . $class . '">' . $action_record_array['action_description'] . '</li>';
+      $li_markup = '<li class="' . $glyph_class . ' ' . $class . '">' . $action_record_array['action_description'] . '</li>';
+      if ($action_record_array['action_id'] > 99) {
+        $markup_batch_actions[] = $li_markup;
+      } else {
+        $markup_item_actions[] = $li_markup;
+      }
     }
 
     $form['wrapper']['workflow_sequence_id_' . $workflow_sequence_id] = array(
       '#type' => 'item',
       '#markup' =>
-        '<div class="dashboard-report"><div class="small_right_float">' .
+        '<a name="' . $name_description['name'] . '"><div class="dashboard-report">' .
+        '<div class="small_right_float">' .
         l('Edit', 'admin/islandora/islandora_digital_workflow/edit_workflow_sequence/' . $workflow_sequence_id) . ' | ' . 
         l('Delete', 'admin/islandora/islandora_digital_workflow/delete_workflow_sequence/' . $workflow_sequence_id) .
         '</div><h3>' . l($name_description['name'], 'admin/islandora/islandora_digital_workflow/edit_workflow_sequence/' . $workflow_sequence_id) . '</h3>' .
@@ -67,7 +73,14 @@ function islandora_digital_workflow_sequences() {
         l('Models', 'admin/islandora/islandora_digital_workflow/workflow_sequence_models/' . $workflow_sequence_id) . ':</b> ' . $models .
         '</p><p><b>' .
         l('Actions', 'admin/islandora/islandora_digital_workflow/workflow_sequences/' . $workflow_sequence_id) .
-        ':</b><ul>' . implode("\n" , $markup_actions) . '</ul></p></div></div>',
+        ':</b><ul>' .
+        ((count($markup_batch_actions) > 0) ?
+        '<li class="no_indent">Batch actions</li>' .
+        '<ul class="corner_bordered">' . implode("\n" , $markup_batch_actions) . '</ul>' : '') .
+        ((count($markup_item_actions) > 0) ?
+        '<ul><li class="no_indent">Item actions</li>' .
+        '<ul class="corner_bordered">' . implode("\n" , $markup_item_actions) . '</ul>' : '') .
+        '</ul></p></div></div></a>',
     );
   }
 
@@ -259,7 +272,7 @@ function islandora_digital_workflow_order_manage(array $form, array &$form_state
     '#tree' => TRUE,
     'wrapper' => array(
       '#type' => 'fieldset',
-      '#title' => t('Workflow Sequences'),
+      '#title' => t('Available Actions'),
       '#attributes' => array('class' => array('draggableviews-parent')),
       'add_new' => array(
           '#title' => t('Add another action'),
@@ -281,6 +294,7 @@ function islandora_digital_workflow_order_manage(array $form, array &$form_state
       'action_name' => array(
         '#type' => 'textfield',
         '#default_value' => $sequence_array['action_description'],
+        '#attributes' => array('readonly' => 'readonly', 'disabled' => 'disabled'),
       ),
       'is_required' => array(
         '#type' => 'checkbox',
@@ -306,6 +320,7 @@ function islandora_digital_workflow_order_manage(array $form, array &$form_state
       'op' => array(
         '#type' => 'submit',
         '#value' => 'Remove',
+        '#name' => 'action_id-' . $sequence_array['action_id'],
       ),
     );
   }
@@ -341,8 +356,15 @@ function islandora_digital_workflow_order_manage_submit($form, &$form_state) {
   $current_action_ids = $slides = array();
   $workflow_sequence_id = 0;
   // Removed action_id rows are submitted individually via their [Remove] button.
-  $remove_action_id = ($form_state['triggering_element']['#value'] == 'Remove' && array_key_exists(2, $form_state['triggering_element']['#parents'])) ?
-          $form_state['triggering_element']['#parents'][2] : 0;
+  if ($form_state['triggering_element']['#value'] == 'Remove') {
+    // The name will be something like "action_id-4"
+    $button_name = $form_state['triggering_element']['#name'];
+    $id_parts = explode("-", $button_name);
+    $remove_action_id = isset($id_parts[1]) ? $id_parts[1] : 0;
+  }
+  else {
+    $remove_action_id = 0;
+  }
   foreach ($form_state['values']['wrapper']['rows'] as $id => $item) {
     if ($id <> $remove_action_id) {
       $current_action_ids[$item['action_id']] = $item['action_id'];

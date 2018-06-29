@@ -2,22 +2,59 @@
 
 /**
 * @file
-* islandora-digital-workflow-transactions.tpl display template.
+* islandora-digital-workflow-item.tpl display template.
 *
 * Variables available:
 * - $batch_record => array(),
+* - $item => stdObject,
 * - $transaction_records => array(),
-* - $table_title => '',
-* - $table_description => '',
-*
+* - $item_record_transactions => array(),
+* - $scanned_files => array(),
 */
 ?>
 <div id="no-sidebars">
   <h3>Return to <b><a href="../items"><?php print $batch_record->batch_name; ?></a></b></h3>
+
+  <h3>Item Details</h3>
+  <div class="lookup_result oddrow">
+      <form action="" method="POST" enctype="multipart/form-data">
+        <fieldset class="lookup_result_indent evenrow"<?php print ($can_update) ? '' : ' disabled' ?>>
+            <label for="edit-title">Title: </label>
+            <input id="edit-title" name="title" value="<?php print htmlspecialchars($item->title); ?>">
+            <label for="edit-identifier">Identifier: </label>
+            <input id="edit-identifier" name="identifier" value="<?php print $item->identifier; ?>">
+            <label for="edit-filename">Filename: </label>
+            <input id="edit-filename" name="filename" value="<?php print $item->filename_basename; ?>">
+            <label for="edit-pending1" class="disabled_text">ITEM PROP 1: </label>
+            <input id="edit-pending1" name="pending" disabled readonly="readonly" value="pending development">
+            <label for="edit-pending2" class="disabled_text">ITEM PROP 2: </label>
+            <input id="edit-pending2" name="pending" disabled readonly="readonly" value="pending development">
+            <label for="edit-pending3" class="disabled_text">ITEM PROP 3: </label>
+            <input id="edit-pending3" name="pending" disabled readonly="readonly" value="pending development">
+
+            <label for="edit-mods">MODS: </label>
+            <textarea rows=8 class="short-text-area" id="edit-mods" name="mods"><?php print $item->mods; ?></textarea>
+            <em>NOTE:</em> The MODS is generated from the CSV upload and editing this here may not be the right thing to do.
+            <?php if ($is_paged_content) : ?>
+            <div>
+                <label for="edit-marc-file">MARC (MAchine-Readable Cataloging) record:</label><br>
+                <input type="file" id="edit-marc-file" name="marc_file" />
+            </div>
+            <textarea rows=8 class="short-text-area" id="edit-marc" name="marc"><?php print $item->marc; ?></textarea>
+
+            <?php endif; ?>
+        </fieldset>
+      <?php if ($can_update) : ?>
+      <input type="submit" value="Update Batch Item">
+      <?php endif; ?>
+      </form>
+  </div>
+
+
   <div class="report_table">
+    <h3>Item Transactions</h3>
     <?php if (count($item_record_transactions) > 0) : ?>
     <?php $toggle = FALSE; ?>
-    <h3>Item Transactions</h3>
     <table>
         <tr>
             <th>Description</th>
@@ -46,37 +83,10 @@
           </tr>
       <?php } ?>
     </table>
+    <?php else: ?>
+    <em>There are no item transactions yet for this batch item.</em>
     <?php endif; ?>
-
     <?php print $workflow_sequence_text; ?>
-    
-    <h3>Item Details</h3>
-    <div class="lookup_result oddrow">
-        <form action="" method="POST" enctype="multipart/form-data">
-          <fieldset class="lookup_result_indent evenrow"<?php print ($can_update) ? '' : ' disabled' ?>>
-              <label for="edit-title">Title: </label>
-              <input id="edit-title" name="title" value="<?php print htmlspecialchars($item->title); ?>">
-              <label for="edit-identifier">Identifier: </label>
-              <input id="edit-identifier" name="identifier" value="<?php print $item->identifier; ?>">
-              <label for="edit-filename">Filename: </label>
-              <input id="edit-filename" name="filename" value="<?php print $item->filename_basename; ?>">
-              <label for="edit-mods">MODS: </label>
-              <textarea rows=8 class="short-text-area" id="edit-mods" name="mods"><?php print $item->mods; ?></textarea>
-              <em>NOTE:</em> The MODS is generated from the CSV upload and editing this here may not be the right thing to do.
-              <?php if ($is_paged_content) : ?>
-              <div>
-                  <label for="edit-marc-file">MARC (MAchine-Readable Cataloging) record:</label><br>
-                  <input type="file" id="edit-marc-file" name="marc_file" />
-              </div>
-              <textarea rows=8 class="short-text-area" id="edit-marc" name="marc"><?php print $item->marc; ?></textarea>
-
-              <?php endif; ?>
-          </fieldset>
-        <?php if ($can_update) : ?>
-        <input type="submit" value="Update Batch Item">
-        <?php endif; ?>
-        </form>
-    </div>
 
     <?php if (count($scanned_files) > 0) : ?>
     <?php $toggle = FALSE; ?>

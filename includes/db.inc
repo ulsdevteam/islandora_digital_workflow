@@ -821,7 +821,7 @@ function islandora_digital_workflow_get_required_batch_actions($batch_id = NULL,
   $query = db_select('islandora_digital_workflow_batch', 'b');
   $query->fields('b', array('batch_id', 'workflow_sequence_id'));
   $query->join('islandora_digital_workflow_sequence', 'ws', 'b.workflow_sequence_id = ws.workflow_sequence_id');
-  $query->fields('ws', array('name'));
+  $query->fields('ws', array('name', 'workflow_sequence_id'));
   $query->join('islandora_digital_workflow_sequence_actions', 'wsa', 'ws.workflow_sequence_id = wsa.workflow_sequence_id');
   $query->fields('wsa', array('is_required'));
   $query->addField('wsa', 'order', 'action_order');
@@ -837,14 +837,15 @@ function islandora_digital_workflow_get_required_batch_actions($batch_id = NULL,
   $results = $query->execute();
   $rows = $results->fetchAll();
   $return_rows = array();
+  // To have explicit control over the returned array results...
   foreach ($rows as $row) {
     $return_rows[$row->action_order] = array(
         'batch_id' => $row->batch_id,
         'batch_action_description' => $row->description,
         'is_required' => $row->is_required,
         'sequence_name' => $row->name,
+        'workflow_sequence_id' => $row->workflow_sequence_id,
         'action_id' => $row->action_id,
-        'batch_action_description' => $row->description,
     );
   }
   return $return_rows;

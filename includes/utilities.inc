@@ -1648,3 +1648,7 @@ function islandora_digital_workflow_object_model_datastream_requirements($model_
   }
   return $return_array;
 }
+
+function islandora_digital_workflow_glyph_class($transaction_description) {
+  return 'transaction_action_' . (($transaction_description) ? strtolower(str_replace(" ", "_", $transaction_description)) : 'spacer');
+}

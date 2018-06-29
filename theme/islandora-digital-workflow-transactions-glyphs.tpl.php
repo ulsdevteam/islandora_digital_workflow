@@ -6,10 +6,17 @@
 *
 * Variables available:
 * - $transaction_actions => array(),
+* - $sequence_name => string,
+* - $display_as_requirements => boolean,
 *
 */
 ?>
-<div class="transactions_glyphs">
+<div class="transactions_glyphs" style="display:inline-block;float:left">
+    <?php if ($display_as_requirements): ?>
+    <div class="actions_required">
+        <small><?php print $sequence_name; ?> item actions: </small>
+    </div>
+    <?php endif; ?>
     <?php foreach ($transaction_actions as $transaction_action) {
       // Since this set of actions can be used for a batch to represent required
       // actions AS WELL AS to display just the descriptions of the actions that 
@@ -23,4 +30,4 @@
       $class_name = ($transaction_action_description) ? strtolower(str_replace(" ", "_", $transaction_action_description)) : 'spacer'; ?>
     <div class="transaction_action_<?php print $class_name . $required_class;?>" title="<?php print $transaction_action_description; ?>">&nbsp;</div>
     <?php } ?>
-</div>
+</div><br>

@@ -23,12 +23,24 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
 
   $required_batch_actions = islandora_digital_workflow_get_required_batch_actions($batch_record->batch_id);
   if (is_array($required_batch_actions)) {
-    $first_required_batch_actions = array_shift($required_batch_actions);
+    $first_required_batch_actions = $required_batch_actions;
+    $first_required_batch_actions = array_shift($first_required_batch_actions);
     $sequence_name = $first_required_batch_actions['sequence_name'];
-    $workflow_sequence_text = '<div><h3>"' . $sequence_name .
-        '" sequence actions:</h3>' .
-        theme('islandora_digital_workflow_transactions_glyphs', array('transaction_actions' => $required_batch_actions)) .
-        '</div><br>';
+    // Make this into a link for those with access permissions to the sequence.
+    $sequence_name = ((user_access(ISLANDORA_DIGITAL_WORKFLOW_MANAGE_SEQUENCES)) ?
+            l($sequence_name, '/admin/islandora/islandora_digital_workflow/workflow_sequences',
+                array(
+                    'fragment' => $sequence_name,
+                    'external' => TRUE,
+                    'attributes' => array('target' => '_blank'),
+                )
+            ) :
+            $sequence_name);
+    $workflow_sequence_text = 
+        theme('islandora_digital_workflow_transactions_glyphs', array(
+            'transaction_actions' => $required_batch_actions,
+            'display_as_requirements' => TRUE,
+            'sequence_name' => $sequence_name));
   }
   else {
     $workflow_sequence_text = '<em>Either there are no actions configured for this ' .
@@ -44,7 +56,7 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
     $item_record_results = islandora_digital_workflow_get_batch_item_record($batch_item_id);
     $original_values = array_pop($item_record_results);
     if ($paged_content_models) {
-      if (isset($_FILES['marc_file']) && isset($_FILES['marc_file']['tmp_name'])) {
+      if (isset($_FILES['marc_file']) && isset($_FILES['marc_file']['tmp_name']) && $_FILES['marc_file']['tmp_name']) {
         $marc = file_get_contents($_FILES['marc_file']['tmp_name']);
         $_POST['marc'] = $marc;
         @list($namespace, $item_identifier) = explode(":", $original_values->identifier);
@@ -89,6 +101,8 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
 
   $item_record_transactions = islandora_digital_workflow_get_batch_item_transactions($batch_item_id, $node->nid);
 
+  islandora_digital_workflow_merge_transactions_with_item_actions($item_record_transactions, $required_batch_actions);
+
   return $lookup_form_markup . 
       theme('islandora_digital_workflow_item', array(
         'batch_record' => $batch_record,
@@ -99,4 +113,40 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
         'item_record_transactions' => $item_record_transactions,
         'pid' => $pid,
         'scanned_files' => $scanned_files));
+}
+
+
+function islandora_digital_workflow_merge_transactions_with_item_actions(&$item_record_transactions, $required_batch_actions) {
+  $merged_item_record_transactions = array();
+  foreach ($required_batch_actions as $required_batch_action) {
+    $this_action_transaction_objects = islandora_digital_workflow_transaction_action_objects($item_record_transactions, $required_batch_action);
+    foreach ($this_action_transaction_objects as $a_action_transaction_object) {
+      $merged_item_record_transactions[] = $a_action_transaction_object;
+    }
+  }
+  $item_record_transactions = $merged_item_record_transactions;
+}
+
+function islandora_digital_workflow_transaction_action_objects($item_record_transactions, $required_batch_action) {
+  $found = NULL;
+  $return_array = array();
+  foreach ($item_record_transactions as $item_record_transaction) {
+    if (($item_record_transaction->description == $required_batch_action['batch_action_description'])) {
+      $return_array[] = $item_record_transaction;
+    }
+  }
+  if (!$found) {
+    $stub_entry = new stdClass();
+    $stub_entry->timestamp = '';
+    $stub_entry->transaction_id = -1;
+    $stub_entry->description = $required_batch_action['batch_action_description'];
+    $stub_entry->glyph_class =  islandora_digital_workflow_glyph_class($stub_entry->description);
+    $stub_entry->how_long_ago = '';
+    $stub_entry->admin_links = TRUE;
+    $stub_entry->nid = '';
+
+    $return_array[] = $stub_entry;
+  }
+
+  return $return_array;
 }

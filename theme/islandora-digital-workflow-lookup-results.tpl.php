@@ -1,3 +1,17 @@
+<?php
+
+/**
+* @file
+* islandora-digital-workflow-lookup-results.tpl display template.
+*
+* Variables available:
+* - $searchterm = string
+* - $batch_records => array(),
+* - $results_count => integer
+* - $matched_csv_only => boolean
+*
+*/
+?>
 <div class="lookup_results">
     <h3>Searched for "<?php print $searchterm; ?>"</h3>
     <p>Found <?php print $results_count; ?> results

@@ -52,6 +52,11 @@ and open the template in the editor.
     background: url("../images/rescanned-the-item_20.png") 24px 0px no-repeat;
 }
 
+div.actions_required {
+    float: left;
+    padding: 0px 1px;
+}
+
 div.transaction_action_check_in_physical_item,
 div.transaction_action_scan_the_item,
 div.transaction_action_check_out_physical_item,
@@ -162,7 +167,7 @@ div.transaction_action_checked_all_items_against_physical_objects {
 }
 
 .required_action, .optional_action {
-    padding-left: 25px;
+    padding-left: 4px;
     line-height: 25px;
     background-position: 0px -3px;
 }
@@ -185,6 +190,10 @@ div.transaction_action_checked_all_items_against_physical_objects {
 .optional_dsid, .optional_action {
     color: black;
     opacity: 0.45;
+}
+
+.disabled_text {
+    color: #aaa;
 }
 
 .good {
@@ -347,12 +356,24 @@ a .highlighted {
     border-radius: 8px;
 }
 
+.corner_bordered {
+    border-radius: 8px;
+    border: 2px solid #bbb;
+    box-shadow: 3px 3px 3px #ddd;    
+}
+
 .lookup_result ul {
+    margin-top: 2px;
     list-style: none inside none;
+    padding-left: 10px;
 }
 .lookup_result ul li {
     background-position: 0px 2px;
-}            
+    text-indent: 20px;
+}
+li.no_indent {
+    text-indent: 0px !important;
+}
 
 /* ---- for inline_form fieldsets to display form-item divs inline ---- */
 .inline_form {

@@ -342,10 +342,21 @@ function islandora_digital_workflow_batch_items_form(array $form, array &$form_s
     $copy_required_batch_actions = $required_batch_actions;
     $first_required_batch_actions = array_shift($copy_required_batch_actions);
     $sequence_name = $first_required_batch_actions['sequence_name'];
-    $workflow_sequence_text = '<div style="padding-left:38px"><b>"' . $sequence_name .
-        '" sequence actions:</b> <br>' .
-        theme('islandora_digital_workflow_transactions_glyphs', array('transaction_actions' => $required_batch_actions)) .
-        '</div>';
+    // Make this into a link for those with access permissions to the sequence.
+    $sequence_name = ((user_access(ISLANDORA_DIGITAL_WORKFLOW_MANAGE_SEQUENCES)) ?
+            l($sequence_name, '/admin/islandora/islandora_digital_workflow/workflow_sequences',
+                array(
+                    'fragment' => $sequence_name,
+                    'external' => TRUE,
+                    'attributes' => array('target' => '_blank'),
+                )
+            ) :
+            $sequence_name);
+    $workflow_sequence_text =
+        theme('islandora_digital_workflow_transactions_glyphs', array(
+            'transaction_actions' => $required_batch_actions,
+            'display_as_requirements' => TRUE,
+            'sequence_name' => $sequence_name));
   }
   else {
     $workflow_sequence_text = '<em>Either there are no actions configured for this ' . 
@@ -361,7 +372,6 @@ function islandora_digital_workflow_batch_items_form(array $form, array &$form_s
       '#title' => t('Add / Remove Transactions'),
       '#collapsible' => TRUE,
       '#collapsed' => TRUE,
-      '#suffix' => $workflow_sequence_text,
   );
 
   $form['wrapper']['add_batch_action'] = array(
@@ -393,6 +403,7 @@ function islandora_digital_workflow_batch_items_form(array $form, array &$form_s
       '#header' => $items_header,
       '#options' => $options,
       '#empty' => 'There are no items in the batch.',
+      '#suffix' => $workflow_sequence_text,
     );
 
   return $form;

@@ -1,3 +1,17 @@
+<?php
+
+/**
+* @file
+* islandora-digital-workflow-batch-records-table.tpl display template.
+*
+* Variables available:
+* - $batch_records => array(),
+* - $transaction_records => array(),
+* - $table_title => '',
+* - $table_description => '',
+*
+*/
+?>
 <div class="lookup_results">
     <div class="dashboard-report">
       <h3><?php print $table_title; ?></h3>

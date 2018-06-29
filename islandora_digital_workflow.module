@@ -328,7 +328,7 @@ function islandora_digital_workflow_theme() {
         'table_description' => '',
       ),
     ),
-      /*
+/*
     'islandora_digital_workflow_items' => array(
       'template' => 'theme/islandora-digital-workflow-items',
       'variables' => array(
@@ -339,7 +339,7 @@ function islandora_digital_workflow_theme() {
         'table_description' => '',
       ),
     ),
-      */
+*/
     'islandora_digital_workflow_item' => array(
       'template' => 'theme/islandora-digital-workflow-item',
       'variables' => array(
@@ -374,6 +374,8 @@ function islandora_digital_workflow_theme() {
       'template' => 'theme/islandora-digital-workflow-transactions-glyphs',
       'variables' => array(
         'transaction_actions' => array(),
+        'display_as_requirements' => FALSE,
+        'sequence_name' => '',
       ),
     ),
     'islandora_digital_workflow_order_manage' => array(

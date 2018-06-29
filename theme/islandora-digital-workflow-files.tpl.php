@@ -6,7 +6,8 @@
 *
 * Variables available:
 * - $batch_record => array(),
-* - $transaction_records => array(),
+* - $item_file_records => array(),
+* - $scanned_files => array(),
 * - $table_title => '',
 * - $table_description => '',
 *

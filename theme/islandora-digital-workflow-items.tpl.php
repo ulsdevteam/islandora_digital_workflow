@@ -2,11 +2,12 @@
 
 /**
 * @file
-* islandora-digital-workflow-transactions.tpl display template.
+* islandora-digital-workflow-items.tpl display template.
 *
 * Variables available:
 * - $batch_record => array(),
 * - $transaction_records => array(),
+* - $item_records => array(),
 * - $table_title => '',
 * - $table_description => '',
 *
@@ -35,8 +36,7 @@
         </div>
     </div>
 
-    <?php if ($items_table) { print $items_table; }  ?>
-
+    <h3>Batch Items</h3>
     <?php if (count($item_records) > 0) : ?>
     <table>
         <tr>
