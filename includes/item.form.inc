@@ -130,7 +130,9 @@ function islandora_digital_workflow_merge_transactions_with_item_actions(&$item_
 function islandora_digital_workflow_transaction_action_objects($item_record_transactions, $required_batch_action) {
   $found = NULL;
   $return_array = array();
+  $nid = 0;
   foreach ($item_record_transactions as $item_record_transaction) {
+    $nid = $item_record_transaction->nid;
     if (($item_record_transaction->description == $required_batch_action['batch_action_description'])) {
       $return_array[] = $item_record_transaction;
     }
@@ -143,7 +145,8 @@ function islandora_digital_workflow_transaction_action_objects($item_record_tran
     $stub_entry->glyph_class =  islandora_digital_workflow_glyph_class($stub_entry->description);
     $stub_entry->how_long_ago = '';
     $stub_entry->admin_links = TRUE;
-    $stub_entry->nid = '';
+    $stub_entry->nid = $nid;
+    $stub_entry->action_id = $required_batch_action['action_id'];
 
     $return_array[] = $stub_entry;
   }

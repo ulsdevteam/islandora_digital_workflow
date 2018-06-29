@@ -24,6 +24,29 @@ function islandora_digital_workflow_get_batch_record_by_name($batch_name) {
 }
 
 /**
+ * Gets a SINGLE batch record for a `batch_name` value.
+ *
+ * @param string $nid
+ *   Drupal node's nid property.
+ * @return mixed
+ *   Either returns the batch record object or NULL if it cannot be found.
+ */
+function islandora_digital_workflow_get_batch_record_by_nid($nid) {
+  if ($nid) {
+    $query = db_select('islandora_digital_workflow_batch', 'b')
+        ->fields('b')
+        ->condition('b.nid', $nid)
+        ->range(0,1);
+    $results = $query->execute();
+    $row = $results->fetchAssoc();
+    return $row;
+  }
+  else {
+    return NULL;
+  }
+}
+
+/**
  * Gets a SINGLE batch record for a `batch_id` value.
  *
  * @param string $batch_id
@@ -254,8 +277,13 @@ function islandora_digital_workflow_get_batch_transaction($transaction_id) {
 
   $results = $query->execute();
   $rows = $results->fetchAll();
-  foreach ($rows as $index => $row) {
-    $row->how_long_ago = islandora_digital_workflow_timeago_from_timestamp($row->timestamp);
+  if (count($rows) > 0) {
+    foreach ($rows as $index => $row) {
+      $row->how_long_ago = islandora_digital_workflow_timeago_from_timestamp($row->timestamp);
+    }
+  }
+  else {
+    $row = NULL;
   }
   return $row;
 }
@@ -849,4 +877,35 @@ function islandora_digital_workflow_get_required_batch_actions($batch_id = NULL,
     );
   }
   return $return_rows;
+}
+
+function islandora_digital_workflow_get_action($action_id) {
+  $query = db_select('islandora_digital_workflow_actions', 'wa');
+  $query->fields('wa');
+  $query->condition('wa.action_id', $action_id);
+  $results = $query->execute();
+  $rows = $results->fetchAll();
+  $return = array();
+  // To have explicit control over the returned array results...
+  foreach ($rows as $row) {
+    $return = array(
+        'name' => $row->name,
+        'description' => $row->description,
+    );
+  }
+  return $return;
+}
+
+function islandora_digital_workflow_get_batch_item($batch_item_id) {
+  $query = db_select('islandora_digital_workflow_batch_items', 'bi');
+  $query->fields('bi');
+  $query->condition('bi.batch_item_id', $batch_item_id);
+  $results = $query->execute();
+  $rows = $results->fetchAll();
+  $return = array();
+  // To have explicit control over the returned array results...
+  foreach ($rows as $row) {
+    $return = $row;
+  }
+  return $return;
 }

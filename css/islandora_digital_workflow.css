@@ -217,14 +217,14 @@ div.transaction_action_checked_all_items_against_physical_objects {
     padding-right: 6px;
 }
 
-.delete_20, .edit_20 {
+.add_20, .delete_20, .edit_20 {
     width: 20px;
     height: 20px;
     float: left;
     opacity: 0.45;
 }
 
-.edit_20:hover {
+.add_20:hover, .delete_20:hover, .edit_20:hover {
     opacity: 1;
 }
 
@@ -232,12 +232,12 @@ div.transaction_action_checked_all_items_against_physical_objects {
     background: url("../images/edit_20.png") top left no-repeat;
 }
 
-.delete_20:hover {
-    opacity: 1;
-}
-
 .delete_20 {
     background: url("../images/delete_20.png") top left no-repeat;
+}
+
+.add_20 {
+    background: url("../images/add_20.png") top left no-repeat;
 }
 
 .report_table table {

@@ -197,6 +197,16 @@ function islandora_digital_workflow_menu() {
       'file' => 'includes/transactions.form.inc',
       'weight' => 90,
     ),
+    'node/%node/add_transaction/%/%' => array(
+      'title' => 'Delete Transaction',
+      'page callback' => 'islandora_digital_workflow_add_transaction',
+      // arguments are handled with arg(1), arg(3), and arg(4).
+      'access callback' => 'islandora_digital_workflow_access_node',
+      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_EDIT_DELETE_TRANSACTIONS, 1),
+      'type' => MENU_NORMAL_ITEM,
+      'file' => 'includes/add_transaction.form.inc',
+      'weight' => 90,
+    ),
     'node/%node/delete_transaction/%' => array(
       'title' => 'Delete Transaction',
       'page callback' => 'islandora_digital_workflow_delete_transaction',

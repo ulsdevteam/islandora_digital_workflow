@@ -71,10 +71,15 @@
                 <?php print $transaction_record->description; ?>
                 <?php if ($transaction_record->admin_links <> ''): ?>
                   <div class="admin_links">
-                      <a href="/node/<?php print $transaction_record->nid; ?>/edit_transaction/<?php print $transaction_record->transaction_id; ?>" title="Edit">
-                        <div class="edit_20">&nbsp;</div></a>
+                      <?php if ($transaction_record->transaction_id <> -1): ?>
                       <a href="/node/<?php print $transaction_record->nid; ?>/delete_transaction/<?php print $transaction_record->transaction_id; ?>" title="Delete">
                         <div class="delete_20">&nbsp;</div></a>
+                      <a href="/node/<?php print $transaction_record->nid; ?>/edit_transaction/<?php print $transaction_record->transaction_id; ?>" title="Edit">
+                        <div class="edit_20">&nbsp;</div></a>
+                      <?php else: ?>
+                      <a href="/node/<?php print $transaction_record->nid; ?>/add_transaction/<?php print $item->batch_item_id; ?>/<?php print $transaction_record->action_id; ?>" title="Add">
+                        <div class="add_20">&nbsp;</div></a>
+                      <?php endif; ?>
                   </div>
                 <?php endif; ?>
               </td>
