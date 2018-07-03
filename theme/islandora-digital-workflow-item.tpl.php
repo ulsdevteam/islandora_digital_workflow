@@ -59,6 +59,7 @@
         <tr>
             <th>Description</th>
             <th>When</th>
+            <th>User</th>
             <th>Timestamp</th>
         </tr>
       <?php foreach ($item_record_transactions as $transaction_record) { ?>
@@ -67,8 +68,20 @@
           ?>
           <tr class="<?php print ($toggle) ? 'evenrow' : 'oddrow'; ?>">
               <td>
-                <div class="<?php print $transaction_record->glyph_class; ?>">&nbsp;</div>
+                <div class="<?php
+                  print $transaction_record->glyph_class;
+                  if ($transaction_record->already_exists) {
+                    print ' optional_action';
+                  }
+                ?>">&nbsp;</div>
+                <?php if ($transaction_record->already_exists): ?>
+                <span class="optional_action">
+                <?php endif; ?>
                 <?php print $transaction_record->description; ?>
+                <?php if ($transaction_record->already_exists): ?>
+                </span>
+                <?php endif; ?>
+
                 <?php if ($transaction_record->admin_links <> ''): ?>
                   <div class="admin_links">
                       <?php if ($transaction_record->transaction_id <> -1): ?>
@@ -84,6 +97,7 @@
                 <?php endif; ?>
               </td>
               <td><?php print $transaction_record->how_long_ago; ?></td>
+              <td><?php print $transaction_record->user_name; ?></td>
               <td><?php print $transaction_record->timestamp; ?></td>
           </tr>
       <?php } ?>
@@ -91,6 +105,7 @@
     <?php else: ?>
     <em>There are no item transactions yet for this batch item.</em>
     <?php endif; ?>
+    <hr>
     <?php print $workflow_sequence_text; ?>
 
     <?php if (count($scanned_files) > 0) : ?>

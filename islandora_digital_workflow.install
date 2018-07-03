@@ -373,6 +373,13 @@ function islandora_digital_workflow_schema() {
         'unsigned' => TRUE,
         'not null' => FALSE,
       ),
+      'drupal_uid' => array(
+        'description' => 'The drupal user uid value related to the transaction',
+        'type' => 'int',
+        'size' => 'medium',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
       'timestamp' => array(
         'description' => 'Last modified date of the record',
         'type' => 'int',

@@ -128,7 +128,7 @@ function islandora_digital_workflow_merge_transactions_with_item_actions(&$item_
 }
 
 function islandora_digital_workflow_transaction_action_objects($item_record_transactions, $required_batch_action) {
-  $found = NULL;
+  global $user;
   $return_array = array();
   $nid = 0;
   foreach ($item_record_transactions as $item_record_transaction) {
@@ -137,8 +137,9 @@ function islandora_digital_workflow_transaction_action_objects($item_record_tran
       $return_array[] = $item_record_transaction;
     }
   }
-  if (!$found) {
+  // if (count($return_array) < 1) {
     $stub_entry = new stdClass();
+    $stub_entry->already_exists = (count($return_array) > 0);
     $stub_entry->timestamp = '';
     $stub_entry->transaction_id = -1;
     $stub_entry->description = $required_batch_action['batch_action_description'];
@@ -147,9 +148,9 @@ function islandora_digital_workflow_transaction_action_objects($item_record_tran
     $stub_entry->admin_links = TRUE;
     $stub_entry->nid = $nid;
     $stub_entry->action_id = $required_batch_action['action_id'];
-
+    $stub_entry->user_name = ''; // l($user->name, 'user/' . $user->uid, array('attributes' => array('target' => '_blank')));
     $return_array[] = $stub_entry;
-  }
+  // }
 
   return $return_array;
 }

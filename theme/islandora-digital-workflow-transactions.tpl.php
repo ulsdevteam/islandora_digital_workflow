@@ -34,6 +34,7 @@
         <tr>
             <th>Description</th>
             <th>When</th>
+            <th>User</th>
             <th>Timestamp</th>
         </tr>
       <?php foreach ($transaction_records as $transaction_record) { ?>
@@ -54,6 +55,7 @@
                 <?php endif; ?>
               </td>
               <td><?php print $transaction_record->how_long_ago; ?></td>
+              <td><?php print $transaction_record->user_name; ?></td>
               <td><?php print $transaction_record->timestamp; ?></td>
           </tr>
       <?php } ?>

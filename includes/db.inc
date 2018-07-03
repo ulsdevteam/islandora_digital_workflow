@@ -336,6 +336,8 @@ function islandora_digital_workflow_get_batch_transactions_by_nid($nid) {
   $query = db_select('islandora_digital_workflow_batch', 'b');
   $query->join('islandora_digital_workflow_transactions', 'bt', 'b.batch_id = bt.batch_id');
   $query->fields('bt', array('timestamp', 'transaction_id'));
+  $query->addJoin('LEFT OUTER', 'users', NULL, 'bt.drupal_uid = users.uid');
+  $query->fields('users', array('uid', 'name'));
   $query->join('islandora_digital_workflow_actions', 'a', 'a.action_id = bt.action_id');
   $query->fields('a', array('description'));
   $query->condition('b.nid', $nid)
@@ -347,6 +349,7 @@ function islandora_digital_workflow_get_batch_transactions_by_nid($nid) {
   foreach ($rows as $index => $row) {
     $rows[$index]->how_long_ago = islandora_digital_workflow_timeago_from_timestamp($row->timestamp);
     $rows[$index]->glyph_class = 'transaction_action_' . (($row->description) ? strtolower(str_replace(" ", "_", $row->description)) : 'spacer');
+    $rows[$index]->user_name = ($row->uid) ? l($row->name, 'user/' . $row->uid, array('attributes' => array('target' => '_blank'))) : 'system';
     $rows[$index]->admin_links = ($access_edit_transactions) ? TRUE : FALSE;
     $rows[$index]->nid = $nid;
   }
@@ -368,6 +371,8 @@ function islandora_digital_workflow_get_batch_item_transactions($batch_item_id, 
 
   $query = db_select('islandora_digital_workflow_transactions', 'bt');
   $query->fields('bt', array('timestamp', 'transaction_id'));
+  $query->addJoin('LEFT OUTER', 'users', NULL, 'bt.drupal_uid = users.uid');
+  $query->fields('users', array('uid', 'name'));
   $query->join('islandora_digital_workflow_actions', 'a', 'a.action_id = bt.action_id');
   $query->fields('a', array('description'));
   $query->condition('bt.batch_item_id', $batch_item_id)
@@ -378,9 +383,11 @@ function islandora_digital_workflow_get_batch_item_transactions($batch_item_id, 
   $rows = $results->fetchAll();
   foreach ($rows as $index => $row) {
     $rows[$index]->how_long_ago = islandora_digital_workflow_timeago_from_timestamp($row->timestamp);
+    $rows[$index]->user_name = ($row->uid) ? l($row->name, 'user/' . $row->uid, array('attributes' => array('target' => '_blank'))) : 'system';
     $rows[$index]->glyph_class = 'transaction_action_' . (($row->description) ? strtolower(str_replace(" ", "_", $row->description)) : 'spacer');
     $rows[$index]->admin_links = ($access_edit_transactions) ? TRUE : FALSE;
     $rows[$index]->nid = $nid;
+    $rows[$index]->already_exists = FALSE;
   }
   return $rows;
 }
@@ -793,15 +800,21 @@ function islandora_digital_workflow_insert_batch_item($fields) {
  *   batch_id value corresponding to the batch for the transaction.
  * @param integer $batch_item_id
  *   batch_item_id value corresponding to the batch_item for the transaction.
+ * @param integer $alternate_uid
+ *   when provided, this will override the current-logged-in user's uid value.
  */
-function islandora_digital_workflow_insert_transactions_record($action_id, $batch_id = NULL, $batch_item_id = NULL) {
-  return db_insert('islandora_digital_workflow_transactions')
-      ->fields(array(
-        'action_id' => $action_id,
-        'batch_id' => $batch_id,
-        'batch_item_id' => $batch_item_id
-      ))
-      ->execute();
+function islandora_digital_workflow_insert_transactions_record($action_id, $batch_id = NULL, $batch_item_id = NULL, $alternative_uid = NULL) {
+  global $user;
+  if (!is_null($batch_id) || !is_null($batch_item_id)) {
+    return db_insert('islandora_digital_workflow_transactions')
+        ->fields(array(
+          'action_id' => $action_id,
+          'batch_id' => $batch_id,
+          'batch_item_id' => $batch_item_id,
+          'drupal_uid' => ($alternative_uid) ? $alternative_uid : $user->uid,
+        ))
+        ->execute();
+  }
 }
 
 /**

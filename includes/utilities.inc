@@ -63,11 +63,13 @@ function islandora_digital_workflow_create_stub_batch_record($form_state) {
  *   Drupal node object.
  * @param string $csv_filename
  *   The filename that points to the CSV file.
+ * @param integer $alternate_uid
+ *   when provided, this will override the current-logged-in user's uid value.
  * @return mixed
  *   Either redurns the batch record OR NULL if there is not enough info to
  * create the record
  */
-function islandora_digital_workflow_create_batch_record_by_form($form_state, $node, $csv_filename) {
+function islandora_digital_workflow_create_batch_record_by_form($form_state, $node, $csv_filename, $alternative_uid = NULL) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
 
   global $user;
@@ -155,7 +157,7 @@ function islandora_digital_workflow_create_batch_record_by_form($form_state, $no
       ->execute();
     }
     $updated_batch_record = islandora_digital_workflow_get_batch_record_by_name($batch_name);
-    islandora_digital_workflow_sync_node_to_items($updated_batch_record, $node, $csv_filename, TRUE);
+    islandora_digital_workflow_sync_node_to_items($updated_batch_record, $node, $csv_filename, TRUE, $alternate_uid);
     return $updated_batch_record;
   }
   else {
@@ -222,8 +224,12 @@ function islandora_digital_workflow_get_batch_host_values() {
  *   Drupal node object.
  * @param string $csv_filename
  *   The filename that points to the CSV file.
+ * @param boolean $empty_items_table
+ *   Whether or not to clear the items table when synching the node to items.
+ * @param integer $alternate_uid
+ *   when provided, this will override the current-logged-in user's uid value.
 */
-function islandora_digital_workflow_sync_node_to_items($batch_record, $node, $csv_filename, $empty_items_table = FALSE) {
+function islandora_digital_workflow_sync_node_to_items($batch_record, $node, $csv_filename, $empty_items_table = FALSE, $alternative_uid = NULL) {
   if (is_array($batch_record) && isset($node->field_identifiers) &&
       array_key_exists('value', $node->field_identifiers[$node->language][0])) {
     // Set a variable for this for readibility on the subsequent function call.
@@ -243,7 +249,7 @@ function islandora_digital_workflow_sync_node_to_items($batch_record, $node, $cs
         }
       }
       foreach ($csv_file_sources as $csv_file_source) {
-        islandora_digital_workflow_sync_batch_item_record($batch_record, $csv_file_source, $batch_item_identifiers_to_transaction_ids);
+        islandora_digital_workflow_sync_batch_item_record($batch_record, $csv_file_source, $batch_item_identifiers_to_transaction_ids, $alternative_uid);
       }
     }
   }
@@ -259,9 +265,12 @@ function islandora_digital_workflow_sync_node_to_items($batch_record, $node, $cs
  *   The filename that points to the CSV file.
  * @param array $batch_item_identifiers_to_transaction_ids
  *   an associative array where key is old batch_item->identifier value and the
- * value is the old transaction_id value
+ *   value is the old transaction_id value
+ * @param integer $alternate_uid
+ *   when provided, this will override the current-logged-in user's uid value.
  */
-function islandora_digital_workflow_sync_batch_item_record($batch_record, $csv_file_source, $batch_item_identifiers_to_transaction_ids) {
+function islandora_digital_workflow_sync_batch_item_record($batch_record, $csv_file_source, $batch_item_identifiers_to_transaction_ids, $alternative_uid = NULL) {
+  global $user;
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
   if (file_exists($csv_file_source['mods_filename'])) {
     $mods_content = file_get_contents($csv_file_source['mods_filename']);
@@ -289,12 +298,14 @@ function islandora_digital_workflow_sync_batch_item_record($batch_record, $csv_f
     $batch_item_id = islandora_digital_workflow_insert_batch_item($fields) :
     array_search($csv_file_source['identifier'], $existing_batch_identifiers);
   // Only update the transaction records for this identifier.
-  if (array_key_exists($csv_file_source['identifier'], $batch_item_identifiers_to_transaction_ids)) {
+  if (!is_null($batch_item_id) && array_key_exists($csv_file_source['identifier'], $batch_item_identifiers_to_transaction_ids)) {
     foreach ($batch_item_identifiers_to_transaction_ids[$csv_file_source['identifier']] as $timestamp_transaction_id) {
       db_update('islandora_digital_workflow_transactions')
         ->fields(array(
             'timestamp' => $timestamp_transaction_id['timestamp'],
-            'batch_item_id' => $batch_item_id))
+            'batch_item_id' => $batch_item_id,
+            'drupal_uid' => (($alternative_uid) ? $alternative_uid : $user->uid),
+        ))
         ->condition('transaction_id', $timestamp_transaction_id['transaction_id'])
         ->execute();
     }
