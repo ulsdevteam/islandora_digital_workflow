@@ -289,6 +289,7 @@ function islandora_digital_workflow_sync_batch_item_record($batch_record, $csv_f
       'title' => $title,
       'filename' => $csv_file_source['filename'],
       'mods' => $mods_content,
+      'marc' => '',
   );
   // Get a list of existing batch_item identifiers - only insert the record if
   // one does not exist for this identifier.

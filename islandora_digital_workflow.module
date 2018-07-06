@@ -533,11 +533,15 @@ function theme_islandora_digital_workflow_order_manage($variables) {
   $sequence_id = 9999;
   $rows = array();
   foreach (element_children($form['wrapper']['rows']) as $action_id) {
-    @list($keep, $junk) = explode(" [", $form['wrapper']['rows'][$action_id]['action_description']['#default_value']);
-    $class_name = 'transaction_action_' . strtolower(str_replace(" ", "_", $keep));
+
     $form['wrapper']['rows'][$action_id]['weight']['#attributes']['class'] = array('rows-order-weight');
     $sequence_id = $form['wrapper']['rows'][$action_id]['workflow_sequence_id']['#value'];
 
+    $classes = array('draggable');
+
+    $classes[] = ($action_id > 99) ? 'batch_action' : 'item_action';
+    @list($keep, $junk) = explode(" [", $form['wrapper']['rows'][$action_id]['action_description']['#default_value']);
+    $classes[] = 'transaction_action_' . strtolower(str_replace(" ", "_", $keep));
     $rows[] = array(
       'data' => array(
         array('class' => array('slide-cross')),
@@ -547,13 +551,12 @@ function theme_islandora_digital_workflow_order_manage($variables) {
         drupal_render($form['wrapper']['rows'][$action_id]['weight']),
         drupal_render($form['wrapper']['rows'][$action_id]['op']),
       ),
-      'class' => array('draggable', $class_name),
+      'class' => $classes,
     );
   }
 
   $header = array('', '', t('Action (If empty, title is used)'), t('Is required?'), t('Weight'), t('Operations'));
-  $output = drupal_render($form['note']);
-  $output .= theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => array('id' => 'rows-order-' . $sequence_id)));
+  $output = theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => array('id' => 'rows-order-' . $sequence_id)));
   $output .= drupal_render_children($form);
 
   drupal_add_tabledrag('rows-order-' . $sequence_id, 'order', 'sibling', 'rows-order-weight', NULL, NULL, FALSE);

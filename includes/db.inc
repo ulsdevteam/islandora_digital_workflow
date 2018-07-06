@@ -695,6 +695,19 @@ function islandora_digital_workflow_get_item_actions() {
   return $return_array;
 }
 
+function islandora_digital_workflow_get_batch_action_options() {
+  $rows = db_query('SELECT * FROM islandora_digital_workflow_actions WHERE action_id > 99')->fetchAll();
+  $return_array = array();
+  foreach ($rows as $i => $row_obj) {
+    $return_array[$row_obj->action_id] = array(
+        'action_id' => $row_obj->action_id,
+        'name' => $row_obj->name,
+        'description' => $row_obj->description,
+      );
+  }
+  return $return_array;
+}
+
 /**
  * Returns the list of workflow sequence name values.
  *

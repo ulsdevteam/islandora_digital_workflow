@@ -273,6 +273,13 @@ div.transaction_action_checked_all_items_against_physical_objects {
     width: 20px;
 }
 
+.batch_action, tr.batch_action {
+    border-right: 8px solid #65bb79;
+}
+.item_action, tr.item_action {
+    border-right: 8px solid #6c65bb;
+}
+
 .short-text-area {
     width: 99%;
     font-size: 0.825em;

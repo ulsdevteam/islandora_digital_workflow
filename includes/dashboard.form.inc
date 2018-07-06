@@ -78,6 +78,11 @@ function islandora_digital_workflow_get_tasks_tables() {
       'table_description' => 'Please complete or delete the following batch records:',
     ));
   }
+
+  // TODO:  display a table of batches that need other details like missing
+  // workflow_sequence_id values (the value would be NULL -- which is possible
+  // when deleting a sequence).
+  
   // make links to edit those batches like: islandora/islandora_digital_workflow/edit_batch/test12
 
   return implode("\n", $tables);

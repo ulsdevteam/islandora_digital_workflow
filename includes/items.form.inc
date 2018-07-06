@@ -95,12 +95,14 @@ function islandora_digital_workflow_add_item_form_submit(array $form, array &$fo
   $title = $form_state['values']['title'];
   $filename = $form_state['values']['filename'];
   $mods = '<?xml version="1.0" encoding="UTF-8"?>';
+  $marc = '<?xml version="1.0" encoding="UTF-8"?>';
   $fields = array(
       'batch_id' => $batch_id,
       'identifier' => $identifier,
       'title' => $title,
       'filename' => $filename,
       'mods' => $mods,
+      'marc' => $marc,
   );
   // Each MODS is inserted into the item record - this will insert the record:
   $batch_item_id = islandora_digital_workflow_insert_batch_item($fields);
