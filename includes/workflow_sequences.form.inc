@@ -51,8 +51,8 @@ function islandora_digital_workflow_sequences() {
     $markup_item_actions = $markup_batch_actions = array();
     foreach ($this_workflow_sequence_actions as $action_record_array) {
       $class = ($action_record_array['is_required']) ? 'required_action' : 'optional_action';
-      $glyph_class = 'transaction_action_' . (($action_record_array['action_description']) ? strtolower(str_replace(" ", "_", $action_record_array['action_description'])) : 'spacer');
-      $li_markup = '<li class="' . $glyph_class . ' ' . $class . '">' . $action_record_array['action_description'] . '</li>';
+      $glyph_class = 'transaction_action_' . (($action_record_array['action_name']) ? strtolower(str_replace(array("-", " "), "_", $action_record_array['action_name'])) : 'spacer');
+      $li_markup = '<li class="' . $glyph_class . ' ' . $class . '">' . $action_record_array['action_name'] . '</li>';
       if ($action_record_array['action_id'] > 99) {
         $markup_batch_actions[] = $li_markup;
       } else {
@@ -78,10 +78,10 @@ function islandora_digital_workflow_sequences() {
         ':</b><ul>' .
         ((count($markup_batch_actions) > 0) ?
           '<li class="no_indent">Batch actions</li>' .
-          '<ul class="corner_bordered">' . implode("\n" , $markup_batch_actions) . '</ul>' : '') .
+          '<ul class="batch_action_box corner_bordered">' . implode("\n" , $markup_batch_actions) . '</ul>' : '') .
         ((count($markup_item_actions) > 0) ?
           '<li class="no_indent">Item actions</li>' .
-          '<ul class="corner_bordered">' . implode("\n" , $markup_item_actions) . '</ul>' : '') .
+          '<ul class="corner_bordered item_action_box">' . implode("\n" , $markup_item_actions) . '</ul>' : '') .
         '</ul></p></div></div></a>',
     );
   }
@@ -390,7 +390,7 @@ function islandora_digital_workflow_workflow_sequence_edit_submit($form, &$form_
  *
  * @return string|array
  */
-function islandora_digital_workflow_order_manage(array $form, array &$form_state, $workflow_sequence_id) {
+function islandora_digital_workflow_workflow_sequence_actions_form(array $form, array &$form_state, $workflow_sequence_id) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
 
@@ -453,10 +453,17 @@ function islandora_digital_workflow_order_manage(array $form, array &$form_state
   if (array_key_exists($workflow_sequence_id, $workflow_sequence_actions)) {
     foreach ($workflow_sequence_actions[$workflow_sequence_id] as $i => $sequence_array) {
       $form['wrapper']['rows'][$sequence_array['action_id']] = array(
-        'action_name' => array(
+        '#attributes' => array(
+          'class' => array(($sequence_array['action_id'] > 99 ? 'batch_action_box' : 'item_action_box')),
+        ),
+        'action_description' => array(
           '#type' => 'textfield',
           '#default_value' => $sequence_array['action_description'],
           '#attributes' => array('readonly' => 'readonly', 'disabled' => 'disabled'),
+        ),
+        'action_name' => array(
+          '#type' => 'hidden',
+          '#default_value' => $sequence_array['action_name'],
         ),
         'is_required' => array(
           '#type' => 'checkbox',
@@ -474,10 +481,6 @@ function islandora_digital_workflow_order_manage(array $form, array &$form_state
         'action_id' => array(
           '#type' => 'hidden',
           '#default_value' => $sequence_array['action_id'],
-        ),
-        'action_description' => array(
-          '#type' => 'hidden',
-          '#default_value' => $sequence_array['action_description'],
         ),
         'op' => array(
           '#type' => 'submit',
@@ -515,7 +518,7 @@ function islandora_digital_workflow_order_manage(array $form, array &$form_state
  * @param array $form_state
  *   The Drupal form state.
  */
-function islandora_digital_workflow_order_manage_submit($form, &$form_state) {
+function islandora_digital_workflow_workflow_sequence_actions_form_submit($form, &$form_state) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
   $item_actions = islandora_digital_workflow_get_item_actions();
   $batch_actions = islandora_digital_workflow_get_batch_action_options();

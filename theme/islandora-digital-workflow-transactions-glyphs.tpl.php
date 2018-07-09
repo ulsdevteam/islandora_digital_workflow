@@ -24,10 +24,13 @@
       $transaction_action_description = (is_array($transaction_action) &&
           array_key_exists('batch_action_description', $transaction_action)) ?
               $transaction_action['batch_action_description'] : $transaction_action;
+      $transaction_action_name = (is_array($transaction_action) &&
+          array_key_exists('batch_action_name', $transaction_action)) ?
+              $transaction_action['batch_action_name'] : $transaction_action;
       $required_class = (is_array($transaction_action) &&
           array_key_exists('is_required', $transaction_action)) ?
               ($transaction_action['is_required'] == 1 ? ' required_action' : ' optional_action') : '';
-      $class_name = ($transaction_action_description) ? strtolower(str_replace(" ", "_", $transaction_action_description)) : 'spacer'; ?>
+      $class_name = ($transaction_action_name) ? strtolower(str_replace(array("-", " "), "_", $transaction_action_name)) : 'spacer'; ?>
     <div class="transaction_action_<?php print $class_name . $required_class;?>" title="<?php print $transaction_action_description; ?>">&nbsp;</div>
     <?php } ?>
 </div><br>

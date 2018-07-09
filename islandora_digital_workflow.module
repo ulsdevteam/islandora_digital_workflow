@@ -19,6 +19,13 @@ define('IDW_ACTION_CHECK_PHYSICAL_ITEMS', 6);
 define('IDW_ACTION_SYSTEM_MADE_DERIVATIVES', 7);
 define('IDW_ACTION_ADD_MARC_RECORD', 8);
 
+define('IDW_ACTION_RESERVED_1', 20);
+define('IDW_ACTION_RESERVED_2', 21);
+define('IDW_ACTION_RESERVED_3', 22);
+define('IDW_ACTION_RESERVED_4', 23);
+define('IDW_ACTION_RESERVED_5', 24);
+define('IDW_ACTION_RESERVED_6', 25);
+
 define('IDW_ACTION_ALL_CHECK_IN', 101);
 define('IDW_ACTION_ALL_SCAN', 102);
 define('IDW_ACTION_ALL_SYSTEM_INGEST', 103);
@@ -64,7 +71,7 @@ function islandora_digital_workflow_menu() {
       'title' => t('Islandora Digital Workflow - Workflow Sequences'),
       'type' => MENU_NORMAL_ITEM,
       'page callback' => 'drupal_get_form',
-      'page arguments' => array('islandora_digital_workflow_order_manage', 4),
+      'page arguments' => array('islandora_digital_workflow_workflow_sequence_actions_form', 4),
       'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_MANAGE_SEQUENCES),
       'file' => 'includes/workflow_sequences.form.inc',
     ),
@@ -394,7 +401,7 @@ function islandora_digital_workflow_theme() {
         'sequence_name' => '',
       ),
     ),
-    'islandora_digital_workflow_order_manage' => array(
+    'islandora_digital_workflow_workflow_sequence_actions_form' => array(
       'render element' => 'form',
       'file' => 'includes/workflow_sequences.form.inc',
     ),
@@ -534,7 +541,7 @@ function islandora_digital_workflow_views_api() {
  * @return string
  *   Markup of the themed order_manage object
  */
-function theme_islandora_digital_workflow_order_manage($variables) {
+function theme_islandora_digital_workflow_workflow_sequence_actions_form($variables) {
   $form = $variables['form'];
   $sequence_id = 9999;
   $rows = array();
@@ -546,13 +553,13 @@ function theme_islandora_digital_workflow_order_manage($variables) {
     $classes = array('draggable');
 
     $classes[] = ($action_id > 99) ? 'batch_action' : 'item_action';
-    @list($keep, $junk) = explode(" [", $form['wrapper']['rows'][$action_id]['action_description']['#default_value']);
-    $classes[] = 'transaction_action_' . strtolower(str_replace(" ", "_", $keep));
+    @list($keep, $junk) = explode(" [", $form['wrapper']['rows'][$action_id]['action_name']['#default_value']);
+    $classes[] = 'transaction_action_' . strtolower(str_replace(array("-", " "), "_", $keep));
     $rows[] = array(
       'data' => array(
         array('class' => array('slide-cross')),
         drupal_render($form['wrapper']['rows'][$action_id]['action_id']),
-        drupal_render($form['wrapper']['rows'][$action_id]['action_name']),
+        drupal_render($form['wrapper']['rows'][$action_id]['action_description']),
         drupal_render($form['wrapper']['rows'][$action_id]['is_required']),
         drupal_render($form['wrapper']['rows'][$action_id]['weight']),
         drupal_render($form['wrapper']['rows'][$action_id]['op']),

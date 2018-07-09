@@ -142,8 +142,9 @@ function islandora_digital_workflow_transaction_action_objects($item_record_tran
     $stub_entry->already_exists = (count($return_array) > 0);
     $stub_entry->timestamp = '';
     $stub_entry->transaction_id = -1;
+    $stub_entry->action_name = $required_batch_action['batch_action_name'];
     $stub_entry->description = $required_batch_action['batch_action_description'];
-    $stub_entry->glyph_class =  islandora_digital_workflow_glyph_class($stub_entry->description);
+    $stub_entry->glyph_class =  islandora_digital_workflow_glyph_class($stub_entry->action_name);
     $stub_entry->how_long_ago = '';
     $stub_entry->admin_links = TRUE;
     $stub_entry->nid = $nid;

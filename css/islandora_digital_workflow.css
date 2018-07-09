@@ -16,40 +16,62 @@ and open the template in the editor.
     line-height: 1em;
 }
 
-.transaction_action_check_in_physical_item, 
-.transaction_action_check_in_all_physical_items {
-    background: url("../images/check-in-physical-item_20.png") 24px 0px no-repeat;
+.transaction_action_check_in, 
+.transaction_action_all_check_in {
+    background: url("../images/check-in-physical-item_20.png") 24px 0px no-repeat !important;
 }
 
-.transaction_action_scan_the_item, .transaction_action_scanned_all_items {
-    background: url("../images/scan-the-item_20.png") 24px 0px no-repeat;
+.transaction_action_scan, .transaction_action_scanned_all_items {
+    background: url("../images/scan-the-item_20.png") 24px 0px no-repeat !important;
 }
 
-.transaction_action_ingest_item_into_repository, 
-.transaction_action_ingested_all_items_into_repository {
-    background: url("../images/ingest-item-into-repository_20.png") 24px 0px no-repeat;
+.transaction_action_ingest, 
+.transaction_action_all_ingest {
+    background: url("../images/ingest-item-into-repository_20.png") 24px 0px no-repeat !important;
 }
 
 .transaction_action_add_marc_record {
-    background: url("../images/add-marc-record_20.png") 24px 0px no-repeat;
+    background: url("../images/add-marc-record_20.png") 24px 0px no-repeat !important;
 }
 
 .transaction_action_system_made_derivatives {
-    background: url("../images/system-made-derivatives_20.png") 24px 0px no-repeat;
+    background: url("../images/system-made-derivatives_20.png") 24px 0px no-repeat !important;
 }
 
-.transaction_action_check_out_physical_item, 
-.transaction_action_checked_out_all_physical_items {
-    background: url("../images/check-out-physical-item_20.png") 24px 0px no-repeat;
+.transaction_action_check_out, 
+.transaction_action_all_check_out {
+    background: url("../images/check-out-physical-item_20.png") 24px 0px no-repeat !important;
 }
 
-.transaction_action_check_item_against_physical_object, 
-.transaction_action_checked_all_items_against_physical_objects {
-    background: url("../images/check-item-against-physical-object_20.png") 24px 0px no-repeat;
+.transaction_action_check_physical_items, 
+.transaction_action_all_check_physical_items {
+    background: url("../images/check-item-against-physical-object_20.png") 24px 0px no-repeat !important;
 }
 
-.transaction_action_rescanned_the_item {
-    background: url("../images/rescanned-the-item_20.png") 24px 0px no-repeat;
+.transaction_action_rescan {
+    background: url("../images/rescanned-the-item_20.png") 24px 0px no-repeat !important;
+}
+
+.transaction_action_reserved_action_1 {
+    background: url("../images/reserved-action-1_20.png") 24px 0px no-repeat !important;
+}
+.transaction_action_reserved_action_2 {
+    background: url("../images/reserved-action-2_20.png") 24px 0px no-repeat !important;
+}
+.transaction_action_reserved_action_3 {
+    background: url("../images/reserved-action-3_20.png") 24px 0px no-repeat !important;
+}
+.transaction_action_reserved_action_4 {
+    background: url("../images/reserved-action-4_20.png") 24px 0px no-repeat !important;
+}
+.transaction_action_reserved_action_5 {
+    background: url("../images/reserved-action-5_20.png") 24px 0px no-repeat !important;
+}
+.transaction_action_reserved_action_6 {
+    background: url("../images/reserved-action-6_20.png") 24px 0px no-repeat !important;
+}
+.transaction_action_spacer {
+    background: url("../images/unknown-action_20.png") 24px 0px no-repeat !important;
 }
 
 div.actions_required {
@@ -57,20 +79,30 @@ div.actions_required {
     padding: 0px 1px;
 }
 
-div.transaction_action_check_in_physical_item,
-div.transaction_action_scan_the_item,
-div.transaction_action_check_out_physical_item,
-div.transaction_action_ingest_item_into_repository,
-div.transaction_action_rescanned_the_item,
+body tr {
+    line-height: normal !important;
+}
+
+div.transaction_action_check_in,
+div.transaction_action_scan,
+div.transaction_action_check_out,
+div.transaction_action_ingest,
+div.transaction_action_rescan,
 div.transaction_action_system_made_derivatives,
-div.transaction_action_check_item_against_physical_object,
+div.transaction_action_check_physical_items,
+div.transaction_action_reserved_action_1,
+div.transaction_action_reserved_action_2,
+div.transaction_action_reserved_action_3,
+div.transaction_action_reserved_action_4,
+div.transaction_action_reserved_action_5,
+div.transaction_action_reserved_action_6,
 div.transaction_action_spacer,
-div.transaction_action_ingested_all_items_into_repository,
-div.transaction_action_check_in_all_physical_items,
+div.transaction_action_all_ingest,
+div.transaction_action_all_check_in,
 div.transaction_action_scanned_all_items,
 div.transaction_action_add_marc_record,
-div.transaction_action_checked_out_all_physical_items,
-div.transaction_action_checked_all_items_against_physical_objects {
+div.transaction_action_all_check_out,
+div.transaction_action_all_check_physical_items {
     width: 20px;
     float: left;
     padding: 0px 1px;
@@ -277,11 +309,23 @@ div.transaction_action_checked_all_items_against_physical_objects {
     width: 20px;
 }
 
-.batch_action, tr.batch_action {
-    border-right: 8px solid #65bb79;
+.item_action td, .batch_action td {
+    padding: 0px !important;
 }
-.item_action, tr.item_action {
-    border-right: 8px solid #6c65bb;
+.batch_action, .batch_action_box {
+    border-right: 8px solid #e8ae60 !important;
+}
+.item_action, .item_action_box {
+    border-right: 8px solid #6c65bb !important;
+}
+
+tr.batch_action {
+    background-color: #efe5d7 !important;
+    border-right: none !important;
+}
+tr.item_action {
+    background-color: #dddce7 !important;
+    border-right: none !important;
 }
 
 .short-text-area {

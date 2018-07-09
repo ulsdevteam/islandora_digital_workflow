@@ -576,6 +576,33 @@ function islandora_digital_workflow_insert_islandora_digital_workflow_actions() 
       'name' => 'add-marc-record',
       'description' => 'Add MARC record',
     ),
+    // Some reserved actions that can be configured as needed - as long as their
+    // name does not change! (islandora_digital_workflow_actions.name is what is used
+    // for the HTML class and must not be changed).
+    IDW_ACTION_RESERVED_1 => array(
+      'name' => 'reserved-action-1',
+      'description' => 'Reserved',
+    ),
+    IDW_ACTION_RESERVED_2 => array(
+      'name' => 'reserved-action-2',
+      'description' => 'Reserved',
+    ),
+    IDW_ACTION_RESERVED_3 => array(
+      'name' => 'reserved-action-3',
+      'description' => 'Reserved',
+    ),
+    IDW_ACTION_RESERVED_4 => array(
+      'name' => 'reserved-action-4',
+      'description' => 'Reserved',
+    ),
+    IDW_ACTION_RESERVED_5 => array(
+      'name' => 'reserved-action-5',
+      'description' => 'Reserved',
+    ),
+    IDW_ACTION_RESERVED_6 => array(
+      'name' => 'reserved-action-6',
+      'description' => 'Reserved',
+    ),
     // batch-level actions (action_id values greater than 100).
     IDW_ACTION_ALL_CHECK_IN => array(
       'name' => 'all-check-in',

@@ -359,6 +359,7 @@ function islandora_digital_workflow_get_batch_transactions_by_nid($nid) {
   $query->fields('users', array('uid', 'name'));
   $query->join('islandora_digital_workflow_actions', 'a', 'a.action_id = bt.action_id');
   $query->fields('a', array('description'));
+  $query->addField('a', 'name', 'action_name');
   $query->condition('b.nid', $nid)
       ->orderBy('bt.timestamp', 'ASC');
 
@@ -367,7 +368,7 @@ function islandora_digital_workflow_get_batch_transactions_by_nid($nid) {
   $rows = $results->fetchAll();
   foreach ($rows as $index => $row) {
     $rows[$index]->how_long_ago = islandora_digital_workflow_timeago_from_timestamp($row->timestamp);
-    $rows[$index]->glyph_class = 'transaction_action_' . (($row->description) ? strtolower(str_replace(" ", "_", $row->description)) : 'spacer');
+    $rows[$index]->glyph_class = 'transaction_action_' . (($row->action_name) ? strtolower(str_replace(array("-", " "), "_", $row->action_name)) : 'spacer');
     $rows[$index]->user_name = ($row->uid) ? l($row->name, 'user/' . $row->uid, array('attributes' => array('target' => '_blank'))) : 'system';
     $rows[$index]->admin_links = ($access_edit_transactions) ? TRUE : FALSE;
     $rows[$index]->nid = $nid;
@@ -394,6 +395,7 @@ function islandora_digital_workflow_get_batch_item_transactions($batch_item_id, 
   $query->fields('users', array('uid', 'name'));
   $query->join('islandora_digital_workflow_actions', 'a', 'a.action_id = bt.action_id');
   $query->fields('a', array('description'));
+  $query->addField('a', 'name', 'action_name');
   $query->condition('bt.batch_item_id', $batch_item_id)
       ->orderBy('bt.timestamp', 'ASC');
 
@@ -403,7 +405,7 @@ function islandora_digital_workflow_get_batch_item_transactions($batch_item_id, 
   foreach ($rows as $index => $row) {
     $rows[$index]->how_long_ago = islandora_digital_workflow_timeago_from_timestamp($row->timestamp);
     $rows[$index]->user_name = ($row->uid) ? l($row->name, 'user/' . $row->uid, array('attributes' => array('target' => '_blank'))) : 'system';
-    $rows[$index]->glyph_class = 'transaction_action_' . (($row->description) ? strtolower(str_replace(" ", "_", $row->description)) : 'spacer');
+    $rows[$index]->glyph_class = 'transaction_action_' . (($row->action_name) ? strtolower(str_replace(array("-", " "), "_", $row->action_name)) : 'spacer');
     $rows[$index]->admin_links = ($access_edit_transactions) ? TRUE : FALSE;
     $rows[$index]->nid = $nid;
     $rows[$index]->already_exists = FALSE;
@@ -458,7 +460,7 @@ function islandora_digital_workflow_get_batch_items_by_nid($nid) {
   // a LEFT JOIN query that uses GROUP BY and GROUP_CONCAT to display the needed
   // field values, this is much MUCH MUCH easier to write out as a SQL statement.
   $query = db_query('SELECT bi.identifier, bi.title, bi.filename, 
-    GROUP_CONCAT(DISTINCT a.description) as `transaction_actions`,
+    GROUP_CONCAT(DISTINCT a.name) as `transaction_actions`,
     GROUP_CONCAT(DISTINCT a.action_id) as `transaction_action_ids`,
     bi.batch_item_id
 FROM islandora_digital_workflow_batch b
@@ -900,6 +902,7 @@ function islandora_digital_workflow_get_required_batch_actions($batch_id = NULL,
   $query->addField('wsa', 'order', 'action_order');
   $query->join('islandora_digital_workflow_actions', 'wa', 'wsa.action_id = wa.action_id');
   $query->fields('wa', array('description', 'action_id'));
+  $query->addField('wa', 'name', 'action_name');
   if ($batch_id) {
     $query->condition('b.batch_id', $batch_id);
   }
@@ -914,6 +917,7 @@ function islandora_digital_workflow_get_required_batch_actions($batch_id = NULL,
   foreach ($rows as $row) {
     $return_rows[$row->action_order] = array(
         'batch_id' => $row->batch_id,
+        'batch_action_name' => $row->action_name,
         'batch_action_description' => $row->description,
         'is_required' => $row->is_required,
         'sequence_name' => $row->name,
