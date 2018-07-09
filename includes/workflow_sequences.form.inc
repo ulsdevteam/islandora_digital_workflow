@@ -63,23 +63,25 @@ function islandora_digital_workflow_sequences() {
     $form['wrapper']['workflow_sequence_id_' . $workflow_sequence_id] = array(
       '#type' => 'item',
       '#markup' =>
-        '<a name="' . $name_description['name'] . '"><div class="dashboard-report">' .
-        '<div class="small_right_float">' .
-        l('Edit', 'admin/islandora/islandora_digital_workflow/edit_workflow_sequence/' . $workflow_sequence_id) . ' | ' . 
-        l('Delete', 'admin/islandora/islandora_digital_workflow/delete_workflow_sequence/' . $workflow_sequence_id) .
-        '</div><h3>' . l($name_description['name'], 'admin/islandora/islandora_digital_workflow/edit_workflow_sequence/' . $workflow_sequence_id) . '</h3>' .
+        '<a name="' . $name_description['name'] . '">' .
+        '<div class="dashboard-report">' .
+        '  <div class="small_right_float">' .
+          l('Edit', 'admin/islandora/islandora_digital_workflow/edit_workflow_sequence/' . $workflow_sequence_id) . ' | ' .
+          l('Delete', 'admin/islandora/islandora_digital_workflow/delete_workflow_sequence/' . $workflow_sequence_id) .
+        '  </div>' .
+        '<h3>' . l($name_description['name'], 'admin/islandora/islandora_digital_workflow/edit_workflow_sequence/' . $workflow_sequence_id) . '</h3>' .
         '<p>' . $name_description['description'] . '</p>' . 
-        '<div class="lookup_result"><p><b>' .
-        l('Models', 'admin/islandora/islandora_digital_workflow/workflow_sequence_models/' . $workflow_sequence_id) . ':</b> ' . $models .
-        '</p><p><b>' .
-        l('Actions', 'admin/islandora/islandora_digital_workflow/workflow_sequences/' . $workflow_sequence_id) .
+        '  <div class="lookup_result_square"><p><b>' .
+          l('Models', 'admin/islandora/islandora_digital_workflow/workflow_sequence_models/' . $workflow_sequence_id) . ':</b> ' . $models .
+          '</p><p><b>' .
+          l('Actions', 'admin/islandora/islandora_digital_workflow/workflow_sequences/' . $workflow_sequence_id) .
         ':</b><ul>' .
         ((count($markup_batch_actions) > 0) ?
-        '<li class="no_indent">Batch actions</li>' .
-        '<ul class="corner_bordered">' . implode("\n" , $markup_batch_actions) . '</ul>' : '') .
+          '<li class="no_indent">Batch actions</li>' .
+          '<ul class="corner_bordered">' . implode("\n" , $markup_batch_actions) . '</ul>' : '') .
         ((count($markup_item_actions) > 0) ?
-        '<ul><li class="no_indent">Item actions</li>' .
-        '<ul class="corner_bordered">' . implode("\n" , $markup_item_actions) . '</ul>' : '') .
+          '<li class="no_indent">Item actions</li>' .
+          '<ul class="corner_bordered">' . implode("\n" , $markup_item_actions) . '</ul>' : '') .
         '</ul></p></div></div></a>',
     );
   }
@@ -116,7 +118,7 @@ function islandora_digital_workflow_order_delete(array $form, array &$form_state
   $workflow_model_sequences = islandora_digital_workflow_get_workflow_model_sequences();
   $actions = islandora_digital_workflow_get_item_actions();
   $workflow_sequences = islandora_digital_workflow_get_workflow_sequences();
-  $affected_batch_nodes = islandora_digital_workflow_get_batches_by_workflow_sequence_id();
+  $affected_batch_nodes = islandora_digital_workflow_get_batches_by_workflow_sequence_id($workflow_sequence_id);
   $form = array(
       'workflow_sequence_id' => array(
           '#type' => 'hidden',
@@ -139,7 +141,7 @@ function islandora_digital_workflow_order_delete(array $form, array &$form_state
   if (count($affected_batch_nodes) > 0) {
     $form['warning']['#suffix'] = '<div class="bad dashboard-report"><p>If this ' .
         'workflow wequence is deleted, the following batches would need to be ' .
-        'associated with another Workflow Sequence.<ul><li>' .
+        'associated with another Workflow Sequence:<ul><li>' .
         implode('</li><li>', $affected_batch_nodes) . '</ul></p></div>';
   }
   return $form;
@@ -176,16 +178,17 @@ function islandora_digital_workflow_order_delete_submit(array $form, array &$for
     //
     // First, we must select the batch identifiers that are impacted for the
     // message that will be displayed to update these batches.
-    $affected_batch_nodes = islandora_digital_workflow_get_batches_by_workflow_sequence_id();
+    $affected_batch_nodes = islandora_digital_workflow_get_batches_by_workflow_sequence_id($workflow_sequence_id);
     $query = db_select('islandora_digital_workflow_batch', 'b')
         ->fields('b', array('nid', 'batch_name'))
         ->condition('b.workflow_sequence_id', $workflow_sequence_id);
     $results = $query->execute();
     $rows = $results->fetchAll();
     $affected_batch_nodes = array();
+    $link_attributes = array('attributes' => array('target' => '_blank'));
     foreach ($rows as $i => $row) {
       // Make a list of links to edit these batchs' batch records.
-      $affected_batch_nodes[] = l($row->name, 'node/' . $row->nid . '/batch');
+      $affected_batch_nodes[] = l($row->batch_name, 'node/' . $row->nid . '/batch', $link_attributes);
     }
     $batches_updated_count = db_update('islandora_digital_workflow_batch')
         ->fields(array('workflow_sequence_id' => NULL))
@@ -205,10 +208,10 @@ function islandora_digital_workflow_order_delete_submit(array $form, array &$for
     }
 
     if ($deleted_models_count) {
-      drupal_set_message($deleted_models_count . ' related model associations for the deleted sequence were also removed,');
+      drupal_set_message('Related model associations for the deleted sequence were also removed,');
     }
     if ($deleted_actions_count) {
-      drupal_set_message($deleted_actions_count . ' related actions for the deleted sequence were also removed,');
+      drupal_set_message('Related actions for the deleted sequence were also removed,');
     }
 
     drupal_set_message('Deleted workflow sequence.');
@@ -231,9 +234,10 @@ function islandora_digital_workflow_get_batches_by_workflow_sequence_id($workflo
   $results = $query->execute();
   $rows = $results->fetchAll();
   $affected_batch_nodes = array();
+  $link_attributes = array('attributes' => array('target' => '_blank'));
   foreach ($rows as $i => $row) {
     // Make a list of links to edit these batchs' batch records.
-    $affected_batch_nodes[] = l($row->name, 'node/' . $row->nid . '/batch');
+    $affected_batch_nodes[] = l($row->batch_name, 'node/' . $row->nid . '/batch', $link_attributes);
   }
   return $affected_batch_nodes;
 }

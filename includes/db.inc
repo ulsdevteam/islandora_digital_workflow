@@ -229,6 +229,25 @@ function islandora_digital_workflow_find_batch_records_no_details() {
 }
 
 /**
+ * This returns an array of batch record objects that have no value set for
+ * `workflow_sequence_id`.
+ *
+ * These records represent batches that have been using a workflow sequence that
+ * has since been deleted.
+ *
+ * @return array
+ *   Either returns an array of batch record objects or NULL if it cannot be found.
+ */
+function islandora_digital_workflow_find_batch_records_no_workflow_sequence() {
+  $query = db_select('islandora_digital_workflow_batch', 'b')
+      ->fields('b')
+      ->condition('b.workflow_sequence_id', NULL);
+  $results = $query->execute();
+  $rows = $results->fetchAll();
+  return $rows;
+}
+
+/**
  * Gets an array of batch_item_identifiers and previous transaction_id values.
  *
  * For mapping the items to transactions when replacing (recreating) the

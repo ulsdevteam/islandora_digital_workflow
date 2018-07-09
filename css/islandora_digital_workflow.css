@@ -119,6 +119,10 @@ div.transaction_action_checked_all_items_against_physical_objects {
 }
 /* The above block could be customized in the dynamically created CSS */
 
+.dashboard-task h3 {
+    font-size: 1.2em;
+}
+
 .dashboard-report, #islandora-digital-workflow-batch-defaults {
     border-radius: 8px;
     padding: 10px;
@@ -321,12 +325,21 @@ a .highlighted {
     clear: both;
 }
 
+.lookup_result_square, .lookup_result {
+    padding: 10px;
+    margin-bottom: 8px;
+}
+
+.lookup_result_square {
+    border: 1px solid #ccc;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
 .lookup_result {
     border-radius: 8px;
-    padding: 10px;
-    border: 2px solid #bbb;
     box-shadow: 1px 1px 3px #888;
-    margin-bottom: 8px;
+    border: 2px solid #bbb;
 }
 
 .lookup_result.oddrow {
@@ -369,12 +382,12 @@ a .highlighted {
     box-shadow: 3px 3px 3px #ddd;    
 }
 
-.lookup_result ul {
+.lookup_result_square ul, .lookup_result ul {
     margin-top: 2px;
     list-style: none inside none;
     padding-left: 10px;
 }
-.lookup_result ul li {
+.lookup_result_square ul li, .lookup_result ul li {
     background-position: 0px 2px;
     text-indent: 20px;
 }

@@ -363,6 +363,12 @@ function islandora_digital_workflow_theme() {
         'scanned_files' => array(),
       ),
     ),
+    'islandora_digital_workflow_dashboard_tasks' => array(
+      'template' => 'theme/islandora-digital-workflow-daskboard-tasks',
+      'variables' => array(
+        'tasks_tables' => array(),
+      ),
+    ),
     'islandora_digital_workflow_batch_records_table' => array(
       'template' => 'theme/islandora-digital-workflow-batch-records-table',
       'variables' => array(

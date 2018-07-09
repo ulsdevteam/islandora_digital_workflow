@@ -11,13 +11,14 @@ function islandora_digital_workflow_dashboard() {
   $lookup_form_markup = theme('islandora_digital_workflow_lookup', array('searchterm' => ''));
   module_load_include('inc', 'islandora_digital_workflow', 'includes/access_permissions');
   $dashboard_data = islandora_digital_workflow_get_user_role_dashboard();
-  $tasks_table = islandora_digital_workflow_get_tasks_tables();
+  $tasks_tables = islandora_digital_workflow_get_tasks_tables();
   $links = islandora_digital_workflow_get_stage_links();
   return $lookup_form_markup .
       theme('islandora_digital_workflow_dashboard', array(
           'dashboard_data' => $dashboard_data,
           'links' => $links)) .
-      $tasks_table;
+      theme('islandora_digital_workflow_dashboard_tasks', array(
+          'tasks_tables' => $tasks_tables));
 }
 
 /**
@@ -82,9 +83,16 @@ function islandora_digital_workflow_get_tasks_tables() {
   // TODO:  display a table of batches that need other details like missing
   // workflow_sequence_id values (the value would be NULL -- which is possible
   // when deleting a sequence).
-  
+  $batch_records_no_workflow_sequence = islandora_digital_workflow_find_batch_records_no_workflow_sequence();
+  if (count($batch_records_no_workflow_sequence)) {
+    $tables[] = theme('islandora_digital_workflow_batch_records_table', array(
+      'batch_records' => $batch_records_no_workflow_sequence,
+      'table_title' => 'Batch records with no workflow sequence',
+      'table_description' => 'Please edit the following batch records to associate with a workflow sequence:',
+    ));
+  }
   // make links to edit those batches like: islandora/islandora_digital_workflow/edit_batch/test12
 
-  return implode("\n", $tables);
+  return $tables;
 }
 
