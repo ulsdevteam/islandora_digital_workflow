@@ -32,6 +32,9 @@ define('IDW_ACTION_ALL_SYSTEM_INGEST', 103);
 define('IDW_ACTION_ALL_CHECK_OUT', 104);
 define('IDW_ACTION_ALL_CHECK_PHYSICAL_ITEMS', 105);
 
+define('IDW_ACTION_RESERVED_ALL_1', 120);
+define('IDW_ACTION_RESERVED_ALL_2', 121);
+define('IDW_ACTION_RESERVED_ALL_3', 122);
 
 // Permissions -- NOTE: there are additional permission constants defined in
 // islandora_digital_workflow_permission that use the naming convention of
@@ -76,7 +79,7 @@ function islandora_digital_workflow_menu() {
       'file' => 'includes/workflow_sequences.form.inc',
     ),
     'admin/islandora/islandora_digital_workflow/create_workflow_sequences' => array(
-      'title' => t('Islandora Digital Workflow - Create Workflow Sequences'),
+      'title' => t('Islandora Digital Workflow - Create Workflow Sequence'),
       'type' => MENU_NORMAL_ITEM,
       'page callback' => 'drupal_get_form',
       'page arguments' => array('islandora_digital_workflow_workflow_sequence_create'),
@@ -84,7 +87,7 @@ function islandora_digital_workflow_menu() {
       'file' => 'includes/workflow_sequences.form.inc',
     ),
     'admin/islandora/islandora_digital_workflow/edit_workflow_sequence/%' => array(
-      'title' => t('Islandora Digital Workflow - Edit Workflow Sequences'),
+      'title' => t('Islandora Digital Workflow - Edit Workflow Sequence'),
       'type' => MENU_NORMAL_ITEM,
       'page callback' => 'drupal_get_form',
       'page arguments' => array('islandora_digital_workflow_workflow_sequence_edit', 4),
@@ -92,7 +95,7 @@ function islandora_digital_workflow_menu() {
       'file' => 'includes/workflow_sequences.form.inc',
     ),
     'admin/islandora/islandora_digital_workflow/delete_workflow_sequence/%' => array(
-      'title' => t('Islandora Digital Workflow - Delete Workflow Sequences'),
+      'title' => t('Islandora Digital Workflow - Delete Workflow Sequence'),
       'type' => MENU_NORMAL_ITEM,
       'page callback' => 'drupal_get_form',
       'page arguments' => array('islandora_digital_workflow_order_delete', 4),
@@ -104,6 +107,14 @@ function islandora_digital_workflow_menu() {
       'type' => MENU_NORMAL_ITEM,
       'page callback' => 'drupal_get_form',
       'page arguments' => array('islandora_digital_workflow_workflow_sequence_models_form', 4),
+      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_MANAGE_SEQUENCES),
+      'file' => 'includes/workflow_sequences.form.inc',
+    ),
+    'admin/islandora/islandora_digital_workflow/workflow_sequence_reserved_actions' => array(
+      'title' => t('Islandora Digital Workflow - Reserved Actions Configuration'),
+      'type' => MENU_NORMAL_ITEM,
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('islandora_digital_workflow_workflow_reserved_actions_form'),
       'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_MANAGE_SEQUENCES),
       'file' => 'includes/workflow_sequences.form.inc',
     ),

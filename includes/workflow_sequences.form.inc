@@ -26,6 +26,10 @@ function islandora_digital_workflow_sequences() {
   $workflow_sequence_actions = islandora_digital_workflow_get_workflow_sequence_actions();
   $workflow_model_sequences = islandora_digital_workflow_get_workflow_model_sequences();
 
+  $form['link'] = array(
+      '#type' => 'item',
+      '#markup' => l('Manage Reserved Actions', 'admin/islandora/islandora_digital_workflow/workflow_sequence_reserved_actions'),
+  );
   $form['wrapper'] = array(
       '#type' => 'fieldset',
       '#title' => t('Workflow Sequences'),
@@ -116,34 +120,46 @@ function islandora_digital_workflow_order_delete(array $form, array &$form_state
 
   $workflow_sequence_actions = islandora_digital_workflow_get_workflow_sequence_actions();
   $workflow_model_sequences = islandora_digital_workflow_get_workflow_model_sequences();
-  $actions = islandora_digital_workflow_get_item_actions();
   $workflow_sequences = islandora_digital_workflow_get_workflow_sequences();
+  $sequence_title = $workflow_sequences[$workflow_sequence_id]['name'];
   $affected_batch_nodes = islandora_digital_workflow_get_batches_by_workflow_sequence_id($workflow_sequence_id);
-  $form = array(
-      'workflow_sequence_id' => array(
+  $form = array();
+
+  $form['workflow_sequence_id'] = array(
           '#type' => 'hidden',
           '#default_value' => $workflow_sequence_id
-      ),
-      'warning' => array(
+      );
+  $form['warning'] = array(
           '#type' => 'item',
           '#markup' => '<span class="bad"><b>This can not be undone!</b>  Are ' . 
             'you certain that you want to delete this workflow sequence and any ' . 
-            'action / Islandora model relationships?',
-      ),
-      'confirm' => array(
+            'action / Islandora model relationships?</span>',
+      );
+  $form['confirm'] = array(
           '#type' => 'submit',
           '#value' => t('Confirm DELETE'),
-      ),
-      'cancel' => array(
+      );
+  $form['cancel'] = array(
           '#type' => 'submit',
           '#value' => t('Cancel'),
-      ));
+      );
   if (count($affected_batch_nodes) > 0) {
-    $form['warning']['#suffix'] = '<div class="bad dashboard-report"><p>If this ' .
+    $form['warning']['#prefix'] = '<div class="dashboard-report"><p>If this ' .
         'workflow wequence is deleted, the following batches would need to be ' .
         'associated with another Workflow Sequence:<ul><li>' .
         implode('</li><li>', $affected_batch_nodes) . '</ul></p></div>';
   }
+
+  drupal_set_title(t('Islandora Digital Workflow - Delete Workflow Sequence'), CHECK_PLAIN);
+  $breadcrumb = array(
+    l('Home', '<front>'),
+    l('Administration', 'admin'),
+    l('Islandora', 'admin/islandora'),
+    l('Islandora Digital Workflow', 'admin/islandora/islandora_digital_workflow'),
+    l('Islandora Digital Workflow - Workflow Sequences', 'admin/islandora/islandora_digital_workflow/workflow_sequences'),
+    $sequence_title,
+  );
+
   return $form;
 }
 
@@ -229,7 +245,7 @@ function islandora_digital_workflow_order_delete_submit(array $form, array &$for
  */
 function islandora_digital_workflow_get_batches_by_workflow_sequence_id($workflow_sequence_id) {
   $query = db_select('islandora_digital_workflow_batch', 'b')
-      ->fields('b', array('nid', 'batch_name'))
+      ->fields('b', array('nid', 'batch_name', 'batch_description'))
       ->condition('b.workflow_sequence_id', $workflow_sequence_id);
   $results = $query->execute();
   $rows = $results->fetchAll();
@@ -237,7 +253,8 @@ function islandora_digital_workflow_get_batches_by_workflow_sequence_id($workflo
   $link_attributes = array('attributes' => array('target' => '_blank'));
   foreach ($rows as $i => $row) {
     // Make a list of links to edit these batchs' batch records.
-    $affected_batch_nodes[] = l($row->batch_name, 'node/' . $row->nid . '/batch', $link_attributes);
+    $affected_batch_nodes[] = '<b>' . l($row->batch_name, 'node/' . $row->nid . '/batch', $link_attributes) . '</b> ' .
+        ($row->batch_description ? $row->batch_description : '');
   }
   return $affected_batch_nodes;
 }
@@ -274,6 +291,16 @@ function islandora_digital_workflow_workflow_sequence_create(array $form, array 
           '#type' => 'submit',
           '#value' => t('Save changes')
       ),
+  );
+  $title = 'Islandora Digital Workflow - Create Workflow Sequence';
+  drupal_set_title($title, CHECK_PLAIN);
+  $breadcrumb = array(
+    l('Home', '<front>'),
+    l('Administration', 'admin'),
+    l('Islandora', 'admin/islandora'),
+    l('Islandora Digital Workflow', 'admin/islandora/islandora_digital_workflow'),
+    l('Islandora Digital Workflow - Workflow Sequences', 'admin/islandora/islandora_digital_workflow/workflow_sequences'),
+    $title,
   );
   return $form;
 }
@@ -324,6 +351,7 @@ function islandora_digital_workflow_workflow_sequence_edit(array $form, array &$
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
   $workflow_sequences = islandora_digital_workflow_get_workflow_sequences();
+  $sequence_title = $workflow_sequences[$workflow_sequence_id]['name'];
   $form['add_new'] = array(
       '#type' => 'fieldset',
       '#title' => t('Edit Sequence'),
@@ -349,6 +377,27 @@ function islandora_digital_workflow_workflow_sequence_edit(array $form, array &$
           '#value' => t('Save changes')
       ),
   );
+
+  $related_batch_nodes = islandora_digital_workflow_get_batches_by_workflow_sequence_id($workflow_sequence_id);
+
+  if (count($related_batch_nodes) > 0) {
+    $form['wrapper']['related_batches'] = array(
+      '#type' => 'item',
+      '#markup' => '<div class="corner_bordered"><h3>Batches using "' . $sequence_title .
+          '":</h3><ul><li>' . implode("</li><li>", $related_batch_nodes) . '</li></ul></div>',
+    );
+  }
+
+  drupal_set_title(t('Islandora Digital Workflow - Edit Workflow Sequence'), CHECK_PLAIN);
+  $breadcrumb = array(
+    l('Home', '<front>'),
+    l('Administration', 'admin'),
+    l('Islandora', 'admin/islandora'),
+    l('Islandora Digital Workflow', 'admin/islandora/islandora_digital_workflow'),
+    l('Islandora Digital Workflow - Workflow Sequences', 'admin/islandora/islandora_digital_workflow/workflow_sequences'),
+    $sequence_title,
+  );
+
   return $form;
 }
 
@@ -385,8 +434,8 @@ function islandora_digital_workflow_workflow_sequence_edit_submit($form, &$form_
  *   The Drupal form definition.
  * @param array $form_state
  *   The Drupal form state.
- * @return array
- *   Drupal form definition.
+ * $workflow_sequence_id integer
+ *   Identifier for an islandora_digital_workflow_sequence record.
  *
  * @return string|array
  */
@@ -396,10 +445,10 @@ function islandora_digital_workflow_workflow_sequence_actions_form(array $form, 
 
   $workflow_sequence_actions = islandora_digital_workflow_get_workflow_sequence_actions();
   $workflow_model_sequences = islandora_digital_workflow_get_workflow_model_sequences();
-  $actions = islandora_digital_workflow_get_item_actions();
-  $batch_actions = islandora_digital_workflow_get_batch_action_options();
+  $actions = islandora_digital_workflow_get_item_actions(FALSE);
+  $batch_actions = islandora_digital_workflow_get_batch_action_options(FALSE);
   $workflow_sequences = islandora_digital_workflow_get_workflow_sequences();
-  $sequence_title = $workflow_sequences[$workflow_sequence_id]['description'];
+  $sequence_title = $workflow_sequences[$workflow_sequence_id]['name'];
   $insert_batch_action_options = $insert_action_options = array('' => 'Select Action');
 
   foreach ($actions as $action_id => $arr) {
@@ -494,7 +543,7 @@ function islandora_digital_workflow_workflow_sequence_actions_form(array $form, 
     $form['wrapper']['rows'] = array();
   }
 
-  $title = t('Islandora Digital Workflow' . ($sequence_title ? ' "' . $sequence_title . '"' : ''));
+  $title = ($sequence_title ? ' "' . $sequence_title . '"' : 'Islandora Digital Workflow');
   drupal_set_title($title, CHECK_PLAIN);
   $breadcrumb = array(
     l('Home', '<front>'),
@@ -507,6 +556,16 @@ function islandora_digital_workflow_workflow_sequence_actions_form(array $form, 
   drupal_set_breadcrumb($breadcrumb);
 
   $form['submit'] = array('#type' => 'submit', '#value' => t('Save changes'));
+
+  $related_batch_nodes = islandora_digital_workflow_get_batches_by_workflow_sequence_id($workflow_sequence_id);
+
+  if (count($related_batch_nodes) > 0) {
+    $form['related_batches'] = array(
+      '#type' => 'item',
+      '#markup' => '<div class="corner_bordered"><h3>Batches using "' . $sequence_title .
+          '":</h3><ul><li>' . implode("</li><li>", $related_batch_nodes) . '</li></ul></div>',
+    );
+  }
   return $form;
 }
 
@@ -520,9 +579,15 @@ function islandora_digital_workflow_workflow_sequence_actions_form(array $form, 
  */
 function islandora_digital_workflow_workflow_sequence_actions_form_submit($form, &$form_state) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
-  $item_actions = islandora_digital_workflow_get_item_actions();
-  $batch_actions = islandora_digital_workflow_get_batch_action_options();
-  $all_actions = array_merge($item_actions, $batch_actions);
+  $item_actions = islandora_digital_workflow_get_item_actions(FALSE);
+  $batch_actions = islandora_digital_workflow_get_batch_action_options(FALSE);
+  $all_actions = array();
+  foreach ($item_actions as $action_id => $item_action) {
+    $all_actions[$action_id] = $item_action;
+  }
+  foreach ($batch_actions as $action_id => $batch_action) {
+    $all_actions[$action_id] = $batch_action;
+  }
   $current_action_ids = $slides = array();
   $workflow_sequence_id = 0;
   // Removed action_id rows are submitted individually via their [Remove] button.
@@ -650,7 +715,7 @@ function islandora_digital_workflow_workflow_sequence_models_form(array $form, a
   $accessible_models = islandora_digital_workflow_get_accessible_cmodels();
   $workflow_model_sequences = islandora_digital_workflow_get_workflow_model_sequences();
   $workflow_sequences = islandora_digital_workflow_get_workflow_sequences();
-  $sequence_title = $workflow_sequences[$workflow_sequence_id]['description'];
+  $sequence_title = $workflow_sequences[$workflow_sequence_id]['name'];
   $add_model_options = array();
   foreach ($accessible_models as $tid => $accessible_model) {
     if ($accessible_model) {
@@ -667,7 +732,7 @@ function islandora_digital_workflow_workflow_sequence_models_form(array $form, a
       }
     }
   }
-  $title = t('Islandora Digital Workflow' . ($sequence_title ? ' "' . $sequence_title . '"' : ''));
+  $title = ($sequence_title ? ' "' . $sequence_title . '"' : 'Islandora Digital Workflow');
   drupal_set_title($title, CHECK_PLAIN);
   $breadcrumb = array(
     l('Home', '<front>'),
@@ -718,6 +783,15 @@ function islandora_digital_workflow_workflow_sequence_models_form(array $form, a
         '#value' => t('Save changes')
       );
 
+  $related_batch_nodes = islandora_digital_workflow_get_batches_by_workflow_sequence_id($workflow_sequence_id);
+
+  if (count($related_batch_nodes) > 0) {
+    $form['related_batches'] = array(
+      '#type' => 'item',
+      '#markup' => '<div class="corner_bordered"><h3>Batches using "' . $sequence_title .
+          '":</h3><ul><li>' . implode("</li><li>", $related_batch_nodes) . '</li></ul></div>',
+    );
+  }
   return $form;
 }
 
@@ -764,5 +838,120 @@ function islandora_digital_workflow_workflow_sequence_models_form_submit($form, 
   }
   else {
     drupal_set_message('No changes were saved because no model was selected.', 'warning');
+  }
+}
+
+/**
+ * Displays configuration options related to reserved actions that can be used
+ * for workflow sequence management.
+ *
+ * @param array $form
+ *   The Drupal form definition.
+ * @param array $form_state
+ *   The Drupal form state.
+ *
+ * @return string|array
+ */
+function islandora_digital_workflow_workflow_reserved_actions_form(array $form, array &$form_state) {
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
+
+  // Get all of the actions (batch_actions and item_actions together).
+  $item_actions = islandora_digital_workflow_get_item_actions(TRUE);
+  $batch_actions = islandora_digital_workflow_get_batch_action_options(TRUE);
+  $reserved_actions = array();
+  foreach ($item_actions as $action_id => $item_action) {
+    if (strstr($item_action['name'], 'reserved-action-')) {
+      $reserved_actions[$action_id] = $item_action;
+    }
+  }
+  foreach ($batch_actions as $action_id => $batch_action) {
+    if (strstr($batch_action['name'], 'reserved-action-')) {
+      $reserved_actions[$action_id] = $batch_action;
+    }
+  }
+
+  $form = array(
+      'reserved_actions' => array(
+          '#type' => 'fieldset',
+          '#title' => 'Reserved Actions',
+          '#attributes' => array('class' => array('foobar')),
+          '#description' => '<p>In order for any of these reserved actions to ' .
+              'appear for use in the ' . 
+              l('Islandora Digital Workflow - Workflow Sequences', 'admin/islandora/islandora_digital_workflow/workflow_sequences') .
+              ', their description must be ' .
+              'changed so that it does not begin with "Reserved".</p>',
+      ),
+  );
+  $markup_item_actions = $markup_batch_actions = $action_constants = array();
+  foreach ($reserved_actions as $action_id => $action_record_array) {
+    $glyph_class = 'transaction_action_' . (($action_record_array['name']) ? strtolower(str_replace(array("-", " "), "_", $action_record_array['name'])) : 'spacer');
+    $markup = '<span class="' . $glyph_class . '"><b>Action name:</b><br>' . $action_record_array['name'] .
+            '</span>';
+    if ($action_record_array['action_id'] > 99) {
+      $action_constants[$action_record_array['action_id']] = 
+              '<span class="transaction_action_reserved_action_spacer"><b>Action constant:</b><pre>IDW_ACTION_RESERVED_ALL_' . ($action_record_array['action_id'] - 119) . '</pre></span>';
+      $markup_batch_actions[$action_record_array['action_id']] = $markup;
+    } else {
+      $action_constants[$action_record_array['action_id']] =
+              '<span class="transaction_action_reserved_action_spacer"><b>Action constant:</b><pre>IDW_ACTION_RESERVED_' . ($action_record_array['action_id'] - 19) . '</pre></span>';
+      $markup_item_actions[$action_record_array['action_id']] = $markup;
+    }
+  }
+  $last_action_id = '';
+  foreach ($markup_item_actions as $action_id => $markup) {
+    $form['reserved_actions']['item_actions']['item_action_' . $action_id] = array(
+        '#type' => 'textfield',
+        '#title' => 'Action description:',
+        '#default_value' => $reserved_actions[$action_id]['description'],
+        '#prefix' => ($last_action_id ? '' : '<h3>Item actions</h3>') . $markup,
+        '#suffix' => $action_constants[$action_id] . '<br style="clear:both">',
+    );
+    $last_action_id = $action_id;
+  }
+  $form['reserved_actions']['item_actions']['item_action_' . $action_id]['#suffix'] = 
+      $form['reserved_actions']['item_actions']['item_action_' . $action_id]['#suffix'] . '<hr><h3>Batch actions</h3>';
+
+  foreach ($markup_batch_actions as $action_id => $markup) {
+    $form['reserved_actions']['batch_actions']['batch_action_' . $action_id] = array(
+        '#type' => 'textfield',
+        '#title' => 'Action description:',
+        '#default_value' => $reserved_actions[$action_id]['description'],
+        '#prefix' => $markup,
+        '#suffix' => $action_constants[$action_id] . '<br style="clear:both">',
+    );
+  }
+  $form['submit'] = array(
+          '#type' => 'submit',
+          '#value' => t('Save changes')
+      );
+
+  return $form;
+}
+
+/**
+ * Submit form handler for managing reserved actions.
+ *
+ * @param array $form
+ *   The Drupal form definition.
+ * @param array $form_state
+ *   The Drupal form state.
+ */
+function islandora_digital_workflow_workflow_reserved_actions_form_submit(array $form, array &$form_state) {
+  $form_value_keys = array('item_action_20', 'item_action_21', 'item_action_22',
+      'item_action_23', 'item_action_24', 'item_action_25',
+      'batch_action_120', 'batch_action_121', 'batch_action_122');
+  $updated = FALSE;
+  foreach ($form_value_keys as $form_key) {
+    $action_id = str_replace(array('item_action_', 'batch_action_'), '', $form_key);
+    $updated |= db_update('islandora_digital_workflow_actions')
+        ->fields(array('description' => $form_state['values'][$form_key]))
+        ->condition('action_id', $action_id)
+        ->execute();
+  }
+  if ($updated) {
+    drupal_set_message('The settings have been saved.');
+  }
+  else {
+    drupal_set_message('No changes have been made.');
   }
 }

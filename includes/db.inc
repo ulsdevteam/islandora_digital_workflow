@@ -703,8 +703,10 @@ function islandora_digital_workflow_get_workflow_sequences() {
   return $return_array;
 }
 
-function islandora_digital_workflow_get_item_actions() {
-  $rows = db_query('SELECT * FROM islandora_digital_workflow_actions WHERE action_id < 100')->fetchAll();
+function islandora_digital_workflow_get_item_actions($display_reserved_actions = TRUE) {
+  $query = db_query('SELECT * FROM islandora_digital_workflow_actions WHERE action_id < 100' .
+      (!$display_reserved_actions ? ' AND description NOT LIKE \'Reserved %\'' : '') );
+  $rows = $query->fetchAll();
   $return_array = array();
   foreach ($rows as $i => $row_obj) {
     $return_array[$row_obj->action_id] = array(
@@ -716,8 +718,10 @@ function islandora_digital_workflow_get_item_actions() {
   return $return_array;
 }
 
-function islandora_digital_workflow_get_batch_action_options() {
-  $rows = db_query('SELECT * FROM islandora_digital_workflow_actions WHERE action_id > 99')->fetchAll();
+function islandora_digital_workflow_get_batch_action_options($display_reserved_actions = TRUE) {
+  $query = db_query('SELECT * FROM islandora_digital_workflow_actions WHERE action_id > 99' .
+      (!$display_reserved_actions ? ' AND description NOT LIKE \'Reserved %\'' : '') );
+  $rows = $query->fetchAll();
   $return_array = array();
   foreach ($rows as $i => $row_obj) {
     $return_array[$row_obj->action_id] = array(

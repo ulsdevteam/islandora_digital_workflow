@@ -18,60 +18,69 @@ and open the template in the editor.
 
 .transaction_action_check_in, 
 .transaction_action_all_check_in {
-    background: url("../images/check-in-physical-item_20.png") 24px 0px no-repeat !important;
+    background: url("../images/check-in-physical-item_20.png") 0px 0px no-repeat !important;
 }
 
-.transaction_action_scan, .transaction_action_scanned_all_items {
-    background: url("../images/scan-the-item_20.png") 24px 0px no-repeat !important;
+.transaction_action_scan, .transaction_action_all_scan {
+    background: url("../images/scan-the-item_20.png") 0px 0px no-repeat !important;
 }
 
 .transaction_action_ingest, 
 .transaction_action_all_ingest {
-    background: url("../images/ingest-item-into-repository_20.png") 24px 0px no-repeat !important;
+    background: url("../images/ingest-item-into-repository_20.png") 0px 0px no-repeat !important;
 }
 
 .transaction_action_add_marc_record {
-    background: url("../images/add-marc-record_20.png") 24px 0px no-repeat !important;
+    background: url("../images/add-marc-record_20.png") 0px 0px no-repeat !important;
 }
 
 .transaction_action_system_made_derivatives {
-    background: url("../images/system-made-derivatives_20.png") 24px 0px no-repeat !important;
+    background: url("../images/system-made-derivatives_20.png") 0px 0px no-repeat !important;
 }
 
 .transaction_action_check_out, 
 .transaction_action_all_check_out {
-    background: url("../images/check-out-physical-item_20.png") 24px 0px no-repeat !important;
+    background: url("../images/check-out-physical-item_20.png") 0px 0px no-repeat !important;
 }
 
 .transaction_action_check_physical_items, 
 .transaction_action_all_check_physical_items {
-    background: url("../images/check-item-against-physical-object_20.png") 24px 0px no-repeat !important;
+    background: url("../images/check-item-against-physical-object_20.png") 0px 0px no-repeat !important;
 }
 
 .transaction_action_rescan {
-    background: url("../images/rescanned-the-item_20.png") 24px 0px no-repeat !important;
+    background: url("../images/rescanned-the-item_20.png") 0px 0px no-repeat !important;
 }
 
 .transaction_action_reserved_action_1 {
-    background: url("../images/reserved-action-1_20.png") 24px 0px no-repeat !important;
+    background: url("../images/reserved-action-1_20.png") 0px 0px no-repeat !important;
 }
 .transaction_action_reserved_action_2 {
-    background: url("../images/reserved-action-2_20.png") 24px 0px no-repeat !important;
+    background: url("../images/reserved-action-2_20.png") 0px 0px no-repeat !important;
 }
 .transaction_action_reserved_action_3 {
-    background: url("../images/reserved-action-3_20.png") 24px 0px no-repeat !important;
+    background: url("../images/reserved-action-3_20.png") 0px 0px no-repeat !important;
 }
 .transaction_action_reserved_action_4 {
-    background: url("../images/reserved-action-4_20.png") 24px 0px no-repeat !important;
+    background: url("../images/reserved-action-4_20.png") 0px 0px no-repeat !important;
 }
 .transaction_action_reserved_action_5 {
-    background: url("../images/reserved-action-5_20.png") 24px 0px no-repeat !important;
+    background: url("../images/reserved-action-5_20.png") 0px 0px no-repeat !important;
 }
 .transaction_action_reserved_action_6 {
-    background: url("../images/reserved-action-6_20.png") 24px 0px no-repeat !important;
+    background: url("../images/reserved-action-6_20.png") 0px 0px no-repeat !important;
+}
+.transaction_action_reserved_action_all_1 {
+    background: url("../images/reserved-action-all-1_20.png") 0px 0px no-repeat !important;
+}
+.transaction_action_reserved_action_all_2 {
+    background: url("../images/reserved-action-all-2_20.png") 0px 0px no-repeat !important;
+}
+.transaction_action_reserved_action_all_3 {
+    background: url("../images/reserved-action-all-3_20.png") 0px 0px no-repeat !important;
 }
 .transaction_action_spacer {
-    background: url("../images/unknown-action_20.png") 24px 0px no-repeat !important;
+    background: url("../images/unknown-action_20.png") 0px 0px no-repeat !important;
 }
 
 div.actions_required {
@@ -96,10 +105,13 @@ div.transaction_action_reserved_action_3,
 div.transaction_action_reserved_action_4,
 div.transaction_action_reserved_action_5,
 div.transaction_action_reserved_action_6,
+div.transaction_action_reserved_action_all_1,
+div.transaction_action_reserved_action_all_2,
+div.transaction_action_reserved_action_all_3,
 div.transaction_action_spacer,
 div.transaction_action_all_ingest,
 div.transaction_action_all_check_in,
-div.transaction_action_scanned_all_items,
+div.transaction_action_all_scan,
 div.transaction_action_add_marc_record,
 div.transaction_action_all_check_out,
 div.transaction_action_all_check_physical_items {
@@ -107,6 +119,27 @@ div.transaction_action_all_check_physical_items {
     float: left;
     padding: 0px 1px;
     background-position: top left;
+}
+
+span.transaction_action_reserved_action_1,
+span.transaction_action_reserved_action_2,
+span.transaction_action_reserved_action_3,
+span.transaction_action_reserved_action_4,
+span.transaction_action_reserved_action_5,
+span.transaction_action_reserved_action_6,
+span.transaction_action_reserved_action_all_1,
+span.transaction_action_reserved_action_all_2,
+span.transaction_action_reserved_action_all_3,
+span.transaction_action_reserved_action_spacer {
+    padding-left: 28px;
+    float: left;
+    width: 200px;
+}
+
+.transaction_action_reserved_action_spacer pre {
+    font-family: Andale Mono, monospace;
+    white-space: nowrap;
+    margin-top: 0;
 }
 
 #edit-add-batch-action option {
@@ -151,8 +184,11 @@ div.transaction_action_all_check_physical_items {
 }
 /* The above block could be customized in the dynamically created CSS */
 
-.dashboard-task h3 {
+.dashboard-task h3, .corner_bordered h3 {
     font-size: 1.2em;
+}
+.corner_bordered h3 {
+    margin-left: 10px;
 }
 
 .dashboard-report, #islandora-digital-workflow-batch-defaults {
@@ -292,6 +328,13 @@ div.transaction_action_all_check_physical_items {
     line-height: 26px;
 }
 
+.foobar .fieldset-wrapper .form-item {
+    display: inline-block;
+    float: left;
+    margin-top: 0;
+    margin-left: 20px;
+}
+
 .report_table fieldset {
     border-radius: 6px;
     margin: 4px;
@@ -310,7 +353,8 @@ div.transaction_action_all_check_physical_items {
 }
 
 .item_action td, .batch_action td {
-    padding: 0px !important;
+    padding: 0 0 0 5px !important;
+    
 }
 .batch_action, .batch_action_box {
     border-right: 8px solid #e8ae60 !important;
@@ -322,10 +366,12 @@ div.transaction_action_all_check_physical_items {
 tr.batch_action {
     background-color: #efe5d7 !important;
     border-right: none !important;
+    background-position: 27px 0 !important;
 }
 tr.item_action {
     background-color: #dddce7 !important;
     border-right: none !important;
+    background-position: 27px 0 !important;
 }
 
 .short-text-area {

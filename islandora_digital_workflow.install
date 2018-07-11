@@ -581,27 +581,39 @@ function islandora_digital_workflow_insert_islandora_digital_workflow_actions() 
     // for the HTML class and must not be changed).
     IDW_ACTION_RESERVED_1 => array(
       'name' => 'reserved-action-1',
-      'description' => 'Reserved',
+      'description' => 'Reserved action 1',
     ),
     IDW_ACTION_RESERVED_2 => array(
       'name' => 'reserved-action-2',
-      'description' => 'Reserved',
+      'description' => 'Reserved action 2',
     ),
     IDW_ACTION_RESERVED_3 => array(
       'name' => 'reserved-action-3',
-      'description' => 'Reserved',
+      'description' => 'Reserved action 3',
     ),
     IDW_ACTION_RESERVED_4 => array(
       'name' => 'reserved-action-4',
-      'description' => 'Reserved',
+      'description' => 'Reserved action 4',
     ),
     IDW_ACTION_RESERVED_5 => array(
       'name' => 'reserved-action-5',
-      'description' => 'Reserved',
+      'description' => 'Reserved action 5',
     ),
     IDW_ACTION_RESERVED_6 => array(
       'name' => 'reserved-action-6',
-      'description' => 'Reserved',
+      'description' => 'Reserved action 6',
+    ),
+    IDW_ACTION_RESERVED_ALL_1 => array(
+      'name' => 'reserved-action-all-1',
+      'description' => 'Reserved batch action 1',
+    ),
+    IDW_ACTION_RESERVED_ALL_2 => array(
+      'name' => 'reserved-action-all-2',
+      'description' => 'Reserved batch action 2',
+    ),
+    IDW_ACTION_RESERVED_ALL_3 => array(
+      'name' => 'reserved-action-all-3',
+      'description' => 'Reserved batch action 3',
     ),
     // batch-level actions (action_id values greater than 100).
     IDW_ACTION_ALL_CHECK_IN => array(

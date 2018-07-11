@@ -57,12 +57,17 @@ function islandora_digital_workflow_admin_form() {
       '#title' => t('Workflow rules'),
       '#collapsible' => TRUE,
       '#collapsed' => FALSE,
-      'rules_one' => array(
+      'link_1' => array(
         '#type' => 'item',
         '#title' => l('Islandora Digital Workflow - Workflow Sequences', 'admin/islandora/islandora_digital_workflow/workflow_sequences'),
         '#description' => t('Manage Workflow sequence actions related to each islandora model.'),
       ),
-      'rules_two' => array(
+      'link_2' => array(
+        '#type' => 'item',
+        '#title' => l('Islandora Digital Workflow - Reserved Actions Configuration', 'admin/islandora/islandora_digital_workflow/workflow_sequence_reserved_actions'),
+        '#description' => t('Reserved actions configuration.'),
+      ),
+      'link_3' => array(
         '#type' => 'item',
         '#title' => l('Islandora Digital Workflow rules', 'admin/config/workflow/rules', array(
             'query' => array(
