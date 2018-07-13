@@ -14,7 +14,13 @@
 <div class="transactions_glyphs" style="display:inline-block;float:left">
     <?php if ($display_as_requirements): ?>
     <div class="actions_required">
-        <small><?php print $sequence_name; ?> item actions: </small>
+        <small><?php print $sequence_name; ?> item actions:
+         <?php if ($display_actions_key): ?>
+            <br><b>Key: </b>
+            <div class="batch_action div_key">(batch actions)</div>
+            <div class="item_action div_key">(item actions)</div><br>
+        <?php endif; ?>
+        </small>
     </div>
     <?php endif; ?>
     <?php foreach ($transaction_actions as $transaction_action) {

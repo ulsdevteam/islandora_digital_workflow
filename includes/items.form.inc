@@ -158,7 +158,7 @@ function islandora_digital_workflow_add_items_form(array $form, array &$form_sta
         $machine_header = str_replace(" ", "_", strtolower(trim($header)));
         if ($machine_header && !(array_key_exists($machine_header, $csv_header_mappings))) {
           drupal_set_message('CSV column "' . $header . '" not recognized.  Batch ' .
-              'will not be able to ingest or process.  Please replace the attached ' .
+              'may not be able to ingest or process.  Please replace the attached ' .
               'CSV file.', 'error');
         }
       }
@@ -194,7 +194,7 @@ function islandora_digital_workflow_add_items_form(array $form, array &$form_sta
           '#type' => 'submit',
           '#value' => t('Add items'),
           '#prefix' => "<a id='file_upload'> </a>",
-          '#suffix' => (count($file_rows) ? '<div class="fieldset_div_wrapper"><h3>Current CSV for batch</h3>' .
+          '#suffix' => (count($file_rows) ? '<div class="fieldset_scrollable_div_wrapper"><h3>Current CSV for batch</h3>' .
               '<div class="report_table_wrapper">' . theme('table', array(
                   'rows' => $file_rows,
                   'header' => $file_header,
@@ -358,6 +358,7 @@ function islandora_digital_workflow_batch_items_form(array $form, array &$form_s
         theme('islandora_digital_workflow_transactions_glyphs', array(
             'transaction_actions' => $required_batch_actions,
             'display_as_requirements' => TRUE,
+            'display_actions_key' => FALSE,
             'sequence_name' => $sequence_name));
   }
   else {

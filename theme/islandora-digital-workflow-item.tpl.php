@@ -15,6 +15,15 @@
 <div id="no-sidebars">
   <h3>Return to <b><a href="../items"><?php print $batch_record->batch_name; ?></a></b></h3>
 
+  <?php if ($ingested_links): ?>
+  <h3>Object has been ingested</h3>
+    <?php print $ingested_links; ?>
+  <?php elseif ($can_ingest): ?>
+  <div class="good"><p>All of the workflow sequence requirements are completed.
+      <b><a href="#">INGEST OBJECT: <?php print $item->identifier; ?></a></b>
+  </div>
+  <?php endif; ?>
+
   <h3>Item Details</h3>
   <div class="lookup_result oddrow">
       <form action="" method="POST" enctype="multipart/form-data">
@@ -66,7 +75,7 @@
           <?php
           $toggle = !$toggle;
           ?>
-          <tr class="<?php print ($toggle) ? 'evenrow' : 'oddrow'; ?>">
+          <tr class="<?php print ($toggle) ? 'evenrow' : 'oddrow'; ?> <?php print ($transaction_record->action_id > 99) ? 'batch_action' : 'item_action'; ?>">
               <td>
                 <div class="<?php
                   print $transaction_record->glyph_class;

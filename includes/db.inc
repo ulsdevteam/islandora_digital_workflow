@@ -386,21 +386,27 @@ function islandora_digital_workflow_get_batch_transactions_by_nid($nid) {
  * @return array
  *   Either returns an array of batch record objects or NULL if it cannot be found.
  */
-function islandora_digital_workflow_get_batch_item_transactions($batch_item_id, $nid) {
+function islandora_digital_workflow_get_batch_item_transactions($batch_item_id, $nid, $batch_id) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
 
-  $query = db_select('islandora_digital_workflow_transactions', 'bt');
-  $query->fields('bt', array('timestamp', 'transaction_id'));
-  $query->addJoin('LEFT OUTER', 'users', NULL, 'bt.drupal_uid = users.uid');
-  $query->fields('users', array('uid', 'name'));
-  $query->join('islandora_digital_workflow_actions', 'a', 'a.action_id = bt.action_id');
-  $query->fields('a', array('description'));
-  $query->addField('a', 'name', 'action_name');
-  $query->condition('bt.batch_item_id', $batch_item_id)
-      ->orderBy('bt.timestamp', 'ASC');
+  $sql = 'SELECT bt.timestamp AS `timestamp`, bt.transaction_id AS transaction_id, ' .
+         'users.uid AS uid, users.name AS name, a.description AS description, ' .
+         'a.action_id AS action_id, a.name AS action_name ' .
+         'FROM islandora_digital_workflow_transactions bt ' .
+         'LEFT OUTER JOIN users users ON bt.drupal_uid = users.uid ' .
+         'INNER JOIN islandora_digital_workflow_actions a ON a.action_id = bt.action_id ' .
+         'WHERE  (bt.batch_item_id = ' . $batch_item_id . ') ' .
+         'UNION SELECT bt.timestamp AS `timestamp`, bt.transaction_id AS transaction_id, ' .
+         'users.uid AS uid, users.name AS name, a.description AS description, ' .
+         'a.action_id AS action_id, a.name AS action_name ' .
+         'FROM islandora_digital_workflow_transactions bt ' .
+         'LEFT OUTER JOIN users users ON bt.drupal_uid = users.uid ' .
+         'INNER JOIN islandora_digital_workflow_actions a ON a.action_id = bt.action_id ' .
+         'WHERE  (bt.batch_id = ' . $batch_id . ') ' .
+         'ORDER BY `timestamp` ASC';
 
+  $results = db_query($sql);
   $access_edit_transactions = user_access(ISLANDORA_DIGITAL_WORKFLOW_EDIT_DELETE_TRANSACTIONS);
-  $results = $query->execute();
   $rows = $results->fetchAll();
   foreach ($rows as $index => $row) {
     $rows[$index]->how_long_ago = islandora_digital_workflow_timeago_from_timestamp($row->timestamp);

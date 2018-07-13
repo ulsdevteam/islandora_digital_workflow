@@ -42,7 +42,15 @@ function islandora_digital_workflow_add_transactions_form(array $form, array &$f
   $action_record = islandora_digital_workflow_get_action($action_id);
   $batch_item_object = islandora_digital_workflow_get_batch_item($batch_item_id);
   $batch_item_identifier = $batch_item_object->identifier;
-  $action_description = $action_record['description'];
+  $action_description = ((is_array($action_record) && array_key_exists('description', $action_record)) ? $action_record['description'] : '');
+
+  // Display a little warning on this form if the user is trying to add an
+  // action that applies to "all items" in the batch (which corresponds to any
+  // action with $action_id > 99.
+  if ($action_id > 99) {
+    drupal_set_message('Since the selected action is a "batch" action, adding it will update this items\' batch.', 'warning');
+  }
+
   // if the transaction's action_id is < 100, it is a per-item transaction, else
   // it is a "per-batch" transaction as in "all items scanned".
   $actions = ($action_id < 100) ?
@@ -81,7 +89,6 @@ function islandora_digital_workflow_add_transactions_form(array $form, array &$f
   $form['message'] = array(
       '#type' => 'item',
       '#title' => 'Add  "' . $action_description . '" to item "' . $batch_item_identifier . '"?<br>',
-      '#description' => '<b>NOTE:</b> this only updates the action and will not update the timestamp value for the transaction.',
   );
   $form['submit'] = array(
       '#type' => 'submit',
@@ -104,7 +111,6 @@ function islandora_digital_workflow_add_transactions_form(array $form, array &$f
  *   The Drupal form state.
  */
 function islandora_digital_workflow_add_transactions_form_submit(array $form, array &$form_state) {
-  $transaction_id = $form_state['values']['transaction_id'];
   $timestamp = $form_state['values']['timestamp'];
   $action_id = $form_state['values']['transaction_action'];
   $batch_item_id = $form_state['values']['batch_item_id'];
@@ -119,8 +125,13 @@ function islandora_digital_workflow_add_transactions_form_submit(array $form, ar
   if ($form_state['triggering_element']['#value'] == t('Update transaction')) {
     module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
     // Save the updated transaction here:
+    $transaction_id = $form_state['values']['transaction_id'];
     if (islandora_digital_workflow_update_batch_transaction($transaction_id, $action_id, $timestamp)) {
       drupal_goto($goto);
     }
+  }
+  else {
+    islandora_digital_workflow_insert_transactions_record($action_id, NULL, $batch_item_id);
+    drupal_goto($goto);
   }
 }

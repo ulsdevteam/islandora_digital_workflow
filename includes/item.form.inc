@@ -40,6 +40,7 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
         theme('islandora_digital_workflow_transactions_glyphs', array(
             'transaction_actions' => $required_batch_actions,
             'display_as_requirements' => TRUE,
+            'display_actions_key' => TRUE,
             'sequence_name' => $sequence_name));
   }
   else {
@@ -99,11 +100,24 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
     $scanned_files = islandora_digital_workflow_scan_files($batch_path . '/' . $pid, $file_records);
   }
 
-  $item_record_transactions = islandora_digital_workflow_get_batch_item_transactions($batch_item_id, $node->nid);
-
+  $item_record_transactions = islandora_digital_workflow_get_batch_item_transactions($batch_item_id, $node->nid, $batch_record->batch_id);
   islandora_digital_workflow_merge_transactions_with_item_actions($item_record_transactions, $required_batch_actions);
 
-  return $lookup_form_markup . 
+  $islandora_object = islandora_object_load($pid);
+  if (is_object($islandora_object)) {
+    $link_att = array('attributes' => array('target' => '_blank'));
+    $ingested_links = l($islandora_object->label, 'islandora/object/' . $pid, $link_att) .
+            '<br>' . l('Manage', 'islandora/object/' . $pid . '/manage', $link_att) .
+            l('Datastreams', 'islandora/object/' . $pid . '/manage/datastreams', $link_att);
+  }
+  else {
+    $ingested_links = '';
+  }
+  $can_ingest = (user_access(ISLANDORA_DIGITAL_WORKFLOW_INGEST_ITEMS) &&
+      (is_array($required_batch_actions)) &&
+      islandora_digital_workflow_item_actions_all_done($item_record_transactions));
+
+  return $lookup_form_markup .
       theme('islandora_digital_workflow_item', array(
         'batch_record' => $batch_record,
         'item' => $item,
@@ -112,12 +126,14 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
         'can_update' => user_access(ISLANDORA_DIGITAL_WORKFLOW_UPDATE_ITEMS),
         'item_record_transactions' => $item_record_transactions,
         'pid' => $pid,
+        'can_ingest' => $can_ingest,
+        'ingested_links' => $ingested_links,
         'scanned_files' => $scanned_files));
 }
 
 
 function islandora_digital_workflow_merge_transactions_with_item_actions(&$item_record_transactions, $required_batch_actions) {
-  $merged_item_record_transactions = array();
+  $merged_item_record_transactions = $item_record_transactions; //array();
   foreach ($required_batch_actions as $required_batch_action) {
     $this_action_transaction_objects = islandora_digital_workflow_transaction_action_objects($item_record_transactions, $required_batch_action);
     foreach ($this_action_transaction_objects as $a_action_transaction_object) {
@@ -137,7 +153,7 @@ function islandora_digital_workflow_transaction_action_objects($item_record_tran
       $return_array[] = $item_record_transaction;
     }
   }
-  // if (count($return_array) < 1) {
+  if (count($return_array) < 1) {
     $stub_entry = new stdClass();
     $stub_entry->already_exists = (count($return_array) > 0);
     $stub_entry->timestamp = '';
@@ -149,9 +165,9 @@ function islandora_digital_workflow_transaction_action_objects($item_record_tran
     $stub_entry->admin_links = TRUE;
     $stub_entry->nid = $nid;
     $stub_entry->action_id = $required_batch_action['action_id'];
-    $stub_entry->user_name = ''; // l($user->name, 'user/' . $user->uid, array('attributes' => array('target' => '_blank')));
+    $stub_entry->user_name = '';
     $return_array[] = $stub_entry;
-  // }
+  }
 
   return $return_array;
 }

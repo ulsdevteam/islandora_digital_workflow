@@ -1664,3 +1664,26 @@ function islandora_digital_workflow_object_model_datastream_requirements($model_
 function islandora_digital_workflow_glyph_class($transaction_name) {
   return 'transaction_action_' . (($transaction_name) ? strtolower(str_replace(array("-", " "), "_", $transaction_name)) : 'spacer');
 }
+
+/**
+ * Will determine whether or not all of the actions are completed.
+ *
+ * Since the variable $item_record_transactions is a merged set of item actions
+ * with the required actions for the objects' workflow sequence, any action that
+ * still needs to be completed will have a -1 transaction_id value.
+ *
+ * @param array $item_record_transactions
+ *   Array of objects that detail each transaction for the item.
+ * @return boolean
+ *   TRUE if all required actions for the objects' workflow sequence are completed.
+ */
+function islandora_digital_workflow_item_actions_all_done($item_record_transactions) {
+  // To see if all actions are done, loop through all of the item actions to see
+  // if any of these are "stub transaction" objects that are needed to indicate
+  // any required actions on the item that have not been completed.
+  $retval = TRUE;
+  foreach ($item_record_transactions as $transaction_obj) {
+    $retval &= ($transaction_obj->transaction_id <> -1);
+  }
+  return $retval;
+}

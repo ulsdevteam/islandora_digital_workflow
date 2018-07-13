@@ -81,7 +81,7 @@ function islandora_digital_workflow_delete_batch_form(array $form, array &$form_
       $machine_header = str_replace(" ", "_", strtolower(trim($header)));
       if ($machine_header && !(array_key_exists($machine_header, $csv_header_mappings))) {
         drupal_set_message('CSV column "' . $header . '" not recognized.  Batch ' . 
-            'will not be able to ingest or process.  Please replace the attached ' .
+            'may not be able to ingest or process.  Please replace the attached ' .
             'CSV file.', 'error');
       }
     }

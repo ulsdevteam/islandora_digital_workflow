@@ -46,6 +46,7 @@ define('ISLANDORA_DIGITAL_WORKFLOW_CREATE_NEW_BATCH', 'digital workflow create b
 define('ISLANDORA_DIGITAL_WORKFLOW_VIEW_TRANSACTIONS', 'digital workflow view transactions');
 define('ISLANDORA_DIGITAL_WORKFLOW_EDIT_DELETE_TRANSACTIONS', 'digital workflow edit transactions');
 define('ISLANDORA_DIGITAL_WORKFLOW_UPDATE_ITEMS', 'digital workflow update items');
+define('ISLANDORA_DIGITAL_WORKFLOW_INGEST_ITEMS', 'digital workflow ingest items');
 define('ISLANDORA_DIGITAL_WORKFLOW_MANAGE_SEQUENCES', 'digital workflow manage sequences');
 
 /**
@@ -275,6 +276,10 @@ function islandora_digital_workflow_permission() {
       'title' => t('Update Batch Items'),
       'description' => t('User can update batch items details'),
     ),
+    ISLANDORA_DIGITAL_WORKFLOW_INGEST_ITEMS => array(
+      'title' => t('Ingest Batch Items'),
+      'description' => t('User can ingest the fedora objects for batch items'),
+    ),
     ISLANDORA_DIGITAL_WORKFLOW_MANAGE_SEQUENCES => array(
       'title' => t('Manage Workflow Sequences'),
       'description' => t('User can manage workflow sequences and required actions'),
@@ -356,18 +361,6 @@ function islandora_digital_workflow_theme() {
         'table_description' => '',
       ),
     ),
-/*
-    'islandora_digital_workflow_items' => array(
-      'template' => 'theme/islandora-digital-workflow-items',
-      'variables' => array(
-        'batch_record' => array(),
-        'item_records' => array(),
-        'table_title' => '',
-        'node' => NULL,
-        'table_description' => '',
-      ),
-    ),
-*/
     'islandora_digital_workflow_item' => array(
       'template' => 'theme/islandora-digital-workflow-item',
       'variables' => array(
@@ -378,6 +371,8 @@ function islandora_digital_workflow_theme() {
         'can_update' => FALSE,
         'item_record_transactions' => array(),
         'pid' => '',
+        'can_ingest' => FALSE,
+        'ingested_links' => '',
         'scanned_files' => array(),
       ),
     ),
@@ -409,6 +404,7 @@ function islandora_digital_workflow_theme() {
       'variables' => array(
         'transaction_actions' => array(),
         'display_as_requirements' => FALSE,
+        'display_actions_key' => FALSE,
         'sequence_name' => '',
       ),
     ),

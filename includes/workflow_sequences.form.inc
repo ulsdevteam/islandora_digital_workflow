@@ -445,8 +445,8 @@ function islandora_digital_workflow_workflow_sequence_actions_form(array $form, 
 
   $workflow_sequence_actions = islandora_digital_workflow_get_workflow_sequence_actions();
   $workflow_model_sequences = islandora_digital_workflow_get_workflow_model_sequences();
-  $actions = islandora_digital_workflow_get_item_actions(FALSE);
-  $batch_actions = islandora_digital_workflow_get_batch_action_options(FALSE);
+  $actions = islandora_digital_workflow_get_item_actions(TRUE);
+  $batch_actions = islandora_digital_workflow_get_batch_action_options(TRUE);
   $workflow_sequences = islandora_digital_workflow_get_workflow_sequences();
   $sequence_title = $workflow_sequences[$workflow_sequence_id]['name'];
   $insert_batch_action_options = $insert_action_options = array('' => 'Select Action');
