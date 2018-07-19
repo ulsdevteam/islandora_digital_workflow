@@ -63,7 +63,7 @@ function islandora_digital_workflow_create_stub_batch_record($form_state) {
  *   Drupal node object.
  * @param string $csv_filename
  *   The filename that points to the CSV file.
- * @param integer $alternate_uid
+ * @param integer $alternative_uid
  *   when provided, this will override the current-logged-in user's uid value.
  * @return mixed
  *   Either redurns the batch record OR NULL if there is not enough info to
@@ -157,7 +157,7 @@ function islandora_digital_workflow_create_batch_record_by_form($form_state, $no
       ->execute();
     }
     $updated_batch_record = islandora_digital_workflow_get_batch_record_by_name($batch_name);
-    islandora_digital_workflow_sync_node_to_items($updated_batch_record, $node, $csv_filename, TRUE, $alternate_uid);
+    islandora_digital_workflow_sync_node_to_items($updated_batch_record, $node, $csv_filename, TRUE, $alternative_uid);
     return $updated_batch_record;
   }
   else {
@@ -226,7 +226,7 @@ function islandora_digital_workflow_get_batch_host_values() {
  *   The filename that points to the CSV file.
  * @param boolean $empty_items_table
  *   Whether or not to clear the items table when synching the node to items.
- * @param integer $alternate_uid
+ * @param integer $alternative_uid
  *   when provided, this will override the current-logged-in user's uid value.
 */
 function islandora_digital_workflow_sync_node_to_items($batch_record, $node, $csv_filename, $empty_items_table = FALSE, $alternative_uid = NULL) {
@@ -266,7 +266,7 @@ function islandora_digital_workflow_sync_node_to_items($batch_record, $node, $cs
  * @param array $batch_item_identifiers_to_transaction_ids
  *   an associative array where key is old batch_item->identifier value and the
  *   value is the old transaction_id value
- * @param integer $alternate_uid
+ * @param integer $alternative_uid
  *   when provided, this will override the current-logged-in user's uid value.
  */
 function islandora_digital_workflow_sync_batch_item_record($batch_record, $csv_file_source, $batch_item_identifiers_to_transaction_ids, $alternative_uid = NULL) {

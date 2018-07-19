@@ -406,6 +406,8 @@ function islandora_digital_workflow_batch_items_form(array $form, array &$form_s
       '#header' => $items_header,
       '#options' => $options,
       '#empty' => 'There are no items in the batch.',
+      '#prefix' => '<small><i>Use the checkboxes in the table below to select ' .
+          'item/s for "Add / Remove Transactions" above</i></small>',
       '#suffix' => '<hr>' . $workflow_sequence_text,
     );
 

@@ -845,7 +845,7 @@ function islandora_digital_workflow_insert_batch_item($fields) {
  *   batch_id value corresponding to the batch for the transaction.
  * @param integer $batch_item_id
  *   batch_item_id value corresponding to the batch_item for the transaction.
- * @param integer $alternate_uid
+ * @param integer $alternative_uid
  *   when provided, this will override the current-logged-in user's uid value.
  */
 function islandora_digital_workflow_insert_transactions_record($action_id, $batch_id = NULL, $batch_item_id = NULL, $alternative_uid = NULL) {

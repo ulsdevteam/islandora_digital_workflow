@@ -31,7 +31,7 @@ div.transaction_action_reserved_action_all_3 {
       $css .= "." . $action_arr['class_name'] . " {\n" .
               '  background: url("/' . $module_path . '/' . $action_arr['glyph'] . '") 0px 0px no-repeat !important' . ";\n" .
               '}' . "\n\n";
-      $div_css_names[] = ".div." . $action_arr['class_name'];
+      $div_css_names[] = "div." . $action_arr['class_name'];
     }
   }
   $css .= "\n" . implode(", ", $div_css_names) . " {\n" .
