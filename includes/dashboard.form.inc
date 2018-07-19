@@ -29,14 +29,22 @@ function islandora_digital_workflow_dashboard() {
  */
 function islandora_digital_workflow_get_stage_links() {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy-utilities');
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/node-utilities');
+  
   // first link is "All" stages
   // remaining links are all based on the stage taxonomy terms  
   $content_types_vocab = taxonomy_vocabulary_machine_name_load(IDW_STAGE_TAXONOMY_MACHINE_NAME);
-  $links = array(l('All Batches', '/islandora/islandora_digital_workflow/batches/all'));
+  $node_count = islandora_digital_workflow_get_count_of_nodes_by_stage();
+  $all_batches_link = l('All Batches', '/islandora/islandora_digital_workflow/batches/all') . 
+          ($node_count ? ' <small class="disabled_text">- ' . $node_count . ' batch' . ($node_count == 1 ? '' : 'es'). '</small>' : '');
+  $links = array($all_batches_link);
+
   $stages = array('New', 'Scanned', 'Problem', 'Reviewed', 'Done');
   foreach ($stages as $stage) {
     $tid = islandora_digital_workflow_get_tid_by_name($stage, $content_types_vocab);
-    $links[] = l($stage, '/islandora/islandora_digital_workflow/batches/' . $tid);
+    $node_count = islandora_digital_workflow_get_count_of_nodes_by_stage($tid);
+    $links[] = l($stage, '/islandora/islandora_digital_workflow/batches/' . $tid) .
+        ($node_count ? ' <small class="disabled_text">- ' . $node_count . ' batch' . ($node_count == 1 ? '' : 'es'). '</small>' : '');
   }
   return $links;  
 }
@@ -95,4 +103,3 @@ function islandora_digital_workflow_get_tasks_tables() {
 
   return $tables;
 }
-

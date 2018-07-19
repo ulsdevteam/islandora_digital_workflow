@@ -52,33 +52,16 @@ and open the template in the editor.
     background: url("../images/rescanned-the-item_20.png") 0px 0px no-repeat !important;
 }
 
-.transaction_action_reserved_action_1 {
-    background: url("../images/reserved-action-1_20.png") 0px 0px no-repeat !important;
+.transaction_action_reserved_action_1, .transaction_action_reserved_action_2, 
+.transaction_action_reserved_action_3, .transaction_action_reserved_action_4, 
+.transaction_action_reserved_action_5, .transaction_action_reserved_action_6, 
+.transaction_action_reserved_action_all_1, .transaction_action_reserved_action_all_2, 
+.transaction_action_reserved_action_all_3, .transaction_action_unconfigured_reserved_action {
+    background: url("../images/unconfigured-reserved-action_20.png") 0px 0px no-repeat !important;
 }
-.transaction_action_reserved_action_2 {
-    background: url("../images/reserved-action-2_20.png") 0px 0px no-repeat !important;
-}
-.transaction_action_reserved_action_3 {
-    background: url("../images/reserved-action-3_20.png") 0px 0px no-repeat !important;
-}
-.transaction_action_reserved_action_4 {
-    background: url("../images/reserved-action-4_20.png") 0px 0px no-repeat !important;
-}
-.transaction_action_reserved_action_5 {
-    background: url("../images/reserved-action-5_20.png") 0px 0px no-repeat !important;
-}
-.transaction_action_reserved_action_6 {
-    background: url("../images/reserved-action-6_20.png") 0px 0px no-repeat !important;
-}
-.transaction_action_reserved_action_all_1 {
-    background: url("../images/reserved-action-all-1_20.png") 0px 0px no-repeat !important;
-}
-.transaction_action_reserved_action_all_2 {
-    background: url("../images/reserved-action-all-2_20.png") 0px 0px no-repeat !important;
-}
-.transaction_action_reserved_action_all_3 {
-    background: url("../images/reserved-action-all-3_20.png") 0px 0px no-repeat !important;
-}
+
+/* The reserved transaction_action elements are customized in the dynamically created CSS */
+
 .transaction_action_spacer {
     background: url("../images/unknown-action_20.png") 0px 0px no-repeat !important;
 }
@@ -99,52 +82,69 @@ div.transaction_action_ingest,
 div.transaction_action_rescan,
 div.transaction_action_system_made_derivatives,
 div.transaction_action_check_physical_items,
-div.transaction_action_reserved_action_1,
-div.transaction_action_reserved_action_2,
-div.transaction_action_reserved_action_3,
-div.transaction_action_reserved_action_4,
-div.transaction_action_reserved_action_5,
-div.transaction_action_reserved_action_6,
-div.transaction_action_reserved_action_all_1,
-div.transaction_action_reserved_action_all_2,
-div.transaction_action_reserved_action_all_3,
+
 div.transaction_action_spacer,
 div.transaction_action_all_ingest,
 div.transaction_action_all_check_in,
 div.transaction_action_all_scan,
 div.transaction_action_add_marc_record,
 div.transaction_action_all_check_out,
-div.transaction_action_all_check_physical_items {
+div.transaction_action_all_check_physical_items,
+div.transaction_action_unconfigured_reserved_action {
     width: 20px;
+    height: 20px;
     float: left;
     padding: 0px 1px;
     background-position: top left;
 }
 
-span.transaction_action_reserved_action_1,
-span.transaction_action_reserved_action_2,
-span.transaction_action_reserved_action_3,
-span.transaction_action_reserved_action_4,
-span.transaction_action_reserved_action_5,
-span.transaction_action_reserved_action_6,
-span.transaction_action_reserved_action_all_1,
-span.transaction_action_reserved_action_all_2,
-span.transaction_action_reserved_action_all_3,
 span.transaction_action_reserved_action_spacer {
     padding-left: 28px;
     float: left;
     width: 200px;
 }
 
-.transaction_action_reserved_action_spacer pre {
-    font-family: Andale Mono, monospace;
-    white-space: nowrap;
-    margin-top: 0;
+.action_glyph_previews {
+    float: left;
+    display: inline-block;
+    padding-top: 35px;
+    width: 50px;
+    text-align: center;
+    clear: both;
+    padding-right: 6px;
+}
+
+.action_glyph_previews img {
+    padding-bottom: 2px;
+}
+
+.action_glyph_previews.larger_glyph img {
+    width: 40px;
+    height: 40px;
+    margin-top: -14px !important;
+}
+
+.form-item-glyph-selector {
+    line-height: 20px !important;
+    max-height: 20px;
+    height: 20px;
+    margin: 0px;
 }
 
 #edit-add-batch-action option {
     appearance: none;
     text-indent: 28px;
+}
+.indent_td {
+    text-indent: 28px;
+}
+/*
+.full_width {
+    width: 100%;
+}
+*/
+#edit-item-actions, #edit-batch-actions {
+    width: 96%;
 }
 
 #edit-add-batch-action option[value="1"] { background:url(../images/check-in-physical-item_20.png) no-repeat;}
@@ -376,8 +376,14 @@ tr.batch_action, div.batch_action {
 }
 tr.item_action, div.item_action {
     background-color: #dddce7 !important;
-    border-right: none !important;
     background-position: 27px 0 !important;
+}
+
+div.batch_action, div.item_action {
+    border: 1px solid #aaa !important;
+}
+tr.batch_action, tr.item_action {
+    border: none !important;
 }
 
 .short-text-area {
@@ -475,7 +481,7 @@ a .highlighted {
 .corner_bordered {
     border-radius: 8px;
     border: 1px solid #bbb;
-    box-shadow: 1px 1px 4px #aaa;
+    box-shadow: 1px 1px 4px #aaa;    
 }
 
 .lookup_result_square ul, .lookup_result ul {

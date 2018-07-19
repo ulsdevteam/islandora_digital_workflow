@@ -45,17 +45,16 @@ function islandora_digital_workflow_add_transactions_form(array $form, array &$f
   $action_description = ((is_array($action_record) && array_key_exists('description', $action_record)) ? $action_record['description'] : '');
 
   // Display a little warning on this form if the user is trying to add an
-  // action that applies to "all items" in the batch (which corresponds to any
-  // action with $action_id > 99.
-  if ($action_id > 99) {
+  // action that applies to "all items" in the batch.
+  if (islandora_digital_workflow_is_batch_action($action_id)) {
     drupal_set_message('Since the selected action is a "batch" action, adding it will update this items\' batch.', 'warning');
   }
 
-  // if the transaction's action_id is < 100, it is a per-item transaction, else
-  // it is a "per-batch" transaction as in "all items scanned".
-  $actions = ($action_id < 100) ?
-    islandora_digital_workflow_get_batch_items_actions() :
-    islandora_digital_workflow_get_batch_actions();
+  // if the transaction's action_id is a per-item transaction, else it is a
+  // "per-batch" transaction as in "all items scanned".
+  $actions = (islandora_digital_workflow_is_batch_action($action_id)) ?
+    islandora_digital_workflow_get_batch_actions() :
+    islandora_digital_workflow_get_batch_items_actions();
   $form['transaction_action'] = array(
       '#title' => t('Select Transaction'),
       '#type' => 'select',
@@ -117,7 +116,7 @@ function islandora_digital_workflow_add_transactions_form_submit(array $form, ar
   $nid = $form_state['values']['nid'];
   // Based on the action_id, set the $goto variable to return user to the correct
   // previous page. /node/163/item/62
-  $goto = ($action_id > 100) ? '/node/' . $nid . '/transactions' : 
+  $goto = (islandora_digital_workflow_is_batch_action($action_id)) ? '/node/' . $nid . '/transactions' :
     '/node/' . $nid . '/item/' . $batch_item_id;
   if ($form_state['triggering_element']['#value'] == t('Cancel')) {
     drupal_goto($goto);

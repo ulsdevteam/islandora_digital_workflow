@@ -75,7 +75,7 @@
           <?php
           $toggle = !$toggle;
           ?>
-          <tr class="<?php print ($toggle) ? 'evenrow' : 'oddrow'; ?> <?php print ($transaction_record->action_id > 99) ? 'batch_action' : 'item_action'; ?>">
+          <tr class="<?php print ($toggle) ? 'evenrow' : 'oddrow'; ?> <?php print ($transaction_record->action_id > 999) ? 'batch_action' : 'item_action'; ?>">
               <td>
                 <div class="<?php
                   print $transaction_record->glyph_class;

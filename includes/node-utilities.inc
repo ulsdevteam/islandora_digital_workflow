@@ -136,3 +136,25 @@ function islandora_digital_workflow_make_or_update_node($form_state, $csv_array,
   node_save($node);
   return $node;
 }
+
+/**
+ * Get the count of workflow_batch nodes that have field_stage_tid value set
+ * to $stage_tid.
+ *
+ * @param string $stage_tid
+ *   The name of the stage in question such as the taxonomy term's tid value
+ * for terms such as "New" or "Problem".
+ * @return integer
+ *   The number of nodes that match the given $stage_tid value.
+ */
+function islandora_digital_workflow_get_count_of_nodes_by_stage($stage_tid = 0) {
+  $sql = "SELECT count(*) as `count` FROM {node} n " .
+      "INNER JOIN {field_data_field_stage} s ON n.nid=s.entity_id " .
+      "WHERE (n.type = 'workflow_batch') AND (n.status = 1)" .
+      ($stage_tid ? " AND s.field_stage_tid = " . $stage_tid : "");
+  $result = db_query($sql);
+  $results = $result->fetchAll();
+  $first_row = array_pop($results);
+  $count = is_object($first_row) ? $first_row->count : 0;
+  return $count;
+}

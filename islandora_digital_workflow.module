@@ -26,15 +26,15 @@ define('IDW_ACTION_RESERVED_4', 23);
 define('IDW_ACTION_RESERVED_5', 24);
 define('IDW_ACTION_RESERVED_6', 25);
 
-define('IDW_ACTION_ALL_CHECK_IN', 101);
-define('IDW_ACTION_ALL_SCAN', 102);
-define('IDW_ACTION_ALL_SYSTEM_INGEST', 103);
-define('IDW_ACTION_ALL_CHECK_OUT', 104);
-define('IDW_ACTION_ALL_CHECK_PHYSICAL_ITEMS', 105);
+define('IDW_ACTION_ALL_CHECK_IN', 1001);
+define('IDW_ACTION_ALL_SCAN', 1002);
+define('IDW_ACTION_ALL_SYSTEM_INGEST', 1003);
+define('IDW_ACTION_ALL_CHECK_OUT', 1004);
+define('IDW_ACTION_ALL_CHECK_PHYSICAL_ITEMS', 1005);
 
-define('IDW_ACTION_RESERVED_ALL_1', 120);
-define('IDW_ACTION_RESERVED_ALL_2', 121);
-define('IDW_ACTION_RESERVED_ALL_3', 122);
+define('IDW_ACTION_RESERVED_ALL_1', 1020);
+define('IDW_ACTION_RESERVED_ALL_2', 1021);
+define('IDW_ACTION_RESERVED_ALL_3', 1022);
 
 // Permissions -- NOTE: there are additional permission constants defined in
 // islandora_digital_workflow_permission that use the naming convention of
@@ -111,11 +111,35 @@ function islandora_digital_workflow_menu() {
       'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_MANAGE_SEQUENCES),
       'file' => 'includes/workflow_sequences.form.inc',
     ),
-    'admin/islandora/islandora_digital_workflow/workflow_sequence_reserved_actions' => array(
-      'title' => t('Islandora Digital Workflow - Reserved Actions Configuration'),
+    'admin/islandora/islandora_digital_workflow/workflow_sequence_actions' => array(
+      'title' => t('Islandora Digital Workflow - Actions Configuration'),
       'type' => MENU_NORMAL_ITEM,
       'page callback' => 'drupal_get_form',
-      'page arguments' => array('islandora_digital_workflow_workflow_reserved_actions_form'),
+      'page arguments' => array('islandora_digital_workflow_actions_form'),
+      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_MANAGE_SEQUENCES),
+      'file' => 'includes/workflow_sequences.form.inc',
+    ),
+    'admin/islandora/islandora_digital_workflow/workflow_sequence_actions/edit/%' => array(
+      'title' => t('Islandora Digital Workflow - Actions Configuration'),
+      'type' => MENU_NORMAL_ITEM,
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('islandora_digital_workflow_actions_edit_form', 5),
+      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_MANAGE_SEQUENCES),
+      'file' => 'includes/workflow_sequences.form.inc',
+    ),
+    'admin/islandora/islandora_digital_workflow/workflow_sequence_actions/delete/%' => array(
+      'title' => t('Islandora Digital Workflow - Actions Configuration'),
+      'type' => MENU_NORMAL_ITEM,
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('islandora_digital_workflow_actions_delete_form', 5),
+      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_MANAGE_SEQUENCES),
+      'file' => 'includes/workflow_sequences.form.inc',
+    ),
+    'admin/islandora/islandora_digital_workflow/workflow_sequence_actions/add' => array(
+      'title' => t('Islandora Digital Workflow - Actions Configuration'),
+      'type' => MENU_NORMAL_ITEM,
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('islandora_digital_workflow_actions_add_form'),
       'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_MANAGE_SEQUENCES),
       'file' => 'includes/workflow_sequences.form.inc',
     ),
@@ -246,6 +270,14 @@ function islandora_digital_workflow_menu() {
       'file' => 'includes/edit_transaction.form.inc',
       'weight' => 90,
     ),
+
+    // Callback to serve up the dynamically generated CSS file
+    'islandora/islandora_digital_workflow_css.css' => array(
+      'type' => MENU_CALLBACK,
+      'page callback' => 'islandora_digital_workflow_update_dynamic_css',
+      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW),
+      'file' => 'includes/islandora_digital_workflow_css.inc',
+    ),
   );
 }
 
@@ -312,6 +344,21 @@ function islandora_digital_workflow_preprocess_html(&$vars) {
   if (is_array($item)) {
     $path = drupal_get_path('module', 'islandora_digital_workflow');
     drupal_add_css($path . '/css/islandora_digital_workflow.css');
+    $public_files_path = drupal_realpath('public://');
+    $base_public_files_path = substr(str_replace(realpath("."), "", $public_files_path), 1);
+    islandora_digital_workflow_ensure_dynamic_css_copied($path, $public_files_path);
+    drupal_add_css($base_public_files_path . '/islandora_digital_workflow_dynamic.css');
+  }
+}
+
+function islandora_digital_workflow_ensure_dynamic_css_copied($path, $public_files_path) {
+  if (!file_exists($public_files_path . '/islandora_digital_workflow_dynamic.css')) {
+    // Generate and copy the CSS that is based on the configuration.
+    module_load_include('inc', 'islandora_digital_workflow', 'includes/islandora_digital_workflow_css');
+    islandora_digital_workflow_update_dynamic_css();
+    // Previously, the code simply copied the default "dynamic css" file to the public
+    // location, but now it is generated from the configuration.
+    //    copy($path . '/css/islandora_digital_workflow_dynamic.css', $public_files_path . '/islandora_digital_workflow_dynamic.css');
   }
 }
 
@@ -411,6 +458,21 @@ function islandora_digital_workflow_theme() {
     'islandora_digital_workflow_workflow_sequence_actions_form' => array(
       'render element' => 'form',
       'file' => 'includes/workflow_sequences.form.inc',
+    ),
+    'islandora_digital_workflow_action_glyph_preview' => array(
+      'template' => 'theme/islandora-digital-workflow-action-glyph-preview',
+      'variables' => array(
+        'glyph_filenames' => array(),
+        'module_path' => '',
+        'normal_size' => TRUE,
+      ),
+    ),
+    'islandora_digital_workflow_rounded_box' => array(
+      'template' => 'theme/islandora-digital-workflow-rounded-box',
+      'variables' => array(
+        'title' => '',
+        'contents' => '',
+      ),
     ),
   );
 }
@@ -549,6 +611,7 @@ function islandora_digital_workflow_views_api() {
  *   Markup of the themed order_manage object
  */
 function theme_islandora_digital_workflow_workflow_sequence_actions_form($variables) {
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
   $form = $variables['form'];
   $sequence_id = 9999;
   $rows = array();
@@ -558,8 +621,8 @@ function theme_islandora_digital_workflow_workflow_sequence_actions_form($variab
     $sequence_id = $form['wrapper']['rows'][$action_id]['workflow_sequence_id']['#value'];
 
     $classes = array('draggable');
-
-    $classes[] = ($action_id > 99) ? 'batch_action' : 'item_action';
+    $classes[] = (islandora_digital_workflow_is_batch_action($action_id)) ? 'batch_action' : 'item_action';
+    // One final class pertains to the action name - to distinguish elements in the CSS.
     @list($keep, $junk) = explode(" [", $form['wrapper']['rows'][$action_id]['action_name']['#default_value']);
     $classes[] = 'transaction_action_' . strtolower(str_replace(array("-", " "), "_", $keep));
     $rows[] = array(

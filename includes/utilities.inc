@@ -1687,3 +1687,65 @@ function islandora_digital_workflow_item_actions_all_done($item_record_transacti
   }
   return $retval;
 }
+
+/**
+ * Is the action_id a batch_action or an item_action?
+ *
+ * @param integer $action_id
+ *   The `islandora_digital_workflow_actions` table's action_id value.
+ * @return boolean
+ *   Whether or not the given $action_id represnts a batch_action (else it is
+ * an item_action's identifier).
+ */
+function islandora_digital_workflow_is_batch_action($action_id) {
+  return ($action_id > 1000) ? TRUE : FALSE;
+}
+
+/**
+ * This will loop through all workflow sequence actions to identify which
+ * workflow sequences use the action.
+ *
+ * @param integer $action_id
+ *   The `islandora_digital_workflow_actions` table's action_id value.
+ * @return mixed
+ *   Can return NULL if no sequence is found to use the action_id - otherwise,
+ * the return value is an array of the names of all sequences.  If the user has
+ * access to ISLANDORA_DIGITAL_WORKFLOW_MANAGE_SEQUENCES, the names will be
+ * returned as links to the manage page for this sequence.
+ */
+function islandora_digital_workflow_sequences_using_action($action_id) {
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
+  $workflow_sequences = islandora_digital_workflow_get_workflow_sequences();
+  $workflow_sequence_actions = islandora_digital_workflow_get_workflow_sequence_actions();
+  $workflow_sequences_using_action = islandora_digital_workflow_using_action($workflow_sequence_actions, $action_id);
+  if (count($workflow_sequences_using_action) > 0) {
+    $ret_sequence_links = array();
+    foreach ($workflow_sequences_using_action as $workflow_sequence_id) {
+      $ret_sequence_links[] = ((user_access(ISLANDORA_DIGITAL_WORKFLOW_MANAGE_SEQUENCES)) ?
+          l($workflow_sequences[$workflow_sequence_id]['name'], '/admin/islandora/islandora_digital_workflow/workflow_sequences',
+              array(
+                  'fragment' => $workflow_sequences[$workflow_sequence_id]['name'],
+                  'external' => TRUE,
+                  'attributes' => array('target' => '_blank'),
+              )
+          ) :
+          $workflow_sequences[$workflow_sequence_id]);
+    }
+    return $ret_sequence_links;
+  }
+  else {
+    return FALSE;
+  }
+}
+
+function islandora_digital_workflow_using_action($workflow_sequence_actions, $action_id) {
+  $workflow_sequences_using_action = array();
+  foreach ($workflow_sequence_actions as $workflow_sequence_id => $workflow_sequence_actions) {
+    foreach ($workflow_sequence_actions as $workflow_sequence_action) {
+      if ($workflow_sequence_action['action_id'] == $action_id) {
+        $workflow_sequences_using_action[$workflow_sequence_id] = $workflow_sequence_id;
+      }
+    }
+  }
+  return $workflow_sequences_using_action;
+}

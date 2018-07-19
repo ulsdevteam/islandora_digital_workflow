@@ -96,7 +96,7 @@ function islandora_digital_workflow_delete_transactions_form_submit(array $form,
   $nid = $form_state['values']['nid'];
   // Based on the action_id, set the $goto variable to return user to the correct
   // previous page. /node/163/item/62
-  $goto = ($action_id > 100) ? '/node/' . $nid . '/transactions' :
+  $goto = (islandora_digital_workflow_is_batch_action($action_id)) ? '/node/' . $nid . '/transactions' :
     '/node/' . $nid . '/item/' . $batch_item_id;
   if ($form_state['triggering_element']['#value'] == t('Cancel')) {
     drupal_goto($goto);

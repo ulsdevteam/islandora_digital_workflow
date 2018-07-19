@@ -64,8 +64,8 @@ function islandora_digital_workflow_admin_form() {
       ),
       'link_2' => array(
         '#type' => 'item',
-        '#title' => l('Islandora Digital Workflow - Reserved Actions Configuration', 'admin/islandora/islandora_digital_workflow/workflow_sequence_reserved_actions'),
-        '#description' => t('Reserved actions configuration.'),
+        '#title' => l('Islandora Digital Workflow - Actions Configuration', 'admin/islandora/islandora_digital_workflow/workflow_sequence_actions'),
+        '#description' => t('Configure the actions that are used in workflow sequences.'),
       ),
       'link_3' => array(
         '#type' => 'item',

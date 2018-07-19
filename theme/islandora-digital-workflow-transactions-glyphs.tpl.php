@@ -17,8 +17,8 @@
         <small><?php print $sequence_name; ?> item actions:
          <?php if ($display_actions_key): ?>
             <br><b>Key: </b>
-            <div class="batch_action div_key">(batch actions)</div>
-            <div class="item_action div_key">(item actions)</div><br>
+            <div class="batch_action div_key disabled_text">batch actions</div>
+            <div class="item_action div_key disabled_text">item actions</div><br>
         <?php endif; ?>
         </small>
     </div>
@@ -33,10 +33,16 @@
       $transaction_action_name = (is_array($transaction_action) &&
           array_key_exists('batch_action_name', $transaction_action)) ?
               $transaction_action['batch_action_name'] : $transaction_action;
+
       $required_class = (is_array($transaction_action) &&
           array_key_exists('is_required', $transaction_action)) ?
               ($transaction_action['is_required'] == 1 ? ' required_action' : ' optional_action') : '';
-      $class_name = ($transaction_action_name) ? strtolower(str_replace(array("-", " "), "_", $transaction_action_name)) : 'spacer'; ?>
-    <div class="transaction_action_<?php print $class_name . $required_class;?>" title="<?php print $transaction_action_description; ?>">&nbsp;</div>
+      if (is_array($transaction_action) && array_key_exists('class_name', $transaction_action)) {
+        $class_name = 'transaction_action_' . $transaction_action['class_name'];
+      }
+      else {
+        $class_name = 'transaction_action_' . (($transaction_action_name) ? strtolower(str_replace(array("-", " "), "_", $transaction_action_name)) : 'spacer');
+      } ?>
+    <div class="<?php print $class_name . $required_class;?>" title="<?php print $transaction_action_description; ?>">&nbsp;</div>
     <?php } ?>
 </div><br>

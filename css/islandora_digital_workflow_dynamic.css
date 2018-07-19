@@ -1,0 +1,61 @@
+/*
+.transaction_action_reserved_action_1 {
+    background: url("../images/reserved-action-1_20.png") 0px 0px no-repeat !important;
+}
+.transaction_action_reserved_action_2 {
+    background: url("../images/reserved-action-2_20.png") 0px 0px no-repeat !important;
+}
+.transaction_action_reserved_action_3 {
+    background: url("../images/reserved-action-3_20.png") 0px 0px no-repeat !important;
+}
+.transaction_action_reserved_action_4 {
+    background: url("../images/reserved-action-4_20.png") 0px 0px no-repeat !important;
+}
+.transaction_action_reserved_action_5 {
+    background: url("../images/reserved-action-5_20.png") 0px 0px no-repeat !important;
+}
+.transaction_action_reserved_action_6 {
+    background: url("../images/reserved-action-6_20.png") 0px 0px no-repeat !important;
+}
+.transaction_action_reserved_action_all_1 {
+    background: url("../images/reserved-action-all-1_20.png") 0px 0px no-repeat !important;
+}
+.transaction_action_reserved_action_all_2 {
+    background: url("../images/reserved-action-all-2_20.png") 0px 0px no-repeat !important;
+}
+.transaction_action_reserved_action_all_3 {
+    background: url("../images/reserved-action-all-3_20.png") 0px 0px no-repeat !important;
+}
+*/
+
+
+div.transaction_action_reserved_action_1,
+div.transaction_action_reserved_action_2,
+div.transaction_action_reserved_action_3,
+div.transaction_action_reserved_action_4,
+div.transaction_action_reserved_action_5,
+div.transaction_action_reserved_action_6,
+div.transaction_action_reserved_action_all_1,
+div.transaction_action_reserved_action_all_2,
+div.transaction_action_reserved_action_all_3 {
+    width: 20px;
+    float: left;
+    padding: 0px 1px;
+    background-position: top left;
+}
+
+
+/* span.transaction_action_reserved_action_1,
+span.transaction_action_reserved_action_2,
+span.transaction_action_reserved_action_3,
+span.transaction_action_reserved_action_4,
+span.transaction_action_reserved_action_5,
+span.transaction_action_reserved_action_6,
+span.transaction_action_reserved_action_all_1,
+span.transaction_action_reserved_action_all_2,
+span.transaction_action_reserved_action_all_3 {
+    padding-left: 28px;
+    float: left;
+    width: 200px;
+}
+*/
