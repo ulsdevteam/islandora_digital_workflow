@@ -17,6 +17,13 @@ function islandora_digital_workflow_batch($node) {
 
   $lookup_form_markup = theme('islandora_digital_workflow_lookup', array('searchterm' => ''));
 
+  $breadcrumb = array(
+    l(t('Home'), '<front>'),
+    l(t('Islandora Digital Workflow'), 'islandora/islandora_digital_workflow'),
+    l($node->title, 'node/' . $node->nid),
+  );
+  drupal_set_breadcrumb($breadcrumb);
+
   $batch_name = $node->title;
   $batch_form = drupal_get_form('islandora_digital_workflow_create_batch_form', $batch_name);
   return $lookup_form_markup . drupal_render($batch_form);

@@ -14,6 +14,18 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
   module_load_include('inc', 'islandora_digital_workflow', 'includes/lookup.form');
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
+  $breadcrumb = array(
+    l(t('Home'), '<front>'),
+    l(t('Islandora Digital Workflow'), 'islandora/islandora_digital_workflow'),
+  );
+  if ($node) {
+    $breadcrumb[] = l($node->title, 'node/' . $node->nid);
+  }
+  if ($batch_item_id) {
+    $breadcrumb[] = l(t('Batch Items'), 'node/' . $node->nid . '/items');
+  }
+  drupal_set_breadcrumb($breadcrumb);
+
   $lookup_form_markup = theme('islandora_digital_workflow_lookup', array('searchterm' => ''));
 
   $batch_name = $node->title;
@@ -48,7 +60,7 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
         'batch\'s "Workflow Sequence", or this batch does not have a workflow ' .
         'sequence associated with it.</em>  In order to enforce that certain transactions ' .
         'occur for this batch\'s objects, ' .
-        l('select a "Workflow Sequence" for this batch', '/node/' . $node->nid . '/batch') . '.';
+        l(t('select a "Workflow Sequence" for this batch'), '/node/' . $node->nid . '/batch') . '.';
   }
   $paged_content_models = islandora_digital_workflow_retrieve_applicable_paged_content_cmodels();
   $is_paged_content = (!(array_search($batch_record->default_type_of_resource, $paged_content_models) === FALSE));
@@ -101,14 +113,14 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
   }
 
   $item_record_transactions = islandora_digital_workflow_get_batch_item_transactions($batch_item_id, $node->nid, $batch_record->batch_id);
-  islandora_digital_workflow_merge_transactions_with_item_actions($item_record_transactions, $required_batch_actions);
+  islandora_digital_workflow_merge_transactions_with_item_actions($item_record_transactions, $required_batch_actions, $node->nid);
 
   $islandora_object = islandora_object_load($pid);
   if (is_object($islandora_object)) {
     $link_att = array('attributes' => array('target' => '_blank'));
     $ingested_links = l($islandora_object->label, 'islandora/object/' . $pid, $link_att) .
-            '<br>' . l('Manage', 'islandora/object/' . $pid . '/manage', $link_att) .
-            l('Datastreams', 'islandora/object/' . $pid . '/manage/datastreams', $link_att);
+            '<br>' . l(t('Manage'), 'islandora/object/' . $pid . '/manage', $link_att) .
+            l(t('Datastreams'), 'islandora/object/' . $pid . '/manage/datastreams', $link_att);
   }
   else {
     $ingested_links = '';
@@ -132,10 +144,10 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
 }
 
 
-function islandora_digital_workflow_merge_transactions_with_item_actions(&$item_record_transactions, $required_batch_actions) {
+function islandora_digital_workflow_merge_transactions_with_item_actions(&$item_record_transactions, $required_batch_actions, $nid) {
   $merged_item_record_transactions = $item_record_transactions; //array();
   foreach ($required_batch_actions as $required_batch_action) {
-    $this_action_transaction_objects = islandora_digital_workflow_transaction_action_objects($item_record_transactions, $required_batch_action);
+    $this_action_transaction_objects = islandora_digital_workflow_transaction_action_objects($item_record_transactions, $required_batch_action, $nid);
     foreach ($this_action_transaction_objects as $a_action_transaction_object) {
       $merged_item_record_transactions[] = $a_action_transaction_object;
     }
@@ -143,10 +155,9 @@ function islandora_digital_workflow_merge_transactions_with_item_actions(&$item_
   $item_record_transactions = $merged_item_record_transactions;
 }
 
-function islandora_digital_workflow_transaction_action_objects($item_record_transactions, $required_batch_action) {
+function islandora_digital_workflow_transaction_action_objects($item_record_transactions, $required_batch_action, $nid) {
   global $user;
   $return_array = array();
-  $nid = 0;
   foreach ($item_record_transactions as $item_record_transaction) {
     $nid = $item_record_transaction->nid;
     if (($item_record_transaction->description == $required_batch_action['batch_action_description'])) {

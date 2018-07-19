@@ -20,7 +20,7 @@ function islandora_digital_workflow_admin_form() {
   // Needed for collapsible fieldsets
   drupal_add_js('misc/collapse.js');
   $about_islandora_digital_workflow_markup = '<p>These are the settings for ' .
-      'the <strong>' . l('Islandora Digital Workflow', '/islandora/islandora_digital_workflow') . '</strong> system.</p>';
+      'the <strong>' . l(t('Islandora Digital Workflow'), '/islandora/islandora_digital_workflow') . '</strong> system.</p>';
   $models_table = islandora_digital_workflow_models_table();
 
   $form = array(
@@ -45,7 +45,7 @@ function islandora_digital_workflow_admin_form() {
       '#collapsed' => FALSE,
       'taxonomy_manage_link' => array(
         '#type' => 'item',
-        '#title' => l('Islandora Digital Workflow Stage vocabulary', 'admin/structure/taxonomy/workflow_stage_vocab'),
+        '#title' => l(t('Islandora Digital Workflow Stage vocabulary'), 'admin/structure/taxonomy/workflow_stage_vocab'),
         '#description' => t('These terms use the Drupal core Taxonomy and should only ' .
           'be changed by advanced users.'),
       ),
@@ -59,17 +59,17 @@ function islandora_digital_workflow_admin_form() {
       '#collapsed' => FALSE,
       'link_1' => array(
         '#type' => 'item',
-        '#title' => l('Islandora Digital Workflow - Workflow Sequences', 'admin/islandora/islandora_digital_workflow/workflow_sequences'),
+        '#title' => l(t('Islandora Digital Workflow - Workflow Sequences'), 'admin/islandora/islandora_digital_workflow/workflow_sequences'),
         '#description' => t('Manage Workflow sequence actions related to each islandora model.'),
       ),
       'link_2' => array(
         '#type' => 'item',
-        '#title' => l('Islandora Digital Workflow - Actions Configuration', 'admin/islandora/islandora_digital_workflow/workflow_sequence_actions'),
+        '#title' => l(t('Islandora Digital Workflow - Actions Configuration'), 'admin/islandora/islandora_digital_workflow/workflow_sequence_actions'),
         '#description' => t('Configure the actions that are used in workflow sequences.'),
       ),
       'link_3' => array(
         '#type' => 'item',
-        '#title' => l('Islandora Digital Workflow rules', 'admin/config/workflow/rules', array(
+        '#title' => l(t('Islandora Digital Workflow rules'), 'admin/config/workflow/rules', array(
             'query' => array(
                 'event' => 0,
                 'tag' => 'Islandora Digital Workflow'

@@ -518,7 +518,7 @@ function islandora_digital_workflow_batch_path($batch_values) {
     @list($ingest_host, $ingest_path) = explode(":", $ingest_path);
     drupal_set_message('This batch is configured to use files from a different server.  ' .
         'That server needs to be configured as a mounted folder under the /ingest ' .
-        'directory and the ' . l('Available Host Alias', '/admin/islandora/islandora_digital_workflow') .
+        'directory and the ' . l(t('Available Host Alias'), '/admin/islandora/islandora_digital_workflow') .
         ' configuration would need to be updated to point to the mounted location.',
         'error');
   }

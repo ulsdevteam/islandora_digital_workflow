@@ -104,7 +104,7 @@ function islandora_digital_workflow_delete_batch_form(array $form, array &$form_
   $supported_models_description = 'Select the type of objects from the ' .
       'available content models that this batch will contain.' .
       (user_access('administer site configuration') ?
-          '  Configuration for ' . l('Islandora Digital Workflow',
+          '  Configuration for ' . l(t('Islandora Digital Workflow'),
           'admin/islandora/islandora_digital_workflow',
           array('attributes'=>array('target' => '_blank'))) . '.  ' : '');
 

@@ -17,6 +17,16 @@ function islandora_digital_workflow_delete_transaction() {
   $nid = arg(1);
   $transaction_id = arg(3);
   $node = ($nid) ? node_load($nid) : NULL;
+  $breadcrumb = array(
+    l(t('Home'), '<front>'),
+    l(t('Islandora Digital Workflow'), 'islandora/islandora_digital_workflow'),
+  );
+  if ($node) {
+    $breadcrumb[] = l($node->title, 'node/' . $node->nid);
+    $breadcrumb[] = l(t('Transactions'), 'node/' . $node->nid . '/transactions');
+  }
+  drupal_set_breadcrumb($breadcrumb);
+
   drupal_set_title(t('Islandora Digital Workflow - Delete transaction'), CHECK_PLAIN);
   $form = drupal_get_form('islandora_digital_workflow_delete_transactions_form', $node, $transaction_id);
   $markup = $lookup_form_markup . drupal_render($form);

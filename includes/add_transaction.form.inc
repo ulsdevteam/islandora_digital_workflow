@@ -44,6 +44,16 @@ function islandora_digital_workflow_add_transactions_form(array $form, array &$f
   $batch_item_identifier = $batch_item_object->identifier;
   $action_description = ((is_array($action_record) && array_key_exists('description', $action_record)) ? $action_record['description'] : '');
 
+  $breadcrumb = array(
+    l(t('Home'), '<front>'),
+    l(t('Islandora Digital Workflow'), 'islandora/islandora_digital_workflow'),
+  );
+  if ($node) {
+    $breadcrumb[] = l($node->title, 'node/' . $node->nid);
+    $breadcrumb[] = l(t('Transactions'), 'node/' . $node->nid . '/transactions');
+  }
+  drupal_set_breadcrumb($breadcrumb);
+
   // Display a little warning on this form if the user is trying to add an
   // action that applies to "all items" in the batch.
   if (islandora_digital_workflow_is_batch_action($action_id)) {

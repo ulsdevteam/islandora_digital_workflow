@@ -14,6 +14,13 @@ function islandora_digital_workflow_files($node) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
   drupal_add_js('misc/collapse.js');
 
+  $breadcrumb = array(
+    l(t('Home'), '<front>'),
+    l(t('Islandora Digital Workflow'), 'islandora/islandora_digital_workflow'),
+    l($node->title, 'node/' . $node->nid),
+  );
+  drupal_set_breadcrumb($breadcrumb);
+
   $lookup_form_markup = theme('islandora_digital_workflow_lookup', array('searchterm' => ''));
 
   $batch_name = $node->title;

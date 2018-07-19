@@ -14,10 +14,10 @@ function islandora_digital_workflow_sequences() {
 
   drupal_set_title(t('Islandora Digital Workflow - Workflow Sequences'), CHECK_PLAIN);
   $breadcrumb = array(
-    l('Home', '<front>'),
-    l('Administration', 'admin'),
-    l('Islandora', 'admin/islandora'),
-    l('Islandora Digital Workflow', 'admin/islandora/islandora_digital_workflow')
+    l(t('Home'), '<front>'),
+    l(t('Administration'), 'admin'),
+    l(t('Islandora'), 'admin/islandora'),
+    l(t('Islandora Digital Workflow'), 'admin/islandora/islandora_digital_workflow')
   );
   drupal_set_breadcrumb($breadcrumb);
 
@@ -28,7 +28,7 @@ function islandora_digital_workflow_sequences() {
 
   $form['link'] = array(
       '#type' => 'item',
-      '#markup' => l('Manage Actions', 'admin/islandora/islandora_digital_workflow/workflow_sequence_actions'),
+      '#markup' => l(t('Manage Actions'), 'admin/islandora/islandora_digital_workflow/workflow_sequence_actions'),
   );
   $form['wrapper'] = array(
       '#type' => 'fieldset',
@@ -37,7 +37,7 @@ function islandora_digital_workflow_sequences() {
   $form['wrapper']['add_new'] = array(
       '#type' => 'item',
       '#markup' => '<ul class="action-links"><li>' . 
-        l('Create new sequence', 'admin/islandora/islandora_digital_workflow/create_workflow_sequences') .
+        l(t('Create new sequence'), 'admin/islandora/islandora_digital_workflow/create_workflow_sequences') .
       '</li></ul>',
   );
   $models_arr = array();
@@ -70,15 +70,15 @@ function islandora_digital_workflow_sequences() {
         '<a name="' . $name_description['name'] . '">' .
         '<div class="dashboard-report">' .
         '  <div class="small_right_float">' .
-          l('Edit', 'admin/islandora/islandora_digital_workflow/edit_workflow_sequence/' . $workflow_sequence_id) . ' | ' .
-          l('Delete', 'admin/islandora/islandora_digital_workflow/delete_workflow_sequence/' . $workflow_sequence_id) .
+          l(t('Edit'), 'admin/islandora/islandora_digital_workflow/edit_workflow_sequence/' . $workflow_sequence_id) . ' | ' .
+          l(t('Delete'), 'admin/islandora/islandora_digital_workflow/delete_workflow_sequence/' . $workflow_sequence_id) .
         '  </div>' .
         '<h3>' . l($name_description['name'], 'admin/islandora/islandora_digital_workflow/edit_workflow_sequence/' . $workflow_sequence_id) . '</h3>' .
         '<p>' . $name_description['description'] . '</p>' . 
         '  <div class="lookup_result_square"><p><b>' .
-          l('Models', 'admin/islandora/islandora_digital_workflow/workflow_sequence_models/' . $workflow_sequence_id) . ':</b> ' . $models .
+          l(t('Models'), 'admin/islandora/islandora_digital_workflow/workflow_sequence_models/' . $workflow_sequence_id) . ':</b> ' . $models .
           '</p><p><b>' .
-          l('Actions', 'admin/islandora/islandora_digital_workflow/workflow_sequences/' . $workflow_sequence_id) .
+          l(t('Actions'), 'admin/islandora/islandora_digital_workflow/workflow_sequences/' . $workflow_sequence_id) .
         ':</b><ul>' .
         ((count($markup_batch_actions) > 0) ?
           '<li class="no_indent">Batch actions</li>' .
@@ -152,11 +152,11 @@ function islandora_digital_workflow_order_delete(array $form, array &$form_state
 
   drupal_set_title(t('Islandora Digital Workflow - Delete Workflow Sequence'), CHECK_PLAIN);
   $breadcrumb = array(
-    l('Home', '<front>'),
-    l('Administration', 'admin'),
-    l('Islandora', 'admin/islandora'),
-    l('Islandora Digital Workflow', 'admin/islandora/islandora_digital_workflow'),
-    l('Islandora Digital Workflow - Workflow Sequences', 'admin/islandora/islandora_digital_workflow/workflow_sequences'),
+    l(t('Home'), '<front>'),
+    l(t('Administration'), 'admin'),
+    l(t('Islandora'), 'admin/islandora'),
+    l(t('Islandora Digital Workflow'), 'admin/islandora/islandora_digital_workflow'),
+    l(t('Islandora Digital Workflow - Workflow Sequences'), 'admin/islandora/islandora_digital_workflow/workflow_sequences'),
     $sequence_title,
   );
 
@@ -295,11 +295,11 @@ function islandora_digital_workflow_workflow_sequence_create(array $form, array 
   $title = 'Islandora Digital Workflow - Create Workflow Sequence';
   drupal_set_title($title, CHECK_PLAIN);
   $breadcrumb = array(
-    l('Home', '<front>'),
-    l('Administration', 'admin'),
-    l('Islandora', 'admin/islandora'),
-    l('Islandora Digital Workflow', 'admin/islandora/islandora_digital_workflow'),
-    l('Islandora Digital Workflow - Workflow Sequences', 'admin/islandora/islandora_digital_workflow/workflow_sequences'),
+    l(t('Home'), '<front>'),
+    l(t('Administration'), 'admin'),
+    l(t('Islandora'), 'admin/islandora'),
+    l(t('Islandora Digital Workflow'), 'admin/islandora/islandora_digital_workflow'),
+    l(t('Islandora Digital Workflow - Workflow Sequences'), 'admin/islandora/islandora_digital_workflow/workflow_sequences'),
     $title,
   );
   return $form;
@@ -328,8 +328,8 @@ function islandora_digital_workflow_workflow_sequence_create_submit($form, &$for
   ))->fetchAll();
 
   $result_obj = array_pop($results);
-  $edit_models_link = l('Models', 'admin/islandora/islandora_digital_workflow/workflow_sequence_models/' . $result_obj->workflow_sequence_id);
-  $edit_actions_link = l('Actions', 'admin/islandora/islandora_digital_workflow/workflow_sequences/' . $result_obj->workflow_sequence_id);
+  $edit_models_link = l(t('Models'), 'admin/islandora/islandora_digital_workflow/workflow_sequence_models/' . $result_obj->workflow_sequence_id);
+  $edit_actions_link = l(t('Actions'), 'admin/islandora/islandora_digital_workflow/workflow_sequences/' . $result_obj->workflow_sequence_id);
   drupal_set_message('The new workflow sequence has been saved.  Manage ' . $edit_models_link . ' | ' . $edit_actions_link);
   drupal_goto('admin/islandora/islandora_digital_workflow/workflow_sequences');
 }
@@ -391,11 +391,11 @@ function islandora_digital_workflow_workflow_sequence_edit(array $form, array &$
 
   drupal_set_title(t('Islandora Digital Workflow - Edit Workflow Sequence'), CHECK_PLAIN);
   $breadcrumb = array(
-    l('Home', '<front>'),
-    l('Administration', 'admin'),
-    l('Islandora', 'admin/islandora'),
-    l('Islandora Digital Workflow', 'admin/islandora/islandora_digital_workflow'),
-    l('Islandora Digital Workflow - Workflow Sequences', 'admin/islandora/islandora_digital_workflow/workflow_sequences'),
+    l(t('Home'), '<front>'),
+    l(t('Administration'), 'admin'),
+    l(t('Islandora'), 'admin/islandora'),
+    l(t('Islandora Digital Workflow'), 'admin/islandora/islandora_digital_workflow'),
+    l(t('Islandora Digital Workflow - Workflow Sequences'), 'admin/islandora/islandora_digital_workflow/workflow_sequences'),
     $sequence_title,
   );
 
@@ -421,8 +421,8 @@ function islandora_digital_workflow_workflow_sequence_edit_submit($form, &$form_
             ':description' => $form_state['values']['sequence_description'],
             ':workflow_sequence_id' => $workflow_sequence_id,
     ));
-    $edit_models_link = l('Models', 'admin/islandora/islandora_digital_workflow/workflow_sequence_models/' . $workflow_sequence_id);
-    $edit_actions_link = l('Actions', 'admin/islandora/islandora_digital_workflow/workflow_sequences/' . $workflow_sequence_id);
+    $edit_models_link = l(t('Models'), 'admin/islandora/islandora_digital_workflow/workflow_sequence_models/' . $workflow_sequence_id);
+    $edit_actions_link = l(t('Actions'), 'admin/islandora/islandora_digital_workflow/workflow_sequences/' . $workflow_sequence_id);
     drupal_set_message('The workflow sequence has been saved.  Manage ' . $edit_models_link . ' | ' . $edit_actions_link);
     drupal_goto('admin/islandora/islandora_digital_workflow/workflow_sequences');
   }
@@ -495,7 +495,7 @@ function islandora_digital_workflow_workflow_sequence_actions_form(array $form, 
       'models' => array(
           '#type' => 'item',
           '#title' => t('Models'),
-          '#description' => l('Edit models association', 'admin/islandora/islandora_digital_workflow/workflow_sequence_models/' . $workflow_sequence_id) .
+          '#description' => l(t('Edit models association'), 'admin/islandora/islandora_digital_workflow/workflow_sequence_models/' . $workflow_sequence_id) .
             str_replace(": ,", ": (default), ", '.  Current Models using this sequence: ' . implode(", ", $workflow_model_sequences[$workflow_sequence_id])) . '. ',
       ),
   ));
@@ -547,11 +547,11 @@ function islandora_digital_workflow_workflow_sequence_actions_form(array $form, 
   $title = ($sequence_title ? ' "' . $sequence_title . '"' : 'Islandora Digital Workflow');
   drupal_set_title($title, CHECK_PLAIN);
   $breadcrumb = array(
-    l('Home', '<front>'),
-    l('Administration', 'admin'),
-    l('Islandora', 'admin/islandora'),
-    l('Islandora Digital Workflow', 'admin/islandora/islandora_digital_workflow'),
-    l('Islandora Digital Workflow - Workflow Sequences', 'admin/islandora/islandora_digital_workflow/workflow_sequences'),
+    l(t('Home'), '<front>'),
+    l(t('Administration'), 'admin'),
+    l(t('Islandora'), 'admin/islandora'),
+    l(t('Islandora Digital Workflow'), 'admin/islandora/islandora_digital_workflow'),
+    l(t('Islandora Digital Workflow - Workflow Sequences'), 'admin/islandora/islandora_digital_workflow/workflow_sequences'),
     $title,
   );
   drupal_set_breadcrumb($breadcrumb);
@@ -737,10 +737,10 @@ function islandora_digital_workflow_workflow_sequence_models_form(array $form, a
   $title = ($sequence_title ? ' "' . $sequence_title . '"' : 'Islandora Digital Workflow');
   drupal_set_title($title, CHECK_PLAIN);
   $breadcrumb = array(
-    l('Home', '<front>'),
-    l('Islandora', 'admin/islandora'),
-    l('Islandora Digital Workflow', 'admin/islandora/islandora_digital_workflow'),
-    l('Islandora Digital Workflow - Workflow Sequences', 'admin/islandora/islandora_digital_workflow/workflow_sequences'),
+    l(t('Home'), '<front>'),
+    l(t('Islandora'), 'admin/islandora'),
+    l(t('Islandora Digital Workflow'), 'admin/islandora/islandora_digital_workflow'),
+    l(t('Islandora Digital Workflow - Workflow Sequences'), 'admin/islandora/islandora_digital_workflow/workflow_sequences'),
     $title,
   );
   drupal_set_breadcrumb($breadcrumb);
@@ -984,11 +984,11 @@ function islandora_digital_workflow_actions_edit_form(array $form, array &$form_
     drupal_set_title(t('Islandora Digital Workflow - Add Action'), CHECK_PLAIN);
   }
   $breadcrumb = array(
-    l('Home', '<front>'),
-    l('Administration', 'admin'),
-    l('Islandora', 'admin/islandora'),
-    l('Islandora Digital Workflow', 'admin/islandora/islandora_digital_workflow'),
-    l('Islandora Digital Workflow - Actions Configuration', 'admin/islandora/islandora_digital_workflow/workflow_sequence_actions'),
+    l(t('Home'), '<front>'),
+    l(t('Administration'), 'admin'),
+    l(t('Islandora'), 'admin/islandora'),
+    l(t('Islandora Digital Workflow'), 'admin/islandora/islandora_digital_workflow'),
+    l(t('Islandora Digital Workflow - Actions Configuration'), 'admin/islandora/islandora_digital_workflow/workflow_sequence_actions'),
   );
   drupal_set_breadcrumb($breadcrumb);
 
@@ -1164,11 +1164,11 @@ function islandora_digital_workflow_actions_delete_form(array $form, array &$for
   }
   drupal_set_title(t('Islandora Digital Workflow - Delete Action') . ': "' . $action_record['description'] . '"', CHECK_PLAIN);
   $breadcrumb = array(
-    l('Home', '<front>'),
-    l('Administration', 'admin'),
-    l('Islandora', 'admin/islandora'),
-    l('Islandora Digital Workflow', 'admin/islandora/islandora_digital_workflow'),
-    l('Islandora Digital Workflow - Actions Configuration', 'admin/islandora/islandora_digital_workflow/workflow_sequence_actions'),
+    l(t('Home'), '<front>'),
+    l(t('Administration'), 'admin'),
+    l(t('Islandora'), 'admin/islandora'),
+    l(t('Islandora Digital Workflow'), 'admin/islandora/islandora_digital_workflow'),
+    l(t('Islandora Digital Workflow - Actions Configuration'), 'admin/islandora/islandora_digital_workflow/workflow_sequence_actions'),
   );
   drupal_set_breadcrumb($breadcrumb);
   $form = array(

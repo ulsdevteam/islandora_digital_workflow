@@ -17,6 +17,15 @@ function islandora_digital_workflow_batch_transactions() {
   $lookup_form_markup = theme('islandora_digital_workflow_lookup', array('searchterm' => ''));
   $nid = arg(1);
   $node = ($nid) ? node_load($nid) : NULL;
+  $breadcrumb = array(
+    l(t('Home'), '<front>'),
+    l(t('Islandora Digital Workflow'), 'islandora/islandora_digital_workflow'),
+  );
+  if ($nid) {
+    $breadcrumb[] = l($node->title, 'node/' . $nid);
+  }
+  drupal_set_breadcrumb($breadcrumb);
+
   $form = drupal_get_form('islandora_digital_workflow_batch_transactions_form', $node);
   $markup = $lookup_form_markup . drupal_render($form);
   return $markup;

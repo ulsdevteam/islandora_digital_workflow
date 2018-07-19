@@ -35,7 +35,7 @@ function islandora_digital_workflow_get_stage_links() {
   // remaining links are all based on the stage taxonomy terms  
   $content_types_vocab = taxonomy_vocabulary_machine_name_load(IDW_STAGE_TAXONOMY_MACHINE_NAME);
   $node_count = islandora_digital_workflow_get_count_of_nodes_by_stage();
-  $all_batches_link = l('All Batches', '/islandora/islandora_digital_workflow/batches/all') . 
+  $all_batches_link = l(t('All Batches'), '/islandora/islandora_digital_workflow/batches/all') .
           ($node_count ? ' <small class="disabled_text">- ' . $node_count . ' batch' . ($node_count == 1 ? '' : 'es'). '</small>' : '');
   $links = array($all_batches_link);
 

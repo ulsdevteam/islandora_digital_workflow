@@ -53,7 +53,7 @@ function islandora_digital_workflow_create_empty_batch_form(array $form, array &
   if (count($batch_hosts) < 1) {
     drupal_set_message(t('<b>Available Host Aliases for Batch ingest</b> is ' .
         'not configured.  Please contact an administrator to ask them to ') .
-        'configure at least one "' . l('Available Host Aliases for Batch ingest', '/admin/islandora/islandora_digital_workflow') .
+        'configure at least one "' . l(t('Available Host Aliases for Batch ingest'), '/admin/islandora/islandora_digital_workflow') .
         t('" before creating any workflow batches.'), 'error');
     $configured = FALSE;
   }
@@ -63,8 +63,8 @@ function islandora_digital_workflow_create_empty_batch_form(array $form, array &
     drupal_set_message(t('There are no <b>Supported Models</b> models configured ' . 
         'for creating batches or your user does not have permission to any models.  ' .
         'Please contact an administrator to ask them to configure the ') .
-          l('Supported Models', '/admin/islandora/islandora_digital_workflow') .
-        t(' and ') . l('set up permissions', '/admin/people/permissions') . t(' to any models.'), 'error');
+          l(t('Supported Models'), '/admin/islandora/islandora_digital_workflow') .
+        t(' and ') . l(t('set up permissions'), '/admin/people/permissions') . t(' to any models.'), 'error');
     $configured = FALSE;
   }
   if (!$configured) {
@@ -90,7 +90,7 @@ function islandora_digital_workflow_create_empty_batch_form(array $form, array &
   $supported_models_description = 'Select the type of objects from the ' .
       'available content models that this batch will contain.' .
       (user_access('administer site configuration') ?
-          '  Configuration for ' . l('Islandora Digital Workflow',
+          '  Configuration for ' . l(t('Islandora Digital Workflow'),
           'admin/islandora/islandora_digital_workflow',
           array('attributes'=>array('target' => '_blank'))) . '.  ' : '');
 
@@ -271,7 +271,7 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
   $supported_models_description = 'Select the type of objects from the ' .
       'available content models that this batch will contain.' .
       (user_access('administer site configuration') ?
-          '  Configuration for ' . l('Islandora Digital Workflow',
+          '  Configuration for ' . l(t('Islandora Digital Workflow'),
           'admin/islandora/islandora_digital_workflow',
           array('attributes'=>array('target' => '_blank'))) . '.  ' : '');
 
@@ -390,7 +390,7 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
           (($batch_record && isset($batch_record['uploaded_csv_file']) && ($batch_record['uploaded_csv_file'] <> '')) ?
           '<br>Upload file will <em>completely replace any existing items records ' .
           'and any transactions on them.  To add additional CSV files, use the ' .
-          '"Add items" option on the ' . l('Batch Items page', 'node/' . $batch_record['nid'] . '/items') . '.</em>' : ''),
+          '"Add items" option on the ' . l(t('Batch Items page'), 'node/' . $batch_record['nid'] . '/items') . '.</em>' : ''),
         '#upload_location' => 'temporary://',
         '#upload_validators' => array(
           'file_validate_extensions' => $extensions,

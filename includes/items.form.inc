@@ -11,6 +11,14 @@ function islandora_digital_workflow_batch_items() {
   $lookup_form_markup = theme('islandora_digital_workflow_lookup', array('searchterm' => ''));
   $nid = arg(1);
   $node = ($nid) ? node_load($nid) : NULL;
+  $breadcrumb = array(
+    l(t('Home'), '<front>'),
+    l(t('Islandora Digital Workflow'), 'islandora/islandora_digital_workflow'),
+  );
+  if ($node) {
+    $breadcrumb[] = l($node->title, 'node/' . $node->nid);
+  }
+  drupal_set_breadcrumb($breadcrumb);
   $transactions_form = drupal_get_form('islandora_digital_workflow_batch_items_form', $node);
   $add_item_form = drupal_get_form('islandora_digital_workflow_add_item_form', $node);
   $add_items_form = drupal_get_form('islandora_digital_workflow_add_items_form', $node);
@@ -366,7 +374,7 @@ function islandora_digital_workflow_batch_items_form(array $form, array &$form_s
         'batch\'s "Workflow Sequence", or this batch does not have a workflow ' . 
         'sequence associated with it.</em>  In order to enforce that certain transactions ' .
         'occur for this batch\'s objects, ' . 
-        l('select a "Workflow Sequence" for this batch', '/node/' . $node->nid . '/batch') . '.';
+        l(t('select a "Workflow Sequence" for this batch'), '/node/' . $node->nid . '/batch') . '.';
   }
 
   $form = array();
