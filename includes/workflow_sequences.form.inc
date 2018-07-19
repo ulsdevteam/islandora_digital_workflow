@@ -1111,14 +1111,11 @@ function islandora_digital_workflow_actions_edit_form_submit(array $form, array 
         (($rows_updated < 1) ? '  <i>(When no changes are made, the action record is not updated)</i>' : ''));
   }
   else {
-    if ($form_state['input']['is_batch_action']) {
-      $fields['action_id'] = islandora_digital_workflow_get_free_action_id($form_state['input']['is_batch_action']);
-    }
-
+    $fields['action_id'] = islandora_digital_workflow_get_free_action_id($form_state['input']['is_batch_action']);
     $id_inserted = db_insert('islandora_digital_workflow_actions')
       ->fields($fields)
       ->execute();
-    drupal_set_message($rows_updated . ' row inserted');
+    drupal_set_message($id_inserted . ' row inserted');
   }
 
   // Finally, call this last to generate the updated CSS -- since it operates

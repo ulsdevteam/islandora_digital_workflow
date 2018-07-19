@@ -994,11 +994,12 @@ function islandora_digital_workflow_get_batch_item($batch_item_id) {
 function islandora_digital_workflow_get_free_action_id($is_batch_action = FALSE) {
   // Run a query to get the maximum value of action_id that is under the range
   // limit defined by "item_action" vs. "batch_action".
-  $sql = 'SELECT (MAX(action_id) + 1) FROM islandora_digital_workflow_actions';
+  $sql = 'SELECT (MAX(action_id) + 1) as `next_action_id` FROM islandora_digital_workflow_actions';
   if (!$is_batch_action) {
     $sql .= ' WHERE action_id < 1000';
   }
   $results = db_query($sql);
   $rows = $results->fetchAll();
-  dpm($rows);
+  $rows = array_pop($rows);
+  return $rows->next_action_id;
 }
