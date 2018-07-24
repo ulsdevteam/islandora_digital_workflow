@@ -424,7 +424,7 @@ function islandora_digital_workflow_theme() {
       ),
     ),
     'islandora_digital_workflow_dashboard_tasks' => array(
-      'template' => 'theme/islandora-digital-workflow-daskboard-tasks',
+      'template' => 'theme/islandora-digital-workflow-dashboard-tasks',
       'variables' => array(
         'tasks_tables' => array(),
       ),
@@ -469,6 +469,13 @@ function islandora_digital_workflow_theme() {
     ),
     'islandora_digital_workflow_rounded_box' => array(
       'template' => 'theme/islandora-digital-workflow-rounded-box',
+      'variables' => array(
+        'title' => '',
+        'contents' => '',
+      ),
+    ),
+    'islandora_digital_workflow_dynamic_css' => array(
+      'template' => 'theme/islandora-digital-workflow-dynamic-css',
       'variables' => array(
         'title' => '',
         'contents' => '',

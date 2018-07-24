@@ -300,7 +300,13 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
         '#title' => t('Workflow Sequence'),
         '#type' => 'select',
         '#required' => true,
-        '#description' => t('The workflow sequence configuration relates the actions that are required for this object type.'),
+        '#description' => t('The ') . 
+          (user_access(ISLANDORA_DIGITAL_WORKFLOW_MANAGE_SEQUENCES) ?
+              l(t('workflow sequence configuration'), 
+                'admin/islandora/islandora_digital_workflow/workflow_sequences', 
+                array('attributes'=>array('target' => '_blank'))) : 
+            'workflow sequence configuration') .
+          t(' relates the actions that are required for this object type.'),
         '#options' => $sequences,
         '#default_value' => ($batch_record && isset($batch_record['workflow_sequence_id'])) ? $batch_record['workflow_sequence_id'] : '',
       ),

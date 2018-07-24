@@ -21,12 +21,6 @@
     <?php $toggle = FALSE; ?>
     <?php foreach ($batch_records as $batch_record) { ?>
     <div class="lookup_result <?php print ($toggle) ? 'evenrow' : 'oddrow'; ?>">
-        <div class="lookup_result_indent">
-          <b>Description:</b> <?php print $batch_record->batch_description; ?>
-          <?php if (isset($batch_record->identifiers)) { ?>
-          <div><b>Matched Identifiers:</b> <?php print $batch_record->identifiers; ?></div>
-          <?php } ?>
-        </div>
         <?php
         $toggle = !$toggle;
         if ($batch_record->nid) {
@@ -35,6 +29,12 @@
           print drupal_render($view);
         }
         ?>
+        <div class="lookup_result_indent">
+          <b>Description:</b> <?php print $batch_record->batch_description; ?>
+          <?php if (isset($batch_record->identifiers)) { ?>
+          <div><b>Matched Identifiers:</b> <?php print $batch_record->identifiers; ?></div>
+          <?php } ?>
+        </div>
     </div>
     <?php } ?>
 <br style="clear:both" />

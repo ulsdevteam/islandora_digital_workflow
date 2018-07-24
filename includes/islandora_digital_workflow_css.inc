@@ -22,9 +22,13 @@ div.transaction_action_reserved_action_all_3 {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
   $module_path = drupal_get_path('module', 'islandora_digital_workflow');
 
+  $all_actions = islandora_digital_workflow_get_all_actions();
+  $css = theme('islandora_digital_workflow_dynamic_css', array(
+      'all_actions' => $all_actions,
+      'module_path' => $module_path,
+  ));
   // Loop through all of the islandora_digital_workflow_actions records and
   // generate the CSS based on their values.
-  $all_actions = islandora_digital_workflow_get_all_actions();
   $div_css_names = array();
   foreach ($all_actions as $action_arr) {
     if ($action_arr['glyph']) {

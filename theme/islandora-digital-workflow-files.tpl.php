@@ -65,7 +65,6 @@
       <?php $otoggle = FALSE; ?>
       <?php foreach ($item_file_records as $item) { ?>
         <?php $otoggle = !$otoggle; ?>
-
         <?php $toggle = FALSE; ?>
 
         <?php @list($ns, $pid) = explode(":", $item->identifier); ?>
@@ -75,6 +74,10 @@
           <a href="/node/<?php print $node->nid; ?>/item/<?php print $item->batch_item_id; ?>"><?php print $item->identifier; ?></a></span>
     </legend>
     <div class="fieldset-wrapper fieldset_scrollable_div_wrapper">
+        <small class="disabled_text"><b>Files location:</b> <?php
+        $filename_pathinfo = pathinfo($item->filename);
+        print $filename_pathinfo['dirname']; 
+        ?></small>
       <table>
         <tr>
           <th>Filename</th>

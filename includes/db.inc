@@ -389,14 +389,14 @@ function islandora_digital_workflow_get_batch_transactions_by_nid($nid) {
 function islandora_digital_workflow_get_batch_item_transactions($batch_item_id, $nid, $batch_id) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
 
-  $sql = 'SELECT bt.timestamp AS `timestamp`, bt.transaction_id AS transaction_id, ' .
+  $sql = 'SELECT bt.transaction_id, bt.timestamp AS `timestamp`, bt.transaction_id AS transaction_id, ' .
          'users.uid AS uid, users.name AS name, a.description AS description, ' .
          'a.action_id AS action_id, a.name AS action_name ' .
          'FROM islandora_digital_workflow_transactions bt ' .
          'LEFT OUTER JOIN users users ON bt.drupal_uid = users.uid ' .
          'INNER JOIN islandora_digital_workflow_actions a ON a.action_id = bt.action_id ' .
          'WHERE  (bt.batch_item_id = ' . $batch_item_id . ') ' .
-         'UNION SELECT bt.timestamp AS `timestamp`, bt.transaction_id AS transaction_id, ' .
+         'UNION SELECT bt.transaction_id, bt.timestamp AS `timestamp`, bt.transaction_id AS transaction_id, ' .
          'users.uid AS uid, users.name AS name, a.description AS description, ' .
          'a.action_id AS action_id, a.name AS action_name ' .
          'FROM islandora_digital_workflow_transactions bt ' .
@@ -414,7 +414,7 @@ function islandora_digital_workflow_get_batch_item_transactions($batch_item_id, 
     $rows[$index]->glyph_class = 'transaction_action_' . (($row->action_name) ? strtolower(str_replace(array("-", " "), "_", $row->action_name)) : 'spacer');
     $rows[$index]->admin_links = ($access_edit_transactions) ? TRUE : FALSE;
     $rows[$index]->nid = $nid;
-    $rows[$index]->already_exists = FALSE;
+    $rows[$index]->transaction_id = $row->transaction_id;
   }
   return $rows;
 }
@@ -471,7 +471,7 @@ function islandora_digital_workflow_get_batch_items_by_nid($nid) {
     bi.batch_item_id
 FROM islandora_digital_workflow_batch b
 JOIN islandora_digital_workflow_batch_items bi ON b.batch_id = bi.batch_id
-LEFT JOIN islandora_digital_workflow_transactions bt ON bi.batch_item_id = bt.batch_item_id
+LEFT JOIN islandora_digital_workflow_transactions bt ON (bi.batch_item_id = bt.batch_item_id OR bi.batch_id = bt.batch_id)
 LEFT JOIN islandora_digital_workflow_actions a ON a.action_id = bt.action_id
 WHERE b.nid = ' . $nid . '
 GROUP BY bi.batch_item_id
@@ -926,7 +926,7 @@ function islandora_digital_workflow_get_required_batch_actions($batch_id = NULL,
   $return_rows = array();
   // To have explicit control over the returned array results...
   foreach ($rows as $row) {
-    $return_rows[$row->action_order] = array(
+    $return_rows[] = array(
         'batch_id' => $row->batch_id,
         'batch_action_name' => $row->action_name,
         'batch_action_description' => $row->description,
