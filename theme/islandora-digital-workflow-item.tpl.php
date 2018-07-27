@@ -67,8 +67,8 @@
     <table>
         <tr>
             <th>Description</th>
-            <th>When</th>
             <th>User</th>
+            <th>When</th>
             <th>Timestamp</th>
         </tr>
       <?php foreach ($item_record_transactions as $transaction_record) { ?>
@@ -77,19 +77,8 @@
           ?>
           <tr class="<?php print ($toggle) ? 'evenrow' : 'oddrow'; ?> <?php print ($transaction_record->action_id > 999) ? 'batch_action' : 'item_action'; ?>">
               <td>
-                <div class="<?php
-                  print $transaction_record->glyph_class;
-                  if ($transaction_record->already_exists) {
-                    print ' optional_action';
-                  }
-                ?>">&nbsp;</div>
-                <?php if ($transaction_record->already_exists): ?>
-                <span class="optional_action">
-                <?php endif; ?>
+                <div class="<?php print $transaction_record->glyph_class; ?>">&nbsp;</div>
                 <?php print $transaction_record->description; ?>
-                <?php if ($transaction_record->already_exists): ?>
-                </span>
-                <?php endif; ?>
 
                 <?php if ($transaction_record->admin_links <> ''): ?>
                   <div class="admin_links">
@@ -105,8 +94,8 @@
                   </div>
                 <?php endif; ?>
               </td>
-              <td><?php print $transaction_record->how_long_ago; ?></td>
               <td><?php print $transaction_record->user_name; ?></td>
+              <td><?php print $transaction_record->how_long_ago; ?></td>
               <td><?php print $transaction_record->timestamp; ?></td>
           </tr>
       <?php } ?>

@@ -111,7 +111,6 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
     $file_records = islandora_digital_workflow_get_batch_files_by_nid($batch_record->nid);
     $scanned_files = islandora_digital_workflow_scan_files($batch_path . '/' . $pid, $file_records);
   }
-
   $item_record_transactions = islandora_digital_workflow_get_batch_item_transactions($batch_item_id, $node->nid, $batch_record->batch_id);
   islandora_digital_workflow_merge_transactions_with_item_actions($item_record_transactions, $required_batch_actions, $node->nid);
 
@@ -145,20 +144,34 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
 
 
 function islandora_digital_workflow_merge_transactions_with_item_actions(&$item_record_transactions, $required_batch_actions, $nid) {
-  $merged_item_record_transactions = $item_record_transactions; //array();
+  // $merged_item_record_transactions = $item_record_transactions; //array();
   foreach ($required_batch_actions as $required_batch_action) {
     $this_action_transaction_objects = islandora_digital_workflow_transaction_action_objects($item_record_transactions, $required_batch_action, $nid);
     foreach ($this_action_transaction_objects as $a_action_transaction_object) {
-      $merged_item_record_transactions[] = $a_action_transaction_object;
+      if (!islandora_digital_workflow_transactions_find_transaction_id($item_record_transactions, $a_action_transaction_object->transaction_id)) {
+        $item_record_transactions[] = $a_action_transaction_object;
+      }
     }
   }
-  $item_record_transactions = $merged_item_record_transactions;
 }
 
-function islandora_digital_workflow_transaction_action_objects($item_record_transactions, $required_batch_action, $nid) {
+function islandora_digital_workflow_transactions_find_transaction_id($item_record_transactions, $transaction_id) {
+  $retval = FALSE;
+  if ($transaction_id == -1) {
+    return FALSE;
+  }
+  foreach ($item_record_transactions as $item_record_transaction) {
+    if ($item_record_transaction->transaction_id == $transaction_id) {
+      $retval = TRUE;
+    }
+  }
+  return $retval;
+}
+
+function islandora_digital_workflow_transaction_action_objects($merged_item_record_transactions, $required_batch_action, $nid) {
   global $user;
   $return_array = array();
-  foreach ($item_record_transactions as $item_record_transaction) {
+  foreach ($merged_item_record_transactions as $item_record_transaction) {
     $nid = $item_record_transaction->nid;
     if (($item_record_transaction->description == $required_batch_action['batch_action_description'])) {
       $return_array[] = $item_record_transaction;
@@ -166,7 +179,6 @@ function islandora_digital_workflow_transaction_action_objects($item_record_tran
   }
   if (count($return_array) < 1) {
     $stub_entry = new stdClass();
-    $stub_entry->already_exists = (count($return_array) > 0);
     $stub_entry->timestamp = '';
     $stub_entry->transaction_id = -1;
     $stub_entry->action_name = $required_batch_action['batch_action_name'];
@@ -179,6 +191,5 @@ function islandora_digital_workflow_transaction_action_objects($item_record_tran
     $stub_entry->user_name = '';
     $return_array[] = $stub_entry;
   }
-
   return $return_array;
 }

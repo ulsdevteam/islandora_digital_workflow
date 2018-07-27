@@ -325,10 +325,18 @@ function islandora_digital_workflow_batch_items_form(array $form, array &$form_s
   // Prepare various objects for the dynamic form generation...
   $items = islandora_digital_workflow_get_batch_items_by_nid($node->nid);
   $options = array();
+
+  $item_transactions_count = ((array_key_exists(0, $items) && is_object($items[0])) ? count($items[0]->transactions) : 0);
+  // Based on the $item_transactions_count, set a class for the "Transactions" table
+  // cell that is wide enough to display all of the actions.
+  $transactions_cell_class = (($item_transactions_count < 7) ? 'td_wide_normal' :
+          (($item_transactions_count < 14) ? 'td_wide_180' :
+          (($item_transactions_count < 20) ? 'td_wide_320' : 'td_wide_400')));
   foreach ($items as $item) {
     $options[$item->identifier] = array(
       'id' => $item->identifier,
-      'Transactions' => theme('islandora_digital_workflow_transactions_glyphs', array('transaction_actions' => $item->transactions)),
+      'Transactions' => array('data' => theme('islandora_digital_workflow_transactions_glyphs', array('transaction_actions' => $item->transactions)),
+          'class' => array($transactions_cell_class)),
       'Identifier' => l($item->identifier, '/node/' . $node->nid . '/item/' . $item->batch_item_id),
       'Title' => $item->title,
       'Filename' => $item->filename_basename,

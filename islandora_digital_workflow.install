@@ -333,6 +333,11 @@ function islandora_digital_workflow_schema() {
         'length' => 255,
         'not null' => TRUE,
       ),
+      'glyph' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
     ),
     'indexes' => array(
       'ss_name' => array('name'),

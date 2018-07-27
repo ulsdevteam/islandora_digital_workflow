@@ -280,9 +280,6 @@ span.transaction_action_reserved_action_spacer {
     text-align: right;
 }
 
-.report_table {
-}
-
 .admin_links {
     display: inline-block;
     float: right;
@@ -316,6 +313,7 @@ span.transaction_action_reserved_action_spacer {
     font-size: 0.9em;
     max-height: 600px;
     overflow: auto;
+    margin-top: 8px;
 }
 
 #islandora-digital-workflow-batch-items-form div table thead tr th:first-child,
@@ -537,4 +535,17 @@ ul.action-links a {
     padding-left: 15px;
     background: transparent url("../images/add.png") no-repeat 0 center;
     line-height: 30px;
+}
+
+.td_wide_normal {
+    width: 100px;
+}
+.td_wide_180 {
+    width: 180px;
+}
+.td_wide_320 {
+    width: 320px;
+}
+.td_wide_400 {
+    width: 400px;
 }

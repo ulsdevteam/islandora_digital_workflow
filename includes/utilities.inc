@@ -1382,15 +1382,14 @@ function islandora_digital_workflow_scan_files($scan_path, $expected_file_record
   module_load_include('inc', 'islandora_digital_workflow', 'includes/file_utilities');
   $files = islandora_digital_workflow_file_scan_directory($scan_path, '', TRUE);
   $ret_arr = array();
-  $count_of_expected_file_records = count($expected_file_records);
   foreach ($files as $folder => $folder_files) {
     if (is_array($folder_files)) {
       foreach ($folder_files as $file) {
-        $ret_arr[$folder . '/' . $file] = islandora_digital_workflow_get_filesize_class($scan_path, $folder, $file);
+        $ret_arr[$folder . '/' . $file] = islandora_digital_workflow_get_filesize_class($scan_path, $folder, $file, FALSE);
       }
     }
     else {
-      $ret_arr[$folder_files] = islandora_digital_workflow_get_filesize_class($scan_path, '', $folder_files);
+      $ret_arr[$folder_files] = islandora_digital_workflow_get_filesize_class($scan_path, '', $folder_files, FALSE);
     }
   }
   ksort($ret_arr);
@@ -1413,18 +1412,18 @@ function islandora_digital_workflow_scan_paged_content_files($scan_path) {
   foreach ($files as $folder => $folder_files) {
     if (is_array($folder_files)) {
       foreach ($folder_files as $file) {
-        $ret_arr[$folder . '/' . $file] = islandora_digital_workflow_get_filesize_class($scan_path, $folder, $file);
+        $ret_arr[$folder . '/' . $file] = islandora_digital_workflow_get_filesize_class($scan_path, $folder, $file, TRUE);
       }
     }
     else {
-      $ret_arr[$folder_files] = islandora_digital_workflow_get_filesize_class($scan_path, '', $folder_files);
+      $ret_arr[$folder_files] = islandora_digital_workflow_get_filesize_class($scan_path, '', $folder_files, TRUE);
     }
   }
   ksort($ret_arr);
   return $ret_arr;
 }
 
-function islandora_digital_workflow_get_filesize_class($scan_path, $folder, $file) {
+function islandora_digital_workflow_get_filesize_class($scan_path, $folder, $file, $tif_must_be_numeric = FALSE) {
   $relative_file_path = (($folder) ? $folder . '/' : '') . $file;
   $full_file_path = $scan_path . '/' . $relative_file_path;
   if (file_exists($full_file_path)) {
@@ -1433,10 +1432,11 @@ function islandora_digital_workflow_get_filesize_class($scan_path, $folder, $fil
     $ext = (array_key_exists('extension', $found_file_pathinfo) ? $found_file_pathinfo['extension'] : '');
     $filename = (array_key_exists('filename', $found_file_pathinfo) ? $found_file_pathinfo['filename'] : '');
     if ($ext <> 'xml') {
-      if ($ext == 'tif' && is_numeric($filename)) {
-        $class = '';
-      } else {
-        $class = 'bad';
+      $class = '';
+      if ($tif_must_be_numeric) {
+        if (!($ext == 'tif' && is_numeric($filename))) {
+          $class = 'bad';
+        }
       }
     }
     else {

@@ -56,7 +56,7 @@ function islandora_digital_workflow_sequences() {
     foreach ($this_workflow_sequence_actions as $action_record_array) {
       $class = ($action_record_array['is_required']) ? 'required_action' : 'optional_action';
       $glyph_class = 'transaction_action_' . (($action_record_array['action_name']) ? strtolower(str_replace(array("-", " "), "_", $action_record_array['action_name'])) : 'spacer');
-      $li_markup = '<li class="' . $glyph_class . ' ' . $class . '">' . $action_record_array['action_name'] . '</li>';
+      $li_markup = '<li class="' . $glyph_class . ' ' . $class . '">' . $action_record_array['action_description'] . '</li>';
       if (islandora_digital_workflow_is_batch_action($action_record_array['action_id'])) {
         $markup_batch_actions[] = $li_markup;
       } else {
@@ -878,7 +878,7 @@ function islandora_digital_workflow_actions_form(array $form, array &$form_state
           '#attributes' => array('class' => array('foobar')),
           '#description' => 'The description and glyph for each action can be ' . 
             'edited.  <i>Actions that have already been associated with any ' .
-            'workflow sequence cannot be renamed.</i>',
+            'workflow sequence cannot be assigned a different description.</i>',
       ),
   );
   $markup_item_actions = $markup_batch_actions = array();
@@ -993,7 +993,7 @@ function islandora_digital_workflow_actions_edit_form(array $form, array &$form_
   drupal_set_breadcrumb($breadcrumb);
 
   $module_path = drupal_get_path('module', 'islandora_digital_workflow');
-  $glyph_filenames = array(
+  $static_glyph_filenames = array(
       'images/add-marc-record_20.png' => 'images/add-marc-record_20.png',
       'images/check-in-physical-item_20.png' => 'images/check-in-physical-item_20.png',
       'images/check-item-against-physical-object_20.png' => 'images/check-item-against-physical-object_20.png',
@@ -1048,7 +1048,6 @@ function islandora_digital_workflow_actions_edit_form(array $form, array &$form_
   if ($action_id) {
     $form['batch_action_wrapper']['#attributes'] = array('disabled' => 'disabled');
   }
-//  }
 
   $form['glyph_wrapper'] = array(
       '#type' => 'fieldset',
@@ -1065,11 +1064,11 @@ function islandora_digital_workflow_actions_edit_form(array $form, array &$form_
           '#type' => 'radios',
           '#title' => 'Select new graphic ['.$selected_glyph_filename.']',
           '#required' => TRUE,
-          '#options' => $glyph_filenames,
+          '#options' => $static_glyph_filenames,
           '#default_value' => $selected_glyph_filename,
           '#prefix' => theme('islandora_digital_workflow_action_glyph_preview',
               array(
-                  'glyph_filenames' => $glyph_filenames,
+                  'glyph_filenames' => $static_glyph_filenames,
                   'module_path' => $module_path,
                   'normal_size' => TRUE,)),
       ),
@@ -1078,12 +1077,11 @@ function islandora_digital_workflow_actions_edit_form(array $form, array &$form_
   // Only display the message and make the edit fields read-only if the form is
   // not being submitted.
   if (is_array($sequences_using_action) && (array_key_exists('input', $form_state) && !array_key_exists('glyph', $form_state['input']))) {
-    $form['name']['#attributes'] = $read_only_att;
-    $form['description']['#attributes'] = $read_only_att;
-    drupal_set_message('<div class="bad">This action is being used by ' .
-        'the following workflow sequences.  Edits to the name and description for ' .
-        'this action have been disabled.  It can not be deleted or repurposed ' .
-        '(by renaming the action).  Regardless, a different glyph could always be selected.' .
+    $form['name_desc_wrapper']['description']['#attributes'] = $read_only_att;
+    drupal_set_message('<div class="bad">This action is being used by the ' .
+        'workflow sequences.  Edits to the description for this action are ' .
+        'disabled.  It can not be deleted or repurposed (by renaming the ' .
+        'action).  Regardless, a different glyph could always be selected.' .
         '<ul>' . implode("</li><li>", $sequences_using_action) . '</li></ul></div>', 'warning');
   }
   $form['save'] = array(
@@ -1097,8 +1095,8 @@ function islandora_digital_workflow_actions_edit_form(array $form, array &$form_
 function islandora_digital_workflow_actions_edit_form_submit(array $form, array &$form_state) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/islandora_digital_workflow_css');
   $fields = array(
-      'name' => $form_state['input']['name'],
-      'description' => $form_state['input']['description'],
+      'name' => is_null($form_state['input']['name']) ? $form_state['values']['name'] : $form_state['input']['name'],
+      'description' => is_null($form_state['input']['description']) ? $form_state['values']['description'] : $form_state['input']['description'],
       'glyph' => $form_state['input']['glyph_selector'],
   );
   $action_id = $form_state['input']['action_id'];
