@@ -10,6 +10,12 @@ function islandora_digital_workflow_dashboard() {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/lookup.form');
   $lookup_form_markup = theme('islandora_digital_workflow_lookup', array('searchterm' => ''));
   module_load_include('inc', 'islandora_digital_workflow', 'includes/access_permissions');
+  // Needed for collapsible fieldsets
+  drupal_add_js('misc/collapse.js');
+  // For some unknown reason, the admin form does not need the drupal collapse library
+  // explicitly loaded like this, but it doesn't work here unless this library is included.
+  drupal_add_library('system', 'drupal.collapse');
+
   $dashboard_data = islandora_digital_workflow_get_user_role_dashboard();
   $tasks_tables = islandora_digital_workflow_get_tasks_tables();
   $links = islandora_digital_workflow_get_stage_links();
@@ -36,16 +42,25 @@ function islandora_digital_workflow_get_stage_links() {
   $content_types_vocab = taxonomy_vocabulary_machine_name_load(IDW_STAGE_TAXONOMY_MACHINE_NAME);
   $node_count = islandora_digital_workflow_get_count_of_nodes_by_stage();
   $all_batches_link = l(t('All Batches'), '/islandora/islandora_digital_workflow/batches/all') .
-          ($node_count ? ' <small class="disabled_text">- ' . $node_count . ' batch' . ($node_count == 1 ? '' : 'es'). '</small>' : '');
-  $links = array($all_batches_link);
+          ($node_count ? ' <small class="small_lt_text">- ' . $node_count . ' batch' . ($node_count == 1 ? '' : 'es'). '</small>' : '');
+  $links = array('batches' => array($all_batches_link));
 
   $stages = array('New', 'Scanned', 'Problem', 'Reviewed', 'Done');
   foreach ($stages as $stage) {
     $tid = islandora_digital_workflow_get_tid_by_name($stage, $content_types_vocab);
     $node_count = islandora_digital_workflow_get_count_of_nodes_by_stage($tid);
-    $links[] = l($stage, '/islandora/islandora_digital_workflow/batches/' . $tid) .
-        ($node_count ? ' <small class="disabled_text">- ' . $node_count . ' batch' . ($node_count == 1 ? '' : 'es'). '</small>' : '');
+    $links['batches'][] = l($stage, '/islandora/islandora_digital_workflow/batches/' . $tid) .
+        ($node_count ? ' <small class="small_lt_text">- ' . $node_count . ' batch' . ($node_count == 1 ? '' : 'es'). '</small>' : '');
   }
+
+  // Now add some utility links that may be permission-based...
+  if (user_access(ISLANDORA_DIGITAL_WORKFLOW_RUN_REPORTS)) {
+    $links['utility'][] = l('Reports', '/islandora/islandora_digital_workflow/reports') . '<br><small class="small_lt_text">Run reports on batches and items.</small><br><br>';
+  }
+  if (user_access(ISLANDORA_DIGITAL_WORKFLOW_USE_UTILITIES)) {
+    $links['utility'][] = l('Utilities', '/islandora/islandora_digital_workflow/process_form') . '<br><small class="small_lt_text">Perform functions on a set of batches and items.</small><br><br>';
+  }
+  
   return $links;  
 }
 
@@ -88,9 +103,8 @@ function islandora_digital_workflow_get_tasks_tables() {
     ));
   }
 
-  // TODO:  display a table of batches that need other details like missing
-  // workflow_sequence_id values (the value would be NULL -- which is possible
-  // when deleting a sequence).
+  // batches that need other details like missing workflow_sequence_id values
+  // (the value would be NULL -- which is possible when deleting a sequence).
   $batch_records_no_workflow_sequence = islandora_digital_workflow_find_batch_records_no_workflow_sequence();
   if (count($batch_records_no_workflow_sequence)) {
     $tables[] = theme('islandora_digital_workflow_batch_records_table', array(
@@ -99,7 +113,16 @@ function islandora_digital_workflow_get_tasks_tables() {
       'table_description' => 'Please edit the following batch records to associate with a workflow sequence:',
     ));
   }
-  // make links to edit those batches like: islandora/islandora_digital_workflow/edit_batch/test12
+
+  // batches or items that have been moved into the "problems" folder
+  $problems_folders = islandora_digital_workflow_find_problems_folders();
+  if (count($problems_folders)) {
+    $tables[] = theme('islandora_digital_workflow_file_browser', array(
+      'folders' => $problems_folders,
+      'table_title' => 'Items moved to the "Problems" folder location',
+      'table_description' => 'Please resolve by renaming or replacing the files in the folders listed below:',
+    ));
+  }
 
   return $tables;
 }

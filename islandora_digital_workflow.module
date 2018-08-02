@@ -18,23 +18,11 @@ define('IDW_ACTION_RESCANNED', 5);
 define('IDW_ACTION_CHECK_PHYSICAL_ITEMS', 6);
 define('IDW_ACTION_SYSTEM_MADE_DERIVATIVES', 7);
 define('IDW_ACTION_ADD_MARC_RECORD', 8);
-
-define('IDW_ACTION_RESERVED_1', 20);
-define('IDW_ACTION_RESERVED_2', 21);
-define('IDW_ACTION_RESERVED_3', 22);
-define('IDW_ACTION_RESERVED_4', 23);
-define('IDW_ACTION_RESERVED_5', 24);
-define('IDW_ACTION_RESERVED_6', 25);
-
 define('IDW_ACTION_ALL_CHECK_IN', 1001);
 define('IDW_ACTION_ALL_SCAN', 1002);
 define('IDW_ACTION_ALL_SYSTEM_INGEST', 1003);
 define('IDW_ACTION_ALL_CHECK_OUT', 1004);
 define('IDW_ACTION_ALL_CHECK_PHYSICAL_ITEMS', 1005);
-
-define('IDW_ACTION_RESERVED_ALL_1', 1020);
-define('IDW_ACTION_RESERVED_ALL_2', 1021);
-define('IDW_ACTION_RESERVED_ALL_3', 1022);
 
 // Permissions -- NOTE: there are additional permission constants defined in
 // islandora_digital_workflow_permission that use the naming convention of
@@ -48,6 +36,8 @@ define('ISLANDORA_DIGITAL_WORKFLOW_EDIT_DELETE_TRANSACTIONS', 'digital workflow 
 define('ISLANDORA_DIGITAL_WORKFLOW_UPDATE_ITEMS', 'digital workflow update items');
 define('ISLANDORA_DIGITAL_WORKFLOW_INGEST_ITEMS', 'digital workflow ingest items');
 define('ISLANDORA_DIGITAL_WORKFLOW_MANAGE_SEQUENCES', 'digital workflow manage sequences');
+define('ISLANDORA_DIGITAL_WORKFLOW_RUN_REPORTS', 'digital workflow run reports');
+define('ISLANDORA_DIGITAL_WORKFLOW_USE_UTILITIES', 'digital workflow use utilities');
 
 /**
  * Implements hook_menu().
@@ -270,7 +260,20 @@ function islandora_digital_workflow_menu() {
       'file' => 'includes/edit_transaction.form.inc',
       'weight' => 90,
     ),
-
+    'islandora/islandora_digital_workflow/reports' => array(
+      'title' => t('Islandora Digital Workflow - Reports'),
+      'type' => MENU_NORMAL_ITEM,
+      'page callback' => array('islandora_digital_workflow_reports'),
+      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_RUN_REPORTS),
+      'file' => 'includes/reports.form.inc',
+    ),
+    'islandora/islandora_digital_workflow/process_form' => array(
+      'title' => t('Islandora Digital Workflow - Utilities'),
+      'type' => MENU_NORMAL_ITEM,
+      'page callback' => array('islandora_digital_workflow_process_form'),
+      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_USE_UTILITIES),
+      'file' => 'includes/process.form.inc',
+    ),
     // Callback to serve up the dynamically generated CSS file
     'islandora/islandora_digital_workflow_css.css' => array(
       'type' => MENU_CALLBACK,
@@ -316,6 +319,15 @@ function islandora_digital_workflow_permission() {
       'title' => t('Manage Workflow Sequences'),
       'description' => t('User can manage workflow sequences and required actions'),
     ),
+    ISLANDORA_DIGITAL_WORKFLOW_RUN_REPORTS => array(
+      'title' => t('Run reports'),
+      'description' => t('User can run and view reports on batches and items'),
+    ),
+    ISLANDORA_DIGITAL_WORKFLOW_USE_UTILITIES => array(
+      'title' => t('Use batch and items utilities forms'),
+      'description' => t('User can use batch and item utilities forms'),
+    ),
+
   );
   $model_based_permissions = array();
   $models = islandora_digital_workflow_get_reduced_readable_cmodels();
@@ -479,6 +491,14 @@ function islandora_digital_workflow_theme() {
       'variables' => array(
         'title' => '',
         'contents' => '',
+      ),
+    ),
+    'islandora_digital_workflow_file_browser' => array(
+      'template' => 'theme/islandora-digital-workflow-file-browser',
+      'variables' => array(
+        'folders' => '',
+        'table_title' => '',
+        'table_description' => '',
       ),
     ),
   );

@@ -80,7 +80,6 @@ function islandora_digital_workflow_create_empty_batch_form(array $form, array &
   $batch_name = '';
   $batch_description = '';
   $button_text = SAVE_BUTTON_TEXT;
-  $batch_path = rtrim(variable_get('islandora_digital_workflow_ingest_prepared_path', file_directory_temp()), '/') . '/batch_0_not_named';
   $tid_for_cmodel_selected = '';
 
   // If the user can administer site config, then display the link to the
@@ -210,7 +209,6 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
 
     $read_only_att = array('readonly' => 'readonly', 'disabled' => 'disabled');
     $button_text = UPDATE_BUTTON_TEXT;
-    $batch_path = islandora_digital_workflow_batch_path($batch_record);
   }
   else {
     if (arg(2) === 'edit_batch') {
@@ -221,7 +219,6 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
     $batch_description = '';
     $read_only_att = array();
     $button_text = SAVE_BUTTON_TEXT;
-    $batch_path = rtrim(variable_get('islandora_digital_workflow_ingest_prepared_path', file_directory_temp()), '/') . '/batch_0_not_named';
   }
   if (!(array_key_exists($batch_record['default_type_of_resource'], $readable_models) === FALSE)) {
     $cmodel = $batch_record['default_type_of_resource'];

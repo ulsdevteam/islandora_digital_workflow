@@ -17,8 +17,8 @@
         <small><?php print $sequence_name; ?> item actions:
          <?php if ($display_actions_key): ?>
             <br><b>Key: </b>
-            <div class="batch_action div_key disabled_text">batch actions</div>
-            <div class="item_action div_key disabled_text">item actions</div><br>
+            <div class="batch_action div_key small_lt_text">batch actions</div>
+            <div class="item_action div_key small_lt_text">item actions</div><br>
         <?php endif; ?>
         </small>
     </div>

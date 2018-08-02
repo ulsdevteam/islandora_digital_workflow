@@ -26,7 +26,7 @@
           $toggle = !$toggle;
           ?>
           <div class="lookup_result_indent">
-            Edit batch: "<a href="/islandora/islandora_digital_workflow/edit_batch/<?php print $batch_record->batch_name; ?>"><?php print $batch_record->batch_name; ?></a>"<br>
+            <b>Edit batch:</b> "<a href="/islandora/islandora_digital_workflow/edit_batch/<?php print $batch_record->batch_name; ?>"><?php print $batch_record->batch_name; ?></a>"<br>
             <b>Description:</b> <?php print $batch_record->batch_description; ?>
           </div>
       </div>

@@ -1397,6 +1397,28 @@ function islandora_digital_workflow_scan_files($scan_path, $expected_file_record
 }
 
 /**
+ * This will return all of the folder names that exist in the "problems"
+ * configured location.
+ *
+ * @return array
+ *   array of folder paths with each element containing an array of files in that
+ * folder.
+ */
+function islandora_digital_workflow_find_problems_folders() {
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/file_utilities');
+  $problems_root = variable_get('islandora_digital_workflow_ingest_problems_path', '');
+  $return_folders = array();
+  if ($problems_root) {
+    $folders = islandora_digital_workflow_file_scan_directory($problems_root, '', TRUE);
+    foreach ($folders as $key => $files) {
+      $return_folders[$key]['batch_name'] = $key;
+      $return_folders[$key]['files'] = $files;
+    }
+  }
+  return $return_folders;
+}
+
+/**
  * This will return the set of files that are found in the $scan_path that 
  * likely relate to any paged content files.
  *

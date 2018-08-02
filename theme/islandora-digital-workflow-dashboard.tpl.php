@@ -13,11 +13,13 @@
   <div class="dashboard-report">
     <h3>Links</h3>
     <ul class="action-links"><li><a href="/islandora/islandora_digital_workflow/create_batch">Create Batch</a></li></ul>
-    <ul>
-    <?php foreach ($links as $link) { ?>
+    <?php foreach ($links as $section => $section_links): ?>
+    <ul id="link_section_<?php print $section; ?>">
+    <?php foreach ($section_links as $link) { ?>
         <li><?php print $link; ?></li>
     <?php } ?>
     </ul>
+    <?php endforeach; ?>
   </div><!-- /end dashboard-report -->
 
 </div><!-- /end no-sidebars -->
