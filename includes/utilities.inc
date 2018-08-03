@@ -1397,25 +1397,34 @@ function islandora_digital_workflow_scan_files($scan_path, $expected_file_record
 }
 
 /**
- * This will return all of the folder names that exist in the "problems"
- * configured location.
+ * This will return all of the folder names that exist in and under the $root
+ * path value.
  *
  * @return array
  *   array of folder paths with each element containing an array of files in that
  * folder.
  */
-function islandora_digital_workflow_find_problems_folders() {
+function islandora_digital_workflow_find_folders_files($root) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/file_utilities');
-  $problems_root = variable_get('islandora_digital_workflow_ingest_problems_path', '');
+  
   $return_folders = array();
-  if ($problems_root) {
-    $folders = islandora_digital_workflow_file_scan_directory($problems_root, '', TRUE);
+  if ($root) {
+    $folders = islandora_digital_workflow_file_scan_directory($root, '', TRUE);
     foreach ($folders as $key => $files) {
       $return_folders[$key]['batch_name'] = $key;
-      $return_folders[$key]['files'] = $files;
+      $filesize_date_files = islandora_digital_workflow_add_filesize_date_to_files($root . '/' . $key, $files);
+      $return_folders[$key]['files_table_rows'] = islandora_digital_workflow_convert_tab_to_table_cells($filesize_date_files);
     }
   }
   return $return_folders;
+}
+
+function islandora_digital_workflow_convert_tab_to_table_cells($rows) {
+  $return_string = '';
+  foreach ($rows as $row_str) {
+    $return_string .= '<tr><td>' . str_replace("\t", "</td><td>", $row_str) . '</td></tr>';
+  }
+  return $return_string;
 }
 
 /**

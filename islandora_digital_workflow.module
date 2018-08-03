@@ -89,7 +89,7 @@ function islandora_digital_workflow_menu() {
       'title' => t('Islandora Digital Workflow - Delete Workflow Sequence'),
       'type' => MENU_NORMAL_ITEM,
       'page callback' => 'drupal_get_form',
-      'page arguments' => array('islandora_digital_workflow_order_delete', 4),
+      'page arguments' => array('islandora_digital_workflow_workflow_sequence_delete', 4),
       'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_MANAGE_SEQUENCES),
       'file' => 'includes/workflow_sequences.form.inc',
     ),
@@ -153,7 +153,7 @@ function islandora_digital_workflow_menu() {
     'islandora/islandora_digital_workflow/lookup/%' => array(
       'title' => t('Islandora Digital Workflow Search'),
       'type' => MENU_NORMAL_ITEM,
-      'page callback' => array('islandora_digital_workflow_lookup_form_submit'),
+      'page callback' => array('islandora_digital_workflow_lookup_form_submitted'),
       'page arguments' => array(3),
       'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW),
       'file' => 'includes/lookup.form.inc',
@@ -486,6 +486,10 @@ function islandora_digital_workflow_theme() {
         'contents' => '',
       ),
     ),
+    'islandora_digital_workflow_simple_markup' => array(
+      'variables' => array('markup' => ''),
+      'template' => 'theme/islandora-digital-workflow-markup',
+    ),
     'islandora_digital_workflow_dynamic_css' => array(
       'template' => 'theme/islandora-digital-workflow-dynamic-css',
       'variables' => array(
@@ -493,12 +497,25 @@ function islandora_digital_workflow_theme() {
         'contents' => '',
       ),
     ),
-    'islandora_digital_workflow_file_browser' => array(
-      'template' => 'theme/islandora-digital-workflow-file-browser',
+    'islandora_digital_workflow_files_table' => array(
+      'template' => 'theme/islandora-digital-workflow-files-table',
       'variables' => array(
         'folders' => '',
+        'root' => '',
+        'action_link' => '',
         'table_title' => '',
         'table_description' => '',
+      ),
+    ),
+    'islandora_digital_workflow_admin_workflow_sequence' => array(
+      'template' => 'theme/islandora-digital-workflow-admin-workflow-sequence',
+      'variables' => array(
+        'workflow_sequence_id' => '',
+        'sequence_name' => '',
+        'markup_batch_actions' => array(),
+        'markup_item_actions' => array(),
+        'models' => '',
+        'sequence_in_use' => FALSE,
       ),
     ),
   );

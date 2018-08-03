@@ -10,9 +10,14 @@
  * simply redirects to the corrislandora_digital_workflow_lookup_form_submitect handler without the "q=" part.
  */
 function islandora_digital_workflow_lookup() {
-  $q = isset($_POST['q']) ? $_POST['q'] : NULL;
+  $q = isset($_POST['q']) ? trim($_POST['q']) : NULL;
   if ($q) {
     drupal_goto('/islandora/islandora_digital_workflow/lookup/' . $q);
+  }
+  else {
+    $refer_url = $_SERVER['HTTP_REFERER'];
+    drupal_set_message('The lookup search term can not be blank. You have been redirected to the page from which you came.', 'warning');
+    drupal_goto($refer_url);
   }
 }
 
@@ -24,7 +29,7 @@ function islandora_digital_workflow_lookup() {
  * @param array $form_state
  *   The Drupal form state.
  */
-function islandora_digital_workflow_lookup_form_submit($searchterm = '') {
+function islandora_digital_workflow_lookup_form_submitted($searchterm = '') {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
   // Try to load a islandora_digital_workflow_batch record by name ... if it 

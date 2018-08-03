@@ -314,6 +314,22 @@ span.transaction_action_reserved_action_spacer {
     background: url("../images/add_20.png") top left no-repeat;
 }
 
+.text-report {
+    border: 2px solid #ccc;
+    border-radius: 4px;
+    padding: 16px;
+    background-color: white;
+    color: #258;
+    overflow: auto;
+    font-size: 0.825em;
+    font-family: Andale Mono, monospace;
+    max-height: 600px;
+}
+
+.text-report a {
+    color: #02b;
+}
+
 .report_table table {
     font-size: 0.9em;
     max-height: 600px;
@@ -459,6 +475,10 @@ a .highlighted {
     margin: 4px 0;
 }
 
+.lookup_result_indent table {
+    margin-top: 0px;
+}
+
 .lookup_result_indent label, .lookup_result_indent input {
     float: left;
 }
@@ -477,7 +497,7 @@ a .highlighted {
 
 .lookup_result fieldset {
     background-color: #fafafa;
-    border: 3px solid #aaa;
+    border: 1px solid #aaa;
     border-radius: 8px;
 }
 
@@ -485,6 +505,10 @@ a .highlighted {
     border-radius: 8px;
     border: 1px solid #bbb;
     box-shadow: 1px 1px 4px #aaa;    
+}
+
+.straight-edge {
+    border-radius: 0 !important;
 }
 
 .lookup_result_square ul, .lookup_result ul {

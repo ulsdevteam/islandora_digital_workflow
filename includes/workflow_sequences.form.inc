@@ -63,30 +63,22 @@ function islandora_digital_workflow_sequences() {
         $markup_item_actions[] = $li_markup;
       }
     }
+    $affected_batch_nodes = islandora_digital_workflow_get_batches_by_workflow_sequence_id($workflow_sequence_id);
+    $sequence_in_use = (count($affected_batch_nodes) > 0);
 
     $form['wrapper']['workflow_sequence_id_' . $workflow_sequence_id] = array(
       '#type' => 'item',
-      '#markup' =>
-        '<a name="' . $name_description['name'] . '">' .
-        '<div class="dashboard-report">' .
-        '  <div class="small_right_float">' .
-          l(t('Edit'), 'admin/islandora/islandora_digital_workflow/edit_workflow_sequence/' . $workflow_sequence_id) . ' | ' .
-          l(t('Delete'), 'admin/islandora/islandora_digital_workflow/delete_workflow_sequence/' . $workflow_sequence_id) .
-        '  </div>' .
-        '<h3>' . l($name_description['name'], 'admin/islandora/islandora_digital_workflow/edit_workflow_sequence/' . $workflow_sequence_id) . '</h3>' .
-        '<p>' . $name_description['description'] . '</p>' . 
-        '  <div class="lookup_result_square"><p><b>' .
-          l(t('Models'), 'admin/islandora/islandora_digital_workflow/workflow_sequence_models/' . $workflow_sequence_id) . ':</b> ' . $models .
-          '</p><p><b>' .
-          l(t('Actions'), 'admin/islandora/islandora_digital_workflow/workflow_sequences/' . $workflow_sequence_id) .
-        ':</b><ul>' .
-        ((count($markup_batch_actions) > 0) ?
-          '<li class="no_indent">Batch actions</li>' .
-          '<ul class="batch_action_box corner_bordered">' . implode("\n" , $markup_batch_actions) . '</ul>' : '') .
-        ((count($markup_item_actions) > 0) ?
-          '<li class="no_indent">Item actions</li>' .
-          '<ul class="corner_bordered item_action_box">' . implode("\n" , $markup_item_actions) . '</ul>' : '') .
-        '</ul></p></div></div></a>',
+      // TODO -- replace all of this markup with a themed template call that passes
+      // in the $workflow_sequence_id, $name_description['name'], $markup_batch_actions,
+      // $markup_item_actions, $models, and value for $sequence_in_use.
+      '#markup' => theme('islandora_digital_workflow_admin_workflow_sequence', array(
+          'workflow_sequence_id' => $workflow_sequence_id,
+          'sequence_name' => $name_description['name'],
+          'markup_batch_actions' => $markup_batch_actions,
+          'markup_item_actions' => $markup_item_actions,
+          'models' => $models,
+          'sequence_in_use' => $sequence_in_use,
+      )),
     );
   }
 
@@ -114,7 +106,7 @@ function islandora_digital_workflow_sequences() {
  * @return array
  *   Drupal form definition.
  */
-function islandora_digital_workflow_order_delete(array $form, array &$form_state, $workflow_sequence_id) {
+function islandora_digital_workflow_workflow_sequence_delete(array $form, array &$form_state, $workflow_sequence_id) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
 
@@ -122,7 +114,6 @@ function islandora_digital_workflow_order_delete(array $form, array &$form_state
   $workflow_model_sequences = islandora_digital_workflow_get_workflow_model_sequences();
   $workflow_sequences = islandora_digital_workflow_get_workflow_sequences();
   $sequence_title = $workflow_sequences[$workflow_sequence_id]['name'];
-  $affected_batch_nodes = islandora_digital_workflow_get_batches_by_workflow_sequence_id($workflow_sequence_id);
   $form = array();
 
   $form['workflow_sequence_id'] = array(
@@ -143,12 +134,6 @@ function islandora_digital_workflow_order_delete(array $form, array &$form_state
           '#type' => 'submit',
           '#value' => t('Cancel'),
       );
-  if (count($affected_batch_nodes) > 0) {
-    $form['warning']['#prefix'] = '<div class="dashboard-report"><p>If this ' .
-        'workflow wequence is deleted, the following batches would need to be ' .
-        'associated with another Workflow Sequence:<ul><li>' .
-        implode('</li><li>', $affected_batch_nodes) . '</ul></p></div>';
-  }
 
   drupal_set_title(t('Islandora Digital Workflow - Delete Workflow Sequence'), CHECK_PLAIN);
   $breadcrumb = array(
@@ -172,7 +157,7 @@ function islandora_digital_workflow_order_delete(array $form, array &$form_state
  * @param array $form_state
  *   The Drupal form state.
  */
-function islandora_digital_workflow_order_delete_submit(array $form, array &$form_state) {
+function islandora_digital_workflow_workflow_sequence_delete_submit(array $form, array &$form_state) {
   // If cancel is clicked, redirect to the workflow_sequences page
   if ($form_state['triggering_element']['#value'] == 'Cancel') {
     drupal_set_message('Delete was cancelled for workflow sequence.');

@@ -103,22 +103,26 @@ function islandora_digital_workflow_get_tasks_tables() {
     ));
   }
 
-  // batches that need other details like missing workflow_sequence_id values
-  // (the value would be NULL -- which is possible when deleting a sequence).
-  $batch_records_no_workflow_sequence = islandora_digital_workflow_find_batch_records_no_workflow_sequence();
-  if (count($batch_records_no_workflow_sequence)) {
-    $tables[] = theme('islandora_digital_workflow_batch_records_table', array(
-      'batch_records' => $batch_records_no_workflow_sequence,
-      'table_title' => 'Batch records with no workflow sequence',
-      'table_description' => 'Please edit the following batch records to associate with a workflow sequence:',
+
+  $staging_root = variable_get('islandora_digital_workflow_ingest_staging_path', '');
+  $staging_folders = islandora_digital_workflow_find_folders_files($staging_root);
+  if (count($staging_folders)) {
+    $tables[] = theme('islandora_digital_workflow_files_table', array(
+      'folders' => $staging_folders,
+      'root' => $staging_root,
+      'action_link' => '/islandora/islandora_digital_workflow/sync_staging_files/',
+      'table_title' => 'Items moved to the "Staging" folder location',
+      'table_description' => 'Please resolve by renaming or replacing the files in the folders listed below:',
     ));
   }
-
   // batches or items that have been moved into the "problems" folder
-  $problems_folders = islandora_digital_workflow_find_problems_folders();
+  $problems_root = variable_get('islandora_digital_workflow_ingest_problems_path', '');
+  $problems_folders = islandora_digital_workflow_find_folders_files($problems_root);
   if (count($problems_folders)) {
-    $tables[] = theme('islandora_digital_workflow_file_browser', array(
+    $tables[] = theme('islandora_digital_workflow_files_table', array(
       'folders' => $problems_folders,
+      'root' => $problems_root,
+      'action_link' => '',
       'table_title' => 'Items moved to the "Problems" folder location',
       'table_description' => 'Please resolve by renaming or replacing the files in the folders listed below:',
     ));
