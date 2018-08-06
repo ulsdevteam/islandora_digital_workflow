@@ -909,8 +909,8 @@ function islandora_digital_workflow_models_table() {
     }
     $dsid_requirements_table = '<p><b>Datastream requirements:</b> ' .
             implode(" | ", $dsid_requirements_table_arr) . '</p></div>';
-    
-    $this_model_module_info = islandora_digital_workflow_model_ingest_module_info($model);
+
+    $this_model_module_info = islandora_digital_workflow_model_ingest_module_info($cmodel);
 
     $title = ($this_model_module_info['exists']) ? $model : $model . ' (not installed)';
     $configured_models[$cmodel] = array(
@@ -965,32 +965,32 @@ function islandora_digital_workflow_model_ingest_module_info($model) {
     'uls_git_link' => '',
   );
   switch ($model) {
-    case "Image": case "Basic Image": case "Large Image":
+    case "islandora:sp_basic_image": case "islandora:sp_large_image_cmodel":
       $retval['module_name'] = 'islandora_batch';
       $git_link = 'https://github.com/Islandora/islandora_batch.git';
       $uls_git_link = 'https://github.com/ulsdevteam/islandora_batch.git';
       break;
-    case "Finding Aid":
+    case "islandora:findingAidCModel":
       $retval['module_name'] = 'islandora_batch';
       $git_link = 'https://github.com/Islandora/islandora_batch.git';
       $uls_git_link = 'https://github.com/ulsdevteam/islandora_batch.git';
       break;
-    case "Internet Archive Book": case "Book":
+    case "islandora:bookCModel":
       $retval['module_name'] = 'islandora_book_batch';
       $git_link = 'https://github.com/Islandora/islandora_book_batch.git';
       $uls_git_link = 'https://github.com/ulsdevteam/islandora_book_batch.git';
       break;
-    case "Manuscript":
+    case "islandora:manuscriptCModel":
       $retval['module_name'] = 'islandora_manuscript_batch';
       $git_link = '//';
       $uls_git_link = 'https://github.com/ulsdevteam/islandora_manuscript_batch.git';
       break;
-    case "Newspaper": case "Newspaper Issue": case "Newspaper/Serial":
+    case "islandora:newspaperCModel": case "islandora:newspaperIssueCModel":
       $retval['module_name'] = 'islandora_newspaper_batch';
       $git_link = 'https://github.com/Islandora/islandora_newspaper_batch.git';
       $uls_git_link = 'https://github.com/ulsdevteam/islandora_newspaper_batch.git';
       break;
-    case "Web ARChive":
+    case "islandora:sp_web_archive":
       $retval['module_name'] = 'islandora_batch';
       $git_link = 'https://github.com/Islandora/islandora_book_batch.git';
       $uls_git_link = 'https://github.com/ulsdevteam/islandora_book_batch.git';
@@ -1087,7 +1087,6 @@ function islandora_digital_workflow_prepare_csv2mods($input_filename, $batch_rec
     // $row = array_map("utf8_encode", $row);
     // First, scan the entire row to get the identifier and the file_name value
     $toggle = !$toggle;
-    // echo '<div' . ($toggle ? $st : " style='border:1px solid #222'") . '>';
     // echo "<h3>row " . $row_counter . "</h3>";
     $title = $row_file_name = $row_mods_id = '';
     $rowcopy = $row;
@@ -1150,7 +1149,6 @@ function islandora_digital_workflow_prepare_csv2mods($input_filename, $batch_rec
       }
       $headers[$i] = $header;
     }
-    // echo "<pre>".print_r($rowcopy, true)."</pre>";
 
     // MOVE the file into the row's working directory
     if ($row_file_name) {
@@ -1208,7 +1206,6 @@ function islandora_digital_workflow_prepare_csv2mods($input_filename, $batch_rec
       $bytes_written += fwrite($handle, $strxml);
       fclose($handle);
     }
-    // echo "</div>";
     $filename = ($keep_created_MODS_files) ? islandora_digital_workflow_XMLtoMODS($batch_path . '/' . $row_mods_id . '/' . $outputFilename) : "";
     $mods_created += ($keep_created_MODS_files) ? ($filename <> '') : 1;
     // echo "<p>created MODS from spreadsheet for <b>" . $row_mods_id . "</b></p>";
@@ -1331,7 +1328,6 @@ function islandora_digital_workflow_highlight($text, $word, $case_sensitive = FA
   return $text;
 }
 
-
 /**
  * This will return a human readable version of "how long ago" for a given timetamp.
  *
@@ -1412,6 +1408,7 @@ function islandora_digital_workflow_find_folders_files($root) {
     $folders = islandora_digital_workflow_file_scan_directory($root, '', TRUE);
     foreach ($folders as $key => $files) {
       $return_folders[$key]['batch_name'] = $key;
+      $return_folders[$key]['files_count'] = count($files);
       $filesize_date_files = islandora_digital_workflow_add_filesize_date_to_files($root . '/' . $key, $files);
       $return_folders[$key]['files_table_rows'] = islandora_digital_workflow_convert_tab_to_table_cells($filesize_date_files);
     }
@@ -1419,6 +1416,14 @@ function islandora_digital_workflow_find_folders_files($root) {
   return $return_folders;
 }
 
+/**
+ * This will convert the tab strings into html markup for a table row.
+ *
+ * @param array $rows
+ *   An array of strings that are TAB "\t" delimited.
+ * @return string
+ *   The html markup for a table row for each row of file info.
+ */
 function islandora_digital_workflow_convert_tab_to_table_cells($rows) {
   $return_string = '';
   foreach ($rows as $row_str) {

@@ -475,6 +475,11 @@ a .highlighted {
     margin: 4px 0;
 }
 
+.lookup_result_indent h3 {
+    display: inline-block;
+    margin-bottom: 0 !important;
+}
+
 .lookup_result_indent table {
     margin-top: 0px;
 }

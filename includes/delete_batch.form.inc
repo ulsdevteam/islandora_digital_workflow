@@ -64,7 +64,7 @@ function islandora_digital_workflow_delete_batch_form(array $form, array &$form_
     $tid_for_cmodel_selected = '';
   }
   $model_name = islandora_digital_workflow_get_name_of_tid($tid_for_cmodel_selected);
-  $file_not_allowed_for_model_names = array('Finding Aid', 'Newspaper');
+  $file_not_allowed_for_model_names = array('islandora:findingAidCModel', 'islandora:newspaperCModel', 'islandora:newspaperIssueCModel');
 
   $current_batch_host_selection = ($batch_record && isset($batch_record['batch_host'])) ? $batch_record['batch_host'] : '';
   $batch_hosts = islandora_digital_workflow_get_batch_host_values();

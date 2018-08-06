@@ -13,7 +13,7 @@
 */
 ?>
 <div class="lookup_results">
-    <div class="dashboard-report">
+    <div class="dashboard-report messages warning">
       <h3><?php print $table_title; ?></h3>
       <?php if (isset($table_description)) : ?>
       <p><?php print $table_description; ?></p>
@@ -30,7 +30,7 @@
             <a href="<?php print $action_link . $folder['batch_name']; ?>">Sync "<?php print $folder['batch_name']; ?>" back to working directories.</a><hr>
             <?php endif; ?>
             <b>Batch:</b> "<a href="/islandora/islandora_digital_workflow/edit_batch/<?php print $folder['batch_name']; ?>"><?php print $folder['batch_name']; ?></a>"<br>
-            <b>Files:</b> <?php print number_format(count($folder['files_table_rows'])); ?>
+            <b>Files:</b> <?php print number_format($folder['files_count']); ?>
             <fieldset class="collapsible collapsed straight-edge" id="<?php print $folder['batch_name']; ?>">
                 <legend><span class="fieldset-legend">Show files</span></legend>
                 <table class="fieldset-wrapper" style="display: none;">

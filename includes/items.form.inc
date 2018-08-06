@@ -150,7 +150,7 @@ function islandora_digital_workflow_add_items_form(array $form, array &$form_sta
     $tid_for_cmodel_selected = '';
   }
   $model_name = islandora_digital_workflow_get_name_of_tid($tid_for_cmodel_selected);
-  $file_not_allowed_for_model_names = array('Finding Aid', 'Newspaper');
+  $file_not_allowed_for_model_names = array('islandora:findingAidCModel', 'islandora:newspaperCModel', 'islandora:newspaperIssueCModel');
 
   if ((array_search($model_name, $file_not_allowed_for_model_names) === FALSE)) {
     // Prepare a couple variables for use with file upload options:

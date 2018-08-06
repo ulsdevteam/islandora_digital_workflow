@@ -25,7 +25,16 @@ function islandora_digital_workflow_file_scan_directory($dir, $mask = '', $recur
   return $result;
 }
 
-
+/**
+ * This returns a string for the files that provides the file size and date.
+ *
+ * @param string $file_root
+ *   The location for all of the files.
+ * @param array $files
+ *   Array of files referenced under the $file_root location
+ * @return string
+ *   The filename, size, and date as strings separated by TAB characters.
+ */
 function islandora_digital_workflow_add_filesize_date_to_files($file_root, $files) {
   $filesize_date_files = array();
   foreach ($files as $index => $file) {
@@ -33,7 +42,7 @@ function islandora_digital_workflow_add_filesize_date_to_files($file_root, $file
     $size = filesize($full_file_path);
     $size_as_string = ($size === FALSE) ? 'n/a' : number_format($size);
     $date = filemtime($full_file_path);
-    $date_as_string = ($date === FALSE) ? 'n/a' : date("F d Y H:i:s.", $date);
+    $date_as_string = ($date === FALSE) ? 'n/a' : date("F d Y H:i:s", $date);
     $filesize_date_files[$index] = $file . "\t" . $size_as_string . "\t" . $date_as_string;
   }
   return $filesize_date_files;

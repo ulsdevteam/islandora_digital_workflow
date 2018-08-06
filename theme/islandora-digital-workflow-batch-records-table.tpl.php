@@ -13,7 +13,7 @@
 */
 ?>
 <div class="lookup_results">
-    <div class="dashboard-report">
+    <div class="dashboard-report messages error">
       <h3><?php print $table_title; ?></h3>
       <?php if (isset($table_description)) { ?>
       <p><?php print $table_description; ?></p>
@@ -26,8 +26,8 @@
           $toggle = !$toggle;
           ?>
           <div class="lookup_result_indent">
-            <b>Edit batch:</b> "<a href="/islandora/islandora_digital_workflow/edit_batch/<?php print $batch_record->batch_name; ?>"><?php print $batch_record->batch_name; ?></a>"<br>
-            <b>Description:</b> <?php print $batch_record->batch_description; ?>
+              <h3><a href="/islandora/islandora_digital_workflow/edit_batch/<?php print $batch_record->batch_name; ?>"><?php print $batch_record->batch_name; ?></a></h3>
+              <?php print $batch_record->batch_description; ?>
           </div>
       </div>
       <?php } ?>

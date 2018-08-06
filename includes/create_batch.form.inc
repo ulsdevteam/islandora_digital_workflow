@@ -229,7 +229,7 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
   }
   $model_name = islandora_digital_workflow_get_name_of_tid($tid_for_cmodel_selected);
   $sequences = islandora_digital_workflow_get_workflow_sequences_for_model($model_name);
-  $file_not_allowed_for_model_names = array('Finding Aid', 'Newspaper');
+  $file_not_allowed_for_model_names = array('islandora:findingAidCModel', 'islandora:newspaperCModel', 'islandora:newspaperIssueCModel');
   $current_batch_host_selection = ($batch_record && isset($batch_record['batch_host'])) ? $batch_record['batch_host'] : '';
   $batch_hosts = islandora_digital_workflow_get_batch_host_values();
 
@@ -533,32 +533,32 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
  */
 function islandora_digital_workflow_remove_model_based_form_elements($model_name, &$form) {
   switch ($model_name) {
-    case 'Large Image' || 'Basic Image' || 'Image':
+    case "islandora:sp_basic_image": case "islandora:sp_large_image_cmodel":
       unset($form['batch_objects_frame']['default_ead_id']);
       break;
 
-    case 'Finding Aid':
+    case "islandora:findingAidCModel":
       unset($form['batch_objects_frame']['default_ead_id']);
       unset($form['batch_objects_frame']['file']);
       break;
 
-    case 'Internet Archive Book' || 'Book':
+    case "islandora:bookCModel":
       unset($form['batch_objects_frame']['default_ead_id']);
       break;
 
-    case 'Manuscript':
+    case "islandora:manuscriptCModel":
       break;
 
-    case 'Newspaper':
+    case "islandora:newspaperCModel":
       unset($form['batch_objects_frame']['file']);
       unset($form['batch_objects_frame']['default_ead_id']);
       break;
 
-    case 'Newspaper Issue' | 'Newspaper/Serial':
+    case "islandora:newspaperIssueCModel":
       unset($form['batch_objects_frame']['default_ead_id']);
       break;
 
-    case 'Web ARChive':
+    case "islandora:sp_web_archive":
       unset($form['batch_objects_frame']['default_ead_id']);
       break;
 
