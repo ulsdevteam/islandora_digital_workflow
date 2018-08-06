@@ -1057,7 +1057,6 @@ function islandora_digital_workflow_prepare_csv2mods($input_filename, $batch_rec
 
   $batch_path = islandora_digital_workflow_batch_path($batch_record);
 
-  $default_depositor = $batch_record['default_depositor'];
   // TODO: capture batch-level values for default_genre, batch_default_CR_status,
   // batch_default_pub_status, and batch_default_CR_holder -- to potentially set
   // when creating MODS below.
@@ -1172,7 +1171,8 @@ function islandora_digital_workflow_prepare_csv2mods($input_filename, $batch_rec
 
     $root = $doc->appendChild($root);
     $child = NULL;
-    $depositor_in_CSV = FALSE;
+    // Set all of the "default_FIELD_in_CSV" values to false --
+    $depositor_in_CSV = $default_genre_in_CSV = $batch_default_CR_status_in_CSV = $batch_default_CR_holder_in_CSV = $batch_default_pub_status_in_CSV = FALSE;
     foreach($headers as $i => $header) {
       if (array_key_exists($header, $csv_header_xpath_mappings)) {
         if (is_array($rowcopy) && array_key_exists($i, $rowcopy) && $rowcopy[$i]) {
@@ -1184,6 +1184,18 @@ function islandora_digital_workflow_prepare_csv2mods($input_filename, $batch_rec
           if (!$depositor_in_CSV && $header == 'depositor') {
             $depositor_in_CSV = TRUE;
           }
+          if (!$default_genre_in_CSV && $header == 'genre') {
+            $default_genre_in_CSV = TRUE;
+          }
+          if (!$batch_default_CR_status_in_CSV && $header == 'copyright_status') {
+            $batch_default_CR_status_in_CSV = TRUE;
+          }
+          if (!$batch_default_pub_status_in_CSV && $header == 'publication_status') {
+            $batch_default_pub_status_in_CSV = TRUE;
+          }
+          if (!$batch_default_CR_holder_in_CSV && $header == 'rights_holder') {
+            $batch_default_CR_holder_in_CSV = TRUE;
+          }
         }
       }
     }
@@ -1193,10 +1205,34 @@ function islandora_digital_workflow_prepare_csv2mods($input_filename, $batch_rec
 
     // After the CSV row has been processed, as long as the depositor value was not provided in that row,
     // and the batch provided a "default_depositor" value, then create this node now.
-    if (!$depositor_in_CSV && $default_depositor && !array_key_exists('depositor', $headers)) {
+    if (!$depositor_in_CSV && $batch_record['default_depositor'] && !array_key_exists('depositor', $headers)) {
       $child = $doc->createElement('depositor');
       $child = $root->appendChild($child);
-      $value = $doc->createTextNode($default_depositor);
+      $value = $doc->createTextNode($batch_record['default_depositor']);
+      $value = $child->appendChild($value);
+    }
+    if (!$default_genre_in_CSV && $batch_record['default_genre'] && !array_key_exists('genre', $headers)) {
+      $child = $doc->createElement('genre');
+      $child = $root->appendChild($child);
+      $value = $doc->createTextNode($batch_record['default_genre']);
+      $value = $child->appendChild($value);
+    }
+    if (!$batch_default_CR_status_in_CSV && $batch_record['batch_default_CR_status'] && !array_key_exists('copyright_status', $headers)) {
+      $child = $doc->createElement('copyright_status');
+      $child = $root->appendChild($child);
+      $value = $doc->createTextNode($batch_record['batch_default_CR_status']);
+      $value = $child->appendChild($value);
+    }
+    if (!$batch_default_pub_status_in_CSV && $batch_record['batch_default_pub_status'] && !array_key_exists('publication_status', $headers)) {
+      $child = $doc->createElement('publication_status');
+      $child = $root->appendChild($child);
+      $value = $doc->createTextNode($batch_record['batch_default_pub_status']);
+      $value = $child->appendChild($value);
+    }
+    if (!$batch_default_CR_holder_in_CSV && $batch_record['batch_default_CR_holder'] && !array_key_exists('rights_holder', $headers)) {
+      $child = $doc->createElement('rights_holder');
+      $child = $root->appendChild($child);
+      $value = $doc->createTextNode($batch_record['batch_default_CR_holder']);
       $value = $child->appendChild($value);
     }
     $strxml = $doc->saveXML();
