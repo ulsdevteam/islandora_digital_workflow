@@ -24,6 +24,25 @@ function islandora_digital_workflow_get_batch_record_by_name($batch_name) {
 }
 
 /**
+ * Gets all the names of the batch records.
+ *
+ * @return array
+ *   An array of batch record batch_name values.
+ */
+function islandora_digital_workflow_get_batch_record_names() {
+  $query = db_select('islandora_digital_workflow_batch', 'b')
+      ->fields('b', array('batch_name'));
+  $results = $query->execute();
+  $rows = $results->fetchAll();
+  $return_array = array();
+  foreach ($rows as $row) {
+    $return_array[$row->batch_name] = $row->batch_name;
+  }
+  return $return_array;
+}
+
+
+/**
  * Gets a SINGLE batch record for a `batch_name` value.
  *
  * @param string $nid
@@ -297,13 +316,15 @@ function islandora_digital_workflow_get_batch_transaction($transaction_id) {
  *   The number of records that have been updated (expect 1 or 0).
  */
 function islandora_digital_workflow_delete_batch_transaction($transaction_id) {
-    return db_delete('islandora_digital_workflow_transactions')
-      ->condition('transaction_id', $transaction_id)
-      ->execute();
+  return db_delete('islandora_digital_workflow_transactions')
+    ->condition('transaction_id', $transaction_id)
+    ->execute();
 }
 
 /**
  * This will update a transaction record related to a given $transaction_id.
+ *
+ * Additionally, this code will call islandora_digital_workflow_set_problem_record
  *
  * @param integer $transaction_id
  *   transaction_id representing a islandora_digital_workflow_transactions record.
@@ -316,10 +337,34 @@ function islandora_digital_workflow_delete_batch_transaction($transaction_id) {
  *   The number of records that have been updated (expect 1 or 0).
  */
 function islandora_digital_workflow_update_batch_transaction($transaction_id, $action_id, $timestamp) {
-    return db_update('islandora_digital_workflow_transactions')
-      ->fields(array('action_id' => $action_id, 'timestamp' => $timestamp))
-      ->condition('transaction_id', $transaction_id)
-      ->execute();
+  global $user;
+  return db_update('islandora_digital_workflow_transactions')
+    ->fields(array('action_id' => $action_id, 'timestamp' => $timestamp, 'drupal_uid' => $user->uid))
+    ->condition('transaction_id', $transaction_id)
+    ->execute();
+  islandora_digital_workflow_set_problem_record($action_id, $transaction_id);
+}
+
+/*
+ * This will check whether or not the supplied action is IDW_ACTION_PROBLEM....
+ * and will also insert the data to the node (so that the
+ * node for the entire batch is switched to "Problem" as well as to insert
+ * an individual islandora_digital_workflow_problem_items record.
+
+// islandora_digital_workflow_insert_transactions_record($action_id, NULL, $batch_item_id);
+*/
+function islandora_digital_workflow_set_problem_record($action_id, $transaction_id) {
+  if ($action_id == IDW_ACTION_PROBLEM) {
+    module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
+    global $user;
+    $transaction = islandora_digital_workflow_get_batch_transaction($transaction_id);
+    // TODO: For the node stage setting, we need to look at the batch_id or batch_item_id
+    // in order to derive the node related to this batch or item.
+    db_query('INSERT INTO islandora_digital_workflow_problem_items (' .
+        '`batch_item_id`, `problem_timestamp`, `drupal_uid`) VALUES (' .
+        $transaction->batch_item_id . ', now(), ' . $user->uid . ')');
+    islandora_digital_workflow_move_batch_item_file($transaction->batch_item_id, variable_get('islandora_digital_workflow_ingest_problems_path', ''));
+  }
 }
 
 /**
@@ -643,10 +688,12 @@ function islandora_digital_workflow_get_batch_actions() {
  * Returns all batch actions that pertain to batch_items records rather than
  * batch records.
  *
+ * @param integer $workflow_sequence_id
+ *   The workflow sequence id value for the batch in question.
  * @return mixed
  *   Either returns an array of actions record objects or NULL if it cannot be found.
  */
-function islandora_digital_workflow_get_batch_items_actions($model = '') {
+function islandora_digital_workflow_get_batch_items_actions($workflow_sequence_id = 0) {
   // If no model is provided, display the sequence_action for the default
   // batch_item record.
   $query = db_select('islandora_digital_workflow_actions', 'ba')
@@ -657,10 +704,14 @@ function islandora_digital_workflow_get_batch_items_actions($model = '') {
   $query->join('islandora_digital_workflow_sequence', 's', 's.workflow_sequence_id = sa.workflow_sequence_id');
   $query->fields('s', array('name'));
   $query->join('islandora_digital_workflow_model_sequence', 'm', 'm.workflow_sequence_id = s.workflow_sequence_id');
-  $query->condition('m.islandora_model', $model);
+  if ($workflow_sequence_id) {
+    $query->condition('sa.workflow_sequence_id', $workflow_sequence_id);
+  }
+  $query->groupBy('sa.action_id');
 
   $results = $query->execute();
   $rows = $results->fetchAll();
+
   $options = array('' => 'Select an action');
   foreach ($rows as $i => $row) {
     $options[$row->action_id] = $row->description;
@@ -832,7 +883,7 @@ function islandora_digital_workflow_insert_batch_item($fields) {
 function islandora_digital_workflow_insert_transactions_record($action_id, $batch_id = NULL, $batch_item_id = NULL, $alternative_uid = NULL) {
   global $user;
   if (!is_null($batch_id) || !is_null($batch_item_id)) {
-    return db_insert('islandora_digital_workflow_transactions')
+    $transaction_id = db_insert('islandora_digital_workflow_transactions')
         ->fields(array(
           'action_id' => $action_id,
           'batch_id' => $batch_id,
@@ -840,6 +891,8 @@ function islandora_digital_workflow_insert_transactions_record($action_id, $batc
           'drupal_uid' => ($alternative_uid) ? $alternative_uid : $user->uid,
         ))
         ->execute();
+    islandora_digital_workflow_set_problem_record($action_id, $transaction_id, ($alternative_uid) ? $alternative_uid : $user->uid);
+    return $transaction_id;
   }
 }
 

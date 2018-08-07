@@ -103,9 +103,10 @@ function islandora_digital_workflow_get_tasks_tables() {
     ));
   }
 
-
+  $batch_names = islandora_digital_workflow_get_batch_record_names();
   $staging_root = variable_get('islandora_digital_workflow_ingest_staging_path', '');
   $staging_folders = islandora_digital_workflow_find_folders_files($staging_root);
+  $bad_staging_folder_names = islandora_digital_workflow_filter_out_non_batch_folders($staging_folders, $batch_names);
   if (count($staging_folders)) {
     $tables[] = theme('islandora_digital_workflow_files_table', array(
       'folders' => $staging_folders,
@@ -118,6 +119,7 @@ function islandora_digital_workflow_get_tasks_tables() {
   // batches or items that have been moved into the "problems" folder
   $problems_root = variable_get('islandora_digital_workflow_ingest_problems_path', '');
   $problems_folders = islandora_digital_workflow_find_folders_files($problems_root);
+  $bad_problem_folder_names = islandora_digital_workflow_filter_out_non_batch_folders($problems_folders, $batch_names);
   if (count($problems_folders)) {
     $tables[] = theme('islandora_digital_workflow_files_table', array(
       'folders' => $problems_folders,
@@ -128,5 +130,19 @@ function islandora_digital_workflow_get_tasks_tables() {
     ));
   }
 
+  if (count($bad_staging_folder_names) > 0) {
+    drupal_set_message('At least one folder name in the configured Staging path "' .
+        $staging_root . '" did not match a known batch name and should be ' .
+        'inspected manually to determine whether or not the files are needed.  ' .
+        'These folder names were: <ul><li>' .
+        implode("</li><li>", $bad_staging_folder_names) . '</ul><br>', 'warning');
+  }
+  if (count($bad_problem_folder_names) > 0) {
+    drupal_set_message('At least one folder name in the configured Problems path "' .
+        $problems_root . '" did not match a known batch name and should be ' .
+        'inspected manually to determine whether or not the files are needed.  ' .
+        'These folder names were: <ul><li>' .
+        implode("</li><li>", $bad_problem_folder_names) . '</ul><br>', 'warning');
+  }
   return $tables;
 }

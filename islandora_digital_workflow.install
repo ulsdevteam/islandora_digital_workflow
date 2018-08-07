@@ -49,6 +49,10 @@ function islandora_digital_workflow_enable() {
   db_query("ALTER TABLE `islandora_digital_workflow_transactions` " .
     "CHANGE COLUMN `timestamp` `timestamp` TIMESTAMP NULL DEFAULT " .
     "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+  db_query("ALTER TABLE `islandora_digital_workflow_problem_items` " .
+    "CHANGE COLUMN `problem_timestamp` `problem_timestamp` TIMESTAMP NULL");
+  db_query("ALTER TABLE `islandora_digital_workflow_problem_items` " .
+    "CHANGE COLUMN `problem_resolved_timestamp` `problem_resolved_timestamp` TIMESTAMP NULL");
 }
 
 /**
@@ -69,6 +73,8 @@ function islandora_digital_workflow_uninstall() {
   variable_del('islandora_digital_workflow_ingest_prepared_path');
   variable_del('islandora_digital_workflow_hosts_for_ingest');
   variable_del('islandora_digital_workflow_use_isMemberOfSite');
+  variable_del('islandora_digital_workflow_ingest_staging_path');
+  variable_del('islandora_digital_workflow_ingest_problems_path');
 
   // Loop through the fields that are created for this module and delete them.
   // As a side-effect, this results in field_deleted_* tables being created on
@@ -337,6 +343,7 @@ function islandora_digital_workflow_schema() {
         'type' => 'varchar',
         'length' => 255,
         'not null' => TRUE,
+        'default' => '',
       ),
     ),
     'indexes' => array(
@@ -395,6 +402,43 @@ function islandora_digital_workflow_schema() {
     'indexes' => array(
       'ss_action_id_batch_item_id_batch_id' => array('action_id', 'batch_item_id', 'batch_id'),
     ),
+  );
+  $schema['islandora_digital_workflow_problem_items'] = array(
+    'description' => t('Stores problem transactions related to batch items'),
+    'fields' => array(
+      'problem_id' => array(
+        'description' => 'Autoincrement primary key for this table',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'batch_item_id' => array(
+        'description' => 'The batch_item_id for a related ' .
+          'islandora_digital_workflow_batch_items record',
+        'type' => 'int',
+        'size' => 'medium',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+      'problem_timestamp' => array(
+        'description' => 'Last modified date of the record',
+        'type' => 'int',
+        'not null' => FALSE,
+      ),
+      'problem_resolved_timestamp' => array(
+        'description' => 'Date when this problem was resolved',
+        'type' => 'int',
+        'not null' => FALSE,
+      ),
+      'drupal_uid' => array(
+        'description' => 'The drupal user uid value related to the transaction',
+        'type' => 'int',
+        'size' => 'medium',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+    ),
+    'primary key' => array('problem_id'),
   );
   $schema['islandora_digital_workflow_sequence'] = array(
     'description' => t('Stores the workflow sequences'),
@@ -588,6 +632,16 @@ function islandora_digital_workflow_insert_islandora_digital_workflow_actions() 
       'name' => 'add-marc-record',
       'description' => 'Add MARC record',
       'glyph' => 'images/add-marc-record_20.png',
+    ),
+    // this will also trigger insertion of a record into the
+    // islandora_digital_workflow_problem_items table.  The presence of these
+    // records in any batch will not cause it to fail -- instead, checking
+    // the islandora_digital_workflow_problem_items for any problems that are
+    // not resolved.
+    IDW_ACTION_PROBLEM => array(
+      'name' => 'problem',
+      'description' => 'Problem with scan',
+      'glyph' => 'images/problem_20.png',
     ),
     // batch-level actions (action_id values greater than 100).
     IDW_ACTION_ALL_CHECK_IN => array(

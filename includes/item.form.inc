@@ -79,6 +79,9 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
     }
     $filename_pathinfo = pathinfo($original_values->filename);
     $filename_folder = str_replace($filename_pathinfo['basename'], '', $original_values->filename);
+    if ($filename_folder == '/') {
+      $filename_folder = '';
+    }
     $_POST['filename'] = $filename_folder . $_POST['filename'];
     $records_updated = islandora_digital_workflow_update_batch_item_record($batch_item_id, $_POST, $original_values);
     if ($records_updated) {

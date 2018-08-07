@@ -49,12 +49,12 @@ function islandora_digital_workflow_edit_transactions_form(array $form, array &$
     $breadcrumb[] = l(t('Transactions'), 'node/' . $node->nid . '/transactions');
   }
   drupal_set_breadcrumb($breadcrumb);
-
+  $batch_record = islandora_digital_workflow_get_batch_record_by_nid($node->nid);
   // if the transaction's action_id is a per-item transaction, else it is a
   // "per-batch" transaction as in "all items scanned".
   $actions = (islandora_digital_workflow_is_batch_action($transaction->action_id)) ?
-    islandora_digital_workflow_get_batch_actions() :
-    islandora_digital_workflow_get_batch_items_actions();
+    islandora_digital_workflow_get_batch_actions($batch_record['workflow_sequence_id']) :
+    islandora_digital_workflow_get_batch_items_actions($batch_record['workflow_sequence_id']);
 
   $form['transaction_action'] = array(
       '#title' => t('Select Transaction'),

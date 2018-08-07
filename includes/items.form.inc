@@ -330,8 +330,9 @@ function islandora_digital_workflow_batch_items_form(array $form, array &$form_s
   // Based on the $item_transactions_count, set a class for the "Transactions" table
   // cell that is wide enough to display all of the actions.
   $transactions_cell_class = (($item_transactions_count < 7) ? 'td_wide_normal' :
-          (($item_transactions_count < 14) ? 'td_wide_180' :
-          (($item_transactions_count < 20) ? 'td_wide_320' : 'td_wide_400')));
+          (($item_transactions_count < 9) ? 'td_wide_180' :
+          ($item_transactions_count < 11) ? 'td_wide_240' :
+          (($item_transactions_count < 18) ? 'td_wide_320' : 'td_wide_400')));
   foreach ($items as $item) {
     $options[$item->identifier] = array(
       'id' => $item->identifier,

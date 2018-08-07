@@ -183,8 +183,8 @@ function islandora_digital_workflow_convert_smart_quotes($string) {
             chr(151)),
       array("'",
             "'",
-            '"',
-            '"',
+            '""""',
+            '""""',
             '-'),
       $string);
 }
@@ -1452,6 +1452,17 @@ function islandora_digital_workflow_find_folders_files($root) {
   return $return_folders;
 }
 
+function islandora_digital_workflow_filter_out_non_batch_folders(&$values, $batch_names) {
+  $bad_folder_names = array();
+  foreach ($values as $batch_name => $info) {
+    if (array_search($info['batch_name'], $batch_names) === FALSE) {
+      unset($values[$batch_name]);
+      $bad_folder_names[] = $batch_name;
+    }
+  }
+  return $bad_folder_names;
+}
+
 /**
  * This will convert the tab strings into html markup for a table row.
  *
@@ -1578,6 +1589,8 @@ function islandora_digital_workflow_validate_csv_file_upload() {
  */
 function islandora_digital_workflow_merge_uploaded_csv_files(&$batch_record, $node, $new_csv_filename) {
   $csv_array = islandora_digital_workflow_csv_file_as_array($new_csv_filename, TRUE);
+  $merged_csv_file = '';
+  $merged_rows = array();
   if (is_array($csv_array)) {
     // Use the islandora_digital_workflow_csv_file_as_array to parse the rows
     // correctly according to CSV standards.
@@ -1594,6 +1607,13 @@ function islandora_digital_workflow_merge_uploaded_csv_files(&$batch_record, $no
         unlink($temp_csv_filename);
       }
     }
+    // TODO -- create $merged_csv_file by using fputcsv calls like this:
+    //  fputcsv($output, array('id','name','description'));
+    //  foreach($prod as $product) {
+    //    fputcsv($output, $product);
+    //  }
+
+
 
     // Check the rows from this CSV are in the same order as the rows defined
     // from first row of the batch record's uploaded_csv_file.
@@ -1603,16 +1623,18 @@ function islandora_digital_workflow_merge_uploaded_csv_files(&$batch_record, $no
       if ($old_header_str == $new_header_str) {
         $merged_csv_file = $old_header_str . "\n";
         foreach ($old_rows as $old_row) {
-          $merged_csv_file .= implode(",", $old_row) . "\n";
+          $merged_csv_file .= islandora_digital_workflow_array_to_csv($old_row);
+          // $merged_csv_file .= implode(",", $old_row) . "\n";
         }
         foreach ($new_rows as $new_row) {
-          $merged_csv_file .= implode(",", $new_row) . "\n";
+          $merged_csv_file .= islandora_digital_workflow_array_to_csv($new_row);
+          // $merged_csv_file .= implode(",", $new_row) . "\n";
         }
       }
       else {
         // Make a new merged CSV file by looping through both sets of headers
         // to compose an array that represents both sheets' data.
-        $work_new_rows = $work_old_rows = $merged_header = $merged_rows = $rows = array();
+        $work_new_rows = $work_old_rows = $merged_header = $rows = array();
         $first_fieldname = '';
         foreach ($old_header as $header_index => $fieldname) {
           $merged_header[$fieldname] = $fieldname;
@@ -1683,6 +1705,15 @@ function islandora_digital_workflow_merge_uploaded_csv_files(&$batch_record, $no
     $node->field_identifiers[$node->language][0]['value'] = implode("\n", $csv_values_arr['identifier']);
     node_save($node);
   }
+}
+
+function islandora_digital_workflow_array_to_csv($array) {
+  $cleansed_arr = array();
+  foreach ($array as $value) {
+    $wrap_char = (strstr($value, ",")) ? '"' : '';
+    $cleansed_arr[] = $wrap_char . str_replace('"', '""', $value) . $wrap_char;
+  }
+  return implode(",", $cleansed_arr) . "\n";
 }
 
 /**
@@ -1810,6 +1841,18 @@ function islandora_digital_workflow_sequences_using_action($action_id) {
   }
 }
 
+/**
+ * Determines which workflow sequences actually use a given action.
+ *
+ * @param array $workflow_sequence_actions
+ *   An array of workflow sequences and all of their actions.  The key to the
+ * top-level array is the workflow_sequence_id value.
+ * @param integer $action_id
+ *   An action_id value that matches an action on any batch, item, or page.
+ * @return array
+ *   an array of workflow_sequence_id values that are being used by the supplied
+ * $action_id value.
+ */
 function islandora_digital_workflow_using_action($workflow_sequence_actions, $action_id) {
   $workflow_sequences_using_action = array();
   foreach ($workflow_sequence_actions as $workflow_sequence_id => $workflow_sequence_actions) {
@@ -1820,4 +1863,27 @@ function islandora_digital_workflow_using_action($workflow_sequence_actions, $ac
     }
   }
   return $workflow_sequences_using_action;
+}
+
+/**
+ * This will move the file/s related to any given batch item to the destination
+ * location.
+ *
+ * @param integer $batch_item_id
+ *   The batch_item_id identifier that needs to have its file moved.
+ * @param string $destination_root
+ *   The root path -- could be the problems folder, could be staging.
+ */
+function islandora_digital_workflow_move_batch_item_file($batch_item_id, $destination_root) {
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
+  //  load the batch_item record for this batch_item_id to get the filename
+  $item_record_results = islandora_digital_workflow_get_batch_item_record($batch_item_id);
+  $batch_item_record = array_pop($item_record_results);
+  //  load the batch related to this batch_item_id to get the batch name (path under the root)
+  $batch_record = islandora_digital_workflow_get_batch_record_by_batch_id($batch_item_record->batch_id);
+  $source_path = islandora_digital_workflow_batch_path($batch_record);
+
+  $full_target_path = $destination_root . '/' . $batch_record['batch_name'] . '/' . $batch_item_record->filename;
+  dpm('full target = "' . $full_target_path . '"');
+  dpm($source_path);
 }

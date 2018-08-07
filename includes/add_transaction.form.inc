@@ -63,8 +63,8 @@ function islandora_digital_workflow_add_transactions_form(array $form, array &$f
   // if the transaction's action_id is a per-item transaction, else it is a
   // "per-batch" transaction as in "all items scanned".
   $actions = (islandora_digital_workflow_is_batch_action($action_id)) ?
-    islandora_digital_workflow_get_batch_actions() :
-    islandora_digital_workflow_get_batch_items_actions();
+    islandora_digital_workflow_get_batch_actions($batch_record['workflow_sequence_id']) :
+    islandora_digital_workflow_get_batch_items_actions($batch_record['workflow_sequence_id']);
   $form['transaction_action'] = array(
       '#title' => t('Select Transaction'),
       '#type' => 'select',

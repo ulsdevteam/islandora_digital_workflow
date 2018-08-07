@@ -34,6 +34,10 @@ and open the template in the editor.
     background: url("../images/add-marc-record_20.png") 0px 0px no-repeat !important;
 }
 
+.transaction_action_problem {
+    background: url("../images/problem_20.png") 0px 0px no-repeat !important;
+}
+
 .transaction_action_system_made_derivatives {
     background: url("../images/system-made-derivatives_20.png") 0px 0px no-repeat !important;
 }
@@ -88,6 +92,7 @@ div.transaction_action_all_ingest,
 div.transaction_action_all_check_in,
 div.transaction_action_all_scan,
 div.transaction_action_add_marc_record,
+div.transaction_action_problem,
 div.transaction_action_all_check_out,
 div.transaction_action_all_check_physical_items,
 div.transaction_action_unconfigured_reserved_action {
@@ -576,6 +581,9 @@ ul.action-links a {
 }
 .td_wide_180 {
     width: 180px;
+}
+.td_wide_240 {
+    width: 240px;
 }
 .td_wide_320 {
     width: 320px;
