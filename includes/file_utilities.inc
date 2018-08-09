@@ -39,9 +39,9 @@ function islandora_digital_workflow_add_filesize_date_to_files($file_root, $file
   $filesize_date_files = array();
   foreach ($files as $index => $file) {
     $full_file_path = $file_root . '/' . $file;
-    $size = filesize($full_file_path);
+    $size = file_exists($full_file_path) ? filesize($full_file_path) : FALSE;
     $size_as_string = ($size === FALSE) ? 'n/a' : number_format($size);
-    $date = filemtime($full_file_path);
+    $date = file_exists($full_file_path) ? filemtime($full_file_path) : FALSE;
     $date_as_string = ($date === FALSE) ? 'n/a' : date("F d Y H:i:s", $date);
     $filesize_date_files[$index] = $file . "\t" . $size_as_string . "\t" . $date_as_string;
   }

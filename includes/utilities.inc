@@ -183,8 +183,8 @@ function islandora_digital_workflow_convert_smart_quotes($string) {
             chr(151)),
       array("'",
             "'",
-            '""""',
-            '""""',
+            '"',
+            '"',
             '-'),
       $string);
 }
@@ -1444,6 +1444,18 @@ function islandora_digital_workflow_find_folders_files($root) {
     $folders = islandora_digital_workflow_file_scan_directory($root, '', TRUE);
     foreach ($folders as $key => $files) {
       $return_folders[$key]['batch_name'] = $key;
+      $onelevel_filepaths = array();
+      foreach ($files as $filekey => $file) {
+        if (is_array($file)) {
+          foreach ($file as $cfile) {
+            $onelevel_filepaths[] = $filekey . '/' . $cfile;
+          }
+        }
+        else {
+          $onelevel_filepaths[] = $file;
+        }
+      }
+      $files = $folders[$key] = $onelevel_filepaths;
       $return_folders[$key]['files_count'] = count($files);
       $filesize_date_files = islandora_digital_workflow_add_filesize_date_to_files($root . '/' . $key, $files);
       $return_folders[$key]['files_table_rows'] = islandora_digital_workflow_convert_tab_to_table_cells($filesize_date_files);
@@ -1873,8 +1885,11 @@ function islandora_digital_workflow_using_action($workflow_sequence_actions, $ac
  *   The batch_item_id identifier that needs to have its file moved.
  * @param string $destination_root
  *   The root path -- could be the problems folder, could be staging.
+ * @param string $problem_notes
+ *   Any notes that the user entered for setting the action to problem state.
+ * ONLY applies when setting the action to the problem state IDW_ACTION_PROBLEM.
  */
-function islandora_digital_workflow_move_batch_item_file($batch_item_id, $destination_root) {
+function islandora_digital_workflow_move_batch_item_file($batch_item_id, $destination_root, $problem_notes = '') {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
   //  load the batch_item record for this batch_item_id to get the filename
   $item_record_results = islandora_digital_workflow_get_batch_item_record($batch_item_id);
@@ -1883,7 +1898,36 @@ function islandora_digital_workflow_move_batch_item_file($batch_item_id, $destin
   $batch_record = islandora_digital_workflow_get_batch_record_by_batch_id($batch_item_record->batch_id);
   $source_path = islandora_digital_workflow_batch_path($batch_record);
 
-  $full_target_path = $destination_root . '/' . $batch_record['batch_name'] . '/' . $batch_item_record->filename;
-  dpm('full target = "' . $full_target_path . '"');
-  dpm($source_path);
+  $path_parts = pathinfo($batch_item_record->filename);
+  $path_split = explode("/", $batch_item_record->filename);
+  $item_name = $path_split[count($path_split) - 2];
+  $source_root = $path_parts['dirname'];
+
+  // Check that the source folder exists.
+  if (!file_exists($source_root)) {
+    drupal_set_message('The item folder "' . $source_root . '" does not exist and the files can not be moved to the ' . $destination_root . ' folder.', 'warning');
+  }
+  else {
+    $source_files = islandora_digital_workflow_scan_files($source_root);
+    $batch_path = $destination_root . '/' . $batch_record['batch_name'];
+    if (!file_exists($batch_path)) {
+      mkdir($batch_path);
+    }
+    $item_path = $batch_path . '/' . $item_name;
+    if (!file_exists($item_path)) {
+      mkdir($item_path);
+    }
+
+    @list($junk, $short_item_filename) = explode("/" . $batch_record['batch_name'] . "/", $batch_item_record->filename);
+    // Append the info on which item is selected in the notes.
+    $problem_notes .= "\n\n----------------------\n" . 
+        "Item title:    " . $batch_item_record->title . "\n" .
+        "Item filename: " . $short_item_filename . "\n" .
+        "Batch name:    " . $batch_record['batch_name'] . "\n";
+    file_put_contents($item_path . '/problem_notes.txt', $problem_notes);
+
+    $command = 'mv ' . $source_root . '/* ' . $item_path . '/.';
+    $output = $return_var = array();
+    exec($command, $output, $return_var);
+  }
 }

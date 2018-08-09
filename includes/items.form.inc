@@ -394,12 +394,25 @@ function islandora_digital_workflow_batch_items_form(array $form, array &$form_s
       '#collapsed' => TRUE,
   );
 
+  $form['wrapper']['notes_wrapper'] = array(
+      '#type' => 'fieldset',
+      '#title' => 'Problem notes',
+      '#attributes' => array('class' => array('inline_fieldset', 'display_none')),
+      'problem_notes' => array(
+          '#type' => 'textarea',
+          '#description' => 'Enter the instructions to resolve the problem/s for the selected item/s.',
+          '#rows' => 3,
+      ),
+  );
   $form['wrapper']['add_batch_action'] = array(
       '#title' => t('Add Transaction'),
       '#type' => 'select',
       '#options' => $batch_items_actions,
       '#description' => 'Select the transaction to add to the selected batch items below.',
       '#default_value' => '',
+      '#attributes' => array(
+        'onchange' => 'add_action_selection(this)',
+      ),
   );
   if (user_access(ISLANDORA_DIGITAL_WORKFLOW_EDIT_DELETE_TRANSACTIONS)) {
     $form['wrapper']['remove_batch_action'] = array(
@@ -445,6 +458,7 @@ function islandora_digital_workflow_batch_items_form_submit(array $form, array &
   $selected_identifiers = array_filter($form_state['values']['items']);
   $using__batch_id = $form_state['values']['using__batch_id'];
   $add_action_id = $form_state['values']['add_batch_action'];
+  $problem_notes = $form_state['values']['problem_notes'];
   $remove_action_id = $form_state['values']['remove_batch_action'];
   if ($remove_action_id == '' && $add_action_id == '') {
     drupal_set_message('No transactions were added or removed');
@@ -454,7 +468,7 @@ function islandora_digital_workflow_batch_items_form_submit(array $form, array &
     foreach ($selected_identifiers as $identifier) {
       $batch_item_id = islandora_digital_workflow_get_batch_item_record_by_identifier($identifier, $using__batch_id);
       if ($add_action_id) {
-        if (!islandora_digital_workflow_insert_transactions_record($add_action_id, NULL, $batch_item_id)) {
+        if (!islandora_digital_workflow_insert_transactions_record($add_action_id, NULL, $batch_item_id, NULL, $problem_notes)) {
           $could_not_be_processed[] = $identifier;
         }
       }

@@ -2,7 +2,7 @@
 
 /**
 * @file
-* islandora-digital-workflow-file-browser.tpl display template.
+* islandora-digital-workflow-files-table.tpl display template.
 *
 * Variables available:
 * - $folders => array(),
@@ -13,7 +13,7 @@
 */
 ?>
 <div class="lookup_results">
-    <div class="dashboard-report messages warning">
+    <div class="dashboard-report messages <?php print (($action_link) ? 'warning' : 'error'); ?>">
       <h3><?php print $table_title; ?></h3>
       <?php if (isset($table_description)) : ?>
       <p><?php print $table_description; ?></p>
@@ -29,7 +29,7 @@
             <?php if ($action_link): ?>
             <a href="<?php print $action_link . $folder['batch_name']; ?>">Sync "<?php print $folder['batch_name']; ?>" back to working directories.</a><hr>
             <?php endif; ?>
-            <b>Batch:</b> "<a href="/islandora/islandora_digital_workflow/edit_batch/<?php print $folder['batch_name']; ?>"><?php print $folder['batch_name']; ?></a>"<br>
+            <b>Batch:</b> "<a href="/content/<?php print $folder['batch_name']; ?>"><?php print $folder['batch_name']; ?></a>"<br>
             <b>Files:</b> <?php print number_format($folder['files_count']); ?>
             <fieldset class="collapsible collapsed straight-edge" id="<?php print $folder['batch_name']; ?>">
                 <legend><span class="fieldset-legend">Show files</span></legend>

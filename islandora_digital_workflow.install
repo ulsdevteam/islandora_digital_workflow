@@ -412,13 +412,18 @@ function islandora_digital_workflow_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-      'batch_item_id' => array(
-        'description' => 'The batch_item_id for a related ' .
-          'islandora_digital_workflow_batch_items record',
+      'transaction_id' => array(
+        'description' => 'The transaction_id related to the action entered as a problem',
         'type' => 'int',
         'size' => 'medium',
         'unsigned' => TRUE,
         'not null' => FALSE,
+      ),
+      'problem_notes' => array(
+        'description' => 'Notes on the nature of the problem with the scanned item',
+        'type' => 'text',
+        'size' => 'medium',
+        'not null' => TRUE,
       ),
       'problem_timestamp' => array(
         'description' => 'Last modified date of the record',

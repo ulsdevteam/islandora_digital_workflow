@@ -63,8 +63,21 @@ function islandora_digital_workflow_edit_transactions_form(array $form, array &$
       '#attributes' => array('autocomplete' => 'off'),
       '#description' => 'Select the transaction to apply to the selected batch items',
       '#default_value' => $transaction->action_id,
+      '#attributes' => array(
+        'onchange' => 'add_action_selection(this)',
+      ),
   );
-
+  $form['wrapper']['notes_wrapper'] = array(
+      '#type' => 'fieldset',
+      '#title' => 'Problem notes',
+      '#attributes' => array('class' => array('display_none')),
+      'problem_notes' => array(
+          '#type' => 'textarea',
+          '#description' => 'Enter the instructions to resolve the problem/s for the selected item/s.',
+          '#rows' => 3,
+          '#default_value' => '',
+      ),
+  );
   $form['nid'] = array(
       '#type' => 'hidden',
       '#value' => $node->nid,
@@ -117,6 +130,7 @@ function islandora_digital_workflow_edit_transactions_form_submit(array $form, a
   $timestamp = $form_state['values']['timestamp'];
   $action_id = $form_state['values']['transaction_action'];
   $batch_item_id = $form_state['values']['batch_item_id'];
+  $problem_notes = $form_state['values']['problem_notes'];
   $nid = $form_state['values']['nid'];
   // Based on the action_id, set the $goto variable to return user to the correct
   // previous page. /node/163/item/62

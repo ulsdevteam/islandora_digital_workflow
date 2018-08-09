@@ -336,13 +336,15 @@ function islandora_digital_workflow_delete_batch_transaction($transaction_id) {
  * @return integer
  *   The number of records that have been updated (expect 1 or 0).
  */
-function islandora_digital_workflow_update_batch_transaction($transaction_id, $action_id, $timestamp) {
+function islandora_digital_workflow_update_batch_transaction($transaction_id, $action_id, $timestamp, $problem_notes = '') {
   global $user;
   return db_update('islandora_digital_workflow_transactions')
     ->fields(array('action_id' => $action_id, 'timestamp' => $timestamp, 'drupal_uid' => $user->uid))
     ->condition('transaction_id', $transaction_id)
     ->execute();
-  islandora_digital_workflow_set_problem_record($action_id, $transaction_id);
+  if ($action_id == IDW_ACTION_PROBLEM) {
+    islandora_digital_workflow_set_problem_record($transaction_id, $user->uid, $problem_notes);
+  }
 }
 
 /*
@@ -353,18 +355,18 @@ function islandora_digital_workflow_update_batch_transaction($transaction_id, $a
 
 // islandora_digital_workflow_insert_transactions_record($action_id, NULL, $batch_item_id);
 */
-function islandora_digital_workflow_set_problem_record($action_id, $transaction_id) {
-  if ($action_id == IDW_ACTION_PROBLEM) {
-    module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
-    global $user;
-    $transaction = islandora_digital_workflow_get_batch_transaction($transaction_id);
-    // TODO: For the node stage setting, we need to look at the batch_id or batch_item_id
-    // in order to derive the node related to this batch or item.
-    db_query('INSERT INTO islandora_digital_workflow_problem_items (' .
-        '`batch_item_id`, `problem_timestamp`, `drupal_uid`) VALUES (' .
-        $transaction->batch_item_id . ', now(), ' . $user->uid . ')');
-    islandora_digital_workflow_move_batch_item_file($transaction->batch_item_id, variable_get('islandora_digital_workflow_ingest_problems_path', ''));
-  }
+function islandora_digital_workflow_set_problem_record($transaction_id, $alternative_uid = NULL, $problem_notes = '') {
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
+  global $user;
+  $transaction = islandora_digital_workflow_get_batch_transaction($transaction_id);
+  // TODO: For the node stage setting, we need to look at the batch_id or batch_item_id
+  // in order to derive the node related to this batch or item.
+  db_query("INSERT INTO islandora_digital_workflow_problem_items (" .
+      "`transaction_id`, `problem_notes`, `problem_timestamp`, `drupal_uid`) VALUES (" .
+      $transaction_id . ", '" . addslashes($problem_notes) . "', now(), " .
+      (!is_null($alternative_uid) ? $alternative_uid : $user->uid) . ")");
+  // Move the files related to this item over to the configured Problems path.
+  islandora_digital_workflow_move_batch_item_file($transaction->batch_item_id, variable_get('islandora_digital_workflow_ingest_problems_path', ''), $problem_notes);
 }
 
 /**
@@ -417,23 +419,26 @@ function islandora_digital_workflow_get_batch_item_transactions($batch_item_id, 
 
   $sql = 'SELECT bt.transaction_id, bt.timestamp AS `timestamp`, bt.transaction_id AS transaction_id, ' .
          'users.uid AS uid, users.name AS name, a.description AS description, ' .
-         'a.action_id AS action_id, a.name AS action_name ' .
+         'a.action_id AS action_id, a.name AS action_name, p.problem_notes ' .
          'FROM islandora_digital_workflow_transactions bt ' .
+         'LEFT OUTER JOIN islandora_digital_workflow_problem_items p ON bt.transaction_id = p.transaction_id ' .
          'LEFT OUTER JOIN users users ON bt.drupal_uid = users.uid ' .
          'INNER JOIN islandora_digital_workflow_actions a ON a.action_id = bt.action_id ' .
          'WHERE  (bt.batch_item_id = ' . $batch_item_id . ') ' .
          'UNION SELECT bt.transaction_id, bt.timestamp AS `timestamp`, bt.transaction_id AS transaction_id, ' .
          'users.uid AS uid, users.name AS name, a.description AS description, ' .
-         'a.action_id AS action_id, a.name AS action_name ' .
+         'a.action_id AS action_id, a.name AS action_name, p.problem_notes ' .
          'FROM islandora_digital_workflow_transactions bt ' .
+         'LEFT OUTER JOIN islandora_digital_workflow_problem_items p ON bt.transaction_id = p.transaction_id ' .
          'LEFT OUTER JOIN users users ON bt.drupal_uid = users.uid ' .
          'INNER JOIN islandora_digital_workflow_actions a ON a.action_id = bt.action_id ' .
          'WHERE  (bt.batch_id = ' . $batch_id . ') ' .
          'ORDER BY `timestamp` ASC';
-
+dpm($sql);
   $results = db_query($sql);
   $access_edit_transactions = user_access(ISLANDORA_DIGITAL_WORKFLOW_EDIT_DELETE_TRANSACTIONS);
   $rows = $results->fetchAll();
+  dpm($rows);
   foreach ($rows as $index => $row) {
     $rows[$index]->how_long_ago = islandora_digital_workflow_timeago_from_timestamp($row->timestamp);
     $rows[$index]->user_name = ($row->uid) ? l($row->name, 'user/' . $row->uid, array('attributes' => array('target' => '_blank'))) : 'system';
@@ -441,6 +446,7 @@ function islandora_digital_workflow_get_batch_item_transactions($batch_item_id, 
     $rows[$index]->admin_links = ($access_edit_transactions) ? TRUE : FALSE;
     $rows[$index]->nid = $nid;
     $rows[$index]->transaction_id = $row->transaction_id;
+    $rows[$index]->problem_notes = $row->problem_notes;
   }
   return $rows;
 }
@@ -880,7 +886,7 @@ function islandora_digital_workflow_insert_batch_item($fields) {
  * @param integer $alternative_uid
  *   when provided, this will override the current-logged-in user's uid value.
  */
-function islandora_digital_workflow_insert_transactions_record($action_id, $batch_id = NULL, $batch_item_id = NULL, $alternative_uid = NULL) {
+function islandora_digital_workflow_insert_transactions_record($action_id, $batch_id = NULL, $batch_item_id = NULL, $alternative_uid = NULL, $problem_notes = '') {
   global $user;
   if (!is_null($batch_id) || !is_null($batch_item_id)) {
     $transaction_id = db_insert('islandora_digital_workflow_transactions')
@@ -891,7 +897,9 @@ function islandora_digital_workflow_insert_transactions_record($action_id, $batc
           'drupal_uid' => ($alternative_uid) ? $alternative_uid : $user->uid,
         ))
         ->execute();
-    islandora_digital_workflow_set_problem_record($action_id, $transaction_id, ($alternative_uid) ? $alternative_uid : $user->uid);
+    if ($action_id == IDW_ACTION_PROBLEM) {
+      islandora_digital_workflow_set_problem_record($transaction_id, ($alternative_uid) ? $alternative_uid : $user->uid, $problem_notes);
+    }
     return $transaction_id;
   }
 }

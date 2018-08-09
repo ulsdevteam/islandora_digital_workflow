@@ -75,7 +75,10 @@
           <?php
           $toggle = !$toggle;
           ?>
-          <tr class="<?php print ($toggle) ? 'evenrow' : 'oddrow'; ?> <?php print ($transaction_record->action_id > 999) ? 'batch_action' : 'item_action'; ?>">
+          <tr class="<?php print ($toggle) ? 'evenrow' : 'oddrow'; ?> <?php print ($transaction_record->action_id > 999) ? 'batch_action' : 'item_action'; ?>"
+              <?php if (isset($transaction_record->problem_notes)) : ?>
+                <?php print ' title="' . $transaction_record->problem_notes . '"'; ?>
+              <?php endif; ?>>
               <td>
                 <div class="<?php print $transaction_record->glyph_class; ?>">&nbsp;</div>
                 <?php print $transaction_record->description; ?>

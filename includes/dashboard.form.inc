@@ -107,13 +107,14 @@ function islandora_digital_workflow_get_tasks_tables() {
   $staging_root = variable_get('islandora_digital_workflow_ingest_staging_path', '');
   $staging_folders = islandora_digital_workflow_find_folders_files($staging_root);
   $bad_staging_folder_names = islandora_digital_workflow_filter_out_non_batch_folders($staging_folders, $batch_names);
+
   if (count($staging_folders)) {
     $tables[] = theme('islandora_digital_workflow_files_table', array(
       'folders' => $staging_folders,
       'root' => $staging_root,
-      'action_link' => '/islandora/islandora_digital_workflow/sync_staging_files/',
+      'action_link' => (user_access(ISLANDORA_DIGITAL_WORKFLOW_SYNC_STAGING) ? '/islandora/islandora_digital_workflow/sync_staging_files/' : ''),
       'table_title' => 'Items moved to the "Staging" folder location',
-      'table_description' => 'Please resolve by renaming or replacing the files in the folders listed below:',
+      'table_description' => 'Please resolve by using the Sync operation for each of the folders listed below:',
     ));
   }
   // batches or items that have been moved into the "problems" folder
@@ -126,7 +127,7 @@ function islandora_digital_workflow_get_tasks_tables() {
       'root' => $problems_root,
       'action_link' => '',
       'table_title' => 'Items moved to the "Problems" folder location',
-      'table_description' => 'Please resolve by renaming or replacing the files in the folders listed below:',
+      'table_description' => 'Please resolve the folders listed below:',
     ));
   }
 

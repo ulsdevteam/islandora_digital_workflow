@@ -86,11 +86,18 @@ function islandora_digital_workflow_add_transactions_form(array $form, array &$f
       '#type' => 'hidden',
       '#value' => $batch_item_id,
   );
+  if ($action_id == IDW_ACTION_PROBLEM) {
+    $form['problem_notes'] = array(
+        '#type' => 'textarea',
+        '#title' => 'Problem notes',
+        '#description' => 'Enter the instructions to resolve the problem/s for the selected item/s.',
+        '#rows' => 3,
+    );
+  }
   $form['transaction_action'] = array(
       '#type' => 'hidden',
       '#value' => $action_id,
   );
-
   $form['timestamp'] = array(
       '#type' => 'hidden',
       '#value' => date('Y/m/d'),
@@ -123,6 +130,7 @@ function islandora_digital_workflow_add_transactions_form_submit(array $form, ar
   $timestamp = $form_state['values']['timestamp'];
   $action_id = $form_state['values']['transaction_action'];
   $batch_item_id = $form_state['values']['batch_item_id'];
+  $problem_notes = ($action_id == IDW_ACTION_PROBLEM) ? $form_state['values']['problem_notes'] : '';
   $nid = $form_state['values']['nid'];
   // Based on the action_id, set the $goto variable to return user to the correct
   // previous page. /node/163/item/62
@@ -131,16 +139,6 @@ function islandora_digital_workflow_add_transactions_form_submit(array $form, ar
   if ($form_state['triggering_element']['#value'] == t('Cancel')) {
     drupal_goto($goto);
   }
-  if ($form_state['triggering_element']['#value'] == t('Update transaction')) {
-    module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
-    // Save the updated transaction here:
-    $transaction_id = $form_state['values']['transaction_id'];
-    if (islandora_digital_workflow_update_batch_transaction($transaction_id, $action_id, $timestamp)) {
-      drupal_goto($goto);
-    }
-  }
-  else {
-    islandora_digital_workflow_insert_transactions_record($action_id, NULL, $batch_item_id);
-    drupal_goto($goto);
-  }
+  islandora_digital_workflow_insert_transactions_record($action_id, NULL, $batch_item_id, NULL, $problem_notes);
+  drupal_goto($goto);
 }

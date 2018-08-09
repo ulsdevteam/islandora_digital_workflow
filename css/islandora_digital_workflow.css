@@ -468,6 +468,9 @@ a .highlighted {
     border: 2px solid #bbb;
 }
 
+.lookup_result.evenrow {
+    background-color: white;
+}
 .lookup_result.oddrow {
     background-color:#f6f6f6;
 }
@@ -519,6 +522,7 @@ a .highlighted {
 
 .straight-edge {
     border-radius: 0 !important;
+    background-color: transparent !important;
 }
 
 .lookup_result_square ul, .lookup_result ul {
@@ -563,6 +567,19 @@ li.no_indent {
     clear: both;
     float: left;
 }
+
+/* To display an inline right-floating fieldset wrapper for entering problem notes */
+.inline_fieldset {
+    float: right;
+    width: 50%;
+    display: inline-block;
+    background-color: #f2f2f2;
+}
+
+.display_none {
+    display: none !important;
+}
+
 
 .small_right_float {
     font-size: 0.8em;
