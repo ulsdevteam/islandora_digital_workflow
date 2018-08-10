@@ -1456,6 +1456,7 @@ function islandora_digital_workflow_find_folders_files($root) {
         }
       }
       $files = $folders[$key] = $onelevel_filepaths;
+      $return_folders[$key]['files'] = $files;
       $return_folders[$key]['files_count'] = count($files);
       $filesize_date_files = islandora_digital_workflow_add_filesize_date_to_files($root . '/' . $key, $files);
       $return_folders[$key]['files_table_rows'] = islandora_digital_workflow_convert_tab_to_table_cells($filesize_date_files);
@@ -1896,7 +1897,6 @@ function islandora_digital_workflow_move_batch_item_file($batch_item_id, $destin
   $batch_item_record = array_pop($item_record_results);
   //  load the batch related to this batch_item_id to get the batch name (path under the root)
   $batch_record = islandora_digital_workflow_get_batch_record_by_batch_id($batch_item_record->batch_id);
-  $source_path = islandora_digital_workflow_batch_path($batch_record);
 
   $path_parts = pathinfo($batch_item_record->filename);
   $path_split = explode("/", $batch_item_record->filename);

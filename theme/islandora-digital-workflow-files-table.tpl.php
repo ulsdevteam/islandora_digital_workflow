@@ -13,7 +13,7 @@
 */
 ?>
 <div class="lookup_results">
-    <div class="dashboard-report messages <?php print (($action_link) ? 'warning' : 'error'); ?>">
+    <div class="dashboard-report<?php if ($show_message_status): ?> <?php print (($action_link) ? 'messages warning' : 'messages error'); ?><?php endif; ?>">
       <h3><?php print $table_title; ?></h3>
       <?php if (isset($table_description)) : ?>
       <p><?php print $table_description; ?></p>

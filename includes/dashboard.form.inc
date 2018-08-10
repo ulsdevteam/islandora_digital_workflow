@@ -113,6 +113,7 @@ function islandora_digital_workflow_get_tasks_tables() {
       'folders' => $staging_folders,
       'root' => $staging_root,
       'action_link' => (user_access(ISLANDORA_DIGITAL_WORKFLOW_SYNC_STAGING) ? '/islandora/islandora_digital_workflow/sync_staging_files/' : ''),
+      'show_message_status' => TRUE,
       'table_title' => 'Items moved to the "Staging" folder location',
       'table_description' => 'Please resolve by using the Sync operation for each of the folders listed below:',
     ));
@@ -126,6 +127,7 @@ function islandora_digital_workflow_get_tasks_tables() {
       'folders' => $problems_folders,
       'root' => $problems_root,
       'action_link' => '',
+      'show_message_status' => TRUE,
       'table_title' => 'Items moved to the "Problems" folder location',
       'table_description' => 'Please resolve the folders listed below:',
     ));

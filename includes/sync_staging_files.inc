@@ -54,19 +54,18 @@ function islandora_digital_workflow_sync_staging_files_form(array $form, array &
       'folders' => $batch_staging_folders,
       'root' => $batch_staging_root,
       'action_link' => '',
+      'show_message_status' => FALSE,
       'table_title' => 'Items moved to the "Staging" folder location',
-      'table_description' => '!!!!!!Please resolve by using the Sync operation for each of the folders listed below:',
+      'table_description' => 'Sync the files listed below back to the ingest working directory:',
     )) : '';
-  
-  $form = array(
-      'foo' => array(
-          '#type' => 'item',
-          '#title' => $batch_name,
-          '#prefix' => $markup,
-      ),
+
+  $form['batch_name'] = array(
+      '#type' => 'hidden',
+      '#default_value' => $batch_name,
   );
   $form['submit'] = array(
       '#type' => 'submit',
+      '#prefix' => $markup,
       '#value' => t('Sync these files'),
   );
 
@@ -84,5 +83,60 @@ function islandora_digital_workflow_sync_staging_files_form(array $form, array &
  *   The Drupal form state.
  */
 function islandora_digital_workflow_sync_staging_files_form_submit(array $form, array &$form_state) {
-  drupal_set_message('form submitted');
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
+
+  $batch_name = $form_state['values']['batch_name'];
+  $source_root = variable_get('islandora_digital_workflow_ingest_staging_path', '');
+  $batch_staging_folders = islandora_digital_workflow_find_folders_files($source_root);
+  $batch_record = islandora_digital_workflow_get_batch_record_by_name($batch_name);
+
+  $destination_path = $batch_record['batch_host'] . '/' . $batch_name;
+  $source_path = $source_root . '/' . $batch_name;
+  foreach ($batch_staging_folders as $found_staging_batch_name => $info) {
+    if ($found_staging_batch_name <> $batch_name) {
+      unset($batch_staging_folders[$found_staging_batch_name]);
+    }
+  }
+  $success_moving = FALSE;
+  if (array_key_exists($batch_name, $batch_staging_folders)) {
+    if (array_key_exists('files', $batch_staging_folders[$batch_name])) {
+      $files = $batch_staging_folders[$batch_name]['files'];
+      foreach ($files as $file) {
+        $from_file = $source_path . '/' . $file;
+        $to_file = $destination_path . '/' . $file;
+        $from_exists = (file_exists($from_file) ? ' TRUE' : ' FALSE');
+        $to_exists = (file_exists($to_file) ? ' TRUE' : ' FALSE');
+        if (file_exists($from_file)) {
+          $command = 'mv ' . $from_file . ' ' . $to_file;
+          $output = $return_var = array();
+          exec($command, $output, $return_var);
+          $success_moving |= (count($output) < 1);
+        }
+      }
+      if ($success_moving) {
+        // Done moving the files, but their sub-folders still exist and need to \
+        // be removed.
+        foreach ($files as $file) {
+          $from_file = $source_path . '/' . $file;
+          $file_pathinfo = pathinfo($from_file);
+          $from_file_dirname = $file_pathinfo['dirname'];
+          if (($source_path <> $from_file_dirname) && file_exists($from_file_dirname)) {
+            rmdir($from_file_dirname);
+          }
+        }
+        if (file_exists($source_path)) {
+          // Done moving subfolders, now we can remove that empty folder from
+          // the staging root.
+          rmdir($source_path);
+        }
+        //TODO: update the "problem_resolved_timestamp" value for the related problem state record of the item.
+        
+      }
+    }
+  }
+  else {
+    drupal_set_message('The staging folder did not contain a folder that matched the batch name of "' . $batch_name . '".', 'warning');
+  }
+  drupal_set_message('Form submitted');
 }

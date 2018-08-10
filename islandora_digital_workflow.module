@@ -516,6 +516,7 @@ function islandora_digital_workflow_theme() {
         'folders' => '',
         'root' => '',
         'action_link' => '',
+        'show_message_status' => FALSE,
         'table_title' => '',
         'table_description' => '',
       ),
