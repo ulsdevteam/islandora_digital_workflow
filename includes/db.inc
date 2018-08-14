@@ -359,14 +359,19 @@ function islandora_digital_workflow_set_problem_record($transaction_id, $alterna
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
   global $user;
   $transaction = islandora_digital_workflow_get_batch_transaction($transaction_id);
-  // TODO: For the node stage setting, we need to look at the batch_id or batch_item_id
-  // in order to derive the node related to this batch or item.
-  db_query("INSERT INTO islandora_digital_workflow_problem_items (" .
-      "`transaction_id`, `problem_notes`, `problem_timestamp`, `drupal_uid`) VALUES (" .
-      $transaction_id . ", '" . addslashes($problem_notes) . "', now(), " .
-      (!is_null($alternative_uid) ? $alternative_uid : $user->uid) . ")");
-  // Move the files related to this item over to the configured Problems path.
-  islandora_digital_workflow_move_batch_item_file($transaction->batch_item_id, variable_get('islandora_digital_workflow_ingest_problems_path', ''), $problem_notes);
+  if (is_object($transaction)) {
+    $batch_record = islandora_digital_workflow_get_batch_record_by_batch_id($transaction->batch_id);
+    module_load_include('inc', 'islandora_digital_workflow', 'includes/node-utilities');
+    islandora_digital_workflow_set_node_stage($batch_record['nid'], 'Problem');
+    // TODO: For the node stage setting, we need to look at the batch_id or batch_item_id
+    // in order to derive the node related to this batch or item.
+    db_query("INSERT INTO islandora_digital_workflow_problem_items (" .
+        "`transaction_id`, `problem_notes`, `problem_timestamp`, `drupal_uid`) VALUES (" .
+        $transaction_id . ", '" . addslashes($problem_notes) . "', now(), " .
+        (!is_null($alternative_uid) ? $alternative_uid : $user->uid) . ")");
+    // Move the files related to this item over to the configured Problems path.
+    islandora_digital_workflow_move_batch_item_file($transaction->batch_item_id, variable_get('islandora_digital_workflow_ingest_problems_path', ''), $problem_notes);
+  }
 }
 
 /**

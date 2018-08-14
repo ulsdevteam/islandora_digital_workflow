@@ -58,6 +58,26 @@ function islandora_digital_workflow_sync_node_batch_record_info($node, $form_sta
 }
 
 /**
+ * This will set the stage (field_stage) for the related node.
+ *
+ * @param integer $nid
+ *   nid value for a Drupal node object.
+ * @param string $state_name
+ *   The name of the state value like "New", "Problem"
+ */
+function islandora_digital_workflow_set_node_stage($nid, $state_name) {
+  $node = node_load($nid);
+  if (is_object($node)) {
+    $stages_vocab = taxonomy_vocabulary_machine_name_load(IDW_STAGE_TAXONOMY_MACHINE_NAME);
+    $stage_new_tid = islandora_digital_workflow_get_tid_by_name($state_name, $stages_vocab);
+    if ($stage_new_tid) {
+      $node->field_stage[$node->language][] = array('tid' => $stage_new_tid);
+      node_save($node);
+    }
+  }
+}
+
+/**
  * Loads the batch record that corresponds to a given drupal $node.
  *
  * @param object $node
