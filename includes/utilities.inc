@@ -1459,7 +1459,7 @@ function islandora_digital_workflow_find_folders_files($root) {
       $return_folders[$key]['files'] = $files;
       $return_folders[$key]['files_count'] = count($files);
       $filesize_date_files = islandora_digital_workflow_add_filesize_date_to_files($root . '/' . $key, $files);
-      $return_folders[$key]['files_table_rows'] = islandora_digital_workflow_convert_tab_to_table_cells($filesize_date_files);
+      $return_folders[$key]['files_table_rows'] = islandora_digital_workflow_convert_tab_to_table_cells($root . '/' . $key, $filesize_date_files);
     }
   }
   return $return_folders;
@@ -1479,15 +1479,21 @@ function islandora_digital_workflow_filter_out_non_batch_folders(&$values, $batc
 /**
  * This will convert the tab strings into html markup for a table row.
  *
+ * @param string $files_root
+ *   the file path where these batch files are located.
  * @param array $rows
  *   An array of strings that are TAB "\t" delimited.
  * @return string
  *   The html markup for a table row for each row of file info.
  */
-function islandora_digital_workflow_convert_tab_to_table_cells($rows) {
+function islandora_digital_workflow_convert_tab_to_table_cells($files_root, $rows) {
   $return_string = '';
   foreach ($rows as $row_str) {
-    $return_string .= '<tr><td>' . str_replace("\t", "</td><td>", $row_str) . '</td></tr>';
+    @list($file_name, $file_size, $file_date) = explode("\t", $row_str);
+    $problem_notes_content = (strstr($row_str, 'problem_notes.txt')) ? file_get_contents($files_root . '/' . $file_name)
+            : '';
+    $return_string .= '<tr' . ($problem_notes_content ? ' title="' . htmlspecialchars($problem_notes_content) . '"' : '') .
+            '><td>' . str_replace("\t", "</td><td>", $row_str) . '</td></tr>';
   }
   return $return_string;
 }

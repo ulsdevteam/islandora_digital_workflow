@@ -89,6 +89,30 @@ function islandora_digital_workflow_get_batch_record_by_batch_id($batch_id) {
 }
 
 /**
+ * This will inspect the transaction object and use the appropriate query
+ * to obtain the batch record that relates to it.
+ *
+ * @param object $transaction
+ *   A transaction record object.
+ * @return array
+ *   The batch_record as an array -- same format as is returned
+ * islandora_digital_workflow_get_batch_record_by_batch_id.
+ */
+function islandora_digital_workflow_get_batch_record_by_transaction($transaction) {
+  if (!is_null($transaction->batch_id)) {
+    return islandora_digital_workflow_get_batch_record_by_batch_id($transaction->batch_id);
+  }
+  else {
+    $batch_item_record_arr = islandora_digital_workflow_get_batch_item_record($transaction->batch_item_id);
+    if (is_array($batch_item_record_arr)) {
+      $batch_item_record_obj = array_pop($batch_item_record_arr);
+      return islandora_digital_workflow_get_batch_record_by_batch_id($batch_item_record_obj->batch_id);
+    }
+  }
+  return array();
+}
+
+/**
  * Gets the batch_item records identifier values related to a given batch.
  *
  * @param integer $batch_id
@@ -360,7 +384,7 @@ function islandora_digital_workflow_set_problem_record($transaction_id, $alterna
   global $user;
   $transaction = islandora_digital_workflow_get_batch_transaction($transaction_id);
   if (is_object($transaction)) {
-    $batch_record = islandora_digital_workflow_get_batch_record_by_batch_id($transaction->batch_id);
+    $batch_record = islandora_digital_workflow_get_batch_record_by_transaction($transaction);
     module_load_include('inc', 'islandora_digital_workflow', 'includes/node-utilities');
     islandora_digital_workflow_set_node_stage($batch_record['nid'], 'Problem');
     // TODO: For the node stage setting, we need to look at the batch_id or batch_item_id
@@ -439,11 +463,10 @@ function islandora_digital_workflow_get_batch_item_transactions($batch_item_id, 
          'INNER JOIN islandora_digital_workflow_actions a ON a.action_id = bt.action_id ' .
          'WHERE  (bt.batch_id = ' . $batch_id . ') ' .
          'ORDER BY `timestamp` ASC';
-dpm($sql);
+
   $results = db_query($sql);
   $access_edit_transactions = user_access(ISLANDORA_DIGITAL_WORKFLOW_EDIT_DELETE_TRANSACTIONS);
   $rows = $results->fetchAll();
-  dpm($rows);
   foreach ($rows as $index => $row) {
     $rows[$index]->how_long_ago = islandora_digital_workflow_timeago_from_timestamp($row->timestamp);
     $rows[$index]->user_name = ($row->uid) ? l($row->name, 'user/' . $row->uid, array('attributes' => array('target' => '_blank'))) : 'system';
@@ -559,6 +582,7 @@ function islandora_digital_workflow_get_batch_item_record($batch_item_id) {
   foreach ($rows as $index => $row) {
     $filename_pathinfo = pathinfo($row->filename);
     $rows[$index]->filename_basename = $filename_pathinfo['basename'];
+    $rows[$index]->batch_id = $row->batch_id;
   }
   return $rows;
 }

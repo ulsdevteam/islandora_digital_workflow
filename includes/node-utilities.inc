@@ -11,7 +11,7 @@
  * @param object $node
  *   Standard drupal node object.
  */
-function islandora_digital_workflow_sync_node_batch_record_info($node, $form_state, $csv_filename = '') {
+function islandora_digital_workflow_sync_node_batch_record_info($node, $form_state, $csv_filename = '', $update_node = TRUE) {
   global $system_creating_nodes;
   $system_creating_nodes = TRUE;
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
@@ -24,7 +24,6 @@ function islandora_digital_workflow_sync_node_batch_record_info($node, $form_sta
       $form_state['values']['batch_name'];
   $batch_record = islandora_digital_workflow_get_batch_record_by_name($batch_name);
   $node = (is_object($node)) ? $node : (($batch_record['nid'] > 0) ? node_load($batch_record['nid']) : NULL);
-
   if ($csv_filename) {
     // parse the csv file to get the identifiers and set pass these values
     // along to be added to the node->field_identifiers value
@@ -33,26 +32,28 @@ function islandora_digital_workflow_sync_node_batch_record_info($node, $form_sta
   else {
     $csv_array = array();
   }
-  $node = islandora_digital_workflow_make_or_update_node($form_state, $csv_array, $node);
+  if ($update_node) {
+    $node = islandora_digital_workflow_make_or_update_node($form_state, $csv_array, $node);
 
-  $batch_record = islandora_digital_workflow_create_batch_record_by_form($form_state, $node, $csv_filename);
-  // Load the batch record related to the node's title value which should
-  // be synced with the batch record's batch_name field.
-  $node = (is_object($node)) ? $node : (($batch_record['nid'] > 0) ? node_load($batch_record['nid']) : NULL);
-  // Sync the CCK field for Batch Defaults with the latest values
-  if (is_array($batch_record) && is_object($node)) {
-    $new_value = theme('islandora_digital_workflow_batch_defaults', array('islandora_digital_workflow_batch' => $batch_record));
-    $node->field_batch_defaults[LANGUAGE_NONE][0]['value'] = $new_value;
-    // Make sure that the format is Full HTML here so it doesn't strip any HTML tags.
-    $node->field_batch_defaults[LANGUAGE_NONE][0]['format'] = 'full_html';
-    field_attach_update('node', $node);
-  }
-  if (isset($_SESSION['uploaded_csv_filename'])) {
-    @unlink($_SESSION['uploaded_csv_filename']);
-    unset($_SESSION['uploaded_csv_filename']);
-  }
-  if (file_exists($csv_filename)) {
-    @unlink($csv_filename);
+    $batch_record = islandora_digital_workflow_create_batch_record_by_form($form_state, $node, $csv_filename);
+    // Load the batch record related to the node's title value which should
+    // be synced with the batch record's batch_name field.
+    $node = (is_object($node)) ? $node : (($batch_record['nid'] > 0) ? node_load($batch_record['nid']) : NULL);
+    // Sync the CCK field for Batch Defaults with the latest values
+    if (is_array($batch_record) && is_object($node)) {
+      $new_value = theme('islandora_digital_workflow_batch_defaults', array('islandora_digital_workflow_batch' => $batch_record));
+      $node->field_batch_defaults[LANGUAGE_NONE][0]['value'] = $new_value;
+      // Make sure that the format is Full HTML here so it doesn't strip any HTML tags.
+      $node->field_batch_defaults[LANGUAGE_NONE][0]['format'] = 'full_html';
+      field_attach_update('node', $node);
+    }
+    if (isset($_SESSION['uploaded_csv_filename'])) {
+      @unlink($_SESSION['uploaded_csv_filename']);
+      unset($_SESSION['uploaded_csv_filename']);
+    }
+    if (file_exists($csv_filename)) {
+      @unlink($csv_filename);
+    }
   }
   return $batch_record;
 }
@@ -66,12 +67,13 @@ function islandora_digital_workflow_sync_node_batch_record_info($node, $form_sta
  *   The name of the state value like "New", "Problem"
  */
 function islandora_digital_workflow_set_node_stage($nid, $state_name) {
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy-utilities');
   $node = node_load($nid);
   if (is_object($node)) {
     $stages_vocab = taxonomy_vocabulary_machine_name_load(IDW_STAGE_TAXONOMY_MACHINE_NAME);
-    $stage_new_tid = islandora_digital_workflow_get_tid_by_name($state_name, $stages_vocab);
-    if ($stage_new_tid) {
-      $node->field_stage[$node->language][] = array('tid' => $stage_new_tid);
+    $stage_tid = islandora_digital_workflow_get_tid_by_name($state_name, $stages_vocab);
+    if ($stage_tid) {
+      $node->field_stage[$node->language][0] = array('tid' => $stage_tid);
       node_save($node);
     }
   }

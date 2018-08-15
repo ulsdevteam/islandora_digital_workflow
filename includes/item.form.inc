@@ -115,7 +115,6 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
     $scanned_files = islandora_digital_workflow_scan_files($batch_path . '/' . $pid, $file_records);
   }
   $item_record_transactions = islandora_digital_workflow_get_batch_item_transactions($batch_item_id, $node->nid, $batch_record->batch_id);
-  dpm($item_record_transactions);
   islandora_digital_workflow_merge_transactions_with_item_actions($item_record_transactions, $required_batch_actions, $node->nid);
 
   $islandora_object = islandora_object_load($pid);

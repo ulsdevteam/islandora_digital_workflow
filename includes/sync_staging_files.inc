@@ -108,7 +108,12 @@ function islandora_digital_workflow_sync_staging_files_form_submit(array $form, 
         $from_exists = (file_exists($from_file) ? ' TRUE' : ' FALSE');
         $to_exists = (file_exists($to_file) ? ' TRUE' : ' FALSE');
         if (file_exists($from_file)) {
-          $command = 'mv ' . $from_file . ' ' . $to_file;
+          if (strstr($from_file, 'problem_notes.txt')) {
+            $command = 'rm -f ' . $from_file;
+          }
+          else {
+            $command = 'mv ' . $from_file . ' ' . $to_file;
+          }
           $output = $return_var = array();
           exec($command, $output, $return_var);
           $success_moving |= (count($output) < 1);
