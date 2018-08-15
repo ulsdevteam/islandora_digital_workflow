@@ -32,8 +32,10 @@
             <input id="edit-title" name="title" value="<?php print htmlspecialchars($item->title); ?>">
             <label for="edit-identifier">Identifier: </label>
             <input id="edit-identifier" name="identifier" value="<?php print $item->identifier; ?>">
+            <?php if ($is_paged_content): ?>
             <label for="edit-filename">Filename: </label>
             <input id="edit-filename" name="filename" value="<?php print $item->filename_basename; ?>">
+            <?php endif; ?>
             <label for="edit-pending1" class="disabled_text">ITEM PROP 1: </label>
             <input id="edit-pending1" name="pending" disabled readonly="readonly" value="pending development">
             <label for="edit-pending2" class="disabled_text">ITEM PROP 2: </label>

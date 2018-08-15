@@ -82,7 +82,7 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
     if ($filename_folder == '/') {
       $filename_folder = '';
     }
-    $_POST['filename'] = $filename_folder . $_POST['filename'];
+    $_POST['filename'] = ($is_paged_content) ? $filename_folder . $_POST['filename'] : '';
     $records_updated = islandora_digital_workflow_update_batch_item_record($batch_item_id, $_POST, $original_values);
     if ($records_updated) {
       drupal_set_message(t('This batch object record has been updated <br>' .
@@ -94,10 +94,11 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
           '<b>Updated Identifier:</b> "<span class="' . 
               (($_POST['identifier'] <> $original_values->identifier) ? 'good' : '') .
               '">' . $_POST['identifier'] . '</span>"<br>' .
+          (($is_paged_content) ?
           '<b>Previous Filename:</b> "' . $original_values->filename . '"<br>' .
           '<b>Updated Filename:</b> "<span class="' . 
               (($_POST['filename'] <> $original_values->filename) ? 'good' : '') .
-              '">' . $_POST['filename'] . '</span>"'));
+              '">' . $_POST['filename'] . '</span>"' : '')));
     }
   }
 
