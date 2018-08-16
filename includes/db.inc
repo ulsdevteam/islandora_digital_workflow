@@ -371,14 +371,24 @@ function islandora_digital_workflow_update_batch_transaction($transaction_id, $a
   }
 }
 
-/*
+/**
+ * Set the problem record related to the given transaction.
+ *
  * This will check whether or not the supplied action is IDW_ACTION_PROBLEM....
  * and will also insert the data to the node (so that the
  * node for the entire batch is switched to "Problem" as well as to insert
  * an individual islandora_digital_workflow_problem_items record.
-
-// islandora_digital_workflow_insert_transactions_record($action_id, NULL, $batch_item_id);
-*/
+ *
+ * @global object $user
+ *   Drupal user object
+ * @param integer $transaction_id
+ *   Identifier for a record in the islandora_digital_workflow_transactions table.
+ * @param NULL|integer $alternative_uid
+ *   An alternate user uid value to use for this transaction.
+ * @param string $problem_notes
+ *   The notes that the user entered to submit the problem with the item.
+ *
+ */
 function islandora_digital_workflow_set_problem_record($transaction_id, $alternative_uid = NULL, $problem_notes = '') {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
   global $user;

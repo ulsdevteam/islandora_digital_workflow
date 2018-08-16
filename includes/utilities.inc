@@ -235,7 +235,7 @@ function islandora_digital_workflow_sync_node_to_items($batch_record, $node, $cs
     // Set a variable for this for readibility on the subsequent function call.
     $keep_created_MODS_files = ($csv_filename <> '');
     $csv_file_sources = islandora_digital_workflow_prepare_csv2mods($csv_filename, $batch_record, $keep_created_MODS_files);
-    if (count($csv_file_sources) > 0) {
+    if ($csv_file_sources && count($csv_file_sources) > 0) {
       $batch_item_identifiers_to_transaction_ids = ($empty_items_table) ?
           islandora_digital_workflow_get_batch_item_ids_to_transaction_ids($batch_record['batch_id']) :
           array();
@@ -1067,6 +1067,7 @@ function islandora_digital_workflow_prepare_csv2mods($input_filename, $batch_rec
 
   // Get the headers of the file
   $headers = fgetcsv($inputFile);
+  if (!is_array($headers)) { return FALSE; }
   if ((array_search('identifier', $headers) === FALSE) and (array_search('Identifier', $headers) === FALSE)) {
     return FALSE;
   }
@@ -1488,12 +1489,27 @@ function islandora_digital_workflow_filter_out_non_batch_folders(&$values, $batc
  */
 function islandora_digital_workflow_convert_tab_to_table_cells($files_root, $rows) {
   $return_string = '';
-  foreach ($rows as $row_str) {
-    @list($file_name, $file_size, $file_date) = explode("\t", $row_str);
-    $problem_notes_content = (strstr($row_str, 'problem_notes.txt')) ? file_get_contents($files_root . '/' . $file_name)
+  $toggle = FALSE;
+  $last_file_folder = '';
+  foreach ($rows as $row) {
+    $file_name = $row['file'];
+    dpm($file_name);
+    $file_size = $row['size_as_string'];
+    $file_date = $row['date_as_string'];
+    @list($this_file_folder, $junk) = explode("/", $file_name);
+    if ($last_file_folder <> $this_file_folder) {
+      dpm($last_file_folder . ' <> ' . $this_file_folder);
+      $toggle = !$toggle;
+    }
+    // @list($file_name, $file_size, $file_date) = explode("\t", $row_str);
+    $problem_notes_content = (strstr($file_name, 'problem_notes.txt')) ? file_get_contents($files_root . '/' . $file_name)
             : '';
-    $return_string .= '<tr' . ($problem_notes_content ? ' title="' . htmlspecialchars($problem_notes_content) . '"' : '') .
-            '><td>' . str_replace("\t", "</td><td>", $row_str) . '</td></tr>';
+    $return_string .= '<tr class="lookup_result ' . (($toggle) ? 'evenrow' : 'oddrow'). 
+            (($last_file_folder == $this_file_folder) ? '' : ' spaceUnder') . '"' .
+            ($problem_notes_content ? ' title="' . htmlspecialchars($problem_notes_content) . '"' : '') .
+            '><td>' . $file_name . '</td><td>' . $file_size . '</td><td>' . $file_date . '</td></tr>';
+    dpm((($last_file_folder == $this_file_folder) ? '- noclass -' : ' spaceUnder'));
+    $last_file_folder = $this_file_folder;
   }
   return $return_string;
 }
@@ -1926,7 +1942,7 @@ function islandora_digital_workflow_move_batch_item_file($batch_item_id, $destin
 
     @list($junk, $short_item_filename) = explode("/" . $batch_record['batch_name'] . "/", $batch_item_record->filename);
     // Append the info on which item is selected in the notes.
-    $problem_notes .= "\n\n----------------------\n" . 
+    $problem_notes .= (($problem_notes) ? "\n\n----------------------\n" : "").
         "Item title:    " . $batch_item_record->title . "\n" .
         "Item filename: " . $short_item_filename . "\n" .
         "Batch name:    " . $batch_record['batch_name'] . "\n";

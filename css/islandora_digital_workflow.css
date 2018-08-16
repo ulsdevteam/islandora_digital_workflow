@@ -468,6 +468,15 @@ a .highlighted {
     border: 2px solid #bbb;
 }
 
+table .lookup_result {
+    border: none;
+    box-shadow: none;
+}
+
+tr.spaceUnder>td {
+  padding-bottom: 2px;
+  border-top: 2px solid #bbb;
+}
 .lookup_result.evenrow {
     background-color: white;
 }

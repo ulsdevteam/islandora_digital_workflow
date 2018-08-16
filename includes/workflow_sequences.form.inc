@@ -754,11 +754,11 @@ function islandora_digital_workflow_workflow_sequence_models_form(array $form, a
       );
   $tmp = array('' => 'Select Object Model');
   $removable_models = $tmp + (array_key_exists($workflow_sequence_id, $workflow_model_sequences) ? $workflow_model_sequences[$workflow_sequence_id] : array());
-  //  array_unshift($workflow_model_sequences[$workflow_sequence_id], 'Select Object Model');
+
   $form['remove'] = array(
         '#type' => 'select',
         '#title' => t('Remove a Model'),
-        '#options' => array_key_exists($workflow_sequence_id, $workflow_model_sequences) ? $workflow_model_sequences[$workflow_sequence_id] : array(),
+        '#options' => $removable_models, //  array_key_exists($workflow_sequence_id, $workflow_model_sequences) ? $workflow_model_sequences[$workflow_sequence_id] : array(),
       );
   $form['workflow_sequence_id'] = array(
       '#type' => 'hidden',
