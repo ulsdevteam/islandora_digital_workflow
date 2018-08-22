@@ -41,6 +41,19 @@ function islandora_digital_workflow_get_batch_record_names() {
   return $return_array;
 }
 
+/**
+ * Returns all batch records.
+ *
+ * @return mixed
+ *   Either returns an array of batch record objects or NULL if it cannot be found.
+ */
+function islandora_digital_workflow_get_all_batch_records() {
+  $query = db_select('islandora_digital_workflow_batch', 'b')
+      ->fields('b');
+  $results = $query->execute();
+  $rows = $results->fetchAll();
+  return $rows;
+}
 
 /**
  * Gets a SINGLE batch record for a `batch_name` value.
@@ -509,7 +522,7 @@ function islandora_digital_workflow_get_batch_files_by_nid($nid) {
     $rows = $results->fetchAll();
     foreach ($rows as $index => $row) {
       $filename_pathinfo = pathinfo($row->filename);
-      $rows[$index]->filename_basename = $filename_pathinfo['basename'];
+      $rows[$index]->master_filename_basename = $filename_pathinfo['basename'];
       $rows[$index]->filesize = (file_exists($row->filename)) ? filesize($row->filename) : NULL;
     }
     return $rows;
@@ -547,11 +560,11 @@ WHERE b.nid = ' . $nid . '
 GROUP BY bi.batch_item_id
 ORDER BY bi.batch_item_id ASC, bt.`timestamp` DESC');
   $rows = $query->fetchAll();
-  // Loop through and calculate values for filename_basename by using the
+  // Loop through and calculate values for master_filename_basename by using the
   // pathinfo ~ basename element.
   foreach ($rows as $index => $row) {
     $filename_pathinfo = pathinfo($row->filename);
-    $rows[$index]->filename_basename = $filename_pathinfo['basename'];
+    $rows[$index]->master_filename_basename = $filename_pathinfo['basename'];
     // Need to put the action_ids together with the transaction descriptions...
     // - it is easier on the server than running subsequent queries to get these.
     $actions = explode(",", $row->transaction_actions);
@@ -591,7 +604,7 @@ function islandora_digital_workflow_get_batch_item_record($batch_item_id) {
   $rows = $results->fetchAll();
   foreach ($rows as $index => $row) {
     $filename_pathinfo = pathinfo($row->filename);
-    $rows[$index]->filename_basename = $filename_pathinfo['basename'];
+    $rows[$index]->master_filename_basename = $filename_pathinfo['basename'];
     $rows[$index]->batch_id = $row->batch_id;
   }
   return $rows;
@@ -850,6 +863,7 @@ function islandora_digital_workflow_get_workflow_sequence_actions() {
         'action_name' => $row->action_name,
         'action_description' => $row->action_description,
         'is_required' => $row->is_required,
+        'is_system_action' => $row->is_system_action,
     );
   }
   return $return_array;
@@ -990,7 +1004,7 @@ function islandora_digital_workflow_get_required_batch_actions($batch_id = NULL,
   $query->join('islandora_digital_workflow_sequence', 'ws', 'b.workflow_sequence_id = ws.workflow_sequence_id');
   $query->fields('ws', array('name', 'workflow_sequence_id'));
   $query->join('islandora_digital_workflow_sequence_actions', 'wsa', 'ws.workflow_sequence_id = wsa.workflow_sequence_id');
-  $query->fields('wsa', array('is_required'));
+  $query->fields('wsa', array('is_required', 'is_system_action'));
   $query->addField('wsa', 'order', 'action_order');
   $query->join('islandora_digital_workflow_actions', 'wa', 'wsa.action_id = wa.action_id');
   $query->fields('wa', array('description', 'action_id'));
@@ -1012,6 +1026,7 @@ function islandora_digital_workflow_get_required_batch_actions($batch_id = NULL,
         'batch_action_name' => $row->action_name,
         'batch_action_description' => $row->description,
         'is_required' => $row->is_required,
+        'is_system_action' => $row->is_system_action,
         'sequence_name' => $row->name,
         'workflow_sequence_id' => $row->workflow_sequence_id,
         'action_id' => $row->action_id,
@@ -1083,4 +1098,30 @@ function islandora_digital_workflow_get_free_action_id($is_batch_action = FALSE)
   $rows = $results->fetchAll();
   $rows = array_pop($rows);
   return $rows->next_action_id;
+}
+
+function islandora_digital_workflow_update_item_file_data($batch_record, $item_data) {
+   foreach ($item_data as $item_identifier => $identifer_data) {
+     $total_file_size = 0;
+     $files = array();
+     foreach ($identifer_data as $item_file) {
+       $total_file_size += $item_file['size'];
+       $files[] = $item_file['file'];
+     }
+     $total_file_count = count($identifer_data);
+     $set_fields = array(
+         'file_count' => $total_file_count, 
+         'file_size' => $total_file_size);
+     db_update('islandora_digital_workflow_batch_items')
+       ->condition('identifier', $item_identifier)
+       ->fields($set_fields)
+       ->execute();
+      $markup_arr[] = '<h4><span style="color:#888">' . $batch_record->batch_name . '/</span>' . $item_identifier . '</h4>';
+      $markup_arr[] = '<pre class="small_lt_text">';
+      $markup_arr[] = "       <b>Size</b>: " . $total_file_size . " bytes\n";
+      $markup_arr[] = "      <b>Count</b>: " . $total_file_count . "\n";
+      $markup_arr[] = "      <b>Files</b>: " . implode(", ", ($files));
+      $markup_arr[] = "</pre>";
+    }
+   return implode("\n", $markup_arr);
 }

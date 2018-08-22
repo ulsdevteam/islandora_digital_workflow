@@ -109,15 +109,14 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
 
   $paged_content_models = islandora_digital_workflow_retrieve_applicable_paged_content_cmodels();
   if (!(array_search($batch_record->default_type_of_resource, $paged_content_models) === FALSE)) {
-    $scanned_files = islandora_digital_workflow_scan_paged_content_files($batch_path . '/' . $pid);
+    $found_files = islandora_digital_workflow_scandir_paged_content_files($batch_path . '/' . $pid);
   }
   else {
     $file_records = islandora_digital_workflow_get_batch_files_by_nid($batch_record->nid);
-    $scanned_files = islandora_digital_workflow_scan_files($batch_path . '/' . $pid, $file_records);
+    $found_files = islandora_digital_workflow_scan_files($batch_path . '/' . $pid, $file_records);
   }
   $item_record_transactions = islandora_digital_workflow_get_batch_item_transactions($batch_item_id, $node->nid, $batch_record->batch_id);
   islandora_digital_workflow_merge_transactions_with_item_actions($item_record_transactions, $required_batch_actions, $node->nid);
-
   $islandora_object = islandora_object_load($pid);
   if (is_object($islandora_object)) {
     $link_att = array('attributes' => array('target' => '_blank'));
@@ -130,8 +129,7 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
   }
   $can_ingest = (user_access(ISLANDORA_DIGITAL_WORKFLOW_INGEST_ITEMS) &&
       (is_array($required_batch_actions)) &&
-      islandora_digital_workflow_item_actions_all_done($item_record_transactions));
-
+      islandora_digital_workflow_item_non_system_actions_all_done($item_record_transactions, $required_batch_actions));
   return $lookup_form_markup .
       theme('islandora_digital_workflow_item', array(
         'batch_record' => $batch_record,
@@ -143,7 +141,7 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
         'pid' => $pid,
         'can_ingest' => $can_ingest,
         'ingested_links' => $ingested_links,
-        'scanned_files' => $scanned_files));
+        'found_files' => $found_files));
 }
 
 
@@ -161,7 +159,7 @@ function islandora_digital_workflow_merge_transactions_with_item_actions(&$item_
 
 function islandora_digital_workflow_transactions_find_transaction_id($item_record_transactions, $transaction_id) {
   $retval = FALSE;
-  if ($transaction_id == -1) {
+  if ($transaction_id < 1) {
     return FALSE;
   }
   foreach ($item_record_transactions as $item_record_transaction) {
@@ -184,7 +182,7 @@ function islandora_digital_workflow_transaction_action_objects($merged_item_reco
   if (count($return_array) < 1) {
     $stub_entry = new stdClass();
     $stub_entry->timestamp = '';
-    $stub_entry->transaction_id = -1;
+    $stub_entry->transaction_id = (($required_batch_action['is_required']) ? -1 : 0);
     $stub_entry->action_name = $required_batch_action['batch_action_name'];
     $stub_entry->description = $required_batch_action['batch_action_description'];
     $stub_entry->glyph_class =  islandora_digital_workflow_glyph_class($stub_entry->action_name);

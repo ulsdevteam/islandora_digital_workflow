@@ -44,9 +44,9 @@ function islandora_digital_workflow_sync_staging_files_form(array $form, array &
   $staging_root = variable_get('islandora_digital_workflow_ingest_staging_path', '');
   $batch_staging_root = $staging_root . '/' . $batch_name;
   $batch_staging_folders = islandora_digital_workflow_find_folders_files($staging_root);
-  foreach ($batch_staging_folders as $found_staging_batch_name => $info) {
-    if ($found_staging_batch_name <> $batch_name) {
-      unset($batch_staging_folders[$found_staging_batch_name]);
+  foreach ($batch_staging_folders as $found_staging_item_name => $info) {
+    if ($found_staging_item_name <> $batch_name) {
+      unset($batch_staging_folders[$found_staging_item_name]);
     }
   }
   $markup = (count($batch_staging_folders)) ?
@@ -93,9 +93,9 @@ function islandora_digital_workflow_sync_staging_files_form_submit(array $form, 
 
   $destination_path = $batch_record['batch_host'] . '/' . $batch_name;
   $source_path = $source_root . '/' . $batch_name;
-  foreach ($batch_staging_folders as $found_staging_batch_name => $info) {
-    if ($found_staging_batch_name <> $batch_name) {
-      unset($batch_staging_folders[$found_staging_batch_name]);
+  foreach ($batch_staging_folders as $found_staging_item_name => $info) {
+    if ($found_staging_item_name <> $batch_name) {
+      unset($batch_staging_folders[$found_staging_item_name]);
     }
   }
   $success_moving = FALSE;

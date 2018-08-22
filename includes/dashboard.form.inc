@@ -18,7 +18,7 @@ function islandora_digital_workflow_dashboard() {
 
   $dashboard_data = islandora_digital_workflow_get_user_role_dashboard();
   $tasks_tables = islandora_digital_workflow_get_tasks_tables();
-  $links = islandora_digital_workflow_get_stage_links();
+  $links = islandora_digital_workflow_get_dashboard_links();
   return $lookup_form_markup .
       theme('islandora_digital_workflow_dashboard', array(
           'dashboard_data' => $dashboard_data,
@@ -28,12 +28,16 @@ function islandora_digital_workflow_dashboard() {
 }
 
 /**
- * Gets links to the Drupal view for each of the various stages.
+ * Gets links that should appear on the dashboard -- including:
+ *   - links the Drupal view for each of the various stages.
+ *   - Reports
+ *   - Utilities
+ *   - Administration
  *
  * @return array
  *   An array to the links to Drupal views.
  */
-function islandora_digital_workflow_get_stage_links() {
+function islandora_digital_workflow_get_dashboard_links() {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy-utilities');
   module_load_include('inc', 'islandora_digital_workflow', 'includes/node-utilities');
   
@@ -42,7 +46,7 @@ function islandora_digital_workflow_get_stage_links() {
   $content_types_vocab = taxonomy_vocabulary_machine_name_load(IDW_STAGE_TAXONOMY_MACHINE_NAME);
   $node_count = islandora_digital_workflow_get_count_of_nodes_by_stage();
   $all_batches_link = l(t('All Batches'), '/islandora/islandora_digital_workflow/batches/all') .
-          ($node_count ? ' <small class="small_lt_text">- ' . $node_count . ' batch' . ($node_count == 1 ? '' : 'es'). '</small>' : '');
+          ($node_count ? ' <span class="small_lt_text">- ' . $node_count . ' batch' . ($node_count == 1 ? '' : 'es'). '</span>' : '');
   $links = array('batches' => array($all_batches_link));
 
   $stages = array('New', 'Scanned', 'Problem', 'Reviewed', 'Done');
@@ -50,16 +54,25 @@ function islandora_digital_workflow_get_stage_links() {
     $tid = islandora_digital_workflow_get_tid_by_name($stage, $content_types_vocab);
     $node_count = islandora_digital_workflow_get_count_of_nodes_by_stage($tid);
     $links['batches'][] = l($stage, '/islandora/islandora_digital_workflow/batches/' . $tid) .
-        ($node_count ? ' <small class="small_lt_text">- ' . $node_count . ' batch' . ($node_count == 1 ? '' : 'es'). '</small>' : '');
+        ($node_count ? ' <span class="small_lt_text">- ' . $node_count . ' batch' . ($node_count == 1 ? '' : 'es'). '</span>' : '');
   }
 
   // Now add some utility links that may be permission-based...
   if (user_access(ISLANDORA_DIGITAL_WORKFLOW_RUN_REPORTS)) {
-    $links['utility'][] = l('Reports', '/islandora/islandora_digital_workflow/reports') . '<br><small class="small_lt_text">Run reports on batches and items.</small><br><br>';
+    $links['report'][] = l('Reports', '/islandora/islandora_digital_workflow/reports') . '<br><span class="small_lt_text">Run reports on batches and items.</span><br><br>';
   }
   if (user_access(ISLANDORA_DIGITAL_WORKFLOW_USE_UTILITIES)) {
-    $links['utility'][] = l('Utilities', '/islandora/islandora_digital_workflow/process_form') . '<br><small class="small_lt_text">Perform functions on a set of batches and items.</small><br><br>';
+    $links['utility'][] = l('Utilities', '/islandora/islandora_digital_workflow/utilities') . '<br><span class="small_lt_text">Perform functions on a set of batches and items.</span><br><br>';
   }
+  if (user_access(ISLANDORA_DIGITAL_WORKFLOW_MANAGE_SEQUENCES)) {
+    $links['admin'][] = l('Islandora Digital Workflow Settings', '/admin/islandora/islandora_digital_workflow') . '<br><span class="small_lt_text">Configure options and settings for the Islandora Digital Workflow module.</span><br><br>';
+  }
+  if (user_access('administer permissions')) {
+    $links['admin'][] = l(t('User Permissions'), '/admin/people/permissions') . '<br><span class="small_lt_text">Manage user permissions.</span><br><br>';
+  }
+
+
+
   
   return $links;  
 }
@@ -118,6 +131,8 @@ function islandora_digital_workflow_get_tasks_tables() {
       'table_description' => 'Please resolve by using the Sync operation for each of the folders listed below:',
     ));
   }
+  
+  // $batch_host_folders = islandora_digital_workflow_batch_path
   // batches or items that have been moved into the "problems" folder
   $problems_root = variable_get('islandora_digital_workflow_ingest_problems_path', '');
   $problems_folders = islandora_digital_workflow_find_folders_files($problems_root);

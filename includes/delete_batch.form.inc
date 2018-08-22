@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Create batch form and submit handling for Islandora Digital Workflow module.
+ * Delete batch form and submit handling for Islandora Digital Workflow module.
  */
 
 /**

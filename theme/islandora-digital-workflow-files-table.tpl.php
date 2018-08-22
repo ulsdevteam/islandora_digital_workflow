@@ -27,11 +27,11 @@
           ?>
           <div class="lookup_result_indent">
             <?php if ($action_link): ?>
-            <a href="<?php print $action_link . $folder['batch_name']; ?>">Sync "<?php print $folder['batch_name']; ?>" back to working directories.</a><hr>
+            <a href="<?php print $action_link . $folder['item_name']; ?>">Sync "<?php print $folder['item_name']; ?>" back to working directories.</a><hr>
             <?php endif; ?>
-            <b>Batch:</b> "<a href="/content/<?php print $folder['batch_name']; ?>"><?php print $folder['batch_name']; ?></a>"<br>
+            <b>Batch:</b> "<a href="/content/<?php print $folder['item_name']; ?>"><?php print $folder['item_name']; ?></a>"<br>
             <b>Files:</b> <?php print number_format($folder['files_count']); ?>
-            <fieldset class="collapsible collapsed straight-edge" id="<?php print $folder['batch_name']; ?>">
+            <fieldset class="collapsible collapsed straight-edge" id="<?php print $folder['item_name']; ?>">
                 <legend><span class="fieldset-legend">Show files</span></legend>
                 <table class="fieldset-wrapper" style="display: none;">
                     <tr>

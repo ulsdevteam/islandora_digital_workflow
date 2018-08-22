@@ -595,11 +595,52 @@ li.no_indent {
     float: right;
 }
 
+.dashboard-report.action-links, .report-links, .utility-links, .admin-links {
+    float: left;
+    width: 44%;
+}
+
+.batches-links {
+    float: left;
+    width: 46%;
+}
+
 /* ---- some themes do not have a graphic for this class ---- */
+ul.report-links a, ul.utility-links a, ul.admin-links a {
+    padding-left: 15px;
+    line-height: 30px;
+}
+
+ul.report-links span, ul.utility-links span, ul.admin-links span {
+    padding-left: 22px;
+}
+
 ul.action-links a {
     padding-left: 15px;
-    background: transparent url("../images/add.png") no-repeat 0 center;
     line-height: 30px;
+    background: transparent url("../images/add.png") no-repeat 0 center;
+}
+
+ul.report-links, ul.utility-links, ul.admin-links {
+    border-radius: 5px;
+    margin: 10px;
+    border: 1px solid #ddd;
+}
+
+ul.report-links li, ul.utility-links li, ul.admin-links li {
+    background-color: #f8f8f8;
+}
+
+ul.report-links {
+    background: transparent url("../images/report.png") no-repeat 4px 4px;
+}
+
+ul.utility-links {
+    background: transparent url("../images/utility.png") no-repeat 4px 4px;
+}
+
+ul.admin-links {
+    background: transparent url("../images/cog.png") no-repeat 4px 4px;
 }
 
 .td_wide_normal {

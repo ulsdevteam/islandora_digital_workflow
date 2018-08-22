@@ -74,6 +74,10 @@ function islandora_digital_workflow_add_transactions_form(array $form, array &$f
       '#default_value' => $action_id,
   );
 
+  $form['refer'] = array(
+      '#type' => 'hidden',
+      '#value' => $_SERVER['HTTP_REFERER'],
+  );
   $form['nid'] = array(
       '#type' => 'hidden',
       '#value' => $node->nid,
@@ -130,11 +134,13 @@ function islandora_digital_workflow_add_transactions_form_submit(array $form, ar
   $timestamp = $form_state['values']['timestamp'];
   $action_id = $form_state['values']['transaction_action'];
   $batch_item_id = $form_state['values']['batch_item_id'];
+  $refer = $form_state['values']['refer'];
+  $refer_url_parts = parse_url($refer);
   $problem_notes = ($action_id == IDW_ACTION_PROBLEM) ? $form_state['values']['problem_notes'] : '';
   $nid = $form_state['values']['nid'];
   // Based on the action_id, set the $goto variable to return user to the correct
-  // previous page. /node/163/item/62
-  $goto = (islandora_digital_workflow_is_batch_action($action_id)) ? '/node/' . $nid . '/transactions' :
+  // previous page. /node/163/item/62 - else can use the refer path value.
+  $goto = (islandora_digital_workflow_is_batch_action($action_id)) ? $refer_url_parts['path'] :
     '/node/' . $nid . '/item/' . $batch_item_id;
   if ($form_state['triggering_element']['#value'] == t('Cancel')) {
     drupal_goto($goto);

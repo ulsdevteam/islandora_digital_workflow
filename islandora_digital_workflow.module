@@ -181,6 +181,14 @@ function islandora_digital_workflow_menu() {
       'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW),
       'file' => 'includes/delete_batch.form.inc',
     ),
+    'islandora/islandora_digital_workflow/ingest_item/%' => array(
+      'title' => t('Islandora Digital Workflow Ingest Item'),
+      'type' => MENU_NORMAL_ITEM,
+      'page callback' => array('islandora_digital_workflow_ingest_item'),
+      'page arguments' => array(3),
+      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_INGEST_ITEMS),
+      'file' => 'includes/ingest_item.form.inc',
+    ),
     // Node enhancement functions
     'node/%node/batch' => array(
       'title' => t('Edit Batch Record'),
@@ -277,12 +285,26 @@ function islandora_digital_workflow_menu() {
       'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_RUN_REPORTS),
       'file' => 'includes/reports.form.inc',
     ),
-    'islandora/islandora_digital_workflow/process_form' => array(
+    'islandora/islandora_digital_workflow/utilities' => array(
       'title' => t('Islandora Digital Workflow - Utilities'),
+      'type' => MENU_NORMAL_ITEM,
+      'page callback' => array('islandora_digital_workflow_utilities_form'),
+      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_USE_UTILITIES),
+      'file' => 'includes/utilities.form.inc',
+    ),
+    'islandora/islandora_digital_workflow/utilities/process_form' => array(
+      'title' => t('Islandora Digital Workflow - Process Identifiers'),
       'type' => MENU_NORMAL_ITEM,
       'page callback' => array('islandora_digital_workflow_process_form'),
       'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_USE_UTILITIES),
       'file' => 'includes/process.form.inc',
+    ),
+    'islandora/islandora_digital_workflow/utilities/recalculate_files' => array(
+      'title' => t('Islandora Digital Workflow - Process Identifiers'),
+      'type' => MENU_NORMAL_ITEM,
+      'page callback' => array('islandora_digital_workflow_recalculate_files'),
+      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_USE_UTILITIES),
+      'file' => 'includes/utilities.form.inc',
     ),
     // Callback to serve up the dynamically generated CSS file
     'islandora/islandora_digital_workflow_css.css' => array(
@@ -427,7 +449,7 @@ function islandora_digital_workflow_theme() {
         'batch_record' => array(),
         'batch_path' => '',
         'item_file_records' => array(),
-        'scanned_files' => array(),
+        'found_files' => array(),
         'table_title' => '',
         'node' => NULL,
         'table_description' => '',
@@ -445,7 +467,7 @@ function islandora_digital_workflow_theme() {
         'pid' => '',
         'can_ingest' => FALSE,
         'ingested_links' => '',
-        'scanned_files' => array(),
+        'found_files' => array(),
       ),
     ),
     'islandora_digital_workflow_dashboard_tasks' => array(
@@ -689,6 +711,7 @@ function theme_islandora_digital_workflow_workflow_sequence_actions_form($variab
         drupal_render($form['wrapper']['rows'][$action_id]['action_id']),
         drupal_render($form['wrapper']['rows'][$action_id]['action_description']),
         drupal_render($form['wrapper']['rows'][$action_id]['is_required']),
+        drupal_render($form['wrapper']['rows'][$action_id]['is_system_action']),
         drupal_render($form['wrapper']['rows'][$action_id]['weight']),
         drupal_render($form['wrapper']['rows'][$action_id]['op']),
       ),
@@ -696,7 +719,7 @@ function theme_islandora_digital_workflow_workflow_sequence_actions_form($variab
     );
   }
 
-  $header = array('', '', t('Action (If empty, title is used)'), t('Is required?'), t('Weight'), t('Operations'));
+  $header = array('', '', t('Action (If empty, title is used)'), t('Required?'), t('System Action?'), t('Weight'), t('Operations'));
   $output = theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => array('id' => 'rows-order-' . $sequence_id)));
   $output .= drupal_render_children($form);
 

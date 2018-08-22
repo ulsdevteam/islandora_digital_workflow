@@ -310,6 +310,22 @@ function islandora_digital_workflow_schema() {
         'size' => 'big',
         'not null' => TRUE,
       ),
+      'file_count' => array(
+        'description' => 'The total number of files related to this item',
+        'type' => 'int',
+        'size' => 'small', // limit goes to 8388607
+        'unsigned' => TRUE,
+        'default' => 0,
+        'not null' => TRUE,
+      ),
+      'file_size' => array(
+        'description' => 'The total size of the files related to this item (in bytes)',
+        'type' => 'int',
+        'size' => 'medium',
+        'unsigned' => TRUE,
+        'default' => 0,
+        'not null' => TRUE,
+      ),
     ),
     'indexes' => array(
       'ss_batch_id' => array('batch_id'),
@@ -512,6 +528,13 @@ function islandora_digital_workflow_schema() {
         'not null' => TRUE,
       ),
       'is_required' => array(
+        'type' => 'int',
+        'size' => 'tiny',
+        'default' => 0,
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'is_system_action' => array(
         'type' => 'int',
         'size' => 'tiny',
         'default' => 0,

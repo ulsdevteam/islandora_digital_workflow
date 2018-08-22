@@ -34,16 +34,16 @@ function islandora_digital_workflow_files($node) {
   // but not found with "bad" class.
   $paged_content_models = islandora_digital_workflow_retrieve_applicable_paged_content_cmodels();
   if (!(array_search($batch_record->default_type_of_resource, $paged_content_models) === FALSE)) {
-    $scanned_files = islandora_digital_workflow_scan_paged_content_files($batch_path);
+    $found_files = islandora_digital_workflow_scandir_paged_content_files($batch_path);
   }
   else {
-    $scanned_files = islandora_digital_workflow_scan_files($batch_path, $file_records);
+    $found_files = islandora_digital_workflow_scan_files($batch_path, $file_records);
   }
 
   // Loop through the $file_records and see which ones are missing from the file system
   foreach ($file_records as $index => $file_item) {
     $relative_folder_file = str_replace($batch_path . '/', '', $file_item->filename);
-    $file_records[$index]->class = (array_key_exists($relative_folder_file, $scanned_files) ? '' : 'bad');
+    $file_records[$index]->class = (array_key_exists($relative_folder_file, $found_files) ? '' : 'bad');
   }
 
   return $lookup_form_markup . theme('islandora_digital_workflow_files', array(
@@ -53,5 +53,5 @@ function islandora_digital_workflow_files($node) {
         'batch_path' => $batch_path,
         'node' => $node,
         'item_file_records' => $file_records,
-        'scanned_files' => $scanned_files));
+        'found_files' => $found_files));
 }

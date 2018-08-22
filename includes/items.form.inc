@@ -340,7 +340,7 @@ function islandora_digital_workflow_batch_items_form(array $form, array &$form_s
           'class' => array($transactions_cell_class)),
       'Identifier' => l($item->identifier, '/node/' . $node->nid . '/item/' . $item->batch_item_id),
       'Title' => $item->title,
-      'Filename' => $item->filename_basename,
+      'Filename' => $item->master_filename_basename,
     );
   }
   $items_header = array(

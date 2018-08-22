@@ -26,8 +26,18 @@ function islandora_digital_workflow_reports() {
   return $lookup_form_markup . drupal_render($reports_form);
 }
 
+// the /stats report from bigfoot : display these totals / values for each batch:
+/// batch	description	item_count	file_count	file_size	date
+
+
 function islandora_digital_workflow_get_reports_form($form, &$form_state) {
+  $report_links = islandora_digital_workflow_strap_report_reports();
+
   $form = array(
+      'report_links' => array(
+          '#type' => 'item',
+          '#markup' => '<ul><li>' . implode("</li><li>", $report_links) . '</li></ul>',
+      ),
       'input1' => array(
           '#type' => 'textfield',
           '#title' => 'Input 1',
@@ -40,4 +50,33 @@ function islandora_digital_workflow_get_reports_form($form, &$form_state) {
       ),
   );
   return $form;
+}
+
+function islandora_digital_workflow_strap_report_reports() {
+  module_load_include('inc', 'forena', 'forena.common');
+  $output = '';
+  $category = 'Islandora Digital Workflow';
+  $reports = forena_get_user_reports($category);
+  $report_repos = variable_get('forena_path', 'reports');
+  if (!$reports) {
+    $output = 'No Reports Found';
+  }
+  foreach ($reports as $category => $reports) {
+    $output .= '<ul>';
+    foreach ($reports as $r) {
+      $output .= '<li>' . l($r['title'], $report_repos . '/' . str_replace('/', '.', $r['report_name'])) . '</li>';
+    }
+    $output .= '</ul>';
+  }
+  // return $output;
+
+  dpm($reports);
+  dpm($report_repos);
+
+  $links = array();
+  $links[] = l('Batch Stats' ,'/reports/batch_stats') . '<br>' .
+          '<span class="small_lt_text">- display the "File Count" and "File Size" value for all batches.<br></span> ' .
+          "<hr><hr>" . $output;
+
+  return $links;
 }

@@ -1413,7 +1413,7 @@ function islandora_digital_workflow_timeago_from_timestamp($timestamp) {
  */
 function islandora_digital_workflow_scan_files($scan_path, $expected_file_records = array()) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/file_utilities');
-  $files = islandora_digital_workflow_file_scan_directory($scan_path, '', TRUE);
+  $files = islandora_digital_workflow_file_scandir($scan_path, '', TRUE);
   $ret_arr = array();
   foreach ($files as $folder => $folder_files) {
     if (is_array($folder_files)) {
@@ -1442,9 +1442,9 @@ function islandora_digital_workflow_find_folders_files($root) {
   
   $return_folders = array();
   if ($root) {
-    $folders = islandora_digital_workflow_file_scan_directory($root, '', TRUE);
+    $folders = islandora_digital_workflow_file_scandir($root, '', TRUE);
     foreach ($folders as $key => $files) {
-      $return_folders[$key]['batch_name'] = $key;
+      $return_folders[$key]['item_name'] = $key;
       $onelevel_filepaths = array();
       foreach ($files as $filekey => $file) {
         if (is_array($file)) {
@@ -1460,18 +1460,19 @@ function islandora_digital_workflow_find_folders_files($root) {
       $return_folders[$key]['files'] = $files;
       $return_folders[$key]['files_count'] = count($files);
       $filesize_date_files = islandora_digital_workflow_add_filesize_date_to_files($root . '/' . $key, $files);
+      $return_folders[$key]['filesize_date_files_raw'] = $filesize_date_files;
       $return_folders[$key]['files_table_rows'] = islandora_digital_workflow_convert_tab_to_table_cells($root . '/' . $key, $filesize_date_files);
     }
   }
   return $return_folders;
 }
 
-function islandora_digital_workflow_filter_out_non_batch_folders(&$values, $batch_names) {
+function islandora_digital_workflow_filter_out_non_batch_folders(&$values, $item_names) {
   $bad_folder_names = array();
-  foreach ($values as $batch_name => $info) {
-    if (array_search($info['batch_name'], $batch_names) === FALSE) {
-      unset($values[$batch_name]);
-      $bad_folder_names[] = $batch_name;
+  foreach ($values as $item_name => $info) {
+    if (array_search($info['item_name'], $item_names) === FALSE) {
+      unset($values[$item_name]);
+      $bad_folder_names[] = $item_name;
     }
   }
   return $bad_folder_names;
@@ -1493,12 +1494,10 @@ function islandora_digital_workflow_convert_tab_to_table_cells($files_root, $row
   $last_file_folder = '';
   foreach ($rows as $row) {
     $file_name = $row['file'];
-    dpm($file_name);
     $file_size = $row['size_as_string'];
     $file_date = $row['date_as_string'];
     @list($this_file_folder, $junk) = explode("/", $file_name);
     if ($last_file_folder <> $this_file_folder) {
-      dpm($last_file_folder . ' <> ' . $this_file_folder);
       $toggle = !$toggle;
     }
     // @list($file_name, $file_size, $file_date) = explode("\t", $row_str);
@@ -1508,7 +1507,6 @@ function islandora_digital_workflow_convert_tab_to_table_cells($files_root, $row
             (($last_file_folder == $this_file_folder) ? '' : ' spaceUnder') . '"' .
             ($problem_notes_content ? ' title="' . htmlspecialchars($problem_notes_content) . '"' : '') .
             '><td>' . $file_name . '</td><td>' . $file_size . '</td><td>' . $file_date . '</td></tr>';
-    dpm((($last_file_folder == $this_file_folder) ? '- noclass -' : ' spaceUnder'));
     $last_file_folder = $this_file_folder;
   }
   return $return_string;
@@ -1523,9 +1521,9 @@ function islandora_digital_workflow_convert_tab_to_table_cells($files_root, $row
  *
  * @param type $scan_path
  */
-function islandora_digital_workflow_scan_paged_content_files($scan_path) {
+function islandora_digital_workflow_scandir_paged_content_files($scan_path) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/file_utilities');
-  $files = islandora_digital_workflow_file_scan_directory($scan_path, '', TRUE);
+  $files = islandora_digital_workflow_file_scandir($scan_path, '', TRUE);
   $ret_arr = array();
   foreach ($files as $folder => $folder_files) {
     if (is_array($folder_files)) {
@@ -1812,16 +1810,29 @@ function islandora_digital_workflow_glyph_class($transaction_name) {
  *
  * @param array $item_record_transactions
  *   Array of objects that detail each transaction for the item.
+ * @param array $required_batch_actions
+ *   Array of objects that relate to the workflow sequence of the item's
+ * related batch.
  * @return boolean
  *   TRUE if all required actions for the objects' workflow sequence are completed.
  */
-function islandora_digital_workflow_item_actions_all_done($item_record_transactions) {
+function islandora_digital_workflow_item_non_system_actions_all_done($item_record_transactions, $required_batch_actions) {
   // To see if all actions are done, loop through all of the item actions to see
   // if any of these are "stub transaction" objects that are needed to indicate
   // any required actions on the item that have not been completed.
   $retval = TRUE;
+  // Make an array of the required_batch_actions that are set to is_system_action.
+  $system_action_ids = array();
+  foreach ($required_batch_actions as $required_batch_action) {
+    if ($required_batch_action['is_system_action']) {
+      $system_action_ids[] = $required_batch_action['action_id'];
+    }
+  }
   foreach ($item_record_transactions as $transaction_obj) {
-    $retval &= ($transaction_obj->transaction_id <> -1);
+    $action_is_system_action = !(array_search($transaction_obj->action_id, $system_action_ids) === FALSE);
+    if (!$action_is_system_action) {
+      $retval &= ($transaction_obj->transaction_id <> -1);
+    }
   }
   return $retval;
 }

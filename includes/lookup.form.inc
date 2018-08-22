@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Create batch form and submit handling for Islandora Digital Workflow module.
+ * Lookup form and submit handling for Islandora Digital Workflow module.
  */
 
 /**
@@ -24,10 +24,8 @@ function islandora_digital_workflow_lookup() {
 /**
  * Function that sets the Drupal variables with user's input.
  *
- * @param array $form
- *   The Drupal form definition.
- * @param array $form_state
- *   The Drupal form state.
+ * @param string $searchterm
+ *   The search term.
  */
 function islandora_digital_workflow_lookup_form_submitted($searchterm = '') {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');

@@ -7,7 +7,7 @@
 * Variables available:
 * - $batch_record => array(),
 * - $item_file_records => array(),
-* - $scanned_files => array(),
+* - $found_files => array(),
 * - $table_title => '',
 * - $table_description => '',
 *
@@ -41,7 +41,7 @@
         <tr>
             <th>Title</th>
             <th>Identifier</th>
-            <th>Filename</th>
+            <th>Master Filename</th>
             <th>Size</th>
         </tr>
       <?php foreach ($item_file_records as $item) { ?>
@@ -50,14 +50,14 @@
               (($item->class <> '') ?  ' ' . $item->class : '') ; ?>">
               <td><?php print $item->title; ?></td>
               <td><a href="/node/<?php print $node->nid; ?>/item/<?php print $item->batch_item_id; ?>"><?php print $item->identifier; ?></a></td>
-              <td><?php print $item->filename_basename; ?></td>
+              <td><?php print $item->master_filename_basename; ?></td>
               <td><?php print $item->filesize; ?></td>
           </tr>
       <?php } ?>
     </table>
     <?php endif; ?>
 
-    <?php if (count($scanned_files) > 0) : ?>
+    <?php if (count($found_files) > 0) : ?>
     <h3>Actual files found in batch folder</h3>
     <p>The batch folder "<?php print $batch_path; ?>" contains the following files.
     Files that are marked in green are expected, while the red files are not referenced
@@ -83,7 +83,7 @@
           <th>Filename</th>
           <th class="numeric">Size</th>
         </tr>
-        <?php foreach ($scanned_files as $filename => $file_info) { ?>
+        <?php foreach ($found_files as $filename => $file_info) { ?>
           <?php if (strstr($filename, $pid) <> '') : ?>
             <?php $toggle = !$toggle; ?>
         <tr class="<?php print (($toggle) ? 'evenrow' : 'oddrow') .

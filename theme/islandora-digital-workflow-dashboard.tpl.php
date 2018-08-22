@@ -11,15 +11,15 @@
 ?>
 <div id="no-sidebars">
   <div class="dashboard-report">
-    <h3>Links</h3>
     <ul class="action-links"><li><a href="/islandora/islandora_digital_workflow/create_batch">Create Batch</a></li></ul>
     <?php foreach ($links as $section => $section_links): ?>
-    <ul id="link_section_<?php print $section; ?>">
-    <?php foreach ($section_links as $link) { ?>
-        <li><?php print $link; ?></li>
-    <?php } ?>
+    <ul id="link_section_<?php print $section; ?>" class="<?php print $section; ?>-links">
+      <?php foreach ($section_links as $link) { ?>
+          <li><?php print $link; ?></li>
+      <?php } ?>
     </ul>
     <?php endforeach; ?>
+    <br style="clear: both">
   </div><!-- /end dashboard-report -->
 
 </div><!-- /end no-sidebars -->

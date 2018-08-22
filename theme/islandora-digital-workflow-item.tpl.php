@@ -9,7 +9,7 @@
 * - $item => stdObject,
 * - $transaction_records => array(),
 * - $item_record_transactions => array(),
-* - $scanned_files => array(),
+* - $found_files => array(),
 */
 ?>
 <div id="no-sidebars">
@@ -19,8 +19,8 @@
   <h3>Object has been ingested</h3>
     <?php print $ingested_links; ?>
   <?php elseif ($can_ingest): ?>
-  <div class="good"><p>All of the workflow sequence requirements are completed.
-      <b><a href="#">INGEST OBJECT: <?php print $item->identifier; ?></a></b>
+  <div class="good"><p>All requirements are completed.
+      <b>Ingest this item into Islandora now: <a href="/islandora/islandora_digital_workflow/ingest_item/<?php print urlencode($item->identifier); ?>"><?php print $item->identifier; ?></a></b>
   </div>
   <?php endif; ?>
 
@@ -34,7 +34,7 @@
             <input id="edit-identifier" name="identifier" value="<?php print $item->identifier; ?>">
             <?php if ($is_paged_content): ?>
             <label for="edit-filename">Filename: </label>
-            <input id="edit-filename" name="filename" value="<?php print $item->filename_basename; ?>">
+            <input id="edit-filename" name="filename" value="<?php print $item->master_filename_basename; ?>">
             <?php endif; ?>
             <label for="edit-pending1" class="disabled_text">ITEM PROP 1: </label>
             <input id="edit-pending1" name="pending" disabled readonly="readonly" value="pending development">
@@ -111,7 +111,7 @@
     <hr>
     <?php print $workflow_sequence_text; ?>
 
-    <?php if (count($scanned_files) > 0) : ?>
+    <?php if (count($found_files) > 0) : ?>
     <?php $toggle = FALSE; ?>
     <h3>Files</h3>
       <table>
@@ -119,7 +119,7 @@
           <th>Filename</th>
           <th class="numeric">Size</th>
         </tr>
-        <?php foreach ($scanned_files as $filename => $file_info) { ?>
+        <?php foreach ($found_files as $filename => $file_info) { ?>
             <?php $toggle = !$toggle; ?>
         <tr class="<?php print (($toggle) ? 'evenrow' : 'oddrow') .
             (($file_info['class'] <> '') ? ' ' . $file_info['class'] : ''); ?>">
@@ -130,6 +130,6 @@
       </table>
     <?php endif; ?>
 
-  </div><!-- /end dashboard-report -->
+  </div><!-- /end report_table "Item Transactions" -->
 
 </div><!-- /end no-sidebars -->

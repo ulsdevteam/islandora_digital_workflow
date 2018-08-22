@@ -504,6 +504,10 @@ function islandora_digital_workflow_workflow_sequence_actions_form(array $form, 
           '#type' => 'checkbox',
           '#default_value' => $sequence_array['is_required'],
         ),
+        'is_system_action' => array(
+          '#type' => 'checkbox',
+          '#default_value' => $sequence_array['is_system_action'],
+        ),
         'weight' => array(
           '#type' => 'weight',
           '#title_display' => 'invisible',
@@ -612,6 +616,7 @@ function islandora_digital_workflow_workflow_sequence_actions_form_submit($form,
         'action_name' => $all_actions[$form_state['values']['wrapper']['add_new_item_action']]['name'],
         'workflow_sequence_id' => $workflow_sequence_id,
         'is_required' => 0,
+        'is_system_action' => 0,
         'weight' => 10,
     );
     $form_state['values']['wrapper']['rows'][$index] = $insert_row;
@@ -623,6 +628,7 @@ function islandora_digital_workflow_workflow_sequence_actions_form_submit($form,
         'action_name' => $all_actions[$form_state['values']['batch_wrapper']['add_new_batch_action']]['name'],
         'workflow_sequence_id' => $workflow_sequence_id,
         'is_required' => 0,
+        'is_system_action' => 0,
         'weight' => 10,
     );
     $form_state['values']['wrapper']['rows'][$index] = $insert_row;
@@ -650,11 +656,13 @@ function islandora_digital_workflow_workflow_sequence_actions_form_submit($form,
     foreach ($form_state['values']['wrapper']['rows'] as $id => $item) {
       if ($item['action_id'] <> $remove_item_action_id) {
         $replaced = db_query('REPLACE INTO {islandora_digital_workflow_sequence_actions} ' .
-                '(workflow_sequence_id, action_id, is_required, `order`) VALUES (' .
-                ':workflow_sequence_id, :action_id, :is_required, :weight)',
+                '(workflow_sequence_id, action_id, is_required, is_system_action, ' .
+                '`order`) VALUES (:workflow_sequence_id, :action_id, ' .
+                ':is_required, :is_system_action, :weight)',
           array(
               ':weight' => $item['weight'],
               ':is_required' => $item['is_required'],
+              ':is_system_action' => $item['is_system_action'],
               ':workflow_sequence_id' => $workflow_sequence_id,
               ':action_id' => $item['action_id'],
           ));
