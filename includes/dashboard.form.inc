@@ -16,7 +16,7 @@ function islandora_digital_workflow_dashboard() {
   // explicitly loaded like this, but it doesn't work here unless this library is included.
   drupal_add_library('system', 'drupal.collapse');
 
-  $dashboard_data = islandora_digital_workflow_get_user_role_dashboard();
+  $dashboard_data = array();
   $tasks_tables = islandora_digital_workflow_get_tasks_tables();
   $links = islandora_digital_workflow_get_dashboard_links();
   return $lookup_form_markup .
@@ -78,21 +78,6 @@ function islandora_digital_workflow_get_dashboard_links() {
 }
 
 /**
- * This will set up the values for the dashboard view template.
- *
- * @return type
- */
-function islandora_digital_workflow_get_user_role_dashboard() {
-  // The template will use the role of the user to show specific sections.
-  module_load_include('inc', 'islandora_digital_workflow', 'includes/access_permissions');
-
-  // Add any other template variables to the array
-  $template_variables = array();
-  $template_variables = array_merge($template_variables);
-  return $template_variables;
-}
-
-/**
  * Gets markup relative to the tasks that a given user can perform to be
  * displayed on their dashboard.
  *
@@ -128,7 +113,9 @@ function islandora_digital_workflow_get_tasks_tables() {
       'action_link' => (user_access(ISLANDORA_DIGITAL_WORKFLOW_SYNC_STAGING) ? '/islandora/islandora_digital_workflow/sync_staging_files/' : ''),
       'show_message_status' => TRUE,
       'table_title' => 'Items moved to the "Staging" folder location',
-      'table_description' => 'Please resolve by using the Sync operation for each of the folders listed below:',
+      'table_description' => 'Resolved by using the Sync operation for each of ' .
+          'the folders listed below, but <b>be sure that the folder is ready to be ' .
+          'moved back</b> over to the working directory.',
     ));
   }
   

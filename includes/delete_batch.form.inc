@@ -19,12 +19,14 @@ function islandora_digital_workflow_delete_batch() {
 }
 
 /**
- * Create batch form for islandora_digital_workflow.
+ * Drupal form for the delete batch operation.
  *
- * @ingroup forms
- *
- * @todo break out non-settings elements into their own form.
- *
+ * @param array $form
+ *   The Drupal form definition.
+ * @param array $form_state
+ *   The Drupal form state.
+ * @param string $batch_name
+ *   The name of the batch to delete.
  * @return array
  *   The Drupal form definition.
  */

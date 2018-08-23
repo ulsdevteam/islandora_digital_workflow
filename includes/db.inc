@@ -1116,7 +1116,7 @@ function islandora_digital_workflow_update_item_file_data($batch_record, $item_d
        ->condition('identifier', $item_identifier)
        ->fields($set_fields)
        ->execute();
-      $markup_arr[] = '<h4><span style="color:#888">' . $batch_record->batch_name . '/</span>' . $item_identifier . '</h4>';
+      $markup_arr[] = '<b><span style="color:#888">' . $batch_record->batch_name . '/</span>' . $item_identifier . '</b><br>';
       $markup_arr[] = '<pre class="small_lt_text">';
       $markup_arr[] = "       <b>Size</b>: " . $total_file_size . " bytes\n";
       $markup_arr[] = "      <b>Count</b>: " . $total_file_count . "\n";

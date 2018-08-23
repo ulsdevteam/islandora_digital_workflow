@@ -19,10 +19,20 @@ function islandora_digital_workflow_utilities_form() {
   );
   drupal_set_breadcrumb($breadcrumb);
 
-  $process_form = drupal_get_form('islandora_digital_workflow_actual_utilities_form');
-  return $lookup_form_markup . drupal_render($process_form);
+  $utility_links_form = drupal_get_form('islandora_digital_workflow_actual_utilities_form');
+  return $lookup_form_markup . drupal_render($utility_links_form);
 }
 
+/**
+ * Form to display links to various Utilties functions.
+ *
+ * @param array $form
+ *   The Drupal form definition.
+ * @param array $form_state
+ *   The Drupal form state.
+ * @return array
+ *   Drupal form definition.
+ */
 function islandora_digital_workflow_actual_utilities_form($form, &$form_state) {
   // display a simple set of links and descriptions that will perform general
   // utility functions on batches and items.
@@ -37,48 +47,19 @@ function islandora_digital_workflow_actual_utilities_form($form, &$form_state) {
           '#title' => 'Utilities',
           '#markup' => "<ul><li>" . implode("</li><li>", $links) . "</li></ul>",
       ),
-      'submit' => array(
-          '#type' => 'submit',
-          '#value' => t('Submit'),
-      ),
   );
-  if(isset($form_state['storage'], $form_state['storage']['process_results'])) {
-    $form['myowntext_display'] = array(
-      '#markup' => $form_state['storage']['process_results'],
-      '#prefix' => '',
-      '#suffix' => '',
-    );
-  }
   return $form;
 }
 
-function islandora_digital_workflow_actual_utilities_form_submit($form, &$form_state) {
-  $markup = '';
-
-  $btn_id = $form_state['triggering_element']['#id'];
-  $mode = $form_state['values']['mode'];
-  if ($mode == '0' || $mode == '1' || $mode == '2' || $mode == '3') {
-    drupal_set_message('Invalid <b>Processing mode</b> selection.');
-    return;
-  }
-
-  switch ($btn_id) {
-    case 'edit-submit':
-      $fn = 'islandora_digital_workflow_process_mode__' . $mode;
-      if (function_exists($fn)) {
-        $markup = $fn($form_state['values']['barcodes']);
-      }
-      else {
-        drupal_set_message('That processing mode function "' . $fn . '" does not exist.', 'warning');
-      }
-      break;
-
-    default:
-      drupal_set_message('Triggering element "' . $btn_id . '" is not supported.');
-      break;
-  }
-}
-
+/**
+ * Helper function that will:
+ *   1. scan all batch item folders
+ *   2. send all results to islandora_digital_workflow_update_item_file_data
+ * so that the records can be updated.
+ *
+ * @return array
+ *   Drupal form definition.
+ */
 function islandora_digital_workflow_recalculate_files() {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
@@ -100,6 +81,8 @@ function islandora_digital_workflow_recalculate_files() {
     $markup_arr[] = islandora_digital_workflow_update_item_file_data($batch_record, $item_data);
   }
 
+  $markup_arr[] = '<h3 class="good">FINISHED recalculating the item records\' "File Size" and "File Count" values.</h3>';
+  $markup_arr[] = t('Return to ') . l('Islandora Digital Workflow - Utilities', 'islandora/islandora_digital_workflow/utilities');
   $return_form = array(
       'file_size_recalc' => array(
           '#type' => 'item',

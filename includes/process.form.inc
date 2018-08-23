@@ -24,11 +24,21 @@ function islandora_digital_workflow_process_form() {
   return $lookup_form_markup . drupal_render($process_form);
 }
 
+/**
+ * For to process mode operations on a set of identifiers or batch names.
+ *
+ * @param array $form
+ *   The Drupal form definition.
+ * @param array $form_state
+ *   The Drupal form state.
+ * @return array
+ *   The Drupal form definition.
+ */
 function islandora_digital_workflow_actual_process_form($form, &$form_state) {
   $mode_options = array(
     'something' => 'Do something',
     'somethingelse' => 'Something else',
-    'diff' => 'And now for something completely different',
+    'blah' => 'And now for something completely different',
   );
   $form = array(
       'identifiers' => array(
@@ -61,6 +71,19 @@ function islandora_digital_workflow_actual_process_form($form, &$form_state) {
   return $form;
 }
 
+/**
+ * Submit handler for process mode operations on a set of identifiers or batch
+ * names.  This code will dynamically make a function name from the selected
+ * "mode" value and pass the identifiers on to that for processing -- and
+ * present the results.
+ *
+ * @param array $form
+ *   The Drupal form definition.
+ * @param array $form_state
+ *   The Drupal form state.
+ * @return string
+ *   The Drupal form definition.
+ */
 function islandora_digital_workflow_actual_process_form_submit($form, &$form_state) {
   $markup = '';
 
@@ -73,6 +96,7 @@ function islandora_digital_workflow_actual_process_form_submit($form, &$form_sta
 
   switch ($btn_id) {
     case 'edit-submit':
+      // Make a variable to set the function name for the call below:
       $fn = 'islandora_digital_workflow_process_mode__' . $mode;
       if (function_exists($fn)) {
         $markup = $fn($form_state['values']['barcodes']);
@@ -92,15 +116,30 @@ function islandora_digital_workflow_actual_process_form_submit($form, &$form_sta
   }
 }
 
+/**
+ * TESTING "something"
+ *
+ * @param type $identifiers
+ */
 function islandora_digital_workflow_process_mode__something(&$identifiers) {
-  
+  return "something tested<hr>";
 }
 
+/**
+ * TESTING "somethingelse"
+ *
+ * @param type $identifiers
+ */
 function islandora_digital_workflow_process_mode__somethingelse(&$identifiers) {
-
+  return "somethingelse tested<hr>";
 }
 
-function islandora_digital_workflow_process_mode__diff(&$identifiers) {
+/**
+ * TESTING "blah"
+ *
+ * @param type $identifiers
+ */
+function islandora_digital_workflow_process_mode__blah(&$identifiers) {
   $identifiers_arr = explode("\n", $identifiers);
   $markup = '<div class="text-report">';
   $markup .= "<b>Start " . date('Y-m-d H:i:s') . "</b><br>";

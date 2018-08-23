@@ -26,32 +26,42 @@ function islandora_digital_workflow_reports() {
   return $lookup_form_markup . drupal_render($reports_form);
 }
 
-// the /stats report from bigfoot : display these totals / values for each batch:
-/// batch	description	item_count	file_count	file_size	date
-
-
+/**
+ * Drupal form definition to display links to all of the "Islandora Digital
+ * Workflow" reports.
+ *
+ * This uses islandora_digital_workflow_strap_report_reports to get an array
+ * of links to all of the forena reports.
+ *
+ * @param array $form
+ *   The Drupal form definition.
+ * @param array $form_state
+ *   The Drupal form state.
+ * @return array
+ *   The Drupal form definition.
+ */
 function islandora_digital_workflow_get_reports_form($form, &$form_state) {
   $report_links = islandora_digital_workflow_strap_report_reports();
 
   $form = array(
       'report_links' => array(
           '#type' => 'item',
-          '#markup' => '<ul><li>' . implode("</li><li>", $report_links) . '</li></ul>',
-      ),
-      'input1' => array(
-          '#type' => 'textfield',
-          '#title' => 'Input 1',
-          '#description' => 'foobar',
-          '#default_value' => 'default value',
-      ),
-      'delete' => array(
-          '#type' => 'submit',
-          '#value' => t('Load Report'),
+          '#markup' => '<ul><li>' . $report_links . '</li></ul>',
       ),
   );
   return $form;
 }
 
+/**
+ * Helper function to retrieve the Forena reports in the "Islandora Digital 
+ * Workflow" category
+ *
+ * NOTE: This will not return any reports that have their "Hidden" property set
+ * to TRUE within their General settings page.
+ *
+ * @return string
+ *   Markup for the links to each of the found forena reports.
+ */
 function islandora_digital_workflow_strap_report_reports() {
   module_load_include('inc', 'forena', 'forena.common');
   $output = '';
@@ -62,21 +72,11 @@ function islandora_digital_workflow_strap_report_reports() {
     $output = 'No Reports Found';
   }
   foreach ($reports as $category => $reports) {
-    $output .= '<ul>';
     foreach ($reports as $r) {
-      $output .= '<li>' . l($r['title'], $report_repos . '/' . str_replace('/', '.', $r['report_name'])) . '</li>';
+      $output .= l($r['title'], $report_repos . '/' . str_replace('/', '.', $r['report_name'])) . 
+              ((isset($r['description']) && $r['description']) ? '<br><span class="small_lt_text"> - ' . $r['description'] . '<br></span>': '') . "<br>";
     }
-    $output .= '</ul>';
   }
-  // return $output;
 
-  dpm($reports);
-  dpm($report_repos);
-
-  $links = array();
-  $links[] = l('Batch Stats' ,'/reports/batch_stats') . '<br>' .
-          '<span class="small_lt_text">- display the "File Count" and "File Size" value for all batches.<br></span> ' .
-          "<hr><hr>" . $output;
-
-  return $links;
+  return $output;
 }

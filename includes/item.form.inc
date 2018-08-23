@@ -144,7 +144,18 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
         'found_files' => $found_files));
 }
 
-
+/**
+ * Merges together an item's transactions with the required and optional actions
+ * from the workflow sequence that is assigned to the batch of the item.
+ *
+ * @param array $item_record_transactions
+ *   The transactions related to the item.
+ * @param array $required_batch_actions
+ *   The set of actions related to the batch's workflow sequence.
+ * @param integer $nid
+ *   nid value that refers to a Drupal node.  This function needs to conditionally
+ * pass this value on to the islandora_digital_workflow_transaction_action_objects.
+ */
 function islandora_digital_workflow_merge_transactions_with_item_actions(&$item_record_transactions, $required_batch_actions, $nid) {
   // $merged_item_record_transactions = $item_record_transactions; //array();
   foreach ($required_batch_actions as $required_batch_action) {
@@ -157,6 +168,16 @@ function islandora_digital_workflow_merge_transactions_with_item_actions(&$item_
   }
 }
 
+/**
+ * A utility function that will lopp through the transactions to see whether
+ * or not a given transaction_id value is present.
+ *
+ * @param array $item_record_transactions
+ *   The transactions related to an item.
+ * @param integer $transaction_id
+ *   The transaction_id value that we're trying to find.
+ * @return boolean
+ */
 function islandora_digital_workflow_transactions_find_transaction_id($item_record_transactions, $transaction_id) {
   $retval = FALSE;
   if ($transaction_id < 1) {
@@ -170,6 +191,25 @@ function islandora_digital_workflow_transactions_find_transaction_id($item_recor
   return $retval;
 }
 
+/**
+ * This will return the specific transaction object that matches the action.
+ * 
+ * This is used by the routine that displays the merged set of actions and 
+ * completed transactions for any item.
+ *
+ * See islandora_digital_workflow_merge_transactions_with_item_actions which calls 
+ * this function.
+ *
+ * @global object $user
+ *   Drupal user object.
+ * @param type $merged_item_record_transactions
+ *   The merged transactions and required actions for an item.
+ * @param type $required_batch_action
+ *   The action that we're looking for.
+ * @param integer $nid
+ *   The nid value for a Drupal node object
+ * @return \stdClass
+ */
 function islandora_digital_workflow_transaction_action_objects($merged_item_record_transactions, $required_batch_action, $nid) {
   global $user;
   $return_array = array();

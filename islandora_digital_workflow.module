@@ -398,14 +398,14 @@ function islandora_digital_workflow_preprocess_html(&$vars) {
   }
 }
 
+/**
+ * This function will create and save the dynamic CSS only if it does not exist.
+ */
 function islandora_digital_workflow_ensure_dynamic_css_copied($path, $public_files_path) {
   if (!file_exists($public_files_path . '/islandora_digital_workflow_dynamic.css')) {
     // Generate and copy the CSS that is based on the configuration.
     module_load_include('inc', 'islandora_digital_workflow', 'includes/islandora_digital_workflow_css');
     islandora_digital_workflow_update_dynamic_css();
-    // Previously, the code simply copied the default "dynamic css" file to the public
-    // location, but now it is generated from the configuration.
-    //    copy($path . '/css/islandora_digital_workflow_dynamic.css', $public_files_path . '/islandora_digital_workflow_dynamic.css');
   }
 }
 

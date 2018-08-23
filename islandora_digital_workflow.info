@@ -6,6 +6,7 @@ core = 7.x
 dependencies[] = islandora
 # Several Drupal core modules that must be enabled in order to use:
 dependencies[] = rules_admin
+dependencies[] = views
 dependencies[] = taxonomy
 dependencies[] = forena
 

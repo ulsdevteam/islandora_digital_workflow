@@ -4,21 +4,6 @@
  * This will update the dynamically created CSS based on the color settings.
  */
 function islandora_digital_workflow_update_dynamic_css() {
-  /* $css = 'div.transaction_action_reserved_action_1,
-div.transaction_action_reserved_action_2,
-div.transaction_action_reserved_action_3,
-div.transaction_action_reserved_action_4,
-div.transaction_action_reserved_action_5,
-div.transaction_action_reserved_action_6,
-div.transaction_action_reserved_action_all_1,
-div.transaction_action_reserved_action_all_2,
-div.transaction_action_reserved_action_all_3 {
-    width: 20px;
-    float: left;
-    padding: 0px 1px;
-    background-position: top left;
-}' . "\n\n"; */
-
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
   $module_path = drupal_get_path('module', 'islandora_digital_workflow');
 

@@ -42,19 +42,29 @@ To prepare and track digital content for possible ingest into Islandora.
 		- Requests not going online? Should they be part of this workflow or not?
 
 ## Installation
+The Islandora Digital Workflow module relies on some other modules in order to be able to run.  These are:
+ - [Forena](https://git.drupal.org/project/forena.git) | [ulsdevteam "Forena"](https://github.com/ulsdevteam/forena.git)
+ - [Rules](https://git.drupal.org/project/rules.git)
+ - Taxonomy (drupal core module must be enabled)
+ - [Views](https://git.drupal.org/project/views.git)
+ - 
+Additionally, there is a feature branch of the Forena reports that adds a Description value to the reports.  If the ulsdevteam branch of this module is installed or if the code is eventually merged into Forena, the descriptions of reports would be displayed -- else, only their Titles can be displayed.
+ 
 Each Islandora model requires a specific module to be installed.  Additionally, the ability to assign PID value for objects as they ingest as well as to add the "isMemberOfSite" relationship would require the ulsdevteam instance of each module.  The configuration page provides links to each of the required modules so that they can be installed.  These are:
- - [Basic Image](https://github.com/Islandora/islandora_batch.git), [ulsdevteam](https://github.com/ulsdevteam/islandora_batch.git)
+ - [Basic Image](https://github.com/Islandora/islandora_batch.git) | [ulsdevteam "Basic Image"](https://github.com/ulsdevteam/islandora_batch.git)
  - [Finding Aid](//) (not developed)
- - [Internet Archive Book](https://github.com/Islandora/islandora_book_batch.git), [ulsdevteam](https://github.com/ulsdevteam/islandora_book_batch.git)
- - [Large Image]() [ulsdevteam](https://github.com/ulsdevteam/islandora_batch.git)
+ - [Internet Archive Book](https://github.com/Islandora/islandora_book_batch.git) | [ulsdevteam "Internet Archive Book"](https://github.com/ulsdevteam/islandora_book_batch.git)
+ - [Large Image]() [ulsdevteam "Large Image"](https://github.com/ulsdevteam/islandora_batch.git)
  - [Manuscript](https://github.com/ulsdevteam/islandora_manuscript_batch.git) *ulsdevteam version is the only instance.*
- - [Newspaper](https://github.com/Islandora/islandora_newspaper_batch.git), [ulsdevteam](https://github.com/ulsdevteam/islandora_newspaper_batch.git)
- - [Newspaper Issue](https://github.com/Islandora/islandora_newspaper_batch.git), [ulsdevteam](https://github.com/ulsdevteam/islandora_newspaper_batch.git)
+ - [Newspaper](https://github.com/Islandora/islandora_newspaper_batch.git) | [ulsdevteam "Newspaper"](https://github.com/ulsdevteam/islandora_newspaper_batch.git)
+ - [Newspaper Issue](https://github.com/Islandora/islandora_newspaper_batch.git) | [ulsdevteam "Newspaper Issue"](https://github.com/ulsdevteam/islandora_newspaper_batch.git)
  - [Web ARChive](//) (not developed)
 
 Installing this module will also set up the following:
  - workflow_batch Drupal node content type with CCK fields for each batch property
  - Drupal taxonomy and several vocabularies to track batch "Stage", and "Content Type" (correlates to Islandora object models).
+ - create the tables: islandora_digital_workflow_batch, islandora_digital_workflow_batch_items, islandora_digital_workflow_actions, islandora_digital_workflow_transactions, islandora_digital_workflow_problem_items, islandora_digital_workflow_sequence, islandora_digital_workflow_model_sequence, islandora_digital_workflow_sequence_actions.  It will also insert the initial set of records into the islandora_digital_workflow_actions table.
+ - Deploy the Forena reports SQL and FRX files to the configured Forena locations.
  - custom Drupal views to display the workflow_batch nodes
 
 ## Permissions
