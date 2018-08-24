@@ -17,6 +17,8 @@
  */
 function islandora_digital_workflow_admin_form() {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
+
+  islandora_digital_workflow_check_and_deploy_forena_reports();
   // Needed for collapsible fieldsets
   drupal_add_js('misc/collapse.js');
   $about_islandora_digital_workflow_markup = '<p>These are the settings for ' .

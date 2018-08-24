@@ -1125,3 +1125,35 @@ function islandora_digital_workflow_update_item_file_data($batch_record, $item_d
     }
    return implode("\n", $markup_arr);
 }
+
+/**
+ * Inserts the record into the forena_repositories table.
+ */
+function islandora_digital_workflow_create_islandora_digital_workflow_sql_configuration() {
+  $private_path = rtrim(variable_get('file_private_path', ''), '/') . '/';
+  if (!$private_path) {
+    drupal_set_message(t('The Drupal | Media | File System "Private file system ' .
+        'path" is not configured.  This must be configured and the folder must' .
+        'be writable by Drupal and not accessible over the web.'), 'error');
+    return FALSE;
+  }
+  $config_array = array(
+    'source' => 'user',
+    'data provider' => 'FrxDrupal',
+    'database' => 'default',
+    'access callback' => 'user_access',
+    'user callback' => 'forena_current_user_id',
+    'path' => $private_path . 'islandora_digital_workflow_sql',
+    'debug' => 0
+  );
+  // make the value serialized like:  //  a:7:{s:6:"source";s:4:"user";s:13:"...
+  $config_str = serialize($config_array);
+  db_insert('forena_repositories')
+    ->fields(array(
+        'repository' => 'islandora_digital_workflow_sql',
+        'title' => 'Islandora Workflow Reports',
+        'enabled' => 1,
+        'config' => $config_str,
+    ))
+    ->execute();
+}

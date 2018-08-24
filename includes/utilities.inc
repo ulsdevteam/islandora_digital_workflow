@@ -1964,3 +1964,106 @@ function islandora_digital_workflow_move_batch_item_file($batch_item_id, $destin
     exec($command, $output, $return_var);
   }
 }
+
+/**
+ * This will copy the FRX and SQL files from the forena_reports/ folder into the
+ * forena configured folder locations so they are able to be used after installing.
+ *
+ * This will also be called from the admin interface so that the reports would be
+ * merged at that point in time ONLY if they haven't been deployed yet.
+ *
+ * @return BOOLEAN
+ *   TRUE when the deployment succeeds to move the files or if it was already
+ * deployed.
+ */
+function islandora_digital_workflow_check_and_deploy_forena_reports() {
+  if (!module_exists('forena')) {
+    $link_att = array('attributes' => array('target' => '_blank'));
+    drupal_set_message('The Forena reporting module is not installed.  ' .
+        l('Forena', 'https://git.drupal.org/project/forena.git', $link_att) . ' | ' .
+        l('ulsdevteam "Forena"', 'https://github.com/ulsdevteam/forena.git', $link_att)
+    );
+    return FALSE;
+  }
+
+  // Get the forena report FRX and SQL file deployment locations.
+  module_load_include('module', 'forena', 'forena');
+
+  $forena_frx_path = forena_report_path();
+  $forena_data_source_idw = Frx::RepoMan()->repository('islandora_digital_workflow_sql');
+  if (is_object($forena_data_source_idw) && $forena_frx_path) {
+    $forena_sql_path = $forena_data_source_idw->block_path;
+    $frx_files = islandora_digital_workflow_scan_files($forena_frx_path);
+    $sql_files = islandora_digital_workflow_scan_files($forena_sql_path);
+
+    // Finally set up the file paths needed if deploying.
+    $this_folder = dirname(__FILE__);
+    @list($sites_location, $junk) = explode("sites/", $this_folder);
+    // Since $this_folder is going to end with /includes, strip that off
+    $this_folder = str_replace("/includes", "", $this_folder);
+
+    // Perform the file deployment from the islandora_digital_workflow/forena_reports
+    // folder locations into the FRX and SQL folders.
+    // Only deploy the FRX files if they do not exist
+    if (count($frx_files) < 1) {
+      $from =  $this_folder . '/forena_reports/frx';
+      $to = $sites_location . $forena_frx_path;
+      islandora_digital_workflow_deploy_files_to_forena_install($from, $to);
+      drupal_set_message('Deployed Forena FRX files to: ' . $to . '<br>' .
+          'from: ' . $from);
+    }
+    // Only deploy the SQL files if they do not exist
+    if (count($sql_files) < 1) {
+      $from = $this_folder . '/forena_reports/sql';
+      $to = $sites_location . $forena_sql_path;
+      islandora_digital_workflow_deploy_files_to_forena_install($from, $to);
+      drupal_set_message('Deployed Forena SQL files to: ' . $to  . '<br>' .
+          'from: ' . $from);
+    }
+  }
+  else {
+    module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
+
+    // the 'islandora_digital_workflow_sql' forena data source did not exist --
+    // create it here and display the message that the page needs to reload.
+    drupal_set_message(t('The "islandora_digital_workflow_sql" Forena data ' .
+        'source is not configured and will be created.  You will need to ' .
+        'reload this page in order to complete the deployment of the Islandora ' .
+        'Digital Workflow reports and SQL files.'), 'error');
+    islandora_digital_workflow_create_islandora_digital_workflow_sql_configuration();
+    return FALSE;
+  }
+  return TRUE;
+}
+
+/**
+ * This will create the destination folder if needed (if possible), and copy
+ * all files from the "$from" to the "$to"
+ *
+ * @param string $from
+ *   The folder from which the files are deployed.
+ * @param string $to
+ *   The folder to where the folders are deployed.
+ */
+function islandora_digital_workflow_deploy_files_to_forena_install($from, $to) {
+  // make sure that the destination and source folders do not end with "/" just in case.
+  $to = rtrim($to, '/');
+
+  if (!file_exists($to)) {
+    $success = mkdir($to);
+    if (!$success) {
+      drupal_set_message('The destination folder did not exist and could not ' .
+          'be created.  Please check the file permissions of the parent folder for "' .
+          $to . '".');
+    }
+    return FALSE;
+  }
+  @list($junk, $keep_from) = explode("sites/", $from);
+  $files = islandora_digital_workflow_file_scandir('sites/' . $keep_from, '', TRUE);
+  $from = rtrim($from, '/');
+  $success = FALSE;
+  foreach ($files as $file) {
+    $success &= copy($from . '/' . $file, $to . '/' . $file);
+  }
+  return $success;
+}

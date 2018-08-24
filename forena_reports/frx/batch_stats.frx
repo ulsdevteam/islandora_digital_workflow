@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE root [
+<!ENTITY nbsp "&#160;">
+]>
+<html xmlns:frx="urn:FrxReports">
+<head>
+<title>Batch Stats</title>
+<frx:category>Islandora Digital Workflow</frx:category>
+<frx:options input_format="full_html" skin="default_skin"/>
+<frx:parameters>
+</frx:parameters>
+<frx:docgen>
+  <frx:doc type="csv"/>
+</frx:docgen>
+<frx:fields>
+  <frx:field id="file_size" format="Number"/>
+  <frx:field id="batch_item_id" format="Number"/>
+  <frx:field id="batch_name" link="reports/single_batch_stats?batch_name={batch_name}"/>
+</frx:fields>
+<frx:menu/>
+<frx:cache/>
+<style/>
+<frx:description/><meta content="Display the &amp;quot;File Count&amp;quot; and &amp;quot;File Size&amp;quot; value for all batches." name="description"/></head>
+<body><div class="FrxTable" frx:block="islandora_digital_workflow_sql/batch_stats" id="batch_stats_block">
+	<table class="report_table">
+		<caption>
+			Batch Stats</caption>
+		<thead>
+			<tr>
+				<th>
+					Batch</th>
+				<th>
+					Description</th>
+				<th class="numeric">
+					# of Items</th>
+				<th class="numeric">
+					File count</th>
+				<th class="numeric">
+					File size (bytes)</th>
+				<th>
+					Modified</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr frx:foreach="*" id="batch_stats">
+				<td>
+					{batch_name}</td>
+				<td>
+					{batch_description}</td>
+				<td class="numeric">
+					{batch_item_id}</td>
+				<td class="numeric">
+					{file_count}</td>
+				<td class="numeric">
+					{file_size}</td>
+				<td>
+					{lastmod}</td>
+			</tr>
+		</tbody>
+	</table>
+</div>
+</body>
+</html>

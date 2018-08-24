@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE root [
+<!ENTITY nbsp "&#160;">
+]>
+<html xmlns:frx="urn:FrxReports">
+    <head>
+        <title>Single Batch Details</title>
+        <frx:category>Islandora Digital Workflow</frx:category>
+        <frx:options input_format="full_html"/>
+        <frx:parameters>
+            <frx:parm id="batch_name"/>
+        
+
+</frx:parameters>
+        <frx:docgen>
+        </frx:docgen>
+        <frx:fields>
+  <frx:field id="User" link="user/{User}"/>
+        
+</frx:fields>
+        <frx:menu/>
+        <frx:cache/>
+        <style/>
+    <frx:description/><meta content="Detail on the items and transactions related to a single batch record." name="description"/></head>
+    <body>
+        <div id="single_batch_stats" class="FrxFieldTable" frx:block="islandora_digital_workflow_sql/single_batch_stats" frx:foreach="*">
+            <table>
+                <tbody>
+                    <tr>
+                        <th>Batch</th>
+                        <td>{batch_name}</td>
+                    </tr>
+                </tbody>
+                <tbody>
+                    <tr>
+                        <th>Description</th>
+                        <td>{batch_description}</td>
+                    </tr>
+                </tbody>
+                <tbody>
+                    <tr>
+                        <th># of Items</th>
+                        <td>{batch_item_id}</td>
+                    </tr>
+                </tbody>
+                <tbody>
+                    <tr>
+                        <th>File count</th>
+                        <td>{file_count}</td>
+                    </tr>
+                </tbody>
+                <tbody>
+                    <tr>
+                        <th>File size (bytes)</th>
+                        <td>{file_size}</td>
+                    </tr>
+                </tbody>
+                <tbody>
+                    <tr>
+                        <th>Modified</th>
+                        <td>{lastmod}</td>
+                    </tr>
+                </tbody>
+            </table>
+        <div id="single_batch_details_block" class="FrxTable" frx:block="islandora_digital_workflow_sql/single_batch_details">
+    <table>
+      <thead>
+        <tr>
+          <th>identifier</th>
+          <th>title</th>
+          <th>file count</th>
+          <th>file size</th>
+          <th>MASTER filename</th></tr></thead>
+      <tbody>
+        <tr id="single_batch_details" frx:foreach="*">
+          <td>{identifier}</td>
+          <td>{title}</td>
+          <td>{file_count}</td>
+          <td>{file_size}</td>
+          <td>{MASTER filename}</td></tr></tbody></table></div></div>
+
+
+    <div id="batch_transactions_block" class="FrxTable" frx:block="islandora_digital_workflow_sql/batch_transactions">
+    <table>
+      <caption>Transactions</caption>
+      <thead>
+        <tr>
+          <th>Action</th>
+          <th>Item</th>
+          <th>batch name</th>
+          <th>User</th>
+          <th>timestamp</th></tr></thead>
+      <tbody>
+        <tr id="batch_transactions" frx:foreach="*">
+          <td>{Action}</td>
+          <td>{Item}</td>
+          <td>{batch_name}</td>
+          <td>{User}</td>
+          <td>{timestamp}</td></tr></tbody></table></div></body>
+</html>

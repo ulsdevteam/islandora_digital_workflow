@@ -34,25 +34,10 @@ function islandora_digital_workflow_install() {
   // Insert workflow_batch node_type and create required CCK fields.
   islandora_digital_workflow_insert_workflow_batch_node_type();
   islandora_digital_workflow_create_cck_fields($stage_tid, $stage_vid);
-}
-
-/**
- * Implements hook_enable().
- *
- * Since Drupal module schema code makes it impossible to set up a timestamp
- * field that updates with CURRENT_TIMESTAMP, this must be done during the
- * module_hook_enable.
- */
-function islandora_digital_workflow_enable() {
-  db_query("ALTER TABLE `islandora_digital_workflow_batch` CHANGE COLUMN " .
-    "`lastmod` `lastmod` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
-  db_query("ALTER TABLE `islandora_digital_workflow_transactions` " .
-    "CHANGE COLUMN `timestamp` `timestamp` TIMESTAMP NULL DEFAULT " .
-    "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
-  db_query("ALTER TABLE `islandora_digital_workflow_problem_items` " .
-    "CHANGE COLUMN `problem_timestamp` `problem_timestamp` TIMESTAMP NULL");
-  db_query("ALTER TABLE `islandora_digital_workflow_problem_items` " .
-    "CHANGE COLUMN `problem_resolved_timestamp` `problem_resolved_timestamp` TIMESTAMP NULL");
+  
+  // Need to install the forena reports files
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
+  islandora_digital_workflow_check_and_deploy_forena_reports();
 }
 
 /**
@@ -90,6 +75,25 @@ function islandora_digital_workflow_uninstall() {
   foreach ($instances as $instance_name => $instance) {
     field_delete_instance($instance);
   }
+}
+
+/**
+ * Implements hook_enable().
+ *
+ * Since Drupal module schema code makes it impossible to set up a timestamp
+ * field that updates with CURRENT_TIMESTAMP, this must be done during the
+ * module_hook_enable.
+ */
+function islandora_digital_workflow_enable() {
+  db_query("ALTER TABLE `islandora_digital_workflow_batch` CHANGE COLUMN " .
+    "`lastmod` `lastmod` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+  db_query("ALTER TABLE `islandora_digital_workflow_transactions` " .
+    "CHANGE COLUMN `timestamp` `timestamp` TIMESTAMP NULL DEFAULT " .
+    "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+  db_query("ALTER TABLE `islandora_digital_workflow_problem_items` " .
+    "CHANGE COLUMN `problem_timestamp` `problem_timestamp` TIMESTAMP NULL");
+  db_query("ALTER TABLE `islandora_digital_workflow_problem_items` " .
+    "CHANGE COLUMN `problem_resolved_timestamp` `problem_resolved_timestamp` TIMESTAMP NULL");
 }
 
 /**
