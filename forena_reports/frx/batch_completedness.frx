@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE root [
+<!ENTITY nbsp "&#160;">
+]>
+<html xmlns:frx="urn:FrxReports">
+<head>
+<title>Batch Completedness</title>
+<meta content="This will list all batches that still require human actions." name="description"/>
+<frx:category>Islandora Digital Workflow</frx:category>
+<frx:options/>
+<frx:parameters>
+</frx:parameters>
+<frx:docgen>
+</frx:docgen>
+<frx:fields>
+</frx:fields>
+<frx:menu/>
+<frx:cache/>
+<style/>
+</head>
+<body>
+<div id="batch_completedness_block" class="FrxTable" frx:block="islandora_digital_workflow_sql/batch_completedness">
+    <table>
+      <thead>
+        <tr>
+          <th>Missing Action(s)</th>
+          <th>Batch</th>
+          <th>Workflow Sequence Name</th></tr></thead>
+      <tbody>
+        <tr id="batch_completedness" frx:foreach="*">
+          <td>{required action_id}</td>
+          <td>{batch_name}</td>
+          <td>{workflow sequence name}</td></tr></tbody></table></div></body>
+</html>
