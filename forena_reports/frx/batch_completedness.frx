@@ -13,6 +13,10 @@
 <frx:docgen>
 </frx:docgen>
 <frx:fields>
+
+  <frx:field id="batch_name" link="node/{nid}"/>
+
+  <frx:field id="required action_id" link="node/{nid}/items"/>
 </frx:fields>
 <frx:menu/>
 <frx:cache/>

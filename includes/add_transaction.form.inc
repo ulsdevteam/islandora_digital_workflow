@@ -56,13 +56,13 @@ function islandora_digital_workflow_add_transactions_form(array $form, array &$f
 
   // Display a little warning on this form if the user is trying to add an
   // action that applies to "all items" in the batch.
-  if (islandora_digital_workflow_is_batch_action($action_id)) {
+  if (islandora_digital_workflow_is_batch_action($action_record)) {
     drupal_set_message('Since the selected action is a "batch" action, adding it will update this items\' batch.', 'warning');
   }
 
   // if the transaction's action_id is a per-item transaction, else it is a
   // "per-batch" transaction as in "all items scanned".
-  $actions = (islandora_digital_workflow_is_batch_action($action_id)) ?
+  $actions = (islandora_digital_workflow_is_batch_action($action_record)) ?
     islandora_digital_workflow_get_batch_actions($batch_record['workflow_sequence_id']) :
     islandora_digital_workflow_get_batch_items_actions($batch_record['workflow_sequence_id']);
   $form['transaction_action'] = array(
@@ -131,16 +131,18 @@ function islandora_digital_workflow_add_transactions_form(array $form, array &$f
  *   The Drupal form state.
  */
 function islandora_digital_workflow_add_transactions_form_submit(array $form, array &$form_state) {
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
   $timestamp = $form_state['values']['timestamp'];
   $action_id = $form_state['values']['transaction_action'];
   $batch_item_id = $form_state['values']['batch_item_id'];
   $refer = $form_state['values']['refer'];
   $refer_url_parts = parse_url($refer);
+  $action_record = islandora_digital_workflow_get_action($action_id);
   $problem_notes = ($action_id == IDW_ACTION_PROBLEM) ? $form_state['values']['problem_notes'] : '';
   $nid = $form_state['values']['nid'];
   // Based on the action_id, set the $goto variable to return user to the correct
   // previous page. /node/163/item/62 - else can use the refer path value.
-  $goto = (islandora_digital_workflow_is_batch_action($action_id)) ? $refer_url_parts['path'] :
+  $goto = (islandora_digital_workflow_is_batch_action($action_record)) ? $refer_url_parts['path'] :
     '/node/' . $nid . '/item/' . $batch_item_id;
   if ($form_state['triggering_element']['#value'] == t('Cancel')) {
     drupal_goto($goto);

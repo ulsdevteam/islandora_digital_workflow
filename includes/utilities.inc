@@ -1840,14 +1840,24 @@ function islandora_digital_workflow_item_non_system_actions_all_done($item_recor
 /**
  * Is the action_id a batch_action or an item_action?
  *
- * @param integer $action_id
- *   The `islandora_digital_workflow_actions` table's action_id value.
+ * @param integer $action_record
+ *   The `islandora_digital_workflow_actions` record for the action OR a workflow
+ * sequence array that is a join between the islandora_digital_workflow_actions
+ * with the islandora_digital_workflow_sequence table OR a record from 
+ * islandora_digital_workflow_get_batch_action_options or 
+ * islandora_digital_workflow_get_item_actions.  All of these arrays should
+ * contain the required 'is_batch_action' array key.
  * @return boolean
  *   Whether or not the given $action_id represnts a batch_action (else it is
  * an item_action's identifier).
  */
-function islandora_digital_workflow_is_batch_action($action_id) {
-  return ($action_id > 1000) ? TRUE : FALSE;
+function islandora_digital_workflow_is_batch_action($action_record) {
+  if (is_array($action_record) && array_key_exists('is_batch_action', $action_record)) {
+    return $action_record['is_batch_action'];
+  }
+  else {
+    return FALSE;
+  }
 }
 
 /**

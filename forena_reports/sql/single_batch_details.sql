@@ -4,7 +4,9 @@ SELECT
  bi.title,
  bi.file_count,
  bi.file_size,
- bi.filename `MASTER filename`
+ bi.filename `MASTER filename`,
+ b.nid,
+ bi.batch_item_id
 FROM islandora_digital_workflow_batch b
 JOIN islandora_digital_workflow_batch_items bi ON (bi.batch_id = b.batch_id)
 WHERE b.batch_name = :batch_name

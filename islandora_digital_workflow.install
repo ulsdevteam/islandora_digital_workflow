@@ -365,6 +365,14 @@ function islandora_digital_workflow_schema() {
         'not null' => TRUE,
         'default' => '',
       ),
+      'is_batch_action' => array(
+        'description' => 'Is the action for a batch or a batch_item?',
+        'type' => 'int',
+        'size' => 'tiny',
+        'default' => 0,
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
     ),
     'indexes' => array(
       'ss_name' => array('name'),
@@ -629,41 +637,49 @@ function islandora_digital_workflow_insert_islandora_digital_workflow_actions() 
       'name' => 'check-in',
       'description' => 'Check in physical item',
       'glyph' => 'images/check-in-physical-item_20.png',
+      'is_batch_action' => 0,
     ),
     IDW_ACTION_SCAN => array(
       'name' => 'scan',
       'description' => 'Scan the item',
       'glyph' => 'images/scan-the-item_20.png',
+      'is_batch_action' => 0,
     ),
     IDW_ACTION_SYSTEM_INGEST => array(
       'name' => 'ingest',
       'description' => 'Ingest item into repository',
       'glyph' => 'images/ingest-item-into-repository_20.png',
+      'is_batch_action' => 0,
     ),
     IDW_ACTION_CHECK_OUT => array(
       'name' => 'check-out',
       'description' => 'Check out physical item',
       'glyph' => 'images/check-out-physical-item_20.png',
+      'is_batch_action' => 0,
     ),
     IDW_ACTION_RESCANNED => array(
       'name' => 'rescan',
       'description' => 'Rescanned the item',
       'glyph' => 'images/rescanned-the-item_20.png',
+      'is_batch_action' => 0,
     ),
     IDW_ACTION_CHECK_PHYSICAL_ITEMS => array(
       'name' => 'check-physical-items',
       'description' => 'Check item against physical object',
       'glyph' => 'images/check-item-against-physical-object_20.png',
+      'is_batch_action' => 0,
     ),
     IDW_ACTION_SYSTEM_MADE_DERIVATIVES => array(
       'name' => 'system-made-derivatives',
       'description' => 'System made derivatives',
       'glyph' => 'images/system-made-derivatives_20.png',
+      'is_batch_action' => 0,
     ),
     IDW_ACTION_ADD_MARC_RECORD => array(
       'name' => 'add-marc-record',
       'description' => 'Add MARC record',
       'glyph' => 'images/add-marc-record_20.png',
+      'is_batch_action' => 0,
     ),
     // this will also trigger insertion of a record into the
     // islandora_digital_workflow_problem_items table.  The presence of these
@@ -674,32 +690,38 @@ function islandora_digital_workflow_insert_islandora_digital_workflow_actions() 
       'name' => 'problem',
       'description' => 'Problem with scan',
       'glyph' => 'images/problem_20.png',
+      'is_batch_action' => 0,
     ),
     // batch-level actions (action_id values greater than 100).
     IDW_ACTION_ALL_CHECK_IN => array(
       'name' => 'all-check-in',
       'description' => 'Check in all physical items',
       'glyph' => 'images/check-in-physical-item_20.png',
+      'is_batch_action' => 1,
     ),
     IDW_ACTION_ALL_SCAN => array(
       'name' => 'all-scan',
       'description' => 'Scanned all items',
       'glyph' => 'images/scan-the-item_20.png',
+      'is_batch_action' => 1,
     ),
     IDW_ACTION_ALL_SYSTEM_INGEST => array(
       'name' => 'all-ingest',
       'description' => 'Ingested all items into repository',
       'glyph' => 'images/ingest-item-into-repository_20.png',
+      'is_batch_action' => 1,
     ),
     IDW_ACTION_ALL_CHECK_OUT => array(
       'name' => 'all-check-out',
       'description' => 'Checked out all physical items',
       'glyph' => 'images/check-out-physical-item_20.png',
+      'is_batch_action' => 1,
     ),
     IDW_ACTION_ALL_CHECK_PHYSICAL_ITEMS => array(
       'name' => 'all-check-physical-items',
       'description' => 'Checked all items against physical objects',
       'glyph' => 'images/check-item-against-physical-object_20.png',
+      'is_batch_action' => 1,
     ),
   );
   foreach ($islandora_digital_workflow_actions as $action_id => $values) {
@@ -708,6 +730,7 @@ function islandora_digital_workflow_insert_islandora_digital_workflow_actions() 
         'action_id' => $action_id,
         'name' => $values['name'],
         'description' => $values['description'],
+        'is_batch_action' => $values['is_batch_action'],
       ))
     ->execute();
   }

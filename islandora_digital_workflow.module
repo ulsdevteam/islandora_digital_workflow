@@ -511,6 +511,7 @@ function islandora_digital_workflow_theme() {
       'variables' => array(
         'glyph_filenames' => array(),
         'module_path' => '',
+        'selected' => '',
         'normal_size' => TRUE,
       ),
     ),
@@ -692,16 +693,17 @@ function islandora_digital_workflow_views_api() {
  */
 function theme_islandora_digital_workflow_workflow_sequence_actions_form($variables) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
   $form = $variables['form'];
   $sequence_id = 9999;
   $rows = array();
   foreach (element_children($form['wrapper']['rows']) as $action_id) {
-
+    $action_record = islandora_digital_workflow_get_action($action_id);
     $form['wrapper']['rows'][$action_id]['weight']['#attributes']['class'] = array('rows-order-weight');
     $sequence_id = $form['wrapper']['rows'][$action_id]['workflow_sequence_id']['#value'];
 
     $classes = array('draggable');
-    $classes[] = (islandora_digital_workflow_is_batch_action($action_id)) ? 'batch_action' : 'item_action';
+    $classes[] = (islandora_digital_workflow_is_batch_action($action_record)) ? 'batch_action' : 'item_action';
     // One final class pertains to the action name - to distinguish elements in the CSS.
     @list($keep, $junk) = explode(" [", $form['wrapper']['rows'][$action_id]['action_name']['#default_value']);
     $classes[] = 'transaction_action_' . strtolower(str_replace(array("-", " "), "_", $keep));

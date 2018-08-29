@@ -16,7 +16,15 @@
         </frx:docgen>
         <frx:fields>
   <frx:field id="User" link="user/{User}"/>
+  <frx:field id="identifier" link="node/{nid}/item/{batch_item_id}"/>
+  <frx:field id="Item" link="node/{nid}/items/{batch_item_id}"/>
         
+
+  <frx:field id="file_size" format="number" format-string="9,999"/>
+
+  <frx:field id="batch_name" link="node/{nid}"/>
+
+
 </frx:fields>
         <frx:menu/>
         <frx:cache/>
@@ -77,7 +85,11 @@
           <td>{title}</td>
           <td>{file_count}</td>
           <td>{file_size}</td>
-          <td>{MASTER filename}</td></tr></tbody></table></div></div>
+          <td>{MASTER filename}</td></tr>
+      </tbody>
+    </table>
+    </div>
+    </div>
 
 
     <div id="batch_transactions_block" class="FrxTable" frx:block="islandora_digital_workflow_sql/batch_transactions">

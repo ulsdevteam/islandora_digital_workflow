@@ -110,15 +110,18 @@ span.transaction_action_reserved_action_spacer {
 }
 
 .action_glyph_previews {
-    float: left;
     display: inline-block;
-    padding-top: 35px;
-    width: 50px;
-    text-align: center;
     clear: both;
     padding-right: 6px;
+    margin-top: 8px !important;
 }
-
+.action_glyph_previews label {
+    display: inline-block;
+    font-weight: normal;
+}
+.action_glyph_previews tbody {
+    border: none;
+}
 .action_glyph_previews img {
     padding-bottom: 2px;
 }
@@ -126,7 +129,6 @@ span.transaction_action_reserved_action_spacer {
 .action_glyph_previews.larger_glyph img {
     width: 40px;
     height: 40px;
-    margin-top: -14px !important;
 }
 
 .form-item-glyph-selector {

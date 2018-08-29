@@ -471,7 +471,7 @@ function islandora_digital_workflow_get_batch_item_transactions($batch_item_id, 
 
   $sql = 'SELECT bt.transaction_id, bt.timestamp AS `timestamp`, bt.transaction_id AS transaction_id, ' .
          'users.uid AS uid, users.name AS name, a.description AS description, ' .
-         'a.action_id AS action_id, a.name AS action_name, p.problem_notes ' .
+         'a.action_id AS action_id, a.name AS action_name, a.is_batch_action AS is_batch_action, p.problem_notes ' .
          'FROM islandora_digital_workflow_transactions bt ' .
          'LEFT OUTER JOIN islandora_digital_workflow_problem_items p ON bt.transaction_id = p.transaction_id ' .
          'LEFT OUTER JOIN users users ON bt.drupal_uid = users.uid ' .
@@ -479,7 +479,7 @@ function islandora_digital_workflow_get_batch_item_transactions($batch_item_id, 
          'WHERE  (bt.batch_item_id = ' . $batch_item_id . ') ' .
          'UNION SELECT bt.transaction_id, bt.timestamp AS `timestamp`, bt.transaction_id AS transaction_id, ' .
          'users.uid AS uid, users.name AS name, a.description AS description, ' .
-         'a.action_id AS action_id, a.name AS action_name, p.problem_notes ' .
+         'a.action_id AS action_id, a.name AS action_name, a.is_batch_action AS is_batch_action, p.problem_notes ' .
          'FROM islandora_digital_workflow_transactions bt ' .
          'LEFT OUTER JOIN islandora_digital_workflow_problem_items p ON bt.transaction_id = p.transaction_id ' .
          'LEFT OUTER JOIN users users ON bt.drupal_uid = users.uid ' .
@@ -496,6 +496,7 @@ function islandora_digital_workflow_get_batch_item_transactions($batch_item_id, 
     $rows[$index]->glyph_class = 'transaction_action_' . (($row->action_name) ? strtolower(str_replace(array("-", " "), "_", $row->action_name)) : 'spacer');
     $rows[$index]->admin_links = ($access_edit_transactions) ? TRUE : FALSE;
     $rows[$index]->nid = $nid;
+    $rows[$index]->is_batch_action = $row->is_batch_action;
     $rows[$index]->transaction_id = $row->transaction_id;
     $rows[$index]->problem_notes = $row->problem_notes;
   }
@@ -732,7 +733,7 @@ function islandora_digital_workflow_get_tablefield_stats($tablename) {
 function islandora_digital_workflow_get_batch_actions() {
   $query = db_select('islandora_digital_workflow_actions', 'ba')
       ->fields('ba')
-      ->condition('ba.action_id', 999, '>');
+      ->condition('ba.is_batch_action', 1);
   $results = $query->execute();
   $rows = $results->fetchAll();
   $options = array('' => 'Select an action');
@@ -756,7 +757,7 @@ function islandora_digital_workflow_get_batch_items_actions($workflow_sequence_i
   // batch_item record.
   $query = db_select('islandora_digital_workflow_actions', 'ba')
       ->fields('ba')
-      ->condition('ba.action_id', 1000, '<');
+      ->condition('ba.is_batch_action', 1);
   $query->join('islandora_digital_workflow_sequence_actions', 'sa', 'sa.action_id = ba.action_id');
   $query->orderBy('sa.order');
   $query->join('islandora_digital_workflow_sequence', 's', 's.workflow_sequence_id = sa.workflow_sequence_id');
@@ -801,7 +802,7 @@ function islandora_digital_workflow_get_workflow_sequences() {
 }
 
 function islandora_digital_workflow_get_item_actions($display_reserved_actions = TRUE) {
-  $query = db_query('SELECT * FROM islandora_digital_workflow_actions WHERE action_id < 1000' .
+  $query = db_query('SELECT * FROM islandora_digital_workflow_actions WHERE is_batch_action = 0' .
       (!$display_reserved_actions ? ' AND description NOT LIKE \'Reserved %\'' : '') );
   $rows = $query->fetchAll();
   $return_array = array();
@@ -810,13 +811,14 @@ function islandora_digital_workflow_get_item_actions($display_reserved_actions =
         'action_id' => $row_obj->action_id,
         'name' => $row_obj->name,
         'description' => $row_obj->description,
+        'is_batch_action' => 0,
       );
   }
   return $return_array;
 }
 
 function islandora_digital_workflow_get_batch_action_options($display_reserved_actions = TRUE) {
-  $query = db_query('SELECT * FROM islandora_digital_workflow_actions WHERE action_id > 999' .
+  $query = db_query('SELECT * FROM islandora_digital_workflow_actions WHERE is_batch_action = 1' .
       (!$display_reserved_actions ? ' AND description NOT LIKE \'Reserved %\'' : '') );
   $rows = $query->fetchAll();
   $return_array = array();
@@ -825,6 +827,7 @@ function islandora_digital_workflow_get_batch_action_options($display_reserved_a
         'action_id' => $row_obj->action_id,
         'name' => $row_obj->name,
         'description' => $row_obj->description,
+        'is_batch_action' => 1,
       );
   }
   return $return_array;
@@ -847,6 +850,7 @@ function islandora_digital_workflow_get_workflow_sequence_actions() {
   $query->join('islandora_digital_workflow_actions', 'a', 'a.action_id = sa.action_id');
   $query->addField('a', 'action_id', 'action_id');
   $query->addField('a', 'name', 'action_name');
+  $query->addField('a', 'is_batch_action', 'is_batch_action');
   $query->addField('a', 'description', 'action_description');
   $query->join('islandora_digital_workflow_sequence', 's', 's.workflow_sequence_id = sa.workflow_sequence_id');
   $query->addField('s', 'name', 'sequence_name');
@@ -862,6 +866,7 @@ function islandora_digital_workflow_get_workflow_sequence_actions() {
         'action_id' => $row->action_id,
         'action_name' => $row->action_name,
         'action_description' => $row->action_description,
+        'is_batch_action' => $row->is_batch_action,
         'is_required' => $row->is_required,
         'is_system_action' => $row->is_system_action,
     );
@@ -1050,6 +1055,7 @@ function islandora_digital_workflow_get_action($action_id) {
         'name' => $row->name,
         'description' => $row->description,
         'glyph' => $row->glyph,
+        'is_batch_action' => $row->is_batch_action,
         'class_name' => 'transaction_action_' . strtolower(str_replace(array("-", " "), "_", $row->name)),
     );
   }
@@ -1068,6 +1074,7 @@ function islandora_digital_workflow_get_all_actions() {
         'name' => $row->name,
         'description' => $row->description,
         'glyph' => $row->glyph,
+        'is_batch_action' => $row->is_batch_action,
         'class_name' => 'transaction_action_' . strtolower(str_replace(array("-", " "), "_", $row->name)),
     );
   }
@@ -1087,13 +1094,10 @@ function islandora_digital_workflow_get_batch_item($batch_item_id) {
   return $return;
 }
 
-function islandora_digital_workflow_get_free_action_id($is_batch_action = FALSE) {
+function islandora_digital_workflow_get_free_action_id() {
   // Run a query to get the maximum value of action_id that is under the range
   // limit defined by "item_action" vs. "batch_action".
   $sql = 'SELECT (MAX(action_id) + 1) as `next_action_id` FROM islandora_digital_workflow_actions';
-  if (!$is_batch_action) {
-    $sql .= ' WHERE action_id < 1000';
-  }
   $results = db_query($sql);
   $rows = $results->fetchAll();
   $rows = array_pop($rows);

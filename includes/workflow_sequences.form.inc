@@ -57,7 +57,7 @@ function islandora_digital_workflow_sequences() {
       $class = ($action_record_array['is_required']) ? 'required_action' : 'optional_action';
       $glyph_class = 'transaction_action_' . (($action_record_array['action_name']) ? strtolower(str_replace(array("-", " "), "_", $action_record_array['action_name'])) : 'spacer');
       $li_markup = '<li class="' . $glyph_class . ' ' . $class . '">' . $action_record_array['action_description'] . '</li>';
-      if (islandora_digital_workflow_is_batch_action($action_record_array['action_id'])) {
+      if (islandora_digital_workflow_is_batch_action($action_record_array)) {
         $markup_batch_actions[] = $li_markup;
       } else {
         $markup_item_actions[] = $li_markup;
@@ -489,7 +489,7 @@ function islandora_digital_workflow_workflow_sequence_actions_form(array $form, 
     foreach ($workflow_sequence_actions[$workflow_sequence_id] as $i => $sequence_array) {
       $form['wrapper']['rows'][$sequence_array['action_id']] = array(
         '#attributes' => array(
-          'class' => array((islandora_digital_workflow_is_batch_action($sequence_array['action_id']) ? 'batch_action_box' : 'item_action_box')),
+          'class' => array((islandora_digital_workflow_is_batch_action($sequence_array) ? 'batch_action_box' : 'item_action_box')),
         ),
         'action_description' => array(
           '#type' => 'textfield',
@@ -895,7 +895,7 @@ function islandora_digital_workflow_actions_form(array $form, array &$form_state
         ),
         'class' => array(),
     );
-    if (islandora_digital_workflow_is_batch_action($action_record_array['action_id'])) {
+    if (islandora_digital_workflow_is_batch_action($action_record_array)) {
       $markup_batch_actions[$action_record_array['action_id']] = $arr;
     } else {
       $markup_item_actions[$action_record_array['action_id']] = $arr;
@@ -1023,8 +1023,7 @@ function islandora_digital_workflow_actions_edit_form(array $form, array &$form_
       ),
   );
 
-  $action_is_batch_action = islandora_digital_workflow_is_batch_action($action_id);
-//  if (!$action_id) {
+  $action_is_batch_action = islandora_digital_workflow_is_batch_action($action_record);
   $form['batch_action_wrapper'] = array(
       '#type' => 'fieldset',
       'is_batch_action' => array(
@@ -1034,7 +1033,7 @@ function islandora_digital_workflow_actions_edit_form(array $form, array &$form_
               'at a batch level, else an "item action" is available for items in ' .
               'batches that use a sequence have this action configured.',
           '#options' => array(0 => 'No', 1 => 'Yes'),
-          '#default_value' => (($action_is_batch_action) ? 1 : 0),
+          '#default_value' => ($action_record['is_batch_action']+0), // (($action_is_batch_action) ? 1 : 0),
       ),
   );
   // Disable this selection if the action_id is already assigned.
@@ -1047,22 +1046,21 @@ function islandora_digital_workflow_actions_edit_form(array $form, array &$form_
       'glyph' => array(
           '#type' => 'item',
           '#title' => 'Current Glyph',
-          '#prefix' => theme('islandora_digital_workflow_action_glyph_preview',
+          '#markup' => theme('islandora_digital_workflow_action_glyph_preview',
               array(
                   'glyph_filenames' => array($selected_glyph_filename => $selected_glyph_filename),
                   'module_path' => $module_path,
+                  'selected' => NULL,
                   'normal_size' => FALSE,)),
       ),
       'glyph_selector' => array(
-          '#type' => 'radios',
+          '#type' => 'item',
           '#title' => 'Select new graphic ['.$selected_glyph_filename.']',
-          '#required' => TRUE,
-          '#options' => $static_glyph_filenames,
-          '#default_value' => $selected_glyph_filename,
-          '#prefix' => theme('islandora_digital_workflow_action_glyph_preview',
+          '#markup' => theme('islandora_digital_workflow_action_glyph_preview',
               array(
                   'glyph_filenames' => $static_glyph_filenames,
                   'module_path' => $module_path,
+                  'selected' => $selected_glyph_filename,
                   'normal_size' => TRUE,)),
       ),
   );
@@ -1091,6 +1089,7 @@ function islandora_digital_workflow_actions_edit_form_submit(array $form, array 
       'name' => is_null($form_state['input']['name']) ? $form_state['values']['name'] : $form_state['input']['name'],
       'description' => is_null($form_state['input']['description']) ? $form_state['values']['description'] : $form_state['input']['description'],
       'glyph' => $form_state['input']['glyph_selector'],
+      'is_batch_action' => is_null($form_state['input']['is_batch_action']) ? $form_state['values']['is_batch_action'] : $form_state['input']['is_batch_action'],
   );
   $action_id = $form_state['input']['action_id'];
   if ($action_id) {

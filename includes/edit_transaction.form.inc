@@ -52,7 +52,8 @@ function islandora_digital_workflow_edit_transactions_form(array $form, array &$
   $batch_record = islandora_digital_workflow_get_batch_record_by_nid($node->nid);
   // if the transaction's action_id is a per-item transaction, else it is a
   // "per-batch" transaction as in "all items scanned".
-  $actions = (islandora_digital_workflow_is_batch_action($transaction->action_id)) ?
+  $action_record = islandora_digital_workflow_get_action($transaction->action_id);
+  $actions = (islandora_digital_workflow_is_batch_action($action_record)) ?
     islandora_digital_workflow_get_batch_actions($batch_record['workflow_sequence_id']) :
     islandora_digital_workflow_get_batch_items_actions($batch_record['workflow_sequence_id']);
 
@@ -126,15 +127,17 @@ function islandora_digital_workflow_edit_transactions_form(array $form, array &$
  *   The Drupal form state.
  */
 function islandora_digital_workflow_edit_transactions_form_submit(array $form, array &$form_state) {
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
   $transaction_id = $form_state['values']['transaction_id'];
   $timestamp = $form_state['values']['timestamp'];
   $action_id = $form_state['values']['transaction_action'];
   $batch_item_id = $form_state['values']['batch_item_id'];
   $problem_notes = $form_state['values']['problem_notes'];
   $nid = $form_state['values']['nid'];
+  $action_record = islandora_digital_workflow_get_action($action_id);
   // Based on the action_id, set the $goto variable to return user to the correct
   // previous page. /node/163/item/62
-  $goto = (islandora_digital_workflow_is_batch_action($action_id)) ? '/node/' . $nid . '/transactions' :
+  $goto = (islandora_digital_workflow_is_batch_action($action_record)) ? '/node/' . $nid . '/transactions' :
     '/node/' . $nid . '/item/' . $batch_item_id;
   if ($form_state['triggering_element']['#value'] == t('Cancel')) {
     drupal_goto($goto);

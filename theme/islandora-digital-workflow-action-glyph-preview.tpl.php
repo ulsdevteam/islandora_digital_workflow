@@ -9,14 +9,22 @@
 * - $module_path => string the path to the current module.
 */
 ?>
-<div class="action_glyph_previews<?php print (($normal_size) ? '' : ' larger_glyph'); ?>">
-    <?php foreach ($glyph_filenames as $glyph_filename): ?>
+<table class="action_glyph_previews<?php print (($normal_size) ? '' : ' larger_glyph'); ?>">
+    <?php foreach ($glyph_filenames as $glyph_index => $glyph_filename): ?>
+    <tr>
     <?php if ($glyph_filename): ?>
-    <img src="/<?php print $module_path; ?>/<?php print $glyph_filename; ?>" width="<?php print (($normal_size) ? '20' : '20');?>" />
+        <td><img src="/<?php print $module_path; ?>/<?php print $glyph_filename; ?>" width="<?php print (($normal_size) ? '20' : '40');?>" /> &nbsp;</td>
     <?php else: ?>
-    N/A
+        <td>N/A</td>
     <?php endif; ?>
-    <br />
+    <?php if ($normal_size): ?>
+        <td>
+            &nbsp;<input type="radio" id="glyph<?php print $glyph_index; ?>" name="glyph_selector" value="<?php print $glyph_filename;?>"<?php print ($selected <> $glyph_filename) ? '' : ' checked'; ?>>
+            <label for="glyph<?php print $glyph_index; ?>"><?php print $glyph_filename;?></label>
+        </td>
+    <?php else: ?>
+        <td><?php print $glyph_filename;?></td>
+    <?php endif; ?>
+    </tr>
     <?php endforeach; ?>
-</div>
-<br class="clearfix" />
+</table>

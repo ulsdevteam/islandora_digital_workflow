@@ -99,14 +99,16 @@ function islandora_digital_workflow_delete_transactions_form(array $form, array 
  *   The Drupal form state.
  */
 function islandora_digital_workflow_delete_transactions_form_submit(array $form, array &$form_state) {
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
   $transaction_id = $form_state['values']['transaction_id'];
   $timestamp = $form_state['values']['timestamp'];
   $action_id = $form_state['values']['transaction_action'];
   $batch_item_id = $form_state['values']['batch_item_id'];
   $nid = $form_state['values']['nid'];
+  $action_record = islandora_digital_workflow_get_action($action_id);
   // Based on the action_id, set the $goto variable to return user to the correct
   // previous page. /node/163/item/62
-  $goto = (islandora_digital_workflow_is_batch_action($action_id)) ? '/node/' . $nid . '/transactions' :
+  $goto = (islandora_digital_workflow_is_batch_action($action_record)) ? '/node/' . $nid . '/transactions' :
     '/node/' . $nid . '/item/' . $batch_item_id;
   if ($form_state['triggering_element']['#value'] == t('Cancel')) {
     drupal_goto($goto);
