@@ -200,6 +200,12 @@ function islandora_digital_workflow_schema() {
         'length' => 255,
         'not null' => FALSE,
       ),
+      'ocr_language' => array(
+        'description' => 'The character set to use for the OCR process',
+        'type' => 'varchar',
+        'length' => 10,
+        'not null' => FALSE,
+      ),
       'default_depositor' => array(
         'description' => 'Default depositor for destination islandora objects',
         'type' => 'varchar',
@@ -207,7 +213,7 @@ function islandora_digital_workflow_schema() {
         'not null' => FALSE,
       ),
       'default_genre' => array(
-        'description' => 'Genre value for destination islandora objects',
+        'description' => 'Default genre value for destination islandora objects',
         'type' => 'varchar',
         'length' => 50,
         'not null' => FALSE,

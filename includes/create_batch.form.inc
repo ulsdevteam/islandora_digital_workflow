@@ -230,6 +230,7 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
   $model_name = islandora_digital_workflow_get_name_of_tid($tid_for_cmodel_selected);
   $sequences = islandora_digital_workflow_get_workflow_sequences_for_model($model_name);
   $file_not_allowed_for_model_names = array('islandora:findingAidCModel', 'islandora:newspaperCModel', 'islandora:newspaperIssueCModel');
+  $paged_content_model_names = array('islandora:bookCModel', 'islandora:manuscriptCModel', 'islandora:newspaperIssueCModel');
   $current_batch_host_selection = ($batch_record && isset($batch_record['batch_host'])) ? $batch_record['batch_host'] : '';
   $batch_hosts = islandora_digital_workflow_get_batch_host_values();
 
@@ -414,7 +415,23 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
       '#collapsible' => TRUE,
       '#collapsed' => FALSE,
     );
-  // Requestor: textfield
+  // NOW, only add this next option for paged content.
+  if (!(array_search($model_name, $paged_content_model_names) === FALSE)) {
+    $islandora_ocr_tesseract_enabled_languages = variable_get('islandora_ocr_tesseract_enabled_languages');
+    $ocr_languages = array();
+    foreach ($islandora_ocr_tesseract_enabled_languages as $k => $v) {
+      if ($v) {
+        $ocr_languages[$k] = $v;
+      }
+    }
+    $form['ingest_options_frame']['ocr_language'] = array(
+        '#type' => 'select',
+        '#title' => t('OCR Language'),
+        '#options' => $ocr_languages,
+        '#default_value' => 'eng',
+        '#description' => t('Specify language to use for processing OCR.'),
+      );
+  }
   $form['ingest_options_frame']['batch_host'] = array(
       '#type' => 'select',
       '#title' => t('Ingest files from host'),

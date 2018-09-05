@@ -99,6 +99,8 @@ function islandora_digital_workflow_create_batch_record_by_form($form_state, $no
         'ingest_namespace' => $form_state['values']['ingest_namespace'],
         'default_ead_id' => (array_key_exists('default_ead_id', $form_state['values'])) ?
           $form_state['values']['default_ead_id'] : '',
+        'ocr_language' => (array_key_exists('ocr_language', $form_state['values'])) ?
+          $form_state['values']['ocr_language'] : '',
         'default_depositor' => $form_state['values']['default_depositor'],
 	'batch_host' => $form_state['values']['batch_host'],
 	'default_genre' => $form_state['values']['default_genre'],
@@ -2074,6 +2076,11 @@ function islandora_digital_workflow_deploy_files_to_forena_install($from, $to) {
   $success = FALSE;
   foreach ($files as $file) {
     $success &= copy($from . '/' . $file, $to . '/' . $file);
+  }
+  if (!$success) {
+      drupal_set_message('The forena files could not be deployed due to permissions ' .
+          'on the folder.  Please check the file permissions of the parent folder for "' .
+          $to . '".');
   }
   return $success;
 }
