@@ -792,11 +792,7 @@ function islandora_digital_workflow_get_workflow_sequences() {
   $rows = $results->fetchAll();
   $return_array = array();
   foreach ($rows as $i => $row) {
-    $return_array[$row->workflow_sequence_id] = array(
-        'workflow_sequence_id' => $row->workflow_sequence_id,
-        'name' => $row->name,
-        'description' => $row->description,
-    );
+    $return_array[$row->workflow_sequence_id] = (array) $row;
   }
   return $return_array;
 }
@@ -854,6 +850,7 @@ function islandora_digital_workflow_get_workflow_sequence_actions() {
   $query->addField('a', 'description', 'action_description');
   $query->join('islandora_digital_workflow_sequence', 's', 's.workflow_sequence_id = sa.workflow_sequence_id');
   $query->addField('s', 'name', 'sequence_name');
+  $query->addField('s', 'is_mixed', 'is_mixed');
   $query->addField('s', 'description', 'sequence_description');
   $results = $query->execute();
   $rows = $results->fetchAll();
@@ -862,6 +859,7 @@ function islandora_digital_workflow_get_workflow_sequence_actions() {
     $return_array[$row->workflow_sequence_id][] = array(
         'sequence_name' => $row->sequence_name,
         'sequence_description' => $row->sequence_description,
+        'is_mixed' => $row->is_mixed,
         'order' => $row->order,
         'action_id' => $row->action_id,
         'action_name' => $row->action_name,
@@ -869,6 +867,7 @@ function islandora_digital_workflow_get_workflow_sequence_actions() {
         'is_batch_action' => $row->is_batch_action,
         'is_required' => $row->is_required,
         'is_system_action' => $row->is_system_action,
+        'islandora_model' => $row->islandora_model,
     );
   }
   return $return_array;
@@ -1007,9 +1006,9 @@ function islandora_digital_workflow_get_required_batch_actions($batch_id = NULL,
   $query = db_select('islandora_digital_workflow_batch', 'b');
   $query->fields('b', array('batch_id', 'workflow_sequence_id'));
   $query->join('islandora_digital_workflow_sequence', 'ws', 'b.workflow_sequence_id = ws.workflow_sequence_id');
-  $query->fields('ws', array('name', 'workflow_sequence_id'));
+  $query->fields('ws', array('name', 'workflow_sequence_id', 'is_mixed'));
   $query->join('islandora_digital_workflow_sequence_actions', 'wsa', 'ws.workflow_sequence_id = wsa.workflow_sequence_id');
-  $query->fields('wsa', array('is_required', 'is_system_action'));
+  $query->fields('wsa', array('is_required', 'is_system_action', 'islandora_model'));
   $query->addField('wsa', 'order', 'action_order');
   $query->join('islandora_digital_workflow_actions', 'wa', 'wsa.action_id = wa.action_id');
   $query->fields('wa', array('description', 'action_id'));
@@ -1032,7 +1031,9 @@ function islandora_digital_workflow_get_required_batch_actions($batch_id = NULL,
         'batch_action_description' => $row->description,
         'is_required' => $row->is_required,
         'is_system_action' => $row->is_system_action,
+        'islandora_model' => $row->islandora_model,
         'sequence_name' => $row->name,
+        'is_mixed' => $row->is_mixed,
         'workflow_sequence_id' => $row->workflow_sequence_id,
         'action_id' => $row->action_id,
         'class_name' => 'transaction_action_' . ($row->action_name) ? strtolower(str_replace(array("-", " "), "_", $row->action_name)) : 'spacer',

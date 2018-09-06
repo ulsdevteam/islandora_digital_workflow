@@ -559,8 +559,8 @@ function islandora_digital_workflow_get_ingest_namespace($batch_record = array()
  *   List of Islandora ~ fedora models available for digital scanning processes.
  */
 function islandora_digital_workflow_get_reduced_cmodels() {
-  module_load_include('inc', 'islandora', 'includes/content_model.autocomplete');
-  $models = islandora_get_content_model_names();
+    module_load_include('inc', 'islandora', 'includes/content_model.autocomplete');
+    $models = islandora_get_content_model_names();
 
   // If they are set, remove these models:
   $remove_models = array(

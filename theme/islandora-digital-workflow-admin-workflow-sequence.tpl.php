@@ -26,15 +26,33 @@
     <p><?php print $sequence_name; ?></p>
     <div class="lookup_result_square">
       <p><b><?php print l(t('Models'), 'admin/islandora/islandora_digital_workflow/workflow_sequence_models/' . $workflow_sequence_id); ?>:</b> <?php print $models; ?></p>
-      <p><b><?php print l(t('Actions'), 'admin/islandora/islandora_digital_workflow/workflow_sequences/' . $workflow_sequence_id); ?>:</b>
-      <ul>
-      <?php if (count($markup_batch_actions) > 0): ?>
-        <li class="no_indent">Batch actions</li>
-        <ul class="batch_action_box corner_bordered"><?php print implode("\n" , $markup_batch_actions); ?></ul>
-      <?php endif; ?>
-      <?php if (count($markup_item_actions) > 0): ?>
-        <li class="no_indent">Item actions</li>
-        <ul class="corner_bordered item_action_box"><?php print implode("\n" , $markup_item_actions); ?></ul>
+      <?php if ($is_mixed): ?>
+        <ul>
+        <?php foreach ($sequence_models as $model): ?>
+          <p><b><?php print l($model . t(' Actions'), 'admin/islandora/islandora_digital_workflow/workflow_sequences/' . $workflow_sequence_id . '|' . $model); ?>:</b></p>
+          <ul>
+          <?php if (count($markup_batch_actions[$model]) > 0): ?>
+            <li class="no_indent"><?php print $model; ?> Batch actions</li>
+            <ul class="batch_action_box corner_bordered"><?php print implode("\n" , $markup_batch_actions[$model]); ?></ul>
+          <?php endif; ?>
+          <?php if (count($markup_item_actions[$model]) > 0): ?>
+            <li class="no_indent"><?php print $model; ?> Item actions</li>
+            <ul class="corner_bordered item_action_box"><?php print implode("\n" , $markup_item_actions[$model]); ?></ul>
+          <?php endif; ?>
+          </ul>
+        <?php endforeach; ?>
+        </ul>
+      <?php else: ?>
+        <p><b><?php print l(t('Actions'), 'admin/islandora/islandora_digital_workflow/workflow_sequences/' . $workflow_sequence_id); ?>:</b></p>
+        <ul>
+        <?php if (count($markup_batch_actions) > 0): ?>
+          <li class="no_indent">Batch actions</li>
+          <ul class="batch_action_box corner_bordered"><?php print implode("\n" , $markup_batch_actions); ?></ul>
+        <?php endif; ?>
+        <?php if (count($markup_item_actions) > 0): ?>
+          <li class="no_indent">Item actions</li>
+          <ul class="corner_bordered item_action_box"><?php print implode("\n" , $markup_item_actions); ?></ul>
+        <?php endif; ?>
       <?php endif; ?>
       </ul>
     </div>

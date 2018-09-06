@@ -551,6 +551,8 @@ function islandora_digital_workflow_theme() {
         'sequence_name' => '',
         'markup_batch_actions' => array(),
         'markup_item_actions' => array(),
+        'is_mixed' => 0,
+        'sequence_models' => array(),
         'models' => '',
         'sequence_in_use' => FALSE,
       ),
