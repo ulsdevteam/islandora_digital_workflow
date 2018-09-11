@@ -2084,3 +2084,41 @@ function islandora_digital_workflow_deploy_files_to_forena_install($from, $to) {
   }
   return $success;
 }
+
+/**
+ * Determines whether or not the object is paged-content.
+ * 
+ * @param AbstractObject|string $object_or_string
+ *   Either an Islandora object or a string value of a fedora model.
+ * @return boolean
+ *   Whether or not the object is a paged-content model.
+ */
+function islandora_digital_workflow_is_paged_object($object_or_string) {
+  $paged_content_models = islandora_digital_workflow_retrieve_applicable_paged_content_cmodels();
+  if (is_object($object_or_string)) {
+    return (is_object($object_or_string)) ? array_intersect($paged_content_models, $object_or_string->models) : FALSE;
+  }
+  else {
+    $array = array($object_or_string);
+    return array_intersect($paged_content_models, $array);
+  }
+}
+
+/**
+ * Returns whether or not the current Drupal path needs to load the module's javascript.
+ *
+ * @param string $path
+ *   The request menu path - matches a $menu route from islandora_digital_workflow_menu.module,
+ * see islandora_digital_workflow_menu().
+ * @return boolean
+ *   Whether or not the javascript should be loaded.
+ */
+function islandora_digital_workflow_path_needs_js($path) {
+  $paths_needing_js = array(
+      'node/%node/items',
+      'node/%node/edit_transaction/%',
+      'node/%node/add_transaction/%/%',
+  );
+  return ($path && !is_array($path)) ? (!(array_search($path, $paths_needing_js) === FALSE))
+      : FALSE;
+}

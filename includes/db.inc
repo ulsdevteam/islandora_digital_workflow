@@ -410,8 +410,6 @@ function islandora_digital_workflow_set_problem_record($transaction_id, $alterna
     $batch_record = islandora_digital_workflow_get_batch_record_by_transaction($transaction);
     module_load_include('inc', 'islandora_digital_workflow', 'includes/node-utilities');
     islandora_digital_workflow_set_node_stage($batch_record['nid'], 'Problem');
-    // TODO: For the node stage setting, we need to look at the batch_id or batch_item_id
-    // in order to derive the node related to this batch or item.
     db_query("INSERT INTO islandora_digital_workflow_problem_items (" .
         "`transaction_id`, `problem_notes`, `problem_timestamp`, `drupal_uid`) VALUES (" .
         $transaction_id . ", '" . addslashes($problem_notes) . "', now(), " .
@@ -757,7 +755,7 @@ function islandora_digital_workflow_get_batch_items_actions($workflow_sequence_i
   // batch_item record.
   $query = db_select('islandora_digital_workflow_actions', 'ba')
       ->fields('ba')
-      ->condition('ba.is_batch_action', 1);
+      ->condition('ba.is_batch_action', 0);
   $query->join('islandora_digital_workflow_sequence_actions', 'sa', 'sa.action_id = ba.action_id');
   $query->orderBy('sa.order');
   $query->join('islandora_digital_workflow_sequence', 's', 's.workflow_sequence_id = sa.workflow_sequence_id');
@@ -1161,4 +1159,31 @@ function islandora_digital_workflow_create_islandora_digital_workflow_sql_config
         'config' => $config_str,
     ))
     ->execute();
+}
+
+/**
+ * To set the problem_resolved_timestamp for the problem records related
+ * to a given batch_id.
+ *
+ * @param integer $batch_id
+ *   The batch_id of the batch being sync'd from the staging directory,
+ */
+function islandora_digital_workflow_unset_problems_records($batch_id) {
+  $sql = 'UPDATE islandora_digital_workflow_problem_items 
+   SET problem_resolved_timestamp = now()
+   WHERE transaction_id IN 
+    (SELECT transaction_id 
+     FROM islandora_digital_workflow_transactions 
+     WHERE batch_id = ' . $batch_id . '
+     UNION 
+     SELECT transaction_id 
+     FROM islandora_digital_workflow_transactions 
+     WHERE batch_item_id IN 
+     (SELECT batch_item_id 
+      FROM islandora_digital_workflow_batch_items 
+      WHERE batch_id = ' . $batch_id . '
+     )
+    )';
+  dpm($sql);
+  db_query($sql);
 }

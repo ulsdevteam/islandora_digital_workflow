@@ -87,7 +87,7 @@
 
                 <?php if ($transaction_record->admin_links <> ''): ?>
                   <div class="admin_links">
-                      <?php if ($transaction_record->transaction_id <> -1): ?>
+                      <?php if ($transaction_record->transaction_id > 0): ?>
                       <a href="/node/<?php print $transaction_record->nid; ?>/delete_transaction/<?php print $transaction_record->transaction_id; ?>" title="Delete">
                         <div class="delete_20">&nbsp;</div></a>
                       <a href="/node/<?php print $transaction_record->nid; ?>/edit_transaction/<?php print $transaction_record->transaction_id; ?>" title="Edit">

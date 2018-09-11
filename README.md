@@ -1,3 +1,4 @@
+
 ## Islandora Digital Workflow
 To prepare and track digital content for possible ingest into Islandora.
 
@@ -42,14 +43,19 @@ To prepare and track digital content for possible ingest into Islandora.
 		- Requests not going online? Should they be part of this workflow or not?
 
 ## Installation
-The Islandora Digital Workflow module relies on some other modules in order to be able to run.  These are:
- - [Forena](https://git.drupal.org/project/forena.git) | [ulsdevteam "Forena"](https://github.com/ulsdevteam/forena.git)
+The Islandora Digital Workflow module relies on some other modules in order to be able to run.  
+**Required modules:**
+ - [Forena](https://git.drupal.org/project/forena.git) | [ulsdevteam "Forena"](https://github.com/ulsdevteam/forena.git) *The ulsdevteam feature branch of Forena reports adds a Description value to the reports.  If the ulsdevteam branch of this module is installed or if the code is eventually merged into Forena, the descriptions of reports would be displayed -- else, only their Titles can be displayed.*
  - [Rules](https://git.drupal.org/project/rules.git)
  - Taxonomy (drupal core module must be enabled)
  - [Views](https://git.drupal.org/project/views.git)
- - 
-Additionally, there is a feature branch of the Forena reports that adds a Description value to the reports.  If the ulsdevteam branch of this module is installed or if the code is eventually merged into Forena, the descriptions of reports would be displayed -- else, only their Titles can be displayed.
- 
+ - see **Islandora Batch Ingest Modules** section below as well in order to be able to prepare batches for Drupal ingest via drush commands.
+
+ **Optional modules:**
+ - [Islandora METS Editor](https://github.com/ulsdevteam/islandora_mets_editor.git) To provide a way to create, edit, manage METS files in Islandora.
+ - [Islandora CSV to MODS](https://github.com/ulsdevteam/islandora_csv_to_mods.git) Islandora utility to create MODS from CSV upload and potentially update the related Islandora objects.
+
+**Islandora Batch Ingest Modules** 
 Each Islandora model requires a specific module to be installed.  Additionally, the ability to assign PID value for objects as they ingest as well as to add the "isMemberOfSite" relationship would require the ulsdevteam instance of each module.  The configuration page provides links to each of the required modules so that they can be installed.  These are:
  - [Basic Image](https://github.com/Islandora/islandora_batch.git) | [ulsdevteam "Basic Image"](https://github.com/ulsdevteam/islandora_batch.git)
  - [Finding Aid](//) (not developed)
@@ -64,7 +70,7 @@ Installing this module will also set up the following:
  - workflow_batch Drupal node content type with CCK fields for each batch property
  - Drupal taxonomy and several vocabularies to track batch "Stage", and "Content Type" (correlates to Islandora object models).
  - create the tables: islandora_digital_workflow_batch, islandora_digital_workflow_batch_items, islandora_digital_workflow_actions, islandora_digital_workflow_transactions, islandora_digital_workflow_problem_items, islandora_digital_workflow_sequence, islandora_digital_workflow_model_sequence, islandora_digital_workflow_sequence_actions.  It will also insert the initial set of records into the islandora_digital_workflow_actions table.
- - Deploy the Forena reports SQL and FRX files to the configured Forena locations.
+ - Deploy the Forena reports SQL and FRX files to the configured Forena locations.  This requires that the Drupal "**Private file system path**" is configured and editable by the web server (this path is configured at /admin/config/media/file-system).
  - custom Drupal views to display the workflow_batch nodes
 
 ## Permissions

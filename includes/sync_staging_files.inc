@@ -135,8 +135,9 @@ function islandora_digital_workflow_sync_staging_files_form_submit(array $form, 
           // the staging root.
           rmdir($source_path);
         }
-        //TODO: update the "problem_resolved_timestamp" value for the related problem state record of the item.
-        
+        // Update the "problem_resolved_timestamp" value for the related
+        // problem state record of the item.
+        islandora_digital_workflow_unset_problems_records($batch_record['batch_id']);
       }
     }
   }

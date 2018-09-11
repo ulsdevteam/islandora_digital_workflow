@@ -272,8 +272,6 @@ function islandora_digital_workflow_get_batches_by_workflow_sequence_id($workflo
  *   Drupal form definition.
  */
 function islandora_digital_workflow_workflow_sequence_create(array $form, array &$form_state) {
-  module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
-  module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
   $form['add_new'] = array(
       '#type' => 'fieldset',
       '#title' => t('Create new sequence'),
@@ -291,11 +289,11 @@ function islandora_digital_workflow_workflow_sequence_create(array $form, array 
       ),
       'sequence_is_mixed' => array(
         '#type' => 'checkbox',
-        '#title' => t('Will this sequence represent more than one object model?'),
-        '#description' => 'Does the workflow sequence represent more than one object model? ' .
-            '<p class="small_lt_text">For mixed workflow sequences, each model must have ' .
-            'their own set of actions defined.</p>',
-        '#default_value' => $workflow_sequences[$workflow_sequence_id]['is_mixed'],
+        '#title' => t('Mixed objects batch?'),
+        '#description' => 'Will this sequence represent more than one object model? ' . 
+            '"Mixed" workflow sequences must provide the set of actions for each ' .
+            'selected model.',
+        '#default_value' => 0,
       ),
       'submit' => array(
           '#type' => 'submit',
@@ -386,10 +384,10 @@ function islandora_digital_workflow_workflow_sequence_edit(array $form, array &$
       ),
       'sequence_is_mixed' => array(
         '#type' => 'checkbox',
-        '#title' => t('Will this sequence represent more than one object model?'),
-        '#description' => 'Does the workflow sequence represent more than one object model? ' .
-            '<p class="small_lt_text">For mixed workflow sequences, each model must have ' .
-            'their own set of actions defined.</p>',
+        '#title' => t('Mixed objects batch?'),
+        '#description' => 'Will this sequence represent more than one object model? ' .
+            '"Mixed" workflow sequences must provide the set of actions for each ' .
+            'selected model.',
         '#default_value' => $workflow_sequences[$workflow_sequence_id]['is_mixed'],
       ),
       'submit' => array(

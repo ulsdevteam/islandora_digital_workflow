@@ -71,7 +71,7 @@ function islandora_digital_workflow_menu() {
       'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_MANAGE_SEQUENCES),
       'file' => 'includes/workflow_sequences.form.inc',
     ),
-    'admin/islandora/islandora_digital_workflow/create_workflow_sequences' => array(
+    'admin/islandora/islandora_digital_workflow/create_workflow_sequence' => array(
       'title' => t('Islandora Digital Workflow - Create Workflow Sequence'),
       'type' => MENU_NORMAL_ITEM,
       'page callback' => 'drupal_get_form',
@@ -390,6 +390,10 @@ function islandora_digital_workflow_preprocess_html(&$vars) {
   $item = menu_get_item();
   if (is_array($item)) {
     $path = drupal_get_path('module', 'islandora_digital_workflow');
+    module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
+    if (islandora_digital_workflow_path_needs_js($item['path'])) {
+      drupal_add_js($path . '/js/digital_workflow.js');
+    }
     drupal_add_css($path . '/css/islandora_digital_workflow.css');
     $public_files_path = drupal_realpath('public://');
     $base_public_files_path = substr(str_replace(realpath("."), "", $public_files_path), 1);
@@ -730,4 +734,61 @@ function theme_islandora_digital_workflow_workflow_sequence_actions_form($variab
   drupal_add_tabledrag('rows-order-' . $sequence_id, 'order', 'sibling', 'rows-order-weight', NULL, NULL, FALSE);
 
   return $output;
+}
+
+/**
+ * Implements hook_islandora_batch_process_finished().
+ *
+ * Sets the appropriate action on the objects that have been ingested.
+ */
+function islandora_digital_workflow_islandora_batch_process_finished($sets) {
+  // Look at the object - and delete the related temporary files that were needed for this object.
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
+  module_load_include('inc', 'islandora_batch', 'includes/db');
+
+  if (!empty($sets)) {
+    foreach ($sets as $set) {
+      // Delete set and associated queued items.
+      $queued_items = islandora_batch_get_queued_items_for_set($set);
+
+      foreach ($queued_items as $ingested_pid) {
+        // ingested_pid = ' . print_r($ingested_pid, true)
+        $ingested_object = islandora_object_load($ingested_pid);
+        if (is_object($ingested_object)) {
+/*
+ * DO NOT USE THIS BLOCK OF CODE AT THIS POINT IN TIME
+ *
+          // Can not call "aggregate PDF" and "aggregate OCR/HOCR" batch commands now
+          // due to how derivatives are deferred and they may not exist yet, but can
+          // trigger the "Generate OCR" at this point.
+          // See whether or not this is a paged-content object.
+          if (islandora_digital_workflow_is_paged_object($ingested_object)) {
+            // it is a paged object
+            $pages = islandora_paged_content_get_pages($ingested_object);
+            if (count($pages)) {
+              global $user;
+              $this_domain = 'http://' . $_SERVER['HTTP_HOST'];
+              $drush_command = 'drush -v -u ' . $user->uid . ' --uri=' . $this_domain .
+                ' islandora_digital_workflow_generate_ocr_datastreams --paged_object_pid=' . $ingested_pid;
+
+              $output = $return_var = array();
+              exec($drush_command, $output, $return_var);
+
+              if (($return_var == -1 || $return_var == 255 || $return_var == 1)) {
+                drupal_set_message('There was an error calling the drush command : ' . $drush_command);
+              }
+            }
+          }
+*/
+          // Update the batch status record for the matching batch record for this set's $ingested_pid
+          islandora_digital_workflow_set_status_for_pid($ingested_object, UPITT_WORKFLOW_ACTION_INGESTED_COMPLETELY, TRUE);
+        }
+        else {
+          $variables = array('@ingested_pid' => $ingested_pid, '@set' => $set);
+          watchdog('islandora_digital_workflow', 'Set refers to an object by PID "@ingested_pid" that no longer exists, ' .
+              'and can not execute the batch_process_finished routine for this set @set.', $variables, WATCHDOG_NOTICE);
+        } // if (is_object($ingested_object)
+      } //  foreach ($queued_items
+    } // foreach ($sets
+  } // if (!empty($sets
 }

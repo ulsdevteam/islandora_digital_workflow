@@ -62,8 +62,7 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
         'occur for this batch\'s objects, ' .
         l(t('select a "Workflow Sequence" for this batch'), '/node/' . $node->nid . '/batch') . '.';
   }
-  $paged_content_models = islandora_digital_workflow_retrieve_applicable_paged_content_cmodels();
-  $is_paged_content = (!(array_search($batch_record->default_type_of_resource, $paged_content_models) === FALSE));
+  $is_paged_content = islandora_digital_workflow_is_paged_object($batch_record->default_type_of_resource);
   // Did the user post an update to this batch item data?  If so, handle that update here
   if (isset($_POST['title'])) {
     $item_record_results = islandora_digital_workflow_get_batch_item_record($batch_item_id);
@@ -107,8 +106,8 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
   $item = array_pop($item_record_results);
   @list($namespace, $pid) = explode(":", $item->identifier);
 
-  $paged_content_models = islandora_digital_workflow_retrieve_applicable_paged_content_cmodels();
-  if (!(array_search($batch_record->default_type_of_resource, $paged_content_models) === FALSE)) {
+  $is_paged_content = islandora_digital_workflow_is_paged_object($batch_record->default_type_of_resource);
+  if ($is_paged_content) {
     $found_files = islandora_digital_workflow_scandir_paged_content_files($batch_path . '/' . $pid);
   }
   else {

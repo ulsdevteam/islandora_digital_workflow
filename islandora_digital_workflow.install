@@ -90,6 +90,8 @@ function islandora_digital_workflow_enable() {
   db_query("ALTER TABLE `islandora_digital_workflow_transactions` " .
     "CHANGE COLUMN `timestamp` `timestamp` TIMESTAMP NULL DEFAULT " .
     "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+  db_query("ALTER TABLE `islandora_digital_workflow_drush_log` " .
+    "CHANGE COLUMN `timestamp` `timestamp` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
   db_query("ALTER TABLE `islandora_digital_workflow_problem_items` " .
     "CHANGE COLUMN `problem_timestamp` `problem_timestamp` TIMESTAMP NULL");
   db_query("ALTER TABLE `islandora_digital_workflow_problem_items` " .
@@ -100,7 +102,48 @@ function islandora_digital_workflow_enable() {
 * Implementation of hook_schema().
 */
 function islandora_digital_workflow_schema() {
-  // create the database table that stores the solr session user keys
+  // Create the database tables that stores all of the required workflow values.
+  // Some of these are for tracking the workflow, others are for configurations.
+  $schema['islandora_digital_workflow_actions'] = array(
+    'description' => t('Stores the actions that can be performed for each batch ' .
+        'related to a defined islandora_digital_workflow_model_sequence'),
+    'fields' => array(
+      'action_id' => array(
+        'description' => 'The primary identifier for the record',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'name' => array(
+        'type' => 'varchar',
+        'length' => 50,
+        'not null' => TRUE,
+      ),
+      'description' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+      'glyph' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'is_batch_action' => array(
+        'description' => 'Is the action for a batch or a batch_item?',
+        'type' => 'int',
+        'size' => 'tiny',
+        'default' => 0,
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+    ),
+    'indexes' => array(
+      'ss_name' => array('name'),
+    ),
+    'primary key' => array('action_id'),
+  );
   $schema['islandora_digital_workflow_batch'] = array(
     'description' => t('The additional batch properties and defaults that are ' .
         'not stored on the node object.'),
@@ -345,61 +388,12 @@ function islandora_digital_workflow_schema() {
     ),
     'primary key' => array('batch_item_id'),
   );
-  $schema['islandora_digital_workflow_actions'] = array(
-    'description' => t('Stores the actions that can be performed for each batch ' .
-        'related to a defined islandora_digital_workflow_model_sequence'),
+  $schema['islandora_digital_workflow_drush_log'] = array(
+    'description' => t('Stores any drush commands that have been called relating to batches and batch items'),
     'fields' => array(
-      'action_id' => array(
-        'description' => 'The primary identifier for the record',
+      'drush_log_id' => array(
+        'description' => 'The drush_log_id for a drush command',
         'type' => 'serial',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-      ),
-      'name' => array(
-        'type' => 'varchar',
-        'length' => 50,
-        'not null' => TRUE,
-      ),
-      'description' => array(
-        'type' => 'varchar',
-        'length' => 255,
-        'not null' => TRUE,
-      ),
-      'glyph' => array(
-        'type' => 'varchar',
-        'length' => 255,
-        'not null' => TRUE,
-        'default' => '',
-      ),
-      'is_batch_action' => array(
-        'description' => 'Is the action for a batch or a batch_item?',
-        'type' => 'int',
-        'size' => 'tiny',
-        'default' => 0,
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-      ),
-    ),
-    'indexes' => array(
-      'ss_name' => array('name'),
-    ),
-    'primary key' => array('action_id'),
-  );
-  $schema['islandora_digital_workflow_transactions'] = array(
-    'description' => t('Stores transactions related to batch and batch items'),
-    'fields' => array(
-      'transaction_id' => array(
-        'description' => 'The action_id for the transction for a related ' .
-          'islandora_digital_workflow_actions record',
-        'type' => 'serial',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-      ),
-      'action_id' => array(
-        'description' => 'The action_id for the transction for a related ' .
-          'islandora_digital_workflow_actions record',
-        'type' => 'int',
-        'size' => 'medium',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
@@ -426,17 +420,38 @@ function islandora_digital_workflow_schema() {
         'unsigned' => TRUE,
         'not null' => FALSE,
       ),
+      'drush_command' => array(
+        'description' => 'The fully qualified drush command that is called by the web server',
+        'type' => 'text',
+        'size' => 'medium',
+        'not null' => TRUE,
+      ),
+      'output' => array(
+        'description' => 'The output of the drush call',
+        'type' => 'text',
+        'size' => 'medium',
+        'not null' => TRUE,
+      ),
+      'return_val' => array(
+        'description' => 'The return value of the drush call',
+        'type' => 'int',
+        'size' => 'tiny',
+        'default' => 0,
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
       'timestamp' => array(
         'description' => 'Last modified date of the record',
         'type' => 'int',
         'not null' => FALSE,
       ),
     ),
-    'primary key' => array('transaction_id'),
+    'primary key' => array('drush_log_id'),
     'indexes' => array(
-      'ss_action_id_batch_item_id_batch_id' => array('action_id', 'batch_item_id', 'batch_id'),
+      'ss_batch_item_id_batch_id' => array('batch_item_id', 'batch_id'),
     ),
   );
+
   $schema['islandora_digital_workflow_problem_items'] = array(
     'description' => t('Stores problem transactions related to batch items'),
     'fields' => array(
@@ -578,6 +593,58 @@ function islandora_digital_workflow_schema() {
       'ss_workflow_sequence_id_action_id_order' => array('workflow_sequence_id', 'action_id', 'order'),
     ),
     'primary key' => array('workflow_sequence_id', 'action_id', 'islandora_model'),
+  );
+  $schema['islandora_digital_workflow_transactions'] = array(
+    'description' => t('Stores transactions related to batch and batch items'),
+    'fields' => array(
+      'transaction_id' => array(
+        'description' => 'The action_id for the transction for a related ' .
+          'islandora_digital_workflow_actions record',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'action_id' => array(
+        'description' => 'The action_id for the transction for a related ' .
+          'islandora_digital_workflow_actions record',
+        'type' => 'int',
+        'size' => 'medium',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'batch_id' => array(
+        'description' => 'The batch_id for related ' .
+          'islandora_digital_workflow_batch record',
+        'type' => 'int',
+        'size' => 'medium',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+      'batch_item_id' => array(
+        'description' => 'The batch_item_id for a related ' .
+          'islandora_digital_workflow_batch_items record',
+        'type' => 'int',
+        'size' => 'medium',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+      'drupal_uid' => array(
+        'description' => 'The drupal user uid value related to the transaction',
+        'type' => 'int',
+        'size' => 'medium',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+      'timestamp' => array(
+        'description' => 'Last modified date of the record',
+        'type' => 'int',
+        'not null' => FALSE,
+      ),
+    ),
+    'primary key' => array('transaction_id'),
+    'indexes' => array(
+      'ss_action_id_batch_item_id_batch_id' => array('action_id', 'batch_item_id', 'batch_id'),
+    ),
   );
 
   return $schema;
