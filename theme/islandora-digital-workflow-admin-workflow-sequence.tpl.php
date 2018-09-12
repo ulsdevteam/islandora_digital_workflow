@@ -31,12 +31,12 @@
         <?php foreach ($sequence_models as $model): ?>
           <p><b><?php print l($model . t(' Actions'), 'admin/islandora/islandora_digital_workflow/workflow_sequences/' . $workflow_sequence_id . '|' . $model); ?>:</b></p>
           <ul>
-          <?php if (count($markup_batch_actions[$model]) > 0): ?>
-            <li class="no_indent"><?php print $model; ?> Batch actions</li>
+          <?php if (array_key_exists($model, $markup_batch_actions) && count($markup_batch_actions[$model]) > 0): ?>
+            <li class="no_indent">Batch actions</li>
             <ul class="batch_action_box corner_bordered"><?php print implode("\n" , $markup_batch_actions[$model]); ?></ul>
           <?php endif; ?>
-          <?php if (count($markup_item_actions[$model]) > 0): ?>
-            <li class="no_indent"><?php print $model; ?> Item actions</li>
+          <?php if (array_key_exists($model, $markup_item_actions) && count($markup_item_actions[$model]) > 0): ?>
+            <li class="no_indent">Item actions</li>
             <ul class="corner_bordered item_action_box"><?php print implode("\n" , $markup_item_actions[$model]); ?></ul>
           <?php endif; ?>
           </ul>

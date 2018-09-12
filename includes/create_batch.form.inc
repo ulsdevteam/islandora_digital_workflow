@@ -608,6 +608,19 @@ function islandora_digital_workflow_create_empty_batch_form_validate(&$elements,
     $edit_this_batch_link = l($batch_name, 'islandora/islandora_digital_workflow/edit_batch/' . $batch_name);
     drupal_set_message('Edit existing batch "' . $edit_this_batch_link . '".', 'warning');
   }
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
+  $legal_batch_name = islandora_digital_workflow_convert_to_filename($batch_name);
+  if ($batch_name <> $legal_batch_name) {
+    form_set_error('batch_name', t('The Batch name value contained illegal ' .
+        'characters.  These have been replaced with new values.<br>Please review:<br>' .
+        '<ul><li><b>Batch name:</b> "@init_batch_name"</li>' .
+        '<li><b>Recommended name:</b> "@legal_batch_name"</li></ul>',
+        array(
+            '@init_batch_name' => $batch_name,
+            '@legal_batch_name' => $legal_batch_name,
+        )));
+    $elements['batch_edit_frame']['batch_name']['#value'] = $legal_batch_name;
+  }
 }
 
 /**

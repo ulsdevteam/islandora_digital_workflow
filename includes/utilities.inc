@@ -2115,10 +2115,35 @@ function islandora_digital_workflow_is_paged_object($object_or_string) {
  */
 function islandora_digital_workflow_path_needs_js($path) {
   $paths_needing_js = array(
+      'node/%/items',
+      'node/%/edit_transaction/%',
+      'node/%/add_transaction/%/%',
+      // repeat since the "node_load" function expects this to be named %node
       'node/%node/items',
       'node/%node/edit_transaction/%',
       'node/%node/add_transaction/%/%',
   );
   return ($path && !is_array($path)) ? (!(array_search($path, $paths_needing_js) === FALSE))
       : FALSE;
+}
+
+/**
+ * Converts a string to a valid UNIX filename.
+ * @param $string The filename to be converted
+ * @return $string The filename converted
+ */
+function islandora_digital_workflow_convert_to_filename($string) {
+  // Replace spaces with underscores and makes the string lowercase
+  $string = str_replace (" ", "_", $string);
+  $string = str_replace ("..", ".", $string);
+  $string = strtolower ($string);
+
+  // Match any character that is not in our whitelist
+  preg_match_all ("/[^0-9^a-z^_^.]/", $string, $matches);
+
+  // Loop through the matches with foreach
+  foreach ($matches[0] as $value) {
+    $string = str_replace($value, "", $string);
+  }
+  return $string;
 }

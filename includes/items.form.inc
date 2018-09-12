@@ -340,14 +340,20 @@ function islandora_digital_workflow_batch_items_form(array $form, array &$form_s
           'class' => array($transactions_cell_class)),
       'Identifier' => l($item->identifier, '/node/' . $node->nid . '/item/' . $item->batch_item_id),
       'Title' => $item->title,
-      'Filename' => $item->master_filename_basename,
+      'Ready for' => $item->ready_for,
+      'Last action' => $item->last_action,
+      'When' => $item->when,
+//      'Filename' => $item->master_filename_basename,
     );
   }
   $items_header = array(
     'Transactions' => 'Transactions',
     'Identifier' => 'Identifier',
     'Title' => 'Title',
-    'Filename' => 'Filename',
+    'Ready for' => 'Ready for',
+    'Last action' => 'Last action',
+    'When' => 'When',
+//    'Filename' => 'Filename',
   );
   $required_batch_actions = islandora_digital_workflow_get_required_batch_actions($batch_record->batch_id);
   // Easy to loop through the set of $required_batch_actions to set the ones that

@@ -547,7 +547,12 @@ function islandora_digital_workflow_get_batch_items_by_nid($nid) {
   // Due to the nature of this query and how stubborn the db_select is with creating
   // a LEFT JOIN query that uses GROUP BY and GROUP_CONCAT to display the needed
   // field values, this is much MUCH MUCH easier to write out as a SQL statement.
-  $query = db_query('SELECT bi.identifier, bi.title, bi.filename, 
+  $query = db_query('SELECT bi.identifier, bi.title, bi.filename,
+    \'\' as `ready_for`,
+    (SELECT description FROM islandora_digital_workflow_actions wfa
+     JOIN islandora_digital_workflow_transactions wft ON (wft.action_id = wfa.action_id)
+     WHERE wft.transaction_id = MAX(bt.transaction_id)) as `last_action`,
+    (MAX(bt.timestamp)) as `when`,
     GROUP_CONCAT(DISTINCT a.name) as `transaction_actions`,
     GROUP_CONCAT(DISTINCT a.action_id) as `transaction_action_ids`,
     bi.batch_item_id
@@ -1184,6 +1189,5 @@ function islandora_digital_workflow_unset_problems_records($batch_id) {
       WHERE batch_id = ' . $batch_id . '
      )
     )';
-  dpm($sql);
   db_query($sql);
 }
