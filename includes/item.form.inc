@@ -115,6 +115,8 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
     $found_files = islandora_digital_workflow_scan_files($batch_path . '/' . $pid, $file_records);
   }
   $item_record_transactions = islandora_digital_workflow_get_batch_item_transactions($batch_item_id, $node->nid, $batch_record->batch_id);
+  $previous_problems = islandora_digital_workflow_get_batch_item_problems($batch_item_id, $batch_record->batch_id, FALSE);
+  $unresolved_problems = islandora_digital_workflow_get_batch_item_problems($batch_item_id, $batch_record->batch_id, TRUE);
   islandora_digital_workflow_merge_transactions_with_item_actions($item_record_transactions, $required_batch_actions, $node->nid);
   $islandora_object = islandora_object_load($pid);
   if (is_object($islandora_object)) {
@@ -136,6 +138,8 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
         'is_paged_content' => $is_paged_content,
         'workflow_sequence_text' => $workflow_sequence_text,
         'can_update' => user_access(ISLANDORA_DIGITAL_WORKFLOW_UPDATE_ITEMS),
+        'previous_problems' => $previous_problems,
+        'unresolved_problems' => $unresolved_problems,
         'item_record_transactions' => $item_record_transactions,
         'pid' => $pid,
         'can_ingest' => $can_ingest,

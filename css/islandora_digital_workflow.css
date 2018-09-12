@@ -530,6 +530,19 @@ tr.spaceUnder>td {
     box-shadow: 1px 1px 4px #aaa;    
 }
 
+.problem_result {
+    background-color: #fafafa;
+    margin: 20px;
+}
+
+.problem_result div pre {
+    background-color: white;
+}
+.problem_result div label {
+    display: inline-block;
+    width: 15%;
+}
+
 .straight-edge {
     border-radius: 0 !important;
     background-color: transparent !important;

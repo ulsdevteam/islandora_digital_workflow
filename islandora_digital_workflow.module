@@ -231,7 +231,7 @@ function islandora_digital_workflow_menu() {
       'weight' => 90,
     ),
     'node/%node/transactions' => array(
-      'title' => t('Transactions'),
+      'title' => t('Batch Transactions'),
       'page callback' => 'islandora_digital_workflow_batch_transactions',
       // arguments are handled with arg(1).
       'access callback' => 'islandora_digital_workflow_access_node',
@@ -467,6 +467,8 @@ function islandora_digital_workflow_theme() {
         'is_paged_content' => FALSE,
         'workflow_sequence_text' => '',
         'can_update' => FALSE,
+        'previous_problems' => array(),
+        'unresolved_problems' => array(),
         'item_record_transactions' => array(),
         'pid' => '',
         'can_ingest' => FALSE,

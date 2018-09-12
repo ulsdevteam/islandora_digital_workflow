@@ -61,7 +61,6 @@
       </form>
   </div>
 
-
   <div class="report_table">
     <h3>Item Transactions</h3>
     <?php if (count($item_record_transactions) > 0) : ?>
@@ -110,6 +109,31 @@
     <?php endif; ?>
     <hr>
     <?php print $workflow_sequence_text; ?>
+
+    <?php if (is_array($previous_problems) && count($previous_problems) > 0): ?>
+    <h3>Resolved Problem/s</h3>
+    <div class="problem_result messages status">
+      <?php foreach ($previous_problems as $previous_problem): ?>
+      <div>
+        <label>Initially logged:</label> <?php print $previous_problem->problem_how_long_ago . ' (' . $previous_problem->problem_timestamp . ')'; ?> by <?php print $previous_problem->user_name; ?><br>
+        <label>Problem resolved:</label> <?php print $previous_problem->problem_resolved_how_long_ago . ' (' . $previous_problem->problem_resolved_timestamp . ')'; ?><br>
+        <label>Problem notes:</label><pre><?php print $previous_problem->problem_notes ?></pre>
+      </div>
+      <?php endforeach; ?>
+    </div>
+    <?php endif; ?>
+
+    <?php if (is_array($unresolved_problems) && count($unresolved_problems) > 0): ?>
+    <h3>Unresolved Problem/s</h3>
+    <div class="problem_result messages error">
+      <?php foreach ($unresolved_problems as $unresolved_problem): ?>
+      <div>
+        <label>Initially logged:</label> <?php print $unresolved_problem->problem_how_long_ago . ' (' . $unresolved_problem->problem_timestamp . ')'; ?> by <?php print $unresolved_problem->user_name; ?><br>
+        <label>Problem notes:</label><pre><?php print $unresolved_problem->problem_notes ?></pre>
+      </div>
+      <?php endforeach; ?>
+    </div>
+    <?php endif; ?>
 
     <?php if (count($found_files) > 0) : ?>
     <?php $toggle = FALSE; ?>

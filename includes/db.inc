@@ -467,22 +467,22 @@ function islandora_digital_workflow_get_batch_transactions_by_nid($nid) {
 function islandora_digital_workflow_get_batch_item_transactions($batch_item_id, $nid, $batch_id) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
 
-  $sql = 'SELECT bt.transaction_id, bt.timestamp AS `timestamp`, bt.transaction_id AS transaction_id, ' .
+  $sql = 'SELECT bt.timestamp AS `timestamp`, bt.transaction_id AS transaction_id, ' .
          'users.uid AS uid, users.name AS name, a.description AS description, ' .
          'a.action_id AS action_id, a.name AS action_name, a.is_batch_action AS is_batch_action, p.problem_notes ' .
          'FROM islandora_digital_workflow_transactions bt ' .
          'LEFT OUTER JOIN islandora_digital_workflow_problem_items p ON bt.transaction_id = p.transaction_id ' .
          'LEFT OUTER JOIN users users ON bt.drupal_uid = users.uid ' .
          'INNER JOIN islandora_digital_workflow_actions a ON a.action_id = bt.action_id ' .
-         'WHERE  (bt.batch_item_id = ' . $batch_item_id . ') ' .
-         'UNION SELECT bt.transaction_id, bt.timestamp AS `timestamp`, bt.transaction_id AS transaction_id, ' .
+         'WHERE  (bt.batch_item_id = ' . $batch_item_id . ' AND p.problem_resolved_timestamp IS NULL) ' .
+         'UNION SELECT bt.timestamp AS `timestamp`, bt.transaction_id AS transaction_id, ' .
          'users.uid AS uid, users.name AS name, a.description AS description, ' .
          'a.action_id AS action_id, a.name AS action_name, a.is_batch_action AS is_batch_action, p.problem_notes ' .
          'FROM islandora_digital_workflow_transactions bt ' .
          'LEFT OUTER JOIN islandora_digital_workflow_problem_items p ON bt.transaction_id = p.transaction_id ' .
          'LEFT OUTER JOIN users users ON bt.drupal_uid = users.uid ' .
          'INNER JOIN islandora_digital_workflow_actions a ON a.action_id = bt.action_id ' .
-         'WHERE  (bt.batch_id = ' . $batch_id . ') ' .
+         'WHERE  (bt.batch_id = ' . $batch_id . ' AND p.problem_resolved_timestamp IS NULL) ' .
          'ORDER BY `timestamp` ASC';
 
   $results = db_query($sql);
@@ -496,6 +496,43 @@ function islandora_digital_workflow_get_batch_item_transactions($batch_item_id, 
     $rows[$index]->nid = $nid;
     $rows[$index]->is_batch_action = $row->is_batch_action;
     $rows[$index]->transaction_id = $row->transaction_id;
+    $rows[$index]->problem_notes = $row->problem_notes;
+  }
+  return $rows;
+}
+
+/**
+ *
+/**
+ * This will get all of the transactions records related to a given Drupal batch_item.
+ *
+ * @param integer $batch_item_id
+ *   $batch_item_id value matching an individual batch item.
+ * @param type $batch_id
+ *   The $batch_id value matching a batch.
+ * @param boolean $unresolved
+ *   Whether or not to restrict the query to problems that have been resolved.
+ * @return array
+ *   Either returns an array of batch record objects or NULL if it cannot be found.
+ */
+function islandora_digital_workflow_get_batch_item_problems($batch_item_id, $batch_id, $unresolved = FALSE) {
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
+
+  $sql = 'SELECT p.problem_notes, p.problem_timestamp, p.problem_resolved_timestamp, ' .
+         'users.uid AS uid, users.name AS user_name, bt.batch_id, bt.batch_item_id, bi.identifier, bi.title ' .
+         'FROM islandora_digital_workflow_problem_items p ' .
+         'JOIN islandora_digital_workflow_transactions bt ON p.transaction_id = bt.transaction_id ' .
+         'LEFT OUTER JOIN islandora_digital_workflow_batch_items bi ON bt.batch_item_id = bi.batch_item_id ' .
+         'LEFT OUTER JOIN users users ON bt.drupal_uid = users.uid ' .
+         'WHERE ((bt.batch_item_id = 1 OR bt.batch_id = 1) AND ' . ($unresolved ? '' : 'NOT ') . 'p.problem_resolved_timestamp IS NULL) ' .
+         'ORDER BY p.problem_timestamp DESC';
+
+  $results = db_query($sql);
+  $rows = $results->fetchAll();
+  foreach ($rows as $index => $row) {
+    $rows[$index]->problem_how_long_ago = islandora_digital_workflow_timeago_from_timestamp($row->problem_timestamp);
+    $rows[$index]->problem_resolved_how_long_ago = (($unresolved) ? '' : islandora_digital_workflow_timeago_from_timestamp($row->problem_resolved_timestamp));
+    $rows[$index]->user_name = ($row->uid) ? l($row->user_name, 'user/' . $row->uid, array('attributes' => array('target' => '_blank'))) : 'system';
     $rows[$index]->problem_notes = $row->problem_notes;
   }
   return $rows;
