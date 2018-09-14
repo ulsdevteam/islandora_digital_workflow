@@ -31,6 +31,7 @@ define('IDW_ACTION_ALL_CHECK_PHYSICAL_ITEMS', 1005);
 // in includes/access_permissions.inc named
 // islandora_digital_workflow_permission_name_of_model() will do.
 define('ISLANDORA_DIGITAL_WORKFLOW', 'digital workflow access');
+define('ISLANDORA_DIGITAL_WORKFLOW_MANAGE', 'digital workflow manage');
 define('ISLANDORA_DIGITAL_WORKFLOW_CREATE_NEW_BATCH', 'digital workflow create batches');
 define('ISLANDORA_DIGITAL_WORKFLOW_VIEW_TRANSACTIONS', 'digital workflow view transactions');
 define('ISLANDORA_DIGITAL_WORKFLOW_EDIT_DELETE_TRANSACTIONS', 'digital workflow edit transactions');
@@ -52,7 +53,7 @@ function islandora_digital_workflow_menu() {
       'type' => MENU_LOCAL_TASK,
       'page callback' => 'drupal_get_form',
       'page arguments' => array('islandora_digital_workflow_admin_form'),
-      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW),
+      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_MANAGE),
       'file' => 'includes/admin.form.inc',
     ),
     'admin/islandora/islandora_digital_workflow/workflow_sequences' => array(
@@ -326,6 +327,10 @@ function islandora_digital_workflow_permission() {
     ISLANDORA_DIGITAL_WORKFLOW => array(
       'title' => t('Use the Islandora Digital Workflow system.'),
       'description' => t('User can access and use the Islandora Digital Workflow system.'),
+    ),
+    ISLANDORA_DIGITAL_WORKFLOW_MANAGE => array(
+      'title' => t('Manage Workflow'),
+      'description' => t('User can manage the Islandora Digital Workflow configuration settings'),
     ),
     ISLANDORA_DIGITAL_WORKFLOW_CREATE_NEW_BATCH => array(
       'title' => t('Create new digital workflow batches.'),

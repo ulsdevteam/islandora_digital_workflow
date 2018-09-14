@@ -14,21 +14,21 @@
 ?>
 <div id="no-sidebars">
 
-  <?php if ($workflow_sequences[$batch_record->workflow_sequence_id]['max_timestamp'] > $max_timestamp_and_how_long_ago->max_timestamp): ?>
-  <h3>Workflow Sequence updated</h3>
-  <div class="dashboard-report messages warning">
-      <p>Workflow Sequence has been updated AFTER action/s on this Item.
-      The sequence was modified <?php print $workflow_sequences[$batch_record->workflow_sequence_id]['how_long_ago']; ?> on
-      <?php print $workflow_sequences[$batch_record->workflow_sequence_id]['max_timestamp']; ?>
-      while the most recent transaction for this item happened
-      <?php print $max_timestamp_and_how_long_ago->how_long_ago; ?> on
-      <?php print $max_timestamp_and_how_long_ago->max_timestamp; ?>.</p>
+  <?php if (is_array($unresolved_problems) && count($unresolved_problems) > 0): ?>
+  <div class="dashboard-report messages error">
+    <h3>Unresolved Problem/s</h3>
+    <?php foreach ($unresolved_problems as $unresolved_problem): ?>
+    <div>
+      <label>Initially logged:</label> <?php print $unresolved_problem->problem_how_long_ago . ' on ' . $unresolved_problem->problem_timestamp; ?> by <?php print $unresolved_problem->user_name; ?><br>
+      <label>Problem notes:</label><pre><?php print $unresolved_problem->problem_notes ?></pre>
+    </div>
+    <?php endforeach; ?>
   </div>
   <?php endif; ?>
 
   <?php if (is_array($previous_problems) && count($previous_problems) > 0): ?>
-  <h3>Resolved Problem/s</h3>
   <div class="dashboard-report messages status">
+    <h3>Resolved Problem/s</h3>
     <?php foreach ($previous_problems as $previous_problem): ?>
     <div>
       <label>Initially logged:</label> <?php print $previous_problem->problem_how_long_ago . ' on ' . $previous_problem->problem_timestamp; ?> by <?php print $previous_problem->user_name; ?><br>
@@ -39,15 +39,15 @@
   </div>
   <?php endif; ?>
 
-  <?php if (is_array($unresolved_problems) && count($unresolved_problems) > 0): ?>
-  <h3>Unresolved Problem/s</h3>
-  <div class="dashboard-report messages error">
-    <?php foreach ($unresolved_problems as $unresolved_problem): ?>
-    <div>
-      <label>Initially logged:</label> <?php print $unresolved_problem->problem_how_long_ago . ' on ' . $unresolved_problem->problem_timestamp; ?> by <?php print $unresolved_problem->user_name; ?><br>
-      <label>Problem notes:</label><pre><?php print $unresolved_problem->problem_notes ?></pre>
-    </div>
-    <?php endforeach; ?>
+  <?php if ($workflow_sequences[$batch_record->workflow_sequence_id]['max_timestamp'] > $max_timestamp_and_how_long_ago->max_timestamp): ?>
+  <div class="dashboard-report messages info">
+    <h3>Workflow Sequence updated</h3>
+      <p>Workflow Sequence has been updated AFTER action/s on this Item.
+      The sequence was modified <?php print $workflow_sequences[$batch_record->workflow_sequence_id]['how_long_ago']; ?> on
+      <?php print $workflow_sequences[$batch_record->workflow_sequence_id]['max_timestamp']; ?>
+      while the most recent transaction for this item happened
+      <?php print $max_timestamp_and_how_long_ago->how_long_ago; ?> on
+      <?php print $max_timestamp_and_how_long_ago->max_timestamp; ?>.</p>
   </div>
   <?php endif; ?>
 

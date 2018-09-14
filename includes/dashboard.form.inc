@@ -64,7 +64,7 @@ function islandora_digital_workflow_get_dashboard_links() {
   if (user_access(ISLANDORA_DIGITAL_WORKFLOW_USE_UTILITIES)) {
     $links['utility'][] = l('Utilities', '/islandora/islandora_digital_workflow/utilities') . '<br><span class="small_lt_text">Perform functions on a set of batches and items.</span><br><br>';
   }
-  if (user_access(ISLANDORA_DIGITAL_WORKFLOW_MANAGE_SEQUENCES)) {
+  if (user_access(ISLANDORA_DIGITAL_WORKFLOW_MANAGE)) {
     $links['admin'][] = l('Islandora Digital Workflow Settings', '/admin/islandora/islandora_digital_workflow') . '<br><span class="small_lt_text">Configure options and settings for the Islandora Digital Workflow module.</span><br><br>';
   }
   if (user_access('administer permissions')) {

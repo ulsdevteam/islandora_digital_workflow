@@ -208,6 +208,29 @@ span.transaction_action_reserved_action_spacer {
 
 .dashboard-report h3 {
     margin: 0 0 10px 0 !important;
+    font-size: 1.2em;
+}
+
+.dashboard-report div pre {
+    background-color: white;
+    padding: 4px;
+    border: 1px solid #ddd;
+}
+
+div.info {
+  background-image: url("../images/message-24-info.png");
+  border-color: #bbb;
+}
+div.info,
+.info {
+  color: #444;
+}
+div.info,
+table tr.info {
+  background-color: #F4F4F4;
+}
+div.info p.info {
+  color: #333;
 }
 
 .indent-item {
