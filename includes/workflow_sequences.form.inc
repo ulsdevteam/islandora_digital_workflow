@@ -48,6 +48,7 @@ function islandora_digital_workflow_sequences() {
       }
     }
   }
+
   foreach ($workflow_sequences as $workflow_sequence_id => $sequence_info) {
     $models = array_key_exists($workflow_sequence_id, $models_arr) ? implode(", ", $models_arr[$workflow_sequence_id]) : '';
     $this_workflow_sequence_actions = array_key_exists($workflow_sequence_id, $workflow_sequence_actions) ? $workflow_sequence_actions[$workflow_sequence_id] : array();
@@ -95,6 +96,8 @@ function islandora_digital_workflow_sequences() {
           'markup_item_actions' => $markup_item_actions,
           'models' => $models,
           'sequence_in_use' => $sequence_in_use,
+          'sequence_last_modified' => $workflow_sequences[$workflow_sequence_id]['how_long_ago'] . 
+            ' on ' . $workflow_sequences[$workflow_sequence_id]['max_timestamp'],
       )),
     );
   }

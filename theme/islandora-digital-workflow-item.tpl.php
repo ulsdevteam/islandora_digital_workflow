@@ -13,7 +13,43 @@
 */
 ?>
 <div id="no-sidebars">
-  <h3>Return to <b><a href="../items"><?php print $batch_record->batch_name; ?></a></b></h3>
+
+  <?php if ($workflow_sequences[$batch_record->workflow_sequence_id]['max_timestamp'] > $max_timestamp_and_how_long_ago->max_timestamp): ?>
+  <h3>Workflow Sequence updated</h3>
+  <div class="dashboard-report messages warning">
+      <p>Workflow Sequence has been updated AFTER action/s on this Item.
+      The sequence was modified <?php print $workflow_sequences[$batch_record->workflow_sequence_id]['how_long_ago']; ?> on
+      <?php print $workflow_sequences[$batch_record->workflow_sequence_id]['max_timestamp']; ?>
+      while the most recent transaction for this item happened
+      <?php print $max_timestamp_and_how_long_ago->how_long_ago; ?> on
+      <?php print $max_timestamp_and_how_long_ago->max_timestamp; ?>.</p>
+  </div>
+  <?php endif; ?>
+
+  <?php if (is_array($previous_problems) && count($previous_problems) > 0): ?>
+  <h3>Resolved Problem/s</h3>
+  <div class="dashboard-report messages status">
+    <?php foreach ($previous_problems as $previous_problem): ?>
+    <div>
+      <label>Initially logged:</label> <?php print $previous_problem->problem_how_long_ago . ' on ' . $previous_problem->problem_timestamp; ?> by <?php print $previous_problem->user_name; ?><br>
+      <label>Problem resolved:</label> <?php print $previous_problem->problem_resolved_how_long_ago . ' on ' . $previous_problem->problem_resolved_timestamp; ?><br>
+      <label>Problem notes:</label><pre><?php print $previous_problem->problem_notes ?></pre>
+    </div>
+    <?php endforeach; ?>
+  </div>
+  <?php endif; ?>
+
+  <?php if (is_array($unresolved_problems) && count($unresolved_problems) > 0): ?>
+  <h3>Unresolved Problem/s</h3>
+  <div class="dashboard-report messages error">
+    <?php foreach ($unresolved_problems as $unresolved_problem): ?>
+    <div>
+      <label>Initially logged:</label> <?php print $unresolved_problem->problem_how_long_ago . ' on ' . $unresolved_problem->problem_timestamp; ?> by <?php print $unresolved_problem->user_name; ?><br>
+      <label>Problem notes:</label><pre><?php print $unresolved_problem->problem_notes ?></pre>
+    </div>
+    <?php endforeach; ?>
+  </div>
+  <?php endif; ?>
 
   <?php if ($ingested_links): ?>
   <h3>Object has been ingested</h3>
@@ -109,31 +145,6 @@
     <?php endif; ?>
     <hr>
     <?php print $workflow_sequence_text; ?>
-
-    <?php if (is_array($previous_problems) && count($previous_problems) > 0): ?>
-    <h3>Resolved Problem/s</h3>
-    <div class="problem_result messages status">
-      <?php foreach ($previous_problems as $previous_problem): ?>
-      <div>
-        <label>Initially logged:</label> <?php print $previous_problem->problem_how_long_ago . ' (' . $previous_problem->problem_timestamp . ')'; ?> by <?php print $previous_problem->user_name; ?><br>
-        <label>Problem resolved:</label> <?php print $previous_problem->problem_resolved_how_long_ago . ' (' . $previous_problem->problem_resolved_timestamp . ')'; ?><br>
-        <label>Problem notes:</label><pre><?php print $previous_problem->problem_notes ?></pre>
-      </div>
-      <?php endforeach; ?>
-    </div>
-    <?php endif; ?>
-
-    <?php if (is_array($unresolved_problems) && count($unresolved_problems) > 0): ?>
-    <h3>Unresolved Problem/s</h3>
-    <div class="problem_result messages error">
-      <?php foreach ($unresolved_problems as $unresolved_problem): ?>
-      <div>
-        <label>Initially logged:</label> <?php print $unresolved_problem->problem_how_long_ago . ' (' . $unresolved_problem->problem_timestamp . ')'; ?> by <?php print $unresolved_problem->user_name; ?><br>
-        <label>Problem notes:</label><pre><?php print $unresolved_problem->problem_notes ?></pre>
-      </div>
-      <?php endforeach; ?>
-    </div>
-    <?php endif; ?>
 
     <?php if (count($found_files) > 0) : ?>
     <?php $toggle = FALSE; ?>

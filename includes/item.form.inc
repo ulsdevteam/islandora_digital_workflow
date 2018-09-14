@@ -115,6 +115,11 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
     $found_files = islandora_digital_workflow_scan_files($batch_path . '/' . $pid, $file_records);
   }
   $item_record_transactions = islandora_digital_workflow_get_batch_item_transactions($batch_item_id, $node->nid, $batch_record->batch_id);
+  // Get the Workflow sequences data -- to be able to compare the max_timestamp
+  // value to the transactions max_timestamp;
+  $workflow_sequences = islandora_digital_workflow_get_workflow_sequences();
+  $max_timestamp_and_how_long_ago = islandora_digital_workflow_get_max_timestamp_for_batch_item_transactions($batch_item_id, $batch_record->batch_id);
+
   $previous_problems = islandora_digital_workflow_get_batch_item_problems($batch_item_id, $batch_record->batch_id, FALSE);
   $unresolved_problems = islandora_digital_workflow_get_batch_item_problems($batch_item_id, $batch_record->batch_id, TRUE);
   islandora_digital_workflow_merge_transactions_with_item_actions($item_record_transactions, $required_batch_actions, $node->nid);
@@ -144,7 +149,10 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
         'pid' => $pid,
         'can_ingest' => $can_ingest,
         'ingested_links' => $ingested_links,
-        'found_files' => $found_files));
+        'found_files' => $found_files,
+        'max_timestamp_and_how_long_ago' => $max_timestamp_and_how_long_ago,
+        'workflow_sequences' => $workflow_sequences,
+      ));
 }
 
 /**

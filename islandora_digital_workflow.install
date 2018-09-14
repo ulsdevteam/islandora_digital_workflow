@@ -90,6 +90,9 @@ function islandora_digital_workflow_enable() {
   db_query("ALTER TABLE `islandora_digital_workflow_transactions` " .
     "CHANGE COLUMN `timestamp` `timestamp` TIMESTAMP NULL DEFAULT " .
     "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+  db_query("ALTER TABLE `islandora_digital_workflow_sequence_actions` " .
+    "CHANGE COLUMN `timestamp` `timestamp` TIMESTAMP NULL DEFAULT " .
+    "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
   db_query("ALTER TABLE `islandora_digital_workflow_drush_log` " .
     "CHANGE COLUMN `timestamp` `timestamp` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
   db_query("ALTER TABLE `islandora_digital_workflow_problem_items` " .
@@ -588,9 +591,15 @@ function islandora_digital_workflow_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
+      'timestamp' => array(
+        'description' => 'Last modified date of the record',
+        'type' => 'int',
+        'not null' => FALSE,
+      ),
     ),
     'indexes' => array(
       'ss_workflow_sequence_id_action_id_order' => array('workflow_sequence_id', 'action_id', 'order'),
+      'ss_timestamp' => array('timestamp'),
     ),
     'primary key' => array('workflow_sequence_id', 'action_id', 'islandora_model'),
   );

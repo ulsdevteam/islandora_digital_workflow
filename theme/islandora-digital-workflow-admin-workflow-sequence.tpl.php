@@ -11,6 +11,7 @@
 * - $markup_item_actions => array(),
 * - $models => '',
 * - $sequence_in_use => FALSE,
+* - $sequence_last_modified 
 *
 */
 ?><div class="dashboard-report">
@@ -32,28 +33,34 @@
           <p><b><?php print l($model . t(' Actions'), 'admin/islandora/islandora_digital_workflow/workflow_sequences/' . $workflow_sequence_id . '|' . $model); ?>:</b></p>
           <ul>
           <?php if (array_key_exists($model, $markup_batch_actions) && count($markup_batch_actions[$model]) > 0): ?>
-            <li class="no_indent">Batch actions</li>
-            <ul class="batch_action_box corner_bordered"><?php print implode("\n" , $markup_batch_actions[$model]); ?></ul>
+            <li class="no_indent">Batch actions
+              <ul class="batch_action_box corner_bordered"><?php print implode("\n" , $markup_batch_actions[$model]); ?></ul></li>
           <?php endif; ?>
           <?php if (array_key_exists($model, $markup_item_actions) && count($markup_item_actions[$model]) > 0): ?>
-            <li class="no_indent">Item actions</li>
-            <ul class="corner_bordered item_action_box"><?php print implode("\n" , $markup_item_actions[$model]); ?></ul>
+            <li class="no_indent">Item actions
+              <ul class="corner_bordered item_action_box"><?php print implode("\n" , $markup_item_actions[$model]); ?></ul></li>
           <?php endif; ?>
           </ul>
         <?php endforeach; ?>
+          <?php if ($sequence_last_modified): ?>
+          <li><div class="admin_links disabled_text">Sequence last modified: <b><?php print (($sequence_last_modified == '0000-00-00 00:00:00') ? '(not set)' : $sequence_last_modified); ?></b></div></li>
+          <?php endif; ?>
         </ul>
       <?php else: ?>
         <p><b><?php print l(t('Actions'), 'admin/islandora/islandora_digital_workflow/workflow_sequences/' . $workflow_sequence_id); ?>:</b></p>
         <ul>
         <?php if (count($markup_batch_actions) > 0): ?>
-          <li class="no_indent">Batch actions</li>
-          <ul class="batch_action_box corner_bordered"><?php print implode("\n" , $markup_batch_actions); ?></ul>
+          <li class="no_indent">Batch actions
+            <ul class="batch_action_box corner_bordered"><?php print implode("\n" , $markup_batch_actions); ?></ul></li>
         <?php endif; ?>
         <?php if (count($markup_item_actions) > 0): ?>
-          <li class="no_indent">Item actions</li>
-          <ul class="corner_bordered item_action_box"><?php print implode("\n" , $markup_item_actions); ?></ul>
+          <li class="no_indent">Item actions
+            <ul class="corner_bordered item_action_box"><?php print implode("\n" , $markup_item_actions); ?></ul></li>
         <?php endif; ?>
+          <?php if ($sequence_last_modified): ?>
+          <li><div class="admin_links disabled_text">Sequence last modified: <b><?php print (($sequence_last_modified == '0000-00-00 00:00:00') ? '(not set)' : $sequence_last_modified); ?></b></div></li>
+          <?php endif; ?>
+        </ul>
       <?php endif; ?>
-      </ul>
     </div>
   </div>

@@ -454,6 +454,26 @@ function islandora_digital_workflow_get_batch_transactions_by_nid($nid) {
   return $rows;
 }
 
+function islandora_digital_workflow_get_max_timestamp_for_batch_item_transactions($batch_item_id, $batch_id) {
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
+
+  $sql = 'SELECT MAX(bt.timestamp) AS `max_timestamp` ' .
+         'FROM islandora_digital_workflow_transactions bt ' .
+         'LEFT OUTER JOIN islandora_digital_workflow_problem_items p ON bt.transaction_id = p.transaction_id ' .
+         'WHERE (p.problem_resolved_timestamp IS NULL AND ' .
+         ' (bt.batch_item_id = ' . $batch_item_id . ' OR ' .
+         ' bt.batch_id = ' . $batch_id . '))';
+
+  $results = db_query($sql);
+  $rows = $results->fetchAll();
+  $return_object = new stdClass();
+  foreach ($rows as $index => $row) {
+    $return_object->how_long_ago = islandora_digital_workflow_timeago_from_timestamp($row->max_timestamp);
+    $return_object->max_timestamp = $row->max_timestamp;
+  }
+  return $return_object;
+}
+
 /**
  * This will get all of the transactions records related to a given Drupal batch_item.
  *
@@ -524,7 +544,7 @@ function islandora_digital_workflow_get_batch_item_problems($batch_item_id, $bat
          'JOIN islandora_digital_workflow_transactions bt ON p.transaction_id = bt.transaction_id ' .
          'LEFT OUTER JOIN islandora_digital_workflow_batch_items bi ON bt.batch_item_id = bi.batch_item_id ' .
          'LEFT OUTER JOIN users users ON bt.drupal_uid = users.uid ' .
-         'WHERE ((bt.batch_item_id = 1 OR bt.batch_id = 1) AND ' . ($unresolved ? '' : 'NOT ') . 'p.problem_resolved_timestamp IS NULL) ' .
+         'WHERE ((bt.batch_item_id = ' . $batch_item_id . ' OR bt.batch_id = ' . $batch_id . ') AND ' . ($unresolved ? '' : 'NOT ') . 'p.problem_resolved_timestamp IS NULL) ' .
          'ORDER BY p.problem_timestamp DESC';
 
   $results = db_query($sql);
@@ -828,12 +848,18 @@ function islandora_digital_workflow_get_workflow_sequences() {
   $query = db_select('islandora_digital_workflow_sequence', 's')
       ->fields('s')
       ->orderBy('s.workflow_sequence_id');
+  $query->addExpression('(SELECT MAX(timestamp) FROM islandora_digital_workflow_sequence_actions WHERE workflow_sequence_id = s.workflow_sequence_id)', 'max_timestamp');
+
   $results = $query->execute();
+
   $rows = $results->fetchAll();
   $return_array = array();
   foreach ($rows as $i => $row) {
+    $row->how_long_ago = islandora_digital_workflow_timeago_from_timestamp($row->max_timestamp);
     $return_array[$row->workflow_sequence_id] = (array) $row;
+
   }
+
   return $return_array;
 }
 
@@ -869,6 +895,9 @@ function islandora_digital_workflow_get_batch_action_options($display_reserved_a
   return $return_array;
 }
 
+
+
+
 /**
  * Returns the list of workflow sequence name values.
  *
@@ -883,6 +912,7 @@ function islandora_digital_workflow_get_workflow_sequence_actions() {
       ->fields('sa')
       ->orderBy('sa.workflow_sequence_id')
       ->orderBy('sa.order');
+
   $query->join('islandora_digital_workflow_actions', 'a', 'a.action_id = sa.action_id');
   $query->addField('a', 'action_id', 'action_id');
   $query->addField('a', 'name', 'action_name');
