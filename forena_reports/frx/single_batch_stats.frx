@@ -15,24 +15,16 @@
         <frx:docgen>
         </frx:docgen>
         <frx:fields>
-  <frx:field id="User" link="user/{User}"/>
-  <frx:field id="identifier" link="node/{nid}/item/{batch_item_id}"/>
-  <frx:field id="Item" link="node/{nid}/items/{batch_item_id}"/>
-        
-
-  <frx:field id="file_size" format="number" format-string="9,999"/>
-
-  <frx:field id="batch_name" link="node/{nid}"/>
-
-
-</frx:fields>
+            <frx:field id="User" link="user/{User}"/>
+            <frx:field id="identifier" link="node/{nid}"/>
+        </frx:fields>
         <frx:menu/>
         <frx:cache/>
         <style/>
     <frx:description/><meta content="Detail on the items and transactions related to a single batch record." name="description"/></head>
     <body>
         <div id="single_batch_stats" class="FrxFieldTable" frx:block="islandora_digital_workflow_sql/single_batch_stats" frx:foreach="*">
-            <table>
+            <table style="width: 60%">
                 <tbody>
                     <tr>
                         <th>Batch</th>
@@ -76,37 +68,25 @@
         <tr>
           <th>identifier</th>
           <th>title</th>
-          <th>file count</th>
-          <th>file size</th>
+          <th class="numeric_heading">file count</th>
+          <th class="numeric_heading">file size</th>
           <th>MASTER filename</th></tr></thead>
       <tbody>
         <tr id="single_batch_details" frx:foreach="*">
           <td>{identifier}</td>
           <td>{title}</td>
-          <td>{file_count}</td>
-          <td>{file_size}</td>
+          <td class="numeric_cell">{file_count}</td>
+          <td class="numeric_cell">{file_size}</td>
           <td>{MASTER filename}</td></tr>
       </tbody>
     </table>
     </div>
-    </div>
-
-
-    <div id="batch_transactions_block" class="FrxTable" frx:block="islandora_digital_workflow_sql/batch_transactions">
     <table>
       <caption>Transactions</caption>
-      <thead>
-        <tr>
-          <th>Action</th>
-          <th>Item</th>
-          <th>batch name</th>
-          <th>User</th>
-          <th>timestamp</th></tr></thead>
-      <tbody>
-        <tr id="batch_transactions" frx:foreach="*">
-          <td>{Action}</td>
-          <td>{Item}</td>
-          <td>{batch_name}</td>
-          <td>{User}</td>
-          <td>{timestamp}</td></tr></tbody></table></div></body>
+      <tbody><tr><td>
+        Visit the <a href="node/{nid}/items">Batch Items</a> page or the <a href="node/{nid}/transactions">Batch Transactions</a> for a better view of this batch's transactions.
+      </td></tr></tbody></table>    
+    </div>
+
+  </body>
 </html>

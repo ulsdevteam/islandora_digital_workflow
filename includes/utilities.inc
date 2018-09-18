@@ -311,6 +311,8 @@ function islandora_digital_workflow_sync_batch_item_record($batch_record, $csv_f
         ))
         ->condition('transaction_id', $timestamp_transaction_id['transaction_id'])
         ->execute();
+      // check to see if this specific change will trigger any transaction Stage changes
+      islandora_digital_workflow_check_trigger_stage_change($timestamp_transaction_id['transaction_id']);
     }
   }
 }
@@ -1847,7 +1849,7 @@ function islandora_digital_workflow_item_non_system_actions_all_done($item_recor
  * sequence array that is a join between the islandora_digital_workflow_actions
  * with the islandora_digital_workflow_sequence table OR a record from 
  * islandora_digital_workflow_get_batch_action_options or 
- * islandora_digital_workflow_get_item_actions.  All of these arrays should
+ * islandora_digital_workflow_get_item_action_options.  All of these arrays should
  * contain the required 'is_batch_action' array key.
  * @return boolean
  *   Whether or not the given $action_id represnts a batch_action (else it is
@@ -1915,6 +1917,9 @@ function islandora_digital_workflow_using_action($workflow_sequence_actions, $ac
   $workflow_sequences_using_action = array();
   foreach ($workflow_sequence_actions as $workflow_sequence_id => $workflow_sequence_actions) {
     foreach ($workflow_sequence_actions as $workflow_sequence_action) {
+      if (array_key_exists(0, $workflow_sequence_action)) {
+        $workflow_sequence_action = array_shift($workflow_sequence_action);
+      }
       if ($workflow_sequence_action['action_id'] == $action_id) {
         $workflow_sequences_using_action[$workflow_sequence_id] = $workflow_sequence_id;
       }
@@ -2122,6 +2127,8 @@ function islandora_digital_workflow_path_needs_js($path) {
       'node/%node/items',
       'node/%node/edit_transaction/%',
       'node/%node/add_transaction/%/%',
+      // admin screen for workflow_sequence_actions/edit/%
+      'admin/islandora/islandora_digital_workflow/workflow_sequence_actions/edit/%'
   );
   return ($path && !is_array($path)) ? (!(array_search($path, $paths_needing_js) === FALSE))
       : FALSE;
@@ -2146,4 +2153,46 @@ function islandora_digital_workflow_convert_to_filename($string) {
     $string = str_replace($value, "", $string);
   }
   return $string;
+}
+
+/**
+ * Helper function to return the array of glyph filenames -- called from various
+ * places in the code.
+ *
+ * @return array
+ *   Straight array of filenames used for the static glyphs.
+ */
+function islandora_digital_workflow_static_glyph_filenames() {
+  return array(
+      'add-marc-record' => 'images/add-marc-record_20.png',
+      'check-in-physical-item' => 'images/check-in-physical-item_20.png',
+      'check-item-against-physical-object' => 'images/check-item-against-physical-object_20.png',
+      'check-out-physical-item' => 'images/check-out-physical-item_20.png',
+      'ingest-item-into-repository' => 'images/ingest-item-into-repository_20.png',
+      'rescanned-the-item' => 'images/rescanned-the-item_20.png',
+      'scan-the-item' => 'images/scan-the-item_20.png',
+      'system-made-derivatives' => 'images/system-made-derivatives_20.png',
+      'unconfigured-reserved-action' => 'images/unconfigured-reserved-action_20.png',
+      'custom-glyph-01' => 'images/custom-glyph-01_20.png',
+      'custom-glyph-02' => 'images/custom-glyph-02_20.png',
+      'custom-glyph-03' => 'images/custom-glyph-03_20.png',
+      'custom-glyph-04' => 'images/custom-glyph-04_20.png',
+      'custom-glyph-05' => 'images/custom-glyph-05_20.png',
+      'custom-glyph-06' => 'images/custom-glyph-06_20.png',
+      'custom-glyph-07' => 'images/custom-glyph-07_20.png',
+      'custom-glyph-08' => 'images/custom-glyph-08_20.png',
+      'custom-glyph-09' => 'images/custom-glyph-09_20.png',
+      'custom-glyph-10' => 'images/custom-glyph-10_20.png',
+      'custom-glyph-11' => 'images/custom-glyph-11_20.png',
+      'custom-glyph-12' => 'images/custom-glyph-12_20.png',
+      'custom-glyph-13' => 'images/custom-glyph-13_20.png',
+      'custom-glyph-14' => 'images/custom-glyph-14_20.png',
+      'custom-glyph-15' => 'images/custom-glyph-15_20.png',
+      'custom-glyph-16' => 'images/custom-glyph-16_20.png',
+      'custom-glyph-17' => 'images/custom-glyph-17_20.png',
+      'custom-glyph-18' => 'images/custom-glyph-18_20.png',
+      'custom-glyph-19' => 'images/custom-glyph-19_20.png',
+      'custom-glyph-20' => 'images/custom-glyph-20_20.png',
+      'custom-glyph-21' => 'images/custom-glyph-21_20.png',
+      );
 }

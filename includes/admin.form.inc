@@ -56,7 +56,7 @@ function islandora_digital_workflow_admin_form() {
     // Rules
     'rules_frame' => array(
       '#type' => 'fieldset',
-      '#title' => t('Workflow rules'),
+      '#title' => t('Workflow Actions, Sequences, and Triggering "Stage" changes'),
       '#collapsible' => TRUE,
       '#collapsed' => FALSE,
       'link_1' => array(
@@ -115,6 +115,16 @@ function islandora_digital_workflow_admin_form() {
         '#description' => t('The problems directory is needed to allow files to be moved out of the ingest path so that they can be replaced, renamed, etc.'),
         '#required' => true,
         '#default_value' => variable_get('islandora_digital_workflow_ingest_problems_path', ''),
+      ),
+      'ingest_ignore_filenames' => array(
+        '#type' => 'textarea',
+        '#title' => t('Ignore Specific Filenames'),
+        '#default_value' => variable_get('islandora_digital_workflow_ingest_ignore_filenames', 'ignored_filename_*
+*_ignored_filenames
+*_ignored_filenames_*
+??_ignored_filenames'),
+        '#description' => t('List filenames or wildcard filenames (supports *, ? characters) <b>ONE per line</b> that the ingest process should ignore when preparing the files that exist in the batch folder for ingest.
+                             <p>When the files are managed in various environments, there are sometimes extra files left behind that are not intended as part of the ingest process (for example color calibration files such as "Target.tif", or hidden files or folders that might still cause a problem for the ingest).</p>'),
       ),
       'batch_hosts' => array(
         '#type' => 'textarea',
@@ -188,6 +198,7 @@ function islandora_digital_workflow_admin_form_submit(array $form, array &$form_
       variable_set('islandora_digital_workflow_ingest_staging_path', $form_state['values']['ingest_staging_path']);
       variable_set('islandora_digital_workflow_ingest_prepared_path', $form_state['values']['ingest_prepared_path']);
       variable_set('islandora_digital_workflow_ingest_problems_path', $form_state['values']['ingest_problems_path']);
+      variable_set('islandora_digital_workflow_ingest_ignore_filenames', $form_state['values']['ingest_ignore_filenames']);
       variable_set('islandora_digital_workflow_hosts_for_ingest', $form_state['values']['batch_hosts']);
       variable_set('islandora_digital_workflow_use_isMemberOfSite', $form_state['values']['batch_use_isMemberOfSite']);
       drupal_set_message('[' . date('H:i:s') . '] The settings have been saved.');
@@ -199,6 +210,7 @@ function islandora_digital_workflow_admin_form_submit(array $form, array &$form_
       variable_del('islandora_digital_workflow_ingest_staging_path');
       variable_del('islandora_digital_workflow_ingest_prepared_path');
       variable_del('islandora_digital_workflow_ingest_problems_path');
+      variable_del('islandora_digital_workflow_ingest_ignore_filenames');
       variable_del('islandora_digital_workflow_hosts_for_ingest');
       variable_del('islandora_digital_workflow_use_isMemberOfSite');
 

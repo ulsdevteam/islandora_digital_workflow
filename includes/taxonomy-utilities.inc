@@ -35,3 +35,17 @@ function islandora_digital_workflow_get_name_of_tid($tid) {
   $term = taxonomy_term_load($tid);
   return (is_object($term)) ? $term->name : FALSE;
 }
+
+/**
+ * Get the set of vocabulary terms in a given $vocabulary (drupal) object.
+ *
+ * @param object $vocab
+ *   Drupal taxonomy vocabulary object.
+ * @return array
+ *   An array of vocabulary terms objects.
+ */
+function islandora_digital_workflow_get_all_terms_of_vocab($vocab) {
+  $terms = entity_load('taxonomy_term', FALSE, array('vid' => $vocab->vid));
+  return $terms;
+}
+

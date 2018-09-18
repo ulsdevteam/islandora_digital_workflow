@@ -46,6 +46,7 @@ define('ISLANDORA_DIGITAL_WORKFLOW_SYNC_STAGING', 'digital workflow sync staging
  * Implements hook_menu().
  */
 function islandora_digital_workflow_menu() {
+  // the "admin user" (usually ISLANDORA_DIGITAL_WORKFLOW) menu handlers:
   return array(
     'admin/islandora/islandora_digital_workflow' => array(
       'title' => t('Islandora Digital Workflow'),
@@ -53,7 +54,7 @@ function islandora_digital_workflow_menu() {
       'type' => MENU_LOCAL_TASK,
       'page callback' => 'drupal_get_form',
       'page arguments' => array('islandora_digital_workflow_admin_form'),
-      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_MANAGE),
+      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW),
       'file' => 'includes/admin.form.inc',
     ),
     'admin/islandora/islandora_digital_workflow/workflow_sequences' => array(
@@ -74,7 +75,7 @@ function islandora_digital_workflow_menu() {
     ),
     'admin/islandora/islandora_digital_workflow/create_workflow_sequence' => array(
       'title' => t('Islandora Digital Workflow - Create Workflow Sequence'),
-      'type' => MENU_NORMAL_ITEM,
+      'type' => MENU_SUGGESTED_ITEM,
       'page callback' => 'drupal_get_form',
       'page arguments' => array('islandora_digital_workflow_workflow_sequence_create'),
       'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_MANAGE_SEQUENCES),
@@ -114,29 +115,30 @@ function islandora_digital_workflow_menu() {
     ),
     'admin/islandora/islandora_digital_workflow/workflow_sequence_actions/edit/%' => array(
       'title' => t('Islandora Digital Workflow - Actions Configuration'),
-      'type' => MENU_NORMAL_ITEM,
+      'type' => MENU_SUGGESTED_ITEM,
       'page callback' => 'drupal_get_form',
       'page arguments' => array('islandora_digital_workflow_actions_edit_form', 5),
       'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_MANAGE_SEQUENCES),
       'file' => 'includes/workflow_sequences.form.inc',
     ),
     'admin/islandora/islandora_digital_workflow/workflow_sequence_actions/delete/%' => array(
-      'title' => t('Islandora Digital Workflow - Actions Configuration'),
-      'type' => MENU_NORMAL_ITEM,
+      'title' => t('Islandora Digital Workflow - Delete Action'),
+      'type' => MENU_SUGGESTED_ITEM,
       'page callback' => 'drupal_get_form',
       'page arguments' => array('islandora_digital_workflow_actions_delete_form', 5),
       'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_MANAGE_SEQUENCES),
       'file' => 'includes/workflow_sequences.form.inc',
     ),
     'admin/islandora/islandora_digital_workflow/workflow_sequence_actions/add' => array(
-      'title' => t('Islandora Digital Workflow - Actions Configuration'),
-      'type' => MENU_NORMAL_ITEM,
+      'title' => t('Islandora Digital Workflow - Add New Action'),
+      'type' => MENU_SUGGESTED_ITEM,
       'page callback' => 'drupal_get_form',
       'page arguments' => array('islandora_digital_workflow_actions_add_form'),
       'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_MANAGE_SEQUENCES),
       'file' => 'includes/workflow_sequences.form.inc',
     ),
 
+    // the "standard Workflow user" (usually ISLANDORA_DIGITAL_WORKFLOW) menu handlers:
     'islandora/islandora_digital_workflow' => array(
       'title' => t('Islandora Digital Workflow Dashboard'),
       'type' => MENU_NORMAL_ITEM,
@@ -764,31 +766,6 @@ function islandora_digital_workflow_islandora_batch_process_finished($sets) {
         // ingested_pid = ' . print_r($ingested_pid, true)
         $ingested_object = islandora_object_load($ingested_pid);
         if (is_object($ingested_object)) {
-/*
- * DO NOT USE THIS BLOCK OF CODE AT THIS POINT IN TIME
- *
-          // Can not call "aggregate PDF" and "aggregate OCR/HOCR" batch commands now
-          // due to how derivatives are deferred and they may not exist yet, but can
-          // trigger the "Generate OCR" at this point.
-          // See whether or not this is a paged-content object.
-          if (islandora_digital_workflow_is_paged_object($ingested_object)) {
-            // it is a paged object
-            $pages = islandora_paged_content_get_pages($ingested_object);
-            if (count($pages)) {
-              global $user;
-              $this_domain = 'http://' . $_SERVER['HTTP_HOST'];
-              $drush_command = 'drush -v -u ' . $user->uid . ' --uri=' . $this_domain .
-                ' islandora_digital_workflow_generate_ocr_datastreams --paged_object_pid=' . $ingested_pid;
-
-              $output = $return_var = array();
-              exec($drush_command, $output, $return_var);
-
-              if (($return_var == -1 || $return_var == 255 || $return_var == 1)) {
-                drupal_set_message('There was an error calling the drush command : ' . $drush_command);
-              }
-            }
-          }
-*/
           // Update the batch status record for the matching batch record for this set's $ingested_pid
           islandora_digital_workflow_set_status_for_pid($ingested_object, UPITT_WORKFLOW_ACTION_INGESTED_COMPLETELY, TRUE);
         }

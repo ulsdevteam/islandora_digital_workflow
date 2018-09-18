@@ -66,12 +66,14 @@ function islandora_digital_workflow_sync_node_batch_record_info($node, $form_sta
  * @param string $state_name
  *   The name of the state value like "New", "Problem"
  */
-function islandora_digital_workflow_set_node_stage($nid, $state_name) {
+function islandora_digital_workflow_set_node_stage($nid, $state_name = '', $stage_tid = FALSE) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy-utilities');
   $node = node_load($nid);
   if (is_object($node)) {
     $stages_vocab = taxonomy_vocabulary_machine_name_load(IDW_STAGE_TAXONOMY_MACHINE_NAME);
-    $stage_tid = islandora_digital_workflow_get_tid_by_name($state_name, $stages_vocab);
+    if (!$stage_tid) {
+      $stage_tid = islandora_digital_workflow_get_tid_by_name($state_name, $stages_vocab);
+    }
     if ($stage_tid) {
       $node->field_stage[$node->language][0] = array('tid' => $stage_tid);
       node_save($node);

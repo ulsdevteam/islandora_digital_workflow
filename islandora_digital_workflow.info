@@ -11,5 +11,6 @@ dependencies[] = taxonomy
 dependencies[] = forena
 
 files[] = islandora_digital_workflow.views_default.inc
+stylesheets[all][] = css/islandora_digital_workflow_global.css
 
 configure = admin/islandora/islandora_digital_workflow 

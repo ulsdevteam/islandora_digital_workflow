@@ -122,7 +122,6 @@ function islandora_digital_workflow_sequences() {
  *   The Drupal form state.
  * @param type $workflow_sequence_id
  *   The identifier for the workflow sequence.
- *
  * @return array
  *   Drupal form definition.
  */
@@ -355,7 +354,6 @@ function islandora_digital_workflow_workflow_sequence_create_submit($form, &$for
  *   The Drupal form state.
  * @param type $workflow_sequence_id
  *   The identifier for the workflow sequence.
- *
  * @return array
  *   Drupal form definition.
  */
@@ -458,8 +456,8 @@ function islandora_digital_workflow_workflow_sequence_edit_submit($form, &$form_
  *   The Drupal form state.
  * $workflow_sequence_id integer
  *   Identifier for an islandora_digital_workflow_sequence record.
- *
- * @return string|array
+ * @return array
+ *   Drupal form definition.
  */
 function islandora_digital_workflow_workflow_sequence_actions_form(array $form, array &$form_state, $workflow_sequence_id) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
@@ -468,7 +466,7 @@ function islandora_digital_workflow_workflow_sequence_actions_form(array $form, 
   @list($workflow_sequence_id, $model) = explode('|', $workflow_sequence_id);
   $workflow_sequence_actions = islandora_digital_workflow_get_workflow_sequence_actions();
   $workflow_model_sequences = islandora_digital_workflow_get_workflow_model_sequences();
-  $actions = islandora_digital_workflow_get_item_actions(TRUE);
+  $actions = islandora_digital_workflow_get_item_action_options(TRUE);
   $batch_actions = islandora_digital_workflow_get_batch_action_options(TRUE);
   $workflow_sequences = islandora_digital_workflow_get_workflow_sequences();
   $sequence_title = $workflow_sequences[$workflow_sequence_id]['name'];
@@ -627,7 +625,7 @@ function islandora_digital_workflow_workflow_sequence_actions_form(array $form, 
  */
 function islandora_digital_workflow_workflow_sequence_actions_form_submit($form, &$form_state) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
-  $item_actions = islandora_digital_workflow_get_item_actions(FALSE);
+  $item_actions = islandora_digital_workflow_get_item_action_options(FALSE);
   $batch_actions = islandora_digital_workflow_get_batch_action_options(FALSE);
 
   $all_actions = array();
@@ -766,8 +764,8 @@ function _islandora_digital_workflow_arraysort($a, $b) {
  *   The Drupal form state.
  * @return array
  *   Drupal form definition.
- *
- * @return string|array
+ * @return array
+ *   Drupal form definition.
  */
 function islandora_digital_workflow_workflow_sequence_models_form(array $form, array &$form_state, $workflow_sequence_id) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
@@ -933,15 +931,15 @@ function islandora_digital_workflow_workflow_sequence_models_form_submit($form, 
  *   The Drupal form definition.
  * @param array $form_state
  *   The Drupal form state.
- *
- * @return string|array
+ * @return array
+ *   Drupal form definition.
  */
 function islandora_digital_workflow_actions_form(array $form, array &$form_state) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
 
   // Get all of the actions (batch_actions and item_actions together).
-  $item_actions = islandora_digital_workflow_get_item_actions(TRUE);
+  $item_actions = islandora_digital_workflow_get_item_action_options(TRUE);
   $batch_actions = islandora_digital_workflow_get_batch_action_options(TRUE);
   $workflow_sequence_actions = islandora_digital_workflow_get_workflow_sequence_actions();
   $rows = array();
@@ -964,6 +962,7 @@ function islandora_digital_workflow_actions_form(array $form, array &$form_state
   );
   $markup_item_actions = $markup_batch_actions = array();
   foreach ($rows as $action_id => $action_record_array) {
+    $trigger_stage = (isset($action_record_array['term_name']) ? $action_record_array['term_name']: '');
     $sequence_ids_using_action = islandora_digital_workflow_using_action($workflow_sequence_actions, $action_id);
     $glyph_class = 'transaction_action_' . (($action_record_array['name']) ? strtolower(str_replace(array("-", " "), "_", $action_record_array['name'])) : 'spacer');
     $markup = '<tr class="' . $glyph_class . '"><td><b>Action name:</b><br>' . $action_record_array['name'] .
@@ -980,6 +979,7 @@ function islandora_digital_workflow_actions_form(array $form, array &$form_state
             ),
             $action_record_array['description'],
             '<small class="disabled_text">' . $glyph_class . '</small>',
+            $trigger_stage,
         ),
         'class' => array(),
     );
@@ -996,6 +996,7 @@ function islandora_digital_workflow_actions_form(array $form, array &$form_state
             '<a href="/admin/islandora/islandora_digital_workflow/workflow_sequence_actions/add" title="Add"><div class="add_20">&nbsp;</div></a></div>'),
           '&nbsp;',
           '<small class="disabled_text">transaction_action_unconfigured_reserved_action</small>',
+          ''
       ),
   );
   $markup_item_actions[] = array(
@@ -1005,10 +1006,11 @@ function islandora_digital_workflow_actions_form(array $form, array &$form_state
             '<a href="/admin/islandora/islandora_digital_workflow/workflow_sequence_actions/add" title="Add"><div class="add_20">&nbsp;</div></a></div>'),
           '&nbsp;',
           '<small class="disabled_text">transaction_action_unconfigured_reserved_action</small>',
+          ''
       ),
   );
 
-  $header = array('Name', 'Description', 'CSS class name');
+  $header = array('Name', 'Description', 'CSS class name', 'Stage');
   foreach ($markup_item_actions as $action_id => $markup) {
     $form['reserved_actions']['item_actions'] = array(
         '#type' => 'item',
@@ -1050,11 +1052,13 @@ function islandora_digital_workflow_actions_form(array $form, array &$form_state
  *   The Drupal form state.
  * @param integer $action_id
  *   The `islandora_digital_workflow_actions` table's action_id value.
- * @return string|array
+ * @return array
+ *   Drupal form definition.
  */
 function islandora_digital_workflow_actions_edit_form(array $form, array &$form_state, $action_id) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy-utilities');
   $action_record = islandora_digital_workflow_get_action($action_id);
   $sequences_using_action = islandora_digital_workflow_sequences_using_action($action_id);
 
@@ -1074,17 +1078,7 @@ function islandora_digital_workflow_actions_edit_form(array $form, array &$form_
   drupal_set_breadcrumb($breadcrumb);
 
   $module_path = drupal_get_path('module', 'islandora_digital_workflow');
-  $static_glyph_filenames = array(
-      'images/add-marc-record_20.png' => 'images/add-marc-record_20.png',
-      'images/check-in-physical-item_20.png' => 'images/check-in-physical-item_20.png',
-      'images/check-item-against-physical-object_20.png' => 'images/check-item-against-physical-object_20.png',
-      'images/check-out-physical-item_20.png' => 'images/check-out-physical-item_20.png',
-      'images/ingest-item-into-repository_20.png' => 'images/ingest-item-into-repository_20.png',
-      'images/rescanned-the-item_20.png' => 'images/rescanned-the-item_20.png',
-      'images/scan-the-item_20.png' => 'images/scan-the-item_20.png',
-      'images/system-made-derivatives_20.png' => 'images/system-made-derivatives_20.png',
-      'images/unconfigured-reserved-action_20.png' => 'images/unconfigured-reserved-action_20.png',
-      'images/unknown-action_20.png' => 'images/unknown-action_20.png');
+  $static_glyph_filenames = islandora_digital_workflow_static_glyph_filenames();
 
   $read_only_att = array('readonly' => 'readonly', 'disabled' => 'disabled');
   $selected_glyph_filename = ((count($action_record) > 0) ? $action_record['glyph'] : '');
@@ -1128,7 +1122,38 @@ function islandora_digital_workflow_actions_edit_form(array $form, array &$form_
   if ($action_id) {
     $form['batch_action_wrapper']['#attributes'] = array('disabled' => 'disabled');
   }
-
+  $vocab = taxonomy_vocabulary_machine_name_load(IDW_STAGE_TAXONOMY_MACHINE_NAME);
+  $terms = islandora_digital_workflow_get_all_terms_of_vocab($vocab);
+  $terms_options = array('0' => 'Select a Stage');
+  foreach ($terms as $term_obj) {
+    $terms_options[$term_obj->tid] = $term_obj->name;
+  }
+  $form['batch_action_trigger'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Trigger (optional)'),
+      'stage_taxonomy_tid' => array(
+          '#type' => 'select',
+          '#default_value' => (isset($action_record['stage_taxonomy_tid']) ? $action_record['stage_taxonomy_tid'] : 0),
+          '#title' => 'Triggers workflow "Stage" for related batch?',
+          '#options' => $terms_options,
+          '#attributes' => array(
+            'onchange' => 'stage_selection(this)',
+          ),
+      ),
+      'is_triggered_by_single_item' => array(
+          '#type' => 'checkbox',
+          '#title' => 'Triggered by a single item?',
+          '#attributes' => ((is_null($action_record['stage_taxonomy_tid']) || $action_record['stage_taxonomy'] < 1) ?
+              array('disabled' => 'disabled', 'class' => 'disabled_text') : array()),
+          '#description' => ($action_is_batch_action) ?
+            'Not applicable for batch-level transactions' :
+            'If this is for a "Batch Item" action, can this be triggered by a ' .
+            'single batch_item (or must all be required) at a batch level, else ' .
+            'an "item action" is available for items in batches that use a ' .
+            'sequence have this action configured.',
+          '#default_value' => ($action_record['is_triggered_by_single_item']+0),
+      ),
+  );
   $form['glyph_wrapper'] = array(
       '#type' => 'fieldset',
       'glyph' => array(
@@ -1178,6 +1203,8 @@ function islandora_digital_workflow_actions_edit_form_submit(array $form, array 
       'description' => is_null($form_state['input']['description']) ? $form_state['values']['description'] : $form_state['input']['description'],
       'glyph' => $form_state['input']['glyph_selector'],
       'is_batch_action' => is_null($form_state['input']['is_batch_action']) ? $form_state['values']['is_batch_action'] : $form_state['input']['is_batch_action'],
+      'stage_taxonomy_tid' => is_null($form_state['input']['stage_taxonomy_tid']) ? $form_state['values']['stage_taxonomy_tid'] : $form_state['input']['stage_taxonomy_tid'],
+      'is_triggered_by_single_item' => is_null($form_state['input']['is_triggered_by_single_item']) ? $form_state['values']['is_triggered_by_single_item'] : $form_state['input']['is_triggered_by_single_item'],
   );
   $action_id = $form_state['input']['action_id'];
   if ($action_id) {
@@ -1189,7 +1216,7 @@ function islandora_digital_workflow_actions_edit_form_submit(array $form, array 
         (($rows_updated < 1) ? '  <i>(When no changes are made, the action record is not updated)</i>' : ''));
   }
   else {
-    $fields['action_id'] = islandora_digital_workflow_get_free_action_id($form_state['input']['is_batch_action']);
+    $fields['action_id'] = islandora_digital_workflow_get_free_action_id();
     $id_inserted = db_insert('islandora_digital_workflow_actions')
       ->fields($fields)
       ->execute();
@@ -1215,7 +1242,8 @@ function islandora_digital_workflow_actions_edit_form_submit(array $form, array 
  *   The Drupal form state.
  * @param integer $action_id
  *   The `islandora_digital_workflow_actions` table's action_id value.
- * @return string|array
+ * @return array
+ *   Drupal form definition.
  */
 function islandora_digital_workflow_actions_delete_form(array $form, array &$form_state, $action_id) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
@@ -1301,7 +1329,17 @@ function islandora_digital_workflow_actions_delete_form_submit(array $form, arra
   }
 }
 
+/**
+ * Simple hander to route the "Add" request through the "Edit" form handler.
+ *
+ * @param array $form
+ *   The Drupal form definition.
+ * @param array $form_state
+ *   The Drupal form state.
+ * @return type
+ */
 function islandora_digital_workflow_actions_add_form(array $form, array &$form_state) {
   $form = drupal_get_form('islandora_digital_workflow_actions_edit_form', 0);
   return $form;
 }
+

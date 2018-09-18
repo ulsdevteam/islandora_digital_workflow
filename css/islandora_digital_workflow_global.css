@@ -1,0 +1,9 @@
+.numeric_cell, .numeric_heading {
+    text-align: right;
+    display: table-cell;
+    padding-right: 6px;
+}
+
+.numeric_cell {
+    font-family: monospace;
+}

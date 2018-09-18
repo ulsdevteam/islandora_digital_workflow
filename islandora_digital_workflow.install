@@ -17,7 +17,7 @@ function islandora_digital_workflow_install() {
    );
   taxonomy_vocabulary_save($new_vocab);
   // add the individual "Stage" vocabulary terms
-  list($stage_tid, $stage_vid) = islandora_digital_workflow_add_workflow_stage_taxonomy_terms();
+  list($stage_tid, $stage_vid, $problem_tid) = islandora_digital_workflow_add_workflow_stage_taxonomy_terms();
 
   $new_vocab = (object) array(
       'name' => 'Islandora Digital Workflow Content Type vocabulary',
@@ -29,7 +29,7 @@ function islandora_digital_workflow_install() {
   // add the individual "Content Type" vocabulary terms
   islandora_digital_workflow_add_workflow_content_type_taxonomy_terms();
   // Insert any `islandora_digital_workflow` MySQL records.
-  islandora_digital_workflow_insert_islandora_digital_workflow_actions();
+  islandora_digital_workflow_insert_islandora_digital_workflow_actions($problem_tid);
 
   // Insert workflow_batch node_type and create required CCK fields.
   islandora_digital_workflow_insert_workflow_batch_node_type();
@@ -135,6 +135,21 @@ function islandora_digital_workflow_schema() {
       ),
       'is_batch_action' => array(
         'description' => 'Is the action for a batch or a batch_item?',
+        'type' => 'int',
+        'size' => 'tiny',
+        'default' => 0,
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'stage_taxonomy_tid' => array(
+        'description' => 'The taxonomy term tid value for the related Stage',
+        'type' => 'int',
+        'size' => 'medium',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+      'is_triggered_by_single_item' => array(
+        'description' => 'If this is for a "Batch Item" action, trigger by a single batch_item?',
         'type' => 'int',
         'size' => 'tiny',
         'default' => 0,
@@ -690,7 +705,7 @@ function islandora_digital_workflow_add_workflow_stage_taxonomy_terms() {
    'description' => 'This is for workflow_batch nodes that have a problem.',
    'vid' => $vocab->vid,
   );
-  taxonomy_term_save($term);
+  $problem_tid = taxonomy_term_save($term);
 
   $term = (object) array(
    'name' => 'New',
@@ -720,13 +735,13 @@ function islandora_digital_workflow_add_workflow_stage_taxonomy_terms() {
   );
   taxonomy_term_save($term);
   // Need to return the term id for the "New" term:
-  return array($vocab->vid, $new_tid);
+  return array($vocab->vid, $new_tid, $problem_tid);
 }
 
 /**
  * Helper routine to insert islandora_digital_workflow_actions records.
  */
-function islandora_digital_workflow_insert_islandora_digital_workflow_actions() {
+function islandora_digital_workflow_insert_islandora_digital_workflow_actions($problem_tid) {
   $islandora_digital_workflow_actions = array(
     // defaults for batch_item actions
     IDW_ACTION_CHECK_IN => array(
@@ -787,6 +802,8 @@ function islandora_digital_workflow_insert_islandora_digital_workflow_actions() 
       'description' => 'Problem with scan',
       'glyph' => 'images/problem_20.png',
       'is_batch_action' => 0,
+      'stage_taxonomy_tid' => $problem_tid,
+      'is_triggered_by_single_item' => 1,
     ),
     // batch-level actions (action_id values greater than 100).
     IDW_ACTION_ALL_CHECK_IN => array(
@@ -827,6 +844,8 @@ function islandora_digital_workflow_insert_islandora_digital_workflow_actions() 
         'name' => $values['name'],
         'description' => $values['description'],
         'is_batch_action' => $values['is_batch_action'],
+        'stage_taxonomy_tid' => (isset($values['stage_taxonomy_tid']) ? : 0),
+        'is_triggered_by_single_item' => (isset($values['is_triggered_by_single_item']) ? : 0),
       ))
     ->execute();
   }

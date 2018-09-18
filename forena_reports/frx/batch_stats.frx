@@ -31,11 +31,11 @@
 					Batch</th>
 				<th>
 					Description</th>
-				<th class="numeric">
+				<th class="numeric_heading">
 					# of Items</th>
-				<th class="numeric">
+				<th class="numeric_heading">
 					File count</th>
-				<th class="numeric">
+				<th class="numeric_heading">
 					File size (bytes)</th>
 				<th>
 					Modified</th>
@@ -47,11 +47,11 @@
 					{batch_name}</td>
 				<td>
 					{batch_description}</td>
-				<td class="numeric">
+				<td class="numeric_cell">
 					{batch_item_id}</td>
-				<td class="numeric">
+				<td class="numeric_cell">
 					{file_count}</td>
-				<td class="numeric">
+				<td class="numeric_cell">
 					{file_size}</td>
 				<td>
 					{lastmod}</td>
