@@ -9,6 +9,10 @@
  * Implements hook_uninstall().
  */
 function islandora_digital_workflow_install() {
+  global $problem_tid;
+  global $stage_tid;
+  global $stage_vid;
+
   $new_vocab = (object) array(
       'name' => 'Islandora Digital Workflow Stage vocabulary',
       'description' => 'This vocabulary has the various stages for ' .
@@ -17,7 +21,7 @@ function islandora_digital_workflow_install() {
    );
   taxonomy_vocabulary_save($new_vocab);
   // add the individual "Stage" vocabulary terms
-  list($stage_tid, $stage_vid, $problem_tid) = islandora_digital_workflow_add_workflow_stage_taxonomy_terms();
+  islandora_digital_workflow_add_workflow_stage_taxonomy_terms();
 
   $new_vocab = (object) array(
       'name' => 'Islandora Digital Workflow Content Type vocabulary',
@@ -29,11 +33,11 @@ function islandora_digital_workflow_install() {
   // add the individual "Content Type" vocabulary terms
   islandora_digital_workflow_add_workflow_content_type_taxonomy_terms();
   // Insert any `islandora_digital_workflow` MySQL records.
-  islandora_digital_workflow_insert_islandora_digital_workflow_actions($problem_tid);
+  islandora_digital_workflow_insert_islandora_digital_workflow_actions();
 
   // Insert workflow_batch node_type and create required CCK fields.
   islandora_digital_workflow_insert_workflow_batch_node_type();
-  islandora_digital_workflow_create_cck_fields($stage_tid, $stage_vid);
+  islandora_digital_workflow_create_cck_fields();
   
   // Need to install the forena reports files
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
@@ -698,21 +702,30 @@ function islandora_digital_workflow_add_workflow_content_type_taxonomy_terms() {
  * Helper function to create the workflow stage taxonomy vocabulary.
  */
 function islandora_digital_workflow_add_workflow_stage_taxonomy_terms() {
+  global $problem_tid;
+  global $stage_tid;
+  global $stage_vid;
+
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy-utilities');
   $vocab = taxonomy_vocabulary_machine_name_load(IDW_STAGE_TAXONOMY_MACHINE_NAME);
+
+  $stage_vid = $vocab->vid;
 
   $term = (object) array(
    'name' => 'Problem',
    'description' => 'This is for workflow_batch nodes that have a problem.',
    'vid' => $vocab->vid,
   );
-  $problem_tid = taxonomy_term_save($term);
+  taxonomy_term_save($term);
+  $problem_tid = $term->tid;
 
   $term = (object) array(
    'name' => 'New',
    'description' => 'This is for workflow_batch nodes that are new.',
    'vid' => $vocab->vid,
   );
-  $new_tid = taxonomy_term_save($term);
+  taxonomy_term_save($term);
+  $stage_tid = $term->tid;
 
   $term = (object) array(
    'name' => 'Scanned',
@@ -734,14 +747,14 @@ function islandora_digital_workflow_add_workflow_stage_taxonomy_terms() {
    'vid' => $vocab->vid,
   );
   taxonomy_term_save($term);
-  // Need to return the term id for the "New" term:
-  return array($vocab->vid, $new_tid, $problem_tid);
 }
 
 /**
  * Helper routine to insert islandora_digital_workflow_actions records.
  */
-function islandora_digital_workflow_insert_islandora_digital_workflow_actions($problem_tid) {
+function islandora_digital_workflow_insert_islandora_digital_workflow_actions() {
+  global $problem_tid;
+
   $islandora_digital_workflow_actions = array(
     // defaults for batch_item actions
     IDW_ACTION_CHECK_IN => array(
@@ -844,8 +857,8 @@ function islandora_digital_workflow_insert_islandora_digital_workflow_actions($p
         'name' => $values['name'],
         'description' => $values['description'],
         'is_batch_action' => $values['is_batch_action'],
-        'stage_taxonomy_tid' => (isset($values['stage_taxonomy_tid']) ? : 0),
-        'is_triggered_by_single_item' => (isset($values['is_triggered_by_single_item']) ? : 0),
+        'stage_taxonomy_tid' => (isset($values['stage_taxonomy_tid']) ? $values['stage_taxonomy_tid'] : 0),
+        'is_triggered_by_single_item' => (isset($values['is_triggered_by_single_item']) ? $values['is_triggered_by_single_item'] : 0),
       ))
     ->execute();
   }
@@ -871,7 +884,10 @@ function islandora_digital_workflow_insert_workflow_batch_node_type() {
  * @param integer $stage_vid
  *   The taxonomy term vid value for the vocabulary.
  */
-function islandora_digital_workflow_create_cck_fields($stage_tid, $stage_vid) {
+function islandora_digital_workflow_create_cck_fields() {
+  global $stage_tid;
+  global $stage_vid;
+
   foreach (_islandora_digital_workflow_installed_fields() as $field) {
     if (!field_info_field($field['field_name'])) {
       field_create_field($field);
@@ -893,7 +909,10 @@ function islandora_digital_workflow_create_cck_fields($stage_tid, $stage_vid) {
  * @param integer $stage_vid
  *   The taxonomy term vid value for the vocabulary.
  */
-function _islandora_digital_workflow_installed_instances($stage_tid = 0, $stage_vid = 0) {
+function _islandora_digital_workflow_installed_instances() {
+  global $stage_tid;
+  global $stage_vid;
+  
   return array(
     'field_pid_count' => array(
       'field_name' => 'field_pid_count',
@@ -1139,7 +1158,7 @@ function _islandora_digital_workflow_installed_instances($stage_tid = 0, $stage_
       'label' => 'Stage',
       'widget' => array(
         'weight' => 1,
-        'type' => 'taxonomy_autocomplete',
+        'type' => 'options_select',
         'module' => 'taxonomy',
         'active' => 0,
         'settings' => array(
@@ -1505,7 +1524,7 @@ function _islandora_digital_workflow_installed_fields() {
       'storage_module' => 'field_sql_storage',
       'storage_active' => 1,
       'locked' => 0,
-      'cardinality' => 1,
+      'cardinality' => -1,
       'translatable' => 0,
       'deleted' => 0,
       'settings' => array(

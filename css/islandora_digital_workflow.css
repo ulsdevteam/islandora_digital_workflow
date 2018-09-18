@@ -695,3 +695,7 @@ ul.admin-links {
 .td_wide_400 {
     width: 400px;
 }
+
+td.slide-cross {
+    min-width: 38px;
+}

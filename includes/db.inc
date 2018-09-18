@@ -919,6 +919,8 @@ function islandora_digital_workflow_get_workflow_sequences() {
   return $return_array;
 }
 
+// TODO: rewrite to use a db_select -- the LEFT OUTER JOIN can be accomplished using:
+//    $query->addJoin('LEFT', 'taxonomy_term_data', 'td', 'stage_taxonomy_tid = td.tid');
 function islandora_digital_workflow_get_item_action_options($display_reserved_actions = TRUE) {
   $query = db_query('SELECT a.*, td.name as `term_name` FROM islandora_digital_workflow_actions a ' .
           'LEFT OUTER JOIN taxonomy_term_data td ON td.tid = stage_taxonomy_tid ' .
@@ -933,6 +935,8 @@ function islandora_digital_workflow_get_item_action_options($display_reserved_ac
   return $return_array;
 }
 
+// TODO: rewrite to use a db_select -- the LEFT OUTER JOIN can be accomplished using:
+//    $query->addJoin('LEFT', 'taxonomy_term_data', 'td', 'stage_taxonomy_tid = td.tid');
 function islandora_digital_workflow_get_batch_action_options($display_reserved_actions = TRUE) {
   $query = db_query('SELECT a.*, td.name as `term_name` FROM islandora_digital_workflow_actions a ' .
           'LEFT OUTER JOIN taxonomy_term_data td ON td.tid = a.stage_taxonomy_tid ' .
@@ -973,16 +977,14 @@ function islandora_digital_workflow_get_workflow_sequence_actions() {
   $query->addField('s', 'name', 'sequence_name');
   $query->addField('s', 'is_mixed', 'is_mixed');
   $query->addField('s', 'description', 'sequence_description');
-  $query->join('taxonomy_term_data', 'td', 'td.tid = a.stage_taxonomy_tid');
+  $query->addJoin('LEFT', 'taxonomy_term_data', 'td', 'a.stage_taxonomy_tid = td.tid');
   $query->addField('td', 'name', 'term_name');
 
   $results = $query->execute();
   $rows = $results->fetchAll();
   $return_array = array();
   foreach ($rows as $i => $row) {
-    $return_array[$row->workflow_sequence_id][] = array(
-        (array) $row
-    );
+    $return_array[$row->workflow_sequence_id][] = (array) $row;
   }
   return $return_array;
 }

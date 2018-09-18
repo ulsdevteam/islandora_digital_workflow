@@ -48,7 +48,6 @@ function islandora_digital_workflow_sequences() {
       }
     }
   }
-
   foreach ($workflow_sequences as $workflow_sequence_id => $sequence_info) {
     $models = array_key_exists($workflow_sequence_id, $models_arr) ? implode(", ", $models_arr[$workflow_sequence_id]) : '';
     $this_workflow_sequence_actions = array_key_exists($workflow_sequence_id, $workflow_sequence_actions) ? $workflow_sequence_actions[$workflow_sequence_id] : array();
@@ -60,10 +59,12 @@ function islandora_digital_workflow_sequences() {
       }
     }
     foreach ($this_workflow_sequence_actions as $action_record_array) {
-      $model_of_this_action = $action_record_array['islandora_model'];
-      $class = ($action_record_array['is_required']) ? 'required_action' : 'optional_action';
-      $glyph_class = 'transaction_action_' . (($action_record_array['action_name']) ? strtolower(str_replace(array("-", " "), "_", $action_record_array['action_name'])) : 'spacer');
-      $li_markup = '<li class="' . $glyph_class . ' ' . $class . '">' . $action_record_array['action_description'] . '</li>';
+      $model_of_this_action = (isset($action_record_array['islandora_model']) ? $action_record_array['islandora_model'] : '');
+      $class = (isset($action_record_array['is_required']) ? 'required_action' : 'optional_action');
+      $glyph_class = 'transaction_action_' . (isset($action_record_array['action_name']) ?
+              strtolower(str_replace(array("-", " "), "_", $action_record_array['action_name'])) : 'spacer');
+      $li_markup = '<li class="' . $glyph_class . ' ' . $class . '">' . (isset($action_record_array['action_description']) ?
+              $action_record_array['action_description'] : '[action description missing]') . '</li>';
       if ($model_of_this_action) {
         if (islandora_digital_workflow_is_batch_action($action_record_array)) {
           $markup_batch_actions[$model_of_this_action][] = $li_markup;
@@ -539,7 +540,6 @@ function islandora_digital_workflow_workflow_sequence_actions_form(array $form, 
       '#default_value' => $model,
     ),
   );
-
   if (array_key_exists($workflow_sequence_id, $workflow_sequence_actions)) {
     foreach ($workflow_sequence_actions[$workflow_sequence_id] as $i => $sequence_array) {
       $form['wrapper']['rows'][$sequence_array['action_id']] = array(
@@ -1115,7 +1115,7 @@ function islandora_digital_workflow_actions_edit_form(array $form, array &$form_
               'at a batch level, else an "item action" is available for items in ' .
               'batches that use a sequence have this action configured.',
           '#options' => array(0 => 'No', 1 => 'Yes'),
-          '#default_value' => ($action_record['is_batch_action']+0), // (($action_is_batch_action) ? 1 : 0),
+          '#default_value' => (isset($action_record['is_batch_action']) ? $action_record['is_batch_action']+0 : 0),
       ),
   );
   // Disable this selection if the action_id is already assigned.
@@ -1143,7 +1143,7 @@ function islandora_digital_workflow_actions_edit_form(array $form, array &$form_
       'is_triggered_by_single_item' => array(
           '#type' => 'checkbox',
           '#title' => 'Triggered by a single item?',
-          '#attributes' => ((is_null($action_record['stage_taxonomy_tid']) || $action_record['stage_taxonomy'] < 1) ?
+          '#attributes' => (( (array_key_exists('stage_taxonomy_tid', $action_record) && is_null($action_record['stage_taxonomy_tid'])) || ($action_record['stage_taxonomy'] < 1) ) ?
               array('disabled' => 'disabled', 'class' => 'disabled_text') : array()),
           '#description' => ($action_is_batch_action) ?
             'Not applicable for batch-level transactions' :
@@ -1151,7 +1151,7 @@ function islandora_digital_workflow_actions_edit_form(array $form, array &$form_
             'single batch_item (or must all be required) at a batch level, else ' .
             'an "item action" is available for items in batches that use a ' .
             'sequence have this action configured.',
-          '#default_value' => ($action_record['is_triggered_by_single_item']+0),
+          '#default_value' => (isset($action_record['is_triggered_by_single_item']) ? $action_record['is_triggered_by_single_item']+0 : 0),
       ),
   );
   $form['glyph_wrapper'] = array(
