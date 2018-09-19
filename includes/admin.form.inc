@@ -18,13 +18,16 @@
 function islandora_digital_workflow_admin_form() {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
 
+  islandora_digital_workflow_admin_form_check_private_files();
   islandora_digital_workflow_check_and_deploy_forena_reports();
   // Needed for collapsible fieldsets
   drupal_add_js('misc/collapse.js');
   $about_islandora_digital_workflow_markup = '<p>These are the settings for ' .
       'the <strong>' . l(t('Islandora Digital Workflow'), '/islandora/islandora_digital_workflow') . '</strong> system.</p>';
   $models_table = islandora_digital_workflow_models_table();
-
+  $title = 'Islandora Digital Workflow - Configuration';
+  drupal_set_title(t($title), CHECK_PLAIN);
+  
   $form = array(
     'about' => array(
       '#type' => 'item',
@@ -216,5 +219,24 @@ function islandora_digital_workflow_admin_form_submit(array $form, array &$form_
 
       drupal_set_message('[' . date('H:i:s') . '] The settings have been reset.');
       break;
+  }
+}
+
+function islandora_digital_workflow_admin_form_check_private_files() {
+  $private_path = variable_get('file_private_path');
+  if ($private_path) {
+    $file_in_private_path = $private_path . '/testfile';
+    file_put_contents($file_in_private_path, '');
+
+    if (!file_exists($file_in_private_path)) {
+      drupal_set_message(t('The "Private Path" is not writable by the web server.  Check the folder permissions on <br>@private_path', array('@private_path' => $private_path)), 'warning');
+    }
+    else {
+      @unlink($file_in_private_path);
+    }
+  }
+  else {
+    drupal_set_message(t('The "Private Path" value (') . l('Media | File System', 'admin/config/media/file-system') .
+        t(') is not set.'), 'error');
   }
 }
