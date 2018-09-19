@@ -49,8 +49,10 @@ function islandora_digital_workflow_lookup_form_submitted($searchterm = '') {
     // If there is only one result, jump to that page --- else, present the
     // results as a list that can be used to jump to each.
     if (count($batch_records) < 2) {
-      drupal_set_message(t('Located batch "') . $batch_records[0]->batch_name . '" ' .
-          t('by an item that matched identifier value "') . $searchterm . '".');
+      drupal_set_message(t('Located batch "@batch_name" by an item that matched ' .
+          'identifier value "@searchterm".',
+          array('@batch_name' => $batch_records[0]->batch_name,
+              '@searchterm' => $searchterm)));
       drupal_goto('node/' . $batch_records[0]->nid . '/batch');
     }
     else {

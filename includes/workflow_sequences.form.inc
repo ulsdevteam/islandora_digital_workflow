@@ -1061,7 +1061,6 @@ function islandora_digital_workflow_actions_edit_form(array $form, array &$form_
   module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy-utilities');
   $action_record = islandora_digital_workflow_get_action($action_id);
   $sequences_using_action = islandora_digital_workflow_sequences_using_action($action_id);
-
   if ($action_id) {
     drupal_set_title(t('Islandora Digital Workflow - Edit Action') . ': "' . $action_record['description'] . '"', CHECK_PLAIN);
   }
@@ -1095,13 +1094,13 @@ function islandora_digital_workflow_actions_edit_form(array $form, array &$form_
           '#title' => 'Action name',
           '#description' => 'Machine name is used internally do generate HTML ' .
               'and CSS classes for these action transactions.',
-          '#default_value' => ((count($action_record) > 0) ? $action_record['name'] : ''),
+          '#default_value' => ((array_key_exists('name', $action_record)) ? $action_record['name'] : ''),
       ),
       'description' => array(
           '#type' => 'textfield',
           '#title' => 'Action description',
           '#description' => 'This value is used in select boxes and reports.',
-          '#default_value' => ((count($action_record) > 0) ? $action_record['description'] : ''),
+          '#default_value' => ((array_key_exists('description', $action_record)) ? $action_record['description'] : ''),
       ),
   );
 
@@ -1143,7 +1142,7 @@ function islandora_digital_workflow_actions_edit_form(array $form, array &$form_
       'is_triggered_by_single_item' => array(
           '#type' => 'checkbox',
           '#title' => 'Triggered by a single item?',
-          '#attributes' => (( (array_key_exists('stage_taxonomy_tid', $action_record) && is_null($action_record['stage_taxonomy_tid'])) || ($action_record['stage_taxonomy'] < 1) ) ?
+          '#attributes' => (( (array_key_exists('stage_taxonomy_tid', $action_record) && is_null($action_record['stage_taxonomy_tid'])) || (array_key_exists('stage_taxonomy', $action_record) && $action_record['stage_taxonomy'] < 1) ) ?
               array('disabled' => 'disabled', 'class' => 'disabled_text') : array()),
           '#description' => ($action_is_batch_action) ?
             'Not applicable for batch-level transactions' :
@@ -1201,7 +1200,7 @@ function islandora_digital_workflow_actions_edit_form_submit(array $form, array 
   $fields = array(
       'name' => is_null($form_state['input']['name']) ? $form_state['values']['name'] : $form_state['input']['name'],
       'description' => is_null($form_state['input']['description']) ? $form_state['values']['description'] : $form_state['input']['description'],
-      'glyph' => $form_state['input']['glyph_selector'],
+      'glyph' => is_null($form_state['input']['glyph_selector']) ? $form_state['values']['glyph_selector'] : $form_state['input']['glyph_selector'],
       'is_batch_action' => is_null($form_state['input']['is_batch_action']) ? $form_state['values']['is_batch_action'] : $form_state['input']['is_batch_action'],
       'stage_taxonomy_tid' => is_null($form_state['input']['stage_taxonomy_tid']) ? $form_state['values']['stage_taxonomy_tid'] : $form_state['input']['stage_taxonomy_tid'],
       'is_triggered_by_single_item' => is_null($form_state['input']['is_triggered_by_single_item']) ? $form_state['values']['is_triggered_by_single_item'] : $form_state['input']['is_triggered_by_single_item'],

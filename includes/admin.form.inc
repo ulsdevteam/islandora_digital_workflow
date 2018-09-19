@@ -229,14 +229,16 @@ function islandora_digital_workflow_admin_form_check_private_files() {
     file_put_contents($file_in_private_path, '');
 
     if (!file_exists($file_in_private_path)) {
-      drupal_set_message(t('The "Private Path" is not writable by the web server.  Check the folder permissions on <br>@private_path', array('@private_path' => $private_path)), 'warning');
+      drupal_set_message(t('The "Private Path" is not writable by the web server.  Check the folder permissions on <br>@private_path', array(
+          '@private_path' => $private_path)), 'warning');
     }
     else {
       @unlink($file_in_private_path);
     }
   }
   else {
-    drupal_set_message(t('The "Private Path" value (') . l('Media | File System', 'admin/config/media/file-system') .
-        t(') is not set.'), 'error');
+    drupal_set_message(t('The "Private Path" value (@link) is not set.', array(
+        '@link' => l('Media | File System', 'admin/config/media/file-system')
+    )), 'error');
   }
 }

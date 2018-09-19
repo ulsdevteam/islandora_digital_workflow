@@ -232,8 +232,7 @@ function islandora_digital_workflow_get_batch_host_values() {
  *   when provided, this will override the current-logged-in user's uid value.
 */
 function islandora_digital_workflow_sync_node_to_items($batch_record, $node, $csv_filename, $empty_items_table = FALSE, $alternative_uid = NULL) {
-  if (is_array($batch_record) && isset($node->field_identifiers) &&
-      array_key_exists('value', $node->field_identifiers[$node->language][0])) {
+  if (is_array($batch_record)) {
     // Set a variable for this for readibility on the subsequent function call.
     $keep_created_MODS_files = ($csv_filename <> '');
     $csv_file_sources = islandora_digital_workflow_prepare_csv2mods($csv_filename, $batch_record, $keep_created_MODS_files);
@@ -246,8 +245,8 @@ function islandora_digital_workflow_sync_node_to_items($batch_record, $node, $cs
         if (db_delete('islandora_digital_workflow_batch_items')
             ->condition('batch_id', $batch_record['batch_id'])
             ->execute()) {
-          drupal_set_message('Previous batch item records deleted for "' .
-              $batch_record['batch_name'] . '".', 'status');
+          drupal_set_message(t('Previous batch item records deleted for "@batch_name".',
+              array('@batch_name' => $batch_record['batch_name'])), 'status');
         }
       }
       foreach ($csv_file_sources as $csv_file_source) {
@@ -276,13 +275,12 @@ function islandora_digital_workflow_sync_batch_item_record($batch_record, $csv_f
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
   if (file_exists($csv_file_source['mods_filename'])) {
     $mods_content = file_get_contents($csv_file_source['mods_filename']);
-    $mods_content = islandora_digital_workflow_convert_smart_quotes($mods_content); // mb_check_encoding($mods_content, 'UTF-8') ? $mods_content : utf8_encode($mods_content);
-    // unlink($csv_file_source['mods_filename']);
+    $mods_content = islandora_digital_workflow_convert_smart_quotes($mods_content);
   }
   else {
     $mods_content = '';
   }
-  $title = islandora_digital_workflow_convert_smart_quotes($csv_file_source['title']); //mb_check_encoding($csv_file_source['title'], 'UTF-8') ? $csv_file_source['title'] : utf8_encode($csv_file_source['title']);
+  $title = islandora_digital_workflow_convert_smart_quotes($csv_file_source['title']);
 
   // take each mods_filename and put this into the item record
   $fields = array(
@@ -726,9 +724,11 @@ function islandora_digital_workflow_validate_csv($csv_filename) {
       $check = islandora_digital_workflow_make_custom_csv_dates($row[$date_index], TRUE);
       if ($check == '') {
         $validation_success = FALSE;
-        drupal_set_message(t('There is a bad date value for "normalized_date" = "' .
-          $row[$date_index] . '" on row #' . $k . '.  Please upload the CSV after ' .
-          'fixing this value.'), 'error');
+        drupal_set_message(t('There is a bad date value for "normalized_date" = "@norm" ' .
+          ' on row #@row.  Please upload the CSV after fixing this value.', array(
+              '@row' => $k,
+              '@norm' => $row[$date_index]
+          )), 'error');
       }
     }
   }
@@ -1605,7 +1605,10 @@ function islandora_digital_workflow_validate_csv_file_upload() {
         }
       }
       else {
-        drupal_set_message(t('File move operation from "' . $tmp_name . '" to "' . $dest . '" failed'), 'error');
+        drupal_set_message(t('File move operation from "@tmp_name" to "@dest" failed', array(
+            '@tmp_name' => $tmp_name,
+            '@dest' => $dest,
+        )), 'error');
       }
     }
   }
@@ -2166,6 +2169,7 @@ function islandora_digital_workflow_convert_to_filename($string) {
 function islandora_digital_workflow_static_glyph_filenames() {
   return array(
       'add-marc-record' => 'images/add-marc-record_20.png',
+      'add-mods-record' => 'images/add-mods-record_20.png',
       'check-in-physical-item' => 'images/check-in-physical-item_20.png',
       'check-item-against-physical-object' => 'images/check-item-against-physical-object_20.png',
       'check-out-physical-item' => 'images/check-out-physical-item_20.png',

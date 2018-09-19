@@ -52,9 +52,11 @@ function islandora_digital_workflow_create_empty_batch_form(array $form, array &
   // 1. Check that the "Available Host Aliases for Batch ingest" is set
   if (count($batch_hosts) < 1) {
     drupal_set_message(t('<b>Available Host Aliases for Batch ingest</b> is ' .
-        'not configured.  Please contact an administrator to ask them to ') .
-        'configure at least one "' . l(t('Available Host Aliases for Batch ingest'), '/admin/islandora/islandora_digital_workflow') .
-        t('" before creating any workflow batches.'), 'error');
+        'not configured.  Please contact an administrator to ask them to ' .
+        'configure at least one "@link" before creating any workflow batches.',  array(
+            '@link' => l('Available Host Aliases for Batch ingest', '/admin/islandora/islandora_digital_workflow')
+        )),
+        'error');
     $configured = FALSE;
   }
 
@@ -62,9 +64,12 @@ function islandora_digital_workflow_create_empty_batch_form(array $form, array &
   if (count($accessible_models) < 2) {
     drupal_set_message(t('There are no <b>Supported Models</b> models configured ' . 
         'for creating batches or your user does not have permission to any models.  ' .
-        'Please contact an administrator to ask them to configure the ') .
-          l(t('Supported Models'), '/admin/islandora/islandora_digital_workflow') .
-        t(' and ') . l(t('set up permissions'), '/admin/people/permissions') . t(' to any models.'), 'error');
+        'Please contact an administrator to ask them to configure the @config_link ' .
+        ' and @permissions_link to any models.', array(
+            '@config_link' => l('Supported Models', '/admin/islandora/islandora_digital_workflow'),
+            '@permissions_link' => l(t('set up permissions'), '/admin/people/permissions'),
+        )
+        ), 'error');
     $configured = FALSE;
   }
   if (!$configured) {
@@ -155,8 +160,10 @@ function islandora_digital_workflow_create_empty_batch_form_submit(array $form, 
       $batch_record = islandora_digital_workflow_create_stub_batch_record($form_state);
       // Only two possible button text values -- edit or save.
       $current_time = date('H:i:s');
-      $edit_batch_link = l($batch_record['batch_name'], 'islandora/islandora_digital_workflow/edit_batch/' . $batch_record['batch_name']);
-      drupal_set_message(t('[@date] Created new batch: ', array('@date' => $current_time)) . $edit_batch_link, 'status'); //  . date('H:i:s') . '] The new batch "' . . '" has been created.');
+      drupal_set_message(t('[@date] Created new batch: @edit_batch_link', array(
+          '@date' => $current_time,
+          '@edit_batch_link' => l($batch_record['batch_name'], 'islandora/islandora_digital_workflow/edit_batch/' . $batch_record['batch_name']))
+          ), 'status');
       drupal_goto('islandora/islandora_digital_workflow/edit_batch/' . $batch_record['batch_name']);
       break;
     case 'edit-cancel':
@@ -365,10 +372,23 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
   // Objects frame
   $form['batch_objects_frame'] = array(
       '#type' => 'fieldset',
-      '#title' => 'Batch objects',
+      '#title' => 'Batch items',
       '#collapsible' => TRUE,
       '#collapsed' => FALSE,
     );
+  if ((array_search($model_name, $file_not_allowed_for_model_names) === FALSE)) {
+    // Add a button if there is already a CSV for the batch that will perform the item / MODS
+    // creation from the CSV file.
+    if ($batch_record && isset($batch_record['uploaded_csv_file']) && ($batch_record['uploaded_csv_file'] <> '')) {
+      // clicking this button should trigger the islandora_digital_workflow_prepare_csv2mods on this batch
+      $form['batch_objects_frame']['sync_items_from_csv'] = array(
+        '#item' => 'item',
+        '#prefix' => '<div class="form-item form-type-textfield"><label>Sync Batch Items from CSV file</label>',
+        '#suffix' => '<div class="description">Clicking this button will trigger the CSV to MODS creation routine and will update all of the batch records accordingly.</div></div>',
+        '#markup' => l('Sync Batch Items', 'node/' . $batch_record['nid'] . '/sync_batch_items'),
+      );
+    }
+  }
 
   // Default EAD id: textfield
   $form['batch_objects_frame']['default_ead_id'] = array(
@@ -606,7 +626,9 @@ function islandora_digital_workflow_create_empty_batch_form_validate(&$elements,
     form_set_error('batch_name', t('A batch already exists with the name @batch_name.',
         array('@batch_name' => $batch_name)));
     $edit_this_batch_link = l($batch_name, 'islandora/islandora_digital_workflow/edit_batch/' . $batch_name);
-    drupal_set_message('Edit existing batch "' . $edit_this_batch_link . '".', 'warning');
+    drupal_set_message(t('Edit existing batch "@edit_this_batch_link".', array(
+        '@edit_this_batch_link' => $edit_this_batch_link
+    )), 'warning');
   }
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
   $legal_batch_name = islandora_digital_workflow_convert_to_filename($batch_name);
@@ -674,10 +696,16 @@ function islandora_digital_workflow_create_batch_form_submit(array $form, array 
       $current_time = date('H:i:s');
       $edit_batch_link = l($batch_record['batch_name'], 'islandora/islandora_digital_workflow/edit_batch/' . $batch_record['batch_name']);
       if ($create_new) {
-        drupal_set_message(t('[@date] Created new batch: ', array('@date' => $current_time)) . $edit_batch_link, 'status'); //  . date('H:i:s') . '] The new batch "' . . '" has been created.');
+        drupal_set_message(t('[@date] Created new batch: @edit_batch_link', array(
+            '@date' => $current_time,
+            '@edit_batch_link' => $edit_batch_link)
+            ), 'status');
       }
       else {
-        drupal_set_message(t('[@date] Batch updated: ', array('@date' => $current_time)) . $edit_batch_link, 'status'); //  . date('H:i:s') . '] The batch record has been updated.');
+        drupal_set_message(t('[@date] Batch updated:  @edit_batch_link', array(
+            '@date' => $current_time,
+            '@edit_batch_link' => $edit_batch_link)
+            ), 'status');
       }
       if (file_exists($csv_filename)) {
         @unlink($csv_filename);
@@ -689,4 +717,80 @@ function islandora_digital_workflow_create_batch_form_submit(array $form, array 
       drupal_goto('islandora/islandora_digital_workflow/');
       break;
   }
+}
+
+function islandora_digital_workflow_sync_batch_items() {
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/lookup.form');
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/create_batch.form');
+
+  $nid = arg(1);
+  $node = ($nid) ? node_load($nid) : NULL;
+
+  $lookup_form_markup = theme('islandora_digital_workflow_lookup', array('searchterm' => ''));
+
+  $breadcrumb = array(
+    l(t('Home'), '<front>'),
+    l(t('Islandora Digital Workflow'), 'islandora/islandora_digital_workflow'),
+    l($node->title, 'node/' . $node->nid),
+  );
+  drupal_set_breadcrumb($breadcrumb);
+
+  $batch_name = $node->title;
+  $batch_form = drupal_get_form('islandora_digital_workflow_sync_batch_items_confirmation', $batch_name);
+  return $lookup_form_markup . drupal_render($batch_form);
+}
+
+function islandora_digital_workflow_sync_batch_items_confirmation(array $form, array &$form_state, $batch_name = NULL) {
+  $form = array(
+    'confirm-message' => array(
+      '#type' => 'item',
+      '#markup' => '<b>Clicking this button will trigger the CSV to MODS creation routine and will update all of the batch records accordingly.</b><br>',
+    ),
+    'submit' => array(
+      '#type' => 'submit',
+      '#value' => t('Ok'),
+    ),
+    'cancel' => array(
+      '#type' => 'submit',
+      '#value' => t('Cancel'),
+    ),
+  );
+  return $form;
+}
+
+function islandora_digital_workflow_sync_batch_items_confirmation_submit(array $form, array &$form_state) {
+  $id = $form_state['triggering_element']['#id'];
+  $nid = arg(1);
+  $node = ($nid) ? node_load($nid) : NULL;
+
+  switch ($id) {
+    case 'edit-submit':
+      drupal_set_message('Sync Batch Items submitted.');
+      islandora_digital_workflow_sync_items_process_node($node);
+      break;
+    case 'edit-cancel':
+      drupal_set_message('Sync Batch Items has been cancelled.');
+      break;
+  }
+  if (is_object($node)) {
+    drupal_goto('node/' . $nid . '/batch');
+  }
+  else {
+    drupal_set_message(t('The node could not be loaded for arg(1).  Value for nid ' .
+        'to node record = @nid.  The system could not redirect to that node\'s ' .
+        'batch record page (node/@nid/batch).', array('@nid' => $nid)), 'warning');
+  }
+}
+
+function islandora_digital_workflow_sync_items_process_node($node) {
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
+
+  $batch_record = islandora_digital_workflow_get_batch_record_by_nid($node->nid);
+
+  $temp_csv_filename = drupal_realpath(drupal_tempnam('temporary://', 'batch_objects.csv'));
+  if ($bytes_written = file_put_contents($temp_csv_filename, $batch_record['uploaded_csv_file'])) {
+    $_SESSION['uploaded_csv_filename'] = $temp_csv_filename;
+  }
+  islandora_digital_workflow_sync_node_to_items($batch_record, $node, $temp_csv_filename, TRUE);
 }

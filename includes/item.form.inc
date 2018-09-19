@@ -63,11 +63,12 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
         l(t('select a "Workflow Sequence" for this batch'), '/node/' . $node->nid . '/batch') . '.';
   }
   $is_paged_content = islandora_digital_workflow_is_paged_object($batch_record->default_type_of_resource);
+
   // Did the user post an update to this batch item data?  If so, handle that update here
   if (isset($_POST['title'])) {
     $item_record_results = islandora_digital_workflow_get_batch_item_record($batch_item_id);
     $original_values = array_pop($item_record_results);
-    if ($paged_content_models) {
+    if ($is_paged_content) {
       if (isset($_FILES['marc_file']) && isset($_FILES['marc_file']['tmp_name']) && $_FILES['marc_file']['tmp_name']) {
         $marc = file_get_contents($_FILES['marc_file']['tmp_name']);
         $_POST['marc'] = $marc;
@@ -85,28 +86,30 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
     $records_updated = islandora_digital_workflow_update_batch_item_record($batch_item_id, $_POST, $original_values);
     if ($records_updated) {
       drupal_set_message(t('This batch object record has been updated <br>' .
-          '<b>Previous Title:</b> "' . $original_values->title . '"<br>' .
-          '<b>Updated Title:</b> "<span class="' . 
-              (($_POST['title'] <> $original_values->title) ? 'good' : '') .
-              '">' . $_POST['title'] . '</span>"<br>' .
-          '<b>Previous Identifier:</b> "' . $original_values->identifier . '"<br>' .
-          '<b>Updated Identifier:</b> "<span class="' . 
-              (($_POST['identifier'] <> $original_values->identifier) ? 'good' : '') .
-              '">' . $_POST['identifier'] . '</span>"<br>' .
+          '<b>Previous Title:</b> "@o_title"<br>' .
+          '<b>Updated Title:</b> "<span class="@title_class">@u_title</span>"<br>' .
+          '<b>Previous Identifier:</b>"@o_identifier"<br>' .
+          '<b>Updated Identifier:</b> "<span class="@identifier_class">@u_identifier</span>"<br>' .
           (($is_paged_content) ?
-          '<b>Previous Filename:</b> "' . $original_values->filename . '"<br>' .
-          '<b>Updated Filename:</b> "<span class="' . 
-              (($_POST['filename'] <> $original_values->filename) ? 'good' : '') .
-              '">' . $_POST['filename'] . '</span>"' : '')));
+          '<b>Previous Filename:</b> "@o_filename"<br>' .
+          '<b>Updated Filename:</b> "<span class="@filename_class">@u_filename</span>"' : ''), array(
+                  '@o_title' => $original_values->title,
+                  '@title_class' => (($_POST['title'] <> $original_values->title) ? 'good' : ''),
+                  '@u_title' => $_POST['title'],
+                  '@o_identifier' => $original_values->identifier,
+                  '@identifier_class' => (($_POST['identifier'] <> $original_values->identifier) ? 'good' : ''),
+                  '@u_identifier' => $_POST['identifier'],
+                  '@o_filename' => $original_values->filename,
+                  '@filename_class' => (($_POST['filename'] <> $original_values->filename) ? 'good' : ''),
+                  '@u_filename' => $_POST['filename'],
+              )));
     }
   }
 
   $item_record_results = islandora_digital_workflow_get_batch_item_record($batch_item_id);
-
   $item = array_pop($item_record_results);
   @list($namespace, $pid) = explode(":", $item->identifier);
 
-  $is_paged_content = islandora_digital_workflow_is_paged_object($batch_record->default_type_of_resource);
   if ($is_paged_content) {
     $found_files = islandora_digital_workflow_scandir_paged_content_files($batch_path . '/' . $pid);
   }

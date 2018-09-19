@@ -19,6 +19,7 @@ define('IDW_ACTION_CHECK_PHYSICAL_ITEMS', 6);
 define('IDW_ACTION_SYSTEM_MADE_DERIVATIVES', 7);
 define('IDW_ACTION_ADD_MARC_RECORD', 8);
 define('IDW_ACTION_PROBLEM', 9);
+define('IDW_ACTION_ADD_MODS_RECORD', 10);
 define('IDW_ACTION_ALL_CHECK_IN', 1001);
 define('IDW_ACTION_ALL_SCAN', 1002);
 define('IDW_ACTION_ALL_SYSTEM_INGEST', 1003);
@@ -271,6 +272,15 @@ function islandora_digital_workflow_menu() {
       'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_EDIT_DELETE_TRANSACTIONS, 1),
       'type' => MENU_NORMAL_ITEM,
       'file' => 'includes/edit_transaction.form.inc',
+      'weight' => 90,
+    ),
+    'node/%node/sync_batch_items' => array(
+      'title' => t('Sync Batch Items'),
+      'page callback' => 'islandora_digital_workflow_sync_batch_items',
+      // arguments are handled with arg(1).
+      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_INGEST_ITEMS),
+      'type' => MENU_SUGGESTED_ITEM,
+      'file' => 'includes/create_batch.form.inc',
       'weight' => 90,
     ),
     'islandora/islandora_digital_workflow/sync_staging_files/%' => array(
@@ -784,10 +794,12 @@ function islandora_digital_workflow_preprocess_page(&$vars) {
     $node = node_load(arg(1));
     if ( $node->type == 'workflow_batch' ) {
       // islandora/islandora_digital_workflow » {current node title}
+      $title = (arg(2) == 'item' && is_numeric(arg(3))) ?
+              l($node->title, 'node/' . arg(1) . '/batch') : $node->title;
       $vars['breadcrumb'] = theme('breadcrumb', array(
           'breadcrumb' => array(
               l('Islandora Digital Workflow', 'islandora/islandora_digital_workflow'),
-              $node->title,
+              $title,
           ))
       );
     }

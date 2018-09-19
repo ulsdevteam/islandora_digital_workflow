@@ -32,8 +32,8 @@ function islandora_digital_workflow_files($node) {
 
   // Scan for files in that directory - this will mark any files that are expected,
   // but not found with "bad" class.
-  $paged_content_models = islandora_digital_workflow_retrieve_applicable_paged_content_cmodels();
-  if (!(array_search($batch_record->default_type_of_resource, $paged_content_models) === FALSE)) {
+  $is_paged_content = islandora_digital_workflow_is_paged_object($batch_record->default_type_of_resource);
+  if ($is_paged_content) {
     $found_files = islandora_digital_workflow_scandir_paged_content_files($batch_path);
   }
   else {

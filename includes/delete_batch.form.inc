@@ -175,10 +175,14 @@ function islandora_digital_workflow_delete_batch_form_submit(array $form, array 
       $current_time = date('H:i:s');
       $edit_batch_link = l($batch_record['batch_name'], 'islandora/islandora_digital_workflow/edit_batch/' . $batch_record['batch_name']);
       if ($create_new) {
-        drupal_set_message(t('[@date] Created new batch: ', array('@date' => $current_time)) . $edit_batch_link, 'status'); //  . date('H:i:s') . '] The new batch "' . . '" has been created.');
+        drupal_set_message(t('[@date] Created new batch: @edit_batch_link', array(
+            '@date' => $current_time,
+            '@edit_batch_link' => $edit_batch_link)), 'status');
       }
       else {
-        drupal_set_message(t('[@date] Batch updated: ', array('@date' => $current_time)) . $edit_batch_link, 'status'); //  . date('H:i:s') . '] The batch record has been updated.');
+        drupal_set_message(t('[@date] Batch updated: @edit_batch_link', array(
+            '@date' => $current_time,
+            '@edit_batch_link' => $edit_batch_link)), 'status');
       }
       if (file_exists($csv_filename)) {
         @unlink($csv_filename);

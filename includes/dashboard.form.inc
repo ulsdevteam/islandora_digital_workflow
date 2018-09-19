@@ -70,9 +70,6 @@ function islandora_digital_workflow_get_dashboard_links() {
   if (user_access('administer permissions')) {
     $links['admin'][] = l(t('User Permissions'), '/admin/people/permissions') . '<br><span class="small_lt_text">Manage user permissions.</span><br><br>';
   }
-
-
-
   
   return $links;  
 }

@@ -70,12 +70,6 @@ function islandora_digital_workflow_add_item_form(array $form, array &$form_stat
         '#required' => true,
         '#default_value' => '',
       ),
-      'filename' => array(
-        '#type' => 'textfield',
-        '#title' => t('Filename'),
-        '#required' => true,
-        '#default_value' => '',
-      ),
       'submit' => array(
         '#type' => 'submit',
         '#value' => t('Add item'),
@@ -101,14 +95,13 @@ function islandora_digital_workflow_add_item_form_submit(array $form, array &$fo
   $batch_id = $form_state['values']['batch_id'];
   $identifier = $form_state['values']['identifier'];
   $title = $form_state['values']['title'];
-  $filename = $form_state['values']['filename'];
   $mods = '<?xml version="1.0" encoding="UTF-8"?>';
   $marc = '<?xml version="1.0" encoding="UTF-8"?>';
   $fields = array(
       'batch_id' => $batch_id,
       'identifier' => $identifier,
       'title' => $title,
-      'filename' => $filename,
+      'filename' => '',
       'mods' => $mods,
       'marc' => $marc,
   );

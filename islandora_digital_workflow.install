@@ -751,49 +751,46 @@ function islandora_digital_workflow_insert_islandora_digital_workflow_actions($p
       'name' => 'check-in',
       'description' => 'Check in physical item',
       'glyph' => 'images/check-in-physical-item_20.png',
-      'is_batch_action' => 0,
     ),
     IDW_ACTION_SCAN => array(
       'name' => 'scan',
       'description' => 'Scan the item',
       'glyph' => 'images/scan-the-item_20.png',
-      'is_batch_action' => 0,
     ),
     IDW_ACTION_SYSTEM_INGEST => array(
       'name' => 'ingest',
       'description' => 'Ingest item into repository',
       'glyph' => 'images/ingest-item-into-repository_20.png',
-      'is_batch_action' => 0,
     ),
     IDW_ACTION_CHECK_OUT => array(
       'name' => 'check-out',
       'description' => 'Check out physical item',
       'glyph' => 'images/check-out-physical-item_20.png',
-      'is_batch_action' => 0,
     ),
     IDW_ACTION_RESCANNED => array(
       'name' => 'rescan',
       'description' => 'Rescanned the item',
       'glyph' => 'images/rescanned-the-item_20.png',
-      'is_batch_action' => 0,
     ),
     IDW_ACTION_CHECK_PHYSICAL_ITEMS => array(
       'name' => 'check-physical-items',
       'description' => 'Check item against physical object',
       'glyph' => 'images/check-item-against-physical-object_20.png',
-      'is_batch_action' => 0,
     ),
     IDW_ACTION_SYSTEM_MADE_DERIVATIVES => array(
       'name' => 'system-made-derivatives',
       'description' => 'System made derivatives',
       'glyph' => 'images/system-made-derivatives_20.png',
-      'is_batch_action' => 0,
     ),
     IDW_ACTION_ADD_MARC_RECORD => array(
       'name' => 'add-marc-record',
       'description' => 'Add MARC record',
       'glyph' => 'images/add-marc-record_20.png',
-      'is_batch_action' => 0,
+    ),
+    IDW_ACTION_ADD_MODS_RECORD => array(
+      'name' => 'add-mods-record',
+      'description' => 'Add MODS record',
+      'glyph' => 'images/add-mods-record_20.png',
     ),
     // this will also trigger insertion of a record into the
     // islandora_digital_workflow_problem_items table.  The presence of these
@@ -804,7 +801,6 @@ function islandora_digital_workflow_insert_islandora_digital_workflow_actions($p
       'name' => 'problem',
       'description' => 'Problem with scan',
       'glyph' => 'images/problem_20.png',
-      'is_batch_action' => 0,
       'stage_taxonomy_tid' => $problem_tid,
       'is_triggered_by_single_item' => 1,
     ),
@@ -846,9 +842,9 @@ function islandora_digital_workflow_insert_islandora_digital_workflow_actions($p
         'action_id' => $action_id,
         'name' => $values['name'],
         'description' => $values['description'],
-        'is_batch_action' => $values['is_batch_action'],
-        'stage_taxonomy_tid' => (isset($values['stage_taxonomy_tid']) ? : 0),
-        'is_triggered_by_single_item' => (isset($values['is_triggered_by_single_item']) ? : 0),
+        'is_batch_action' => (isset($values['is_batch_action']) ? $values['is_batch_action'] : 0),
+        'stage_taxonomy_tid' => (isset($values['stage_taxonomy_tid']) ? $values['stage_taxonomy_tid'] : 0),
+        'is_triggered_by_single_item' => (isset($values['is_triggered_by_single_item']) ? $values['is_triggered_by_single_item'] : 0),
       ))
     ->execute();
   }
