@@ -115,13 +115,28 @@ span.transaction_action_reserved_action_spacer {
     padding-right: 6px;
     margin-top: 8px !important;
 }
+
+.action_glyph_previews .padright {
+    padding-right: 10px;
+}
+
+.action_glyph_previews .padleft {
+    padding-left: 10px;
+}
+
+.padright label {
+    margin-left: 10px;
+}
+
 .action_glyph_previews label {
     display: inline-block;
     font-weight: normal;
 }
+
 .action_glyph_previews tbody {
     border: none;
 }
+
 .action_glyph_previews img {
     padding-bottom: 2px;
 }
@@ -142,6 +157,7 @@ span.transaction_action_reserved_action_spacer {
     appearance: none;
     text-indent: 28px;
 }
+
 .indent_td {
     text-indent: 28px;
 }
@@ -294,8 +310,12 @@ div.info p.info {
     opacity: 0.45;
 }
 
-.disabled_text {
+.disabled_text, div.form-disabled label {
     color: #aaa;
+}
+
+div.form-disabled label.enabled_text {
+    color: inherit !important;
 }
 
 .small_lt_text {

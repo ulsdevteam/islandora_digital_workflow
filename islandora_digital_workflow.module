@@ -185,14 +185,6 @@ function islandora_digital_workflow_menu() {
       'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW),
       'file' => 'includes/delete_batch.form.inc',
     ),
-    'islandora/islandora_digital_workflow/ingest_item/%' => array(
-      'title' => t('Islandora Digital Workflow Ingest Item'),
-      'type' => MENU_NORMAL_ITEM,
-      'page callback' => array('islandora_digital_workflow_ingest_item'),
-      'page arguments' => array(3),
-      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_INGEST_ITEMS),
-      'file' => 'includes/ingest_item.form.inc',
-    ),
     // Node enhancement functions
     'node/%node/batch' => array(
       'title' => t('Edit Batch Record'),
@@ -273,6 +265,14 @@ function islandora_digital_workflow_menu() {
       'type' => MENU_NORMAL_ITEM,
       'file' => 'includes/edit_transaction.form.inc',
       'weight' => 90,
+    ),
+    'islandora/islandora_digital_workflow/ingest_item/%' => array(
+      'title' => t('Islandora Digital Workflow - Ingest Item'),
+      'type' => MENU_NORMAL_ITEM,
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('islandora_digital_workflow_ingest_item', 3),
+      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_INGEST_ITEMS),
+      'file' => 'includes/ingest_item.form.inc',
     ),
     'node/%node/sync_batch_items' => array(
       'title' => t('Sync Batch Items'),
@@ -804,4 +804,25 @@ function islandora_digital_workflow_preprocess_page(&$vars) {
       );
     }
   }
+}
+
+/**
+ * To provide a callback for the users who have permission to the workflow to
+ * inject a link to the workflow to the HTML output.
+ */
+function islandora_digital_workflow_user_view_alter(&$build) {
+  // Before hooking in a post-render callback, check that the user should
+  // even have the link to the workflow dashboard.
+
+  // Test this user for the ISLANDORA_DIGITAL_WORKFLOW permission
+  if (user_access(ISLANDORA_DIGITAL_WORKFLOW, $build['#account'])) {
+    // Add a #post_render callback to act on the rendered HTML of the user.
+    $build['#post_render'][] = 'islandora_digital_workflow_user_post_render';
+  }
+}
+
+function islandora_digital_workflow_user_post_render(&$markup) {
+  $dashboard_link = l('Islandora Digital Workflow', 'islandora/islandora_digital_workflow');
+
+  print str_replace('content">','content">' . $dashboard_link, $markup);
 }

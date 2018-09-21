@@ -42,7 +42,7 @@ function islandora_digital_workflow_add_transactions_form(array $form, array &$f
   $action_record = islandora_digital_workflow_get_action($action_id);
   $batch_item_object = islandora_digital_workflow_get_batch_item($batch_item_id);
   $batch_item_identifier = $batch_item_object->identifier;
-  $action_description = ((is_array($action_record) && array_key_exists('description', $action_record)) ? $action_record['description'] : '');
+  $action_description = ((is_array($action_record) && array_key_exists('action_description', $action_record)) ? $action_record['action_description'] : '');
 
   $breadcrumb = array(
     l(t('Home'), '<front>'),

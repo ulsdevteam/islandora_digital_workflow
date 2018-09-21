@@ -85,9 +85,11 @@ function islandora_digital_workflow_sequences() {
     $sequence_models = array_key_exists($workflow_sequence_id, $models_arr) ? $models_arr[$workflow_sequence_id] : array();
     $form['wrapper']['workflow_sequence_id_' . $workflow_sequence_id] = array(
       '#type' => 'item',
-      // TODO -- replace all of this markup with a themed template call that passes
-      // in the $workflow_sequence_id, $sequence_info['name'], $markup_batch_actions,
-      // $markup_item_actions, $models, and value for $sequence_in_use.
+      /**
+       * @todo replace all of this markup with a themed template call that passes
+       * in the $workflow_sequence_id, $sequence_info['name'], $markup_batch_actions,
+       * $markup_item_actions, $models, and value for $sequence_in_use.
+       */
       '#markup' => theme('islandora_digital_workflow_admin_workflow_sequence', array(
           'workflow_sequence_id' => $workflow_sequence_id,
           'sequence_name' => $sequence_info['name'],
@@ -964,8 +966,8 @@ function islandora_digital_workflow_actions_form(array $form, array &$form_state
   foreach ($rows as $action_id => $action_record_array) {
     $trigger_stage = (isset($action_record_array['term_name']) ? $action_record_array['term_name']: '');
     $sequence_ids_using_action = islandora_digital_workflow_using_action($workflow_sequence_actions, $action_id);
-    $glyph_class = 'transaction_action_' . (($action_record_array['name']) ? strtolower(str_replace(array("-", " "), "_", $action_record_array['name'])) : 'spacer');
-    $markup = '<tr class="' . $glyph_class . '"><td><b>Action name:</b><br>' . $action_record_array['name'] .
+    $glyph_class = 'transaction_action_' . (($action_record_array['action_name']) ? strtolower(str_replace(array("-", " "), "_", $action_record_array['action_name'])) : 'spacer');
+    $markup = '<tr class="' . $glyph_class . '"><td><b>Action name:</b><br>' . $action_record_array['action_name'] .
             '</td></tr>';
     $admin_links = '<div class="admin_links">' .
             ((count($sequence_ids_using_action) > 0) ? '' : '<a href="/admin/islandora/islandora_digital_workflow/workflow_sequence_actions/delete/' . $action_record_array['action_id'] . '" title="Delete"><div class="delete_20">&nbsp;</div></a>') .
@@ -975,9 +977,9 @@ function islandora_digital_workflow_actions_form(array $form, array &$form_state
     $arr = array(
         'data' => array(
             array(
-                'data' => '<div class="' . $glyph_class . '">&nbsp;</div> ' . $action_record_array['name'] . $admin_links, 'class' => array()
+                'data' => '<div class="' . $glyph_class . '">&nbsp;</div> ' . $action_record_array['action_name'] . $admin_links, 'class' => array()
             ),
-            $action_record_array['description'],
+            $action_record_array['action_description'],
             '<small class="disabled_text">' . $glyph_class . '</small>',
             $trigger_stage,
         ),
@@ -1062,7 +1064,7 @@ function islandora_digital_workflow_actions_edit_form(array $form, array &$form_
   $action_record = islandora_digital_workflow_get_action($action_id);
   $sequences_using_action = islandora_digital_workflow_sequences_using_action($action_id);
   if ($action_id) {
-    drupal_set_title(t('Islandora Digital Workflow - Edit Action') . ': "' . $action_record['description'] . '"', CHECK_PLAIN);
+    drupal_set_title(t('Islandora Digital Workflow - Edit Action') . ': "' . $action_record['action_description'] . '"', CHECK_PLAIN);
   }
   else {
     drupal_set_title(t('Islandora Digital Workflow - Add Action'), CHECK_PLAIN);
@@ -1094,13 +1096,13 @@ function islandora_digital_workflow_actions_edit_form(array $form, array &$form_
           '#title' => 'Action name',
           '#description' => 'Machine name is used internally do generate HTML ' .
               'and CSS classes for these action transactions.',
-          '#default_value' => ((array_key_exists('name', $action_record)) ? $action_record['name'] : ''),
+          '#default_value' => ((array_key_exists('action_name', $action_record)) ? $action_record['action_name'] : ''),
       ),
       'description' => array(
           '#type' => 'textfield',
           '#title' => 'Action description',
           '#description' => 'This value is used in select boxes and reports.',
-          '#default_value' => ((array_key_exists('description', $action_record)) ? $action_record['description'] : ''),
+          '#default_value' => ((array_key_exists('action_description', $action_record)) ? $action_record['action_description'] : ''),
       ),
   );
 
@@ -1117,10 +1119,7 @@ function islandora_digital_workflow_actions_edit_form(array $form, array &$form_
           '#default_value' => (isset($action_record['is_batch_action']) ? $action_record['is_batch_action']+0 : 0),
       ),
   );
-  // Disable this selection if the action_id is already assigned.
-  if ($action_id) {
-    $form['batch_action_wrapper']['#attributes'] = array('disabled' => 'disabled');
-  }
+
   $vocab = taxonomy_vocabulary_machine_name_load(IDW_STAGE_TAXONOMY_MACHINE_NAME);
   $terms = islandora_digital_workflow_get_all_terms_of_vocab($vocab);
   $terms_options = array('0' => 'Select a Stage');
@@ -1142,8 +1141,6 @@ function islandora_digital_workflow_actions_edit_form(array $form, array &$form_
       'is_triggered_by_single_item' => array(
           '#type' => 'checkbox',
           '#title' => 'Triggered by a single item?',
-          '#attributes' => (( (array_key_exists('stage_taxonomy_tid', $action_record) && is_null($action_record['stage_taxonomy_tid'])) || (array_key_exists('stage_taxonomy', $action_record) && $action_record['stage_taxonomy'] < 1) ) ?
-              array('disabled' => 'disabled', 'class' => 'disabled_text') : array()),
           '#description' => ($action_is_batch_action) ?
             'Not applicable for batch-level transactions' :
             'If this is for a "Batch Item" action, can this be triggered by a ' .
@@ -1153,6 +1150,16 @@ function islandora_digital_workflow_actions_edit_form(array $form, array &$form_
           '#default_value' => (isset($action_record['is_triggered_by_single_item']) ? $action_record['is_triggered_by_single_item']+0 : 0),
       ),
   );
+
+  // Disable this selection if the action_id is already assigned.
+  if ($action_id) {
+    $form['batch_action_wrapper']['#attributes'] = array('disabled' => 'disabled');
+  }
+  else {
+    $form['batch_action_trigger']['is_triggered_by_single_item']['#attributes'] = array(
+        'disabled' => 'disabled',
+        'readonly' => 'readonly');
+  }
   $form['glyph_wrapper'] = array(
       '#type' => 'fieldset',
       'glyph' => array(
@@ -1264,7 +1271,7 @@ function islandora_digital_workflow_actions_delete_form(array $form, array &$for
         implode("</li><li>", $sequences_using_action) . '</li></ul></div></div>', 'warning');
     drupal_goto('admin/islandora/islandora_digital_workflow/workflow_sequence_actions');
   }
-  drupal_set_title(t('Islandora Digital Workflow - Delete Action') . ': "' . $action_record['description'] . '"', CHECK_PLAIN);
+  drupal_set_title(t('Islandora Digital Workflow - Delete Action') . ': "' . $action_record['action_description'] . '"', CHECK_PLAIN);
   $breadcrumb = array(
     l(t('Home'), '<front>'),
     l(t('Administration'), 'admin'),
@@ -1277,7 +1284,7 @@ function islandora_digital_workflow_actions_delete_form(array $form, array &$for
       'confirm_question' => array(
           '#type' => 'item',
           '#markup' => '<p style="font-size:bigger">Are you sure that you want ' .
-              'to delete the action "' . $action_record['description'] . '"?',
+              'to delete the action "' . $action_record['action_description'] . '"?',
       ),
       'action_id' => array(
           '#type' => 'hidden',
@@ -1314,12 +1321,12 @@ function islandora_digital_workflow_actions_delete_form_submit(array $form, arra
   }
   else {
     if ($form_state['triggering_element']['#value'] == 'Cancel') {
-      drupal_set_message('Delete was cancelled for action "' . $action_record['description'] . '".');
+      drupal_set_message('Delete was cancelled for action "' . $action_record['action_description'] . '".');
       drupal_goto('admin/islandora/islandora_digital_workflow/workflow_sequence_actions');
     }
     else {
       module_load_include('inc', 'islandora_digital_workflow', 'includes/islandora_digital_workflow_css');
-      drupal_set_message('Action "' . $action_record['description'] . '" deleted.');
+      drupal_set_message('Action "' . $action_record['action_description'] . '" deleted.');
       $rows_deleted = db_delete('islandora_digital_workflow_actions')
           ->condition('action_id', $form_state['values']['action_id'])
           ->execute();

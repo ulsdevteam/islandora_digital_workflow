@@ -81,6 +81,8 @@ Installing this module will also set up the following:
  - Deploy the Forena reports SQL and FRX files to the configured Forena locations.  This requires that the Drupal "**Private file system path**" is configured and editable by the web server (this path is configured at /admin/config/media/file-system).
  - custom Drupal views to display the workflow_batch nodes
 
+*This module also uses two free image libraries for the various action glyphs.  These images allow for usage but not distribution.  They are  https://www.icondeposit.com/theicondeposit:159 and http://brankic1979.com/icons/.*
+
 ## Permissions
 Each islandora model is exposed as an "{MODEL_NAME} Islandora Digital Workflow" permission under the Drupal permissions table `/admin/people/permissions`.  User roles and individual users will need to be configured for access to the various models.  
 
@@ -99,7 +101,6 @@ This section needs to be written.
 This section needs to be written.
 
 ## Author / License
-
 Written by Brian Gillingham for the [University of Pittsburgh](http://www.pitt.edu).  Copyright (c) University of Pittsburgh.
 
 Released under a license of GPL v2 or later.

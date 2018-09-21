@@ -4,6 +4,8 @@
  * Creates a minimal batch stub record that will be updated in other parts of
  * the code.
  *
+ * @todo add a validate call instead of checking the values of $form_state here.
+ *
  * @global object $user
  *   Drupal user object.
  * @param array $form_state
@@ -16,7 +18,6 @@ function islandora_digital_workflow_create_stub_batch_record($form_state) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
 
   global $user;
-  // TODO: add a validate call instead of checking the values of $form_state here.
   if (is_array($form_state) && isset($form_state['values']['batch_name'])
     && $form_state['values']['batch_name']) {
     $batch_name = $form_state['values']['batch_name'];
@@ -55,6 +56,8 @@ function islandora_digital_workflow_create_stub_batch_record($form_state) {
  * Given a form submission and related workflow_batch node, this should update
  * the batch record.
  *
+ * @todo add a validate call instead of checking the values of $form_state here.
+ *
  * @global object $user
  *   Drupal user object.
  * @param array $form_state
@@ -73,7 +76,6 @@ function islandora_digital_workflow_create_batch_record_by_form($form_state, $no
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
 
   global $user;
-  // TODO: add a validate call instead of checking the values of $form_state here.
   if (is_array($form_state) && isset($form_state['values']['batch_name'])
     && $form_state['values']['batch_name']) {
     $batch_name = $form_state['values']['batch_name'];
@@ -656,6 +658,8 @@ function islandora_digital_workflow_get_accessible_cmodels() {
  *
  * This will also strip off the " Content Model" suffix.
  *
+ * @todo check user permissions here for this $model_name before adding.
+ *
  * @return array
  *   the key for each item is the Islandora content model
  *   the value for each item is the readable name
@@ -674,7 +678,6 @@ function islandora_digital_workflow_get_reduced_readable_cmodels() {
     if (count($matches) > 0) {
       $model_name = $matches[1];
       $model_name_readable = trim(str_replace('(' . $model_name . ')', '', $model_name_readable_and_model_name));
-      // TODO: check user permissions here for this $model_name before adding.
       $return_models[$model_name] = str_replace($suffix, "", $model_name_readable);
     }
   }
@@ -1030,6 +1033,10 @@ function islandora_digital_workflow_model_ingest_module_info($model) {
  * $prepared_filepath = The path to the folder that contains the MODS and image TIF.
  * $identifier - the identifier value (if provided in the spreadsheet).
  *
+ * @todo capture batch-level values for default_genre, batch_default_CR_status,
+ *       batch_default_pub_status, and batch_default_CR_holder -- to potentially set
+ *       when creating MODS below.
+ *
  * @param type $input_filename
  * @param type $batch_record
  * @param type $keep_created_MODS_files
@@ -1061,9 +1068,6 @@ function islandora_digital_workflow_prepare_csv2mods($input_filename, $batch_rec
 
   $batch_path = islandora_digital_workflow_batch_path($batch_record);
 
-  // TODO: capture batch-level values for default_genre, batch_default_CR_status,
-  // batch_default_pub_status, and batch_default_CR_holder -- to potentially set
-  // when creating MODS below.
   ini_set('auto_detect_line_endings', true);
   $outputFilename   = 'MODS.xml';
   // Open csv to read
@@ -1620,6 +1624,12 @@ function islandora_digital_workflow_validate_csv_file_upload() {
 /**
  * To merge a new CSV upload with that of an existing batch record.
  *
+ * @todo create $merged_csv_file by using fputcsv calls like this:
+ *         fputcsv($output, array('id','name','description'));
+ *         foreach($prod as $product) {
+ *           fputcsv($output, $product);
+ *         }
+ *
  * @param array $batch_record
  *   The batch record as an array.
  * @param object $node
@@ -1647,13 +1657,6 @@ function islandora_digital_workflow_merge_uploaded_csv_files(&$batch_record, $no
         unlink($temp_csv_filename);
       }
     }
-    // TODO -- create $merged_csv_file by using fputcsv calls like this:
-    //  fputcsv($output, array('id','name','description'));
-    //  foreach($prod as $product) {
-    //    fputcsv($output, $product);
-    //  }
-
-
 
     // Check the rows from this CSV are in the same order as the rows defined
     // from first row of the batch record's uploaded_csv_file.

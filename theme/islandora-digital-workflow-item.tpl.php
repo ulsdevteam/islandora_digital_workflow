@@ -56,7 +56,7 @@
     <?php print $ingested_links; ?>
   <?php elseif ($can_ingest): ?>
   <div class="good"><p>All requirements are completed.
-      <b>Ingest this item into Islandora now: <a href="/islandora/islandora_digital_workflow/ingest_item/<?php print urlencode($item->identifier); ?>"><?php print $item->identifier; ?></a></b>
+      <b>Ingest this item into Islandora now: <a href="/islandora/islandora_digital_workflow/ingest_item/<?php print urlencode($item->batch_item_id); ?>"><?php print $item->identifier; ?></a></b>
   </div>
   <?php endif; ?>
 

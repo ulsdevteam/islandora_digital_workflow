@@ -14,6 +14,7 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
   module_load_include('inc', 'islandora_digital_workflow', 'includes/lookup.form');
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
+
   $breadcrumb = array(
     l(t('Home'), '<front>'),
     l(t('Islandora Digital Workflow'), 'islandora/islandora_digital_workflow'),
@@ -82,14 +83,20 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
     if ($filename_folder == '/') {
       $filename_folder = '';
     }
+
     $_POST['filename'] = ($is_paged_content) ? $filename_folder . $_POST['filename'] : '';
     $records_updated = islandora_digital_workflow_update_batch_item_record($batch_item_id, $_POST, $original_values);
     if ($records_updated) {
+      $mods_file_changed = (trim($original_values->mods) <> trim($_POST['mods']));
+      $marc_file_changed = ($is_paged && trim($original_values->marc) <> trim($_POST['marc']));
       drupal_set_message(t('This batch object record has been updated <br>' .
           '<b>Previous Title:</b> "@o_title"<br>' .
           '<b>Updated Title:</b> "<span class="@title_class">@u_title</span>"<br>' .
           '<b>Previous Identifier:</b>"@o_identifier"<br>' .
           '<b>Updated Identifier:</b> "<span class="@identifier_class">@u_identifier</span>"<br>' .
+          (($mods_file_changed) ? '<b>MODS file changed:</b><i>changes not displayed here</i>' : '') .
+          (($marc_file_changed) ? '<b>MARC file changed:</b><i>changes not displayed here</i>' : '') .
+          '<b>Previous Identifier:</b>"@o_identifier"<br>' .
           (($is_paged_content) ?
           '<b>Previous Filename:</b> "@o_filename"<br>' .
           '<b>Updated Filename:</b> "<span class="@filename_class">@u_filename</span>"' : ''), array(

@@ -27,10 +27,12 @@ function add_action_selection(control) {
 function stage_selection(control) {
   if (control.value > 0) {
     jQuery('#edit-is-triggered-by-single-item').removeAttr("disabled");
+    jQuery('.form-item-is-triggered-by-single-item label').addClass("enabled_text");
     jQuery('.form-item-is-triggered-by-single-item label').removeClass("disabled_text");
   }
   else {
     jQuery('#edit-is-triggered-by-single-item').attr('disabled', 'disabled');
+    jQuery('.form-item-is-triggered-by-single-item label').removeClass("enabled_text");
     jQuery('.form-item-is-triggered-by-single-item label').addClass("disabled_text");
   }
 }

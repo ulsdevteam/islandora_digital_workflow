@@ -10,30 +10,33 @@
 */
 ?>
 <table class="action_glyph_previews<?php print (($normal_size) ? '' : ' larger_glyph'); ?>">
-    <?php $toggle = TRUE; ?>
+    <?php $toggle = 0; ?>
     <?php foreach ($glyph_filenames as $glyph_index => $glyph_filename): ?>
-    <?php if ($toggle): ?>
+    <?php if ($toggle < 1): ?>
     <tr>
     <?php endif; ?>
     <?php if ($glyph_filename): ?>
-        <td><img src="/<?php print $module_path; ?>/<?php print $glyph_filename; ?>" width="<?php print (($normal_size) ? '20' : '40');?>" /> &nbsp;</td>
+        <td class="padleft"><img src="/<?php print $module_path; ?>/<?php print $glyph_filename; ?>" width="<?php print (($normal_size) ? '20' : '40');?>" /> &nbsp;</td>
     <?php else: ?>
-        <td>N/A</td>
+        <td class="padleft">N/A</td>
     <?php endif; ?>
     <?php if ($normal_size): ?>
-        <td>
+        <td class="padright">
             &nbsp;<input type="radio" id="glyph_<?php print $glyph_index; ?>" name="glyph_selector" value="<?php print $glyph_filename;?>"<?php print ($selected <> $glyph_filename) ? '' : ' checked'; ?>>
             <label for="glyph_<?php print $glyph_index; ?>"><?php print $glyph_index;?></label>
         </td>
     <?php else: ?>
-        <td><?php print $glyph_filename;?></td>
+        <td class="padright"><?php print $glyph_filename;?></td>
     <?php endif; ?>
-    <?php if (!$toggle): ?>
+    <?php if ($toggle == 4): ?>
     </tr>
     <?php endif; ?>
-    <?php $toggle = !$toggle; ?>
+    <?php
+    $toggle++;
+    if ($toggle == 4) { $toggle = 0; }
+    ?>
     <?php endforeach; ?>
-    <?php if (!$toggle): ?>
+    <?php if ($toggle): ?>
     </tr>
     <?php endif; ?>
 </table>

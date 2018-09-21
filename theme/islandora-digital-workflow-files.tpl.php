@@ -76,7 +76,7 @@
     <div class="fieldset-wrapper fieldset_scrollable_div_wrapper">
         <small class="small_lt_text"><b>Files location:</b> <?php
         $filename_pathinfo = pathinfo($item->filename);
-        print $filename_pathinfo['dirname']; 
+        print (isset($filename_pathinfo['dirname']) ? $filename_pathinfo['dirname']: ' -- Directory for "' . $item->filename . '" does not exist.');
         ?></small>
       <table>
         <tr>

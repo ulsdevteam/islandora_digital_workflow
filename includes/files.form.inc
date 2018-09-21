@@ -29,7 +29,6 @@ function islandora_digital_workflow_files($node) {
 
   $file_records = islandora_digital_workflow_get_batch_files_by_nid($node->nid);
   $batch_path = islandora_digital_workflow_batch_path($batch_record);
-
   // Scan for files in that directory - this will mark any files that are expected,
   // but not found with "bad" class.
   $is_paged_content = islandora_digital_workflow_is_paged_object($batch_record->default_type_of_resource);

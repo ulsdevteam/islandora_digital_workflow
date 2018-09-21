@@ -97,6 +97,16 @@ function islandora_digital_workflow_admin_form() {
             'batches by default.  Each batch can override this value.'),
         '#default_value' => variable_get('islandora_digital_workflow_ingest_namespace', 'islandora'),
       ),
+      'ingest_assign_PIDs' => array(
+        '#type' => 'checkbox',
+        '#title' => t('Assign PID values'),
+        '#description' => t('When set, ingested objects are created using the ' .
+            '{Ingest namespace}:{item IDENTIFIER}, else the system will generate ' .
+            'fedora PID values and update the items\' "islandora_pid" value.  ' .
+            '<b>NOTE:</b> Using this option requires that all of the "batch ingest" '.
+            'modules support the `--assign_pid=### parameters.'),
+        '#default_value' => variable_get('islandora_digital_workflow_assign_PIDs', 0),
+      ),
       'ingest_staging_path' => array(
         '#type' => 'textfield',
         '#title' => t('Incoming Staging Directory'),
@@ -198,6 +208,7 @@ function islandora_digital_workflow_admin_form_submit(array $form, array &$form_
     case 'edit-submit':
       islandora_digital_workflow_save_models($form_state['values']);
       variable_set('islandora_digital_workflow_ingest_namespace', $form_state['values']['ingest_namespace']);
+      variable_set('islandora_digital_workflow_assign_PIDs', $form_state['values']['ingest_assign_PIDs']);
       variable_set('islandora_digital_workflow_ingest_staging_path', $form_state['values']['ingest_staging_path']);
       variable_set('islandora_digital_workflow_ingest_prepared_path', $form_state['values']['ingest_prepared_path']);
       variable_set('islandora_digital_workflow_ingest_problems_path', $form_state['values']['ingest_problems_path']);
@@ -210,6 +221,7 @@ function islandora_digital_workflow_admin_form_submit(array $form, array &$form_
     case 'edit-reset':
       variable_del('islandora_digital_workflow_islandora_models');
       variable_del('islandora_digital_workflow_ingest_namespace');
+      variable_del('islandora_digital_workflow_assign_PIDs');
       variable_del('islandora_digital_workflow_ingest_staging_path');
       variable_del('islandora_digital_workflow_ingest_prepared_path');
       variable_del('islandora_digital_workflow_ingest_problems_path');
