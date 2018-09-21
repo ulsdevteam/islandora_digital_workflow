@@ -1,6 +1,12 @@
 <?php
 
 /**
+ * @file
+ * Set of functions related to node operations related to batch and batch_item 
+ * records.
+ */
+
+/**
  * This will update the batch_field_defaults field for the workflow node object
  * based on the underlying batch record for display purposes only.
  *

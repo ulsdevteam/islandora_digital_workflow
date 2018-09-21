@@ -789,6 +789,15 @@ function islandora_digital_workflow_islandora_batch_process_finished($sets) {
   } // if (!empty($sets
 }
 
+/**
+ * Hook to handle hook_preprocess_page.
+ * 
+ * For altering the output of the user page to display a link to the Islandora 
+ * Digital Workflow for users who have permission.
+ * 
+ * @param array $vars
+ *   The page variables that are passed to the template.
+ */
 function islandora_digital_workflow_preprocess_page(&$vars) {
   if ( arg(0) == 'node' && is_numeric(arg(1)) ) {
     $node = node_load(arg(1));
@@ -821,8 +830,13 @@ function islandora_digital_workflow_user_view_alter(&$build) {
   }
 }
 
+/**
+ * Code that will actually inject the link into the user "home" page (viewed
+ * immediately after logging in).
+ *
+ * @param type $markup
+ */
 function islandora_digital_workflow_user_post_render(&$markup) {
   $dashboard_link = l('Islandora Digital Workflow', 'islandora/islandora_digital_workflow');
-
   print str_replace('content">','content">' . $dashboard_link, $markup);
 }

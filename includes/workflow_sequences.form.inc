@@ -1,6 +1,12 @@
 <?php
 
 /**
+ * @file
+ * Set of forms related to configuring the Workflow Sequences, the Actions,
+ * and Islandora model associations per sequence.
+ */
+
+/**
  * Display page for admin/islandora/islandora_digital_workflow/workflow_sequences
  * menu route.
  *
@@ -61,8 +67,7 @@ function islandora_digital_workflow_sequences() {
     foreach ($this_workflow_sequence_actions as $action_record_array) {
       $model_of_this_action = (isset($action_record_array['islandora_model']) ? $action_record_array['islandora_model'] : '');
       $class = (isset($action_record_array['is_required']) ? 'required_action' : 'optional_action');
-      $glyph_class = 'transaction_action_' . (isset($action_record_array['action_name']) ?
-              strtolower(str_replace(array("-", " "), "_", $action_record_array['action_name'])) : 'spacer');
+      $glyph_class = islandora_digital_workflow_glyph_class($action_record_array['action_name']);
       $li_markup = '<li class="' . $glyph_class . ' ' . $class . '">' . (isset($action_record_array['action_description']) ?
               $action_record_array['action_description'] : '[action description missing]') . '</li>';
       if ($model_of_this_action) {
@@ -759,6 +764,7 @@ function _islandora_digital_workflow_arraysort($a, $b) {
 }
 
 /**
+ * Displays configuration optoins for the Workflow Sequence - Models selection form.
  *
  * @param array $form
  *   The Drupal form definition.
@@ -966,7 +972,7 @@ function islandora_digital_workflow_actions_form(array $form, array &$form_state
   foreach ($rows as $action_id => $action_record_array) {
     $trigger_stage = (isset($action_record_array['term_name']) ? $action_record_array['term_name']: '');
     $sequence_ids_using_action = islandora_digital_workflow_using_action($workflow_sequence_actions, $action_id);
-    $glyph_class = 'transaction_action_' . (($action_record_array['action_name']) ? strtolower(str_replace(array("-", " "), "_", $action_record_array['action_name'])) : 'spacer');
+    $glyph_class = islandora_digital_workflow_glyph_class($action_record_array['action_name']);
     $markup = '<tr class="' . $glyph_class . '"><td><b>Action name:</b><br>' . $action_record_array['action_name'] .
             '</td></tr>';
     $admin_links = '<div class="admin_links">' .
@@ -1202,6 +1208,16 @@ function islandora_digital_workflow_actions_edit_form(array $form, array &$form_
   return $form;
 }
 
+/**
+ * Submit form handler for the actions configuration page.
+ *
+ * @param array $form
+ *   The Drupal form definition.
+ * @param array $form_state
+ *   The Drupal form state.
+ * @return array
+ *   Drupal form definition.
+ */
 function islandora_digital_workflow_actions_edit_form_submit(array $form, array &$form_state) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/islandora_digital_workflow_css');
   $fields = array(

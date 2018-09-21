@@ -1,10 +1,10 @@
 <?php
 /**
 * @file
-* islandora-digital-workflow-batch-records-table.tpl display template.
+* islandora-digital-workflow-findobject-form.tpl display template.
 *
 * Variables available:
-* - (none)
+* - $searchterm
 *
 */
 ?>

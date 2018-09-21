@@ -180,6 +180,9 @@ function islandora_digital_workflow_create_empty_batch_form_submit(array $form, 
  *
  * @todo break out non-settings elements into their own form.
  *
+ * @param array $form
+ * @param array $form_state
+ * @param type $batch_name
  * @return array
  *   The Drupal form definition.
  */
@@ -613,7 +616,7 @@ function islandora_digital_workflow_remove_model_based_form_elements($model_name
  * @param array $elements
  *   Drupal elements representation as an array.
  * @param array $form_state
- *   Drupal form_state representation as passed to the validate function. *
+ *   Drupal form_state representation as passed to the validate function.
  * @param string $form_id
  *   The form_id that is being validated -- optional.
  */
@@ -653,7 +656,7 @@ function islandora_digital_workflow_create_empty_batch_form_validate(&$elements,
  * @param array $elements
  *   Drupal elements representation as an array.
  * @param array $form_state
- *   Drupal form_state representation as passed to the validate function. *
+ *   Drupal form_state representation as passed to the validate function.
  * @param string $form_id
  *   The form_id that is being validated -- optional.
  */
@@ -719,6 +722,13 @@ function islandora_digital_workflow_create_batch_form_submit(array $form, array 
   }
 }
 
+/**
+ * Helper function that will scan and sync the MODS files from CSV for all items
+ * in the current batch.
+ *
+ * @return string
+ *   Markup for the processed sync of all batch items.
+ */
 function islandora_digital_workflow_sync_batch_items() {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/lookup.form');
   module_load_include('inc', 'islandora_digital_workflow', 'includes/create_batch.form');
@@ -740,6 +750,17 @@ function islandora_digital_workflow_sync_batch_items() {
   return $lookup_form_markup . drupal_render($batch_form);
 }
 
+/**
+ *
+ * @param array $form
+ *   The Drupal form definition.
+ * @param array $form_state
+ *   The Drupal form state.
+ * @param string $batch_name
+ *   The name of the batch - (matches islandora_digital_workflow_batch.name)
+ * @return array
+ *   Drupal form definition.
+ */
 function islandora_digital_workflow_sync_batch_items_confirmation(array $form, array &$form_state, $batch_name = NULL) {
   $form = array(
     'confirm-message' => array(
@@ -758,6 +779,13 @@ function islandora_digital_workflow_sync_batch_items_confirmation(array $form, a
   return $form;
 }
 
+/**
+ *
+ * @param array $form
+ *   The Drupal form definition.
+ * @param array $form_state
+ *   The Drupal form state.
+ */
 function islandora_digital_workflow_sync_batch_items_confirmation_submit(array $form, array &$form_state) {
   $id = $form_state['triggering_element']['#id'];
   $nid = arg(1);
@@ -782,6 +810,12 @@ function islandora_digital_workflow_sync_batch_items_confirmation_submit(array $
   }
 }
 
+/**
+ * This will process the items related to the node.
+ *
+ * @param object $node
+ *   Drupal node object that is "workflow_batch" content type.
+ */
 function islandora_digital_workflow_sync_items_process_node($node) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');

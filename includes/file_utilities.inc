@@ -1,6 +1,11 @@
 <?php
 
 /**
+ * @file
+ * Set of functions related to file and folder operations.
+ */
+
+/**
  * Helper function to return a set of filenames from a given path -- with the option to filter ($mask)
  * and an option to recursively ($recurse) search for files under the initial directory path ($dir).
  */

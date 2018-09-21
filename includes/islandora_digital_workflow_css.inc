@@ -1,6 +1,11 @@
 <?php
 
 /**
+ * @file
+ * Unit that will create the dynamic CSS based on the configuration.
+ */
+
+/**
  * This will update the dynamically created CSS based on the color settings.
  */
 function islandora_digital_workflow_update_dynamic_css() {

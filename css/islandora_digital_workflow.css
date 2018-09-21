@@ -305,6 +305,10 @@ div.info p.info {
     margin-bottom: 0px;
 }
 
+.small_font {
+    font-size: 0.8em;
+}
+
 .optional_dsid, .optional_action {
     color: black;
     opacity: 0.45;

@@ -1,6 +1,11 @@
 <?php
 
 /**
+ * @file
+ * Form to handle the node/{nid}/batch handler to display a batch record.
+ */
+
+/**
  * The Drupal batch form representation.
  * 
  * This is for use after the batch record has been created and should display on 

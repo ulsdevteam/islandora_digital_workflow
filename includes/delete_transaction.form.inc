@@ -1,6 +1,11 @@
 <?php
 
 /**
+ * @file
+ * Form to remove a transaction from a batch or item.
+ */
+
+/**
  * Displays the form to either add / remove transactions from a batch.
  *
  * This approache is needed in order to display two separate forms on a single

@@ -1,6 +1,11 @@
 <?php
 
 /**
+ * @file
+ * Form to display the files related to a batch item.
+ */
+
+/**
  * Displays files related to a workflow_batch node.
  *
  * @param object $node

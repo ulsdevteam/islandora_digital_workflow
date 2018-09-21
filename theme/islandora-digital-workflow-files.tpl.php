@@ -2,7 +2,7 @@
 
 /**
 * @file
-* islandora-digital-workflow-transactions.tpl display template.
+* islandora-digital-workflow-files.tpl display template.
 *
 * Variables available:
 * - $batch_record => array(),

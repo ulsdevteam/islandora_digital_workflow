@@ -1,6 +1,12 @@
 <?php
 
 /**
+ * @file
+ * Form and functions related to displaying the Forena reports related to the
+ * Islandora Digital Workflow.
+ */
+
+/**
  * The Drupal reports form representation.
  * 
  * This is to present the user with a list of possible reports on the batches

@@ -1,6 +1,12 @@
 <?php
 
 /**
+ * @file
+ * Form and functions related to syncing the files from the "Staging" folder
+ * back to system as well as moving them back into the working directory.
+ */
+
+/**
  * Displays the form to sync_staging_files from a batch item.
  *
  * This approache is needed in order to display two separate forms on a single

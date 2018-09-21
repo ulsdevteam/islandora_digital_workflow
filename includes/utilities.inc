@@ -1,6 +1,11 @@
 <?php
 
 /**
+ * @file
+ * Set of utility functions that are widely used throughout the module code.
+ */
+
+/**
  * Creates a minimal batch stub record that will be updated in other parts of
  * the code.
  *
@@ -871,6 +876,16 @@ function islandora_digital_workflow_make_custom_csv_dates($short_date, $suppress
   return array(date('c', $timestamp), date($h_format, $timestamp));
 }
 
+/**
+ * This will return the values for a given field from a CSV array.
+ *
+ * @param string $fieldname
+ *   The name of the field to search for
+ * @param array $csv_array
+ *   An array of arrays - where each inner array is a row of CSV data.
+ * @return array
+ *   The array of values for the given fieldname.
+ */
 function islandora_digital_workflow_get_csv_values_for_fieldname($fieldname, $csv_array) {
   $ret_array = array();
   // Make sure that there is at least one data row and that at least the identifier
@@ -1475,6 +1490,19 @@ function islandora_digital_workflow_find_folders_files($root) {
   return $return_folders;
 }
 
+/**
+ * This will inspect all of the $values and will remove any $values that does not
+ * appear in the $item_names list of possible batch folders.  Also, this will
+ * return the set of names that were removed for display to the user.
+ *
+ * @param array $values
+ *   An array of folder paths to check.
+ * @param array $item_names
+ *   An array of possible batch folder names that is used for checking.
+ * @return array
+ *   The set of folder names that were removed and will not be inspected as
+ * other staging folders.
+ */
 function islandora_digital_workflow_filter_out_non_batch_folders(&$values, $item_names) {
   $bad_folder_names = array();
   foreach ($values as $item_name => $info) {
@@ -1547,6 +1575,21 @@ function islandora_digital_workflow_scandir_paged_content_files($scan_path) {
   return $ret_arr;
 }
 
+/**
+ * This will inspect the scan_path, folder, and file to see if the file exists,
+ * whether or not the extension is acceptable for ingest, and returns the
+ * filesize AND class for this element.
+ *
+ * @param string $scan_path
+ *   The scan_path where the folders of batch files are stored.
+ * @param string $folder
+ *   The folder under the scan_path where the file is stored.
+ * @param string $file
+ *   The file from the batch that needs filesize and CSS class.
+ * @param boolean $tif_must_be_numeric
+ * @return array
+ *   The returned array has a 'filesize' (string) and a 'class' (string) value.
+ */
 function islandora_digital_workflow_get_filesize_class($scan_path, $folder, $file, $tif_must_be_numeric = FALSE) {
   $relative_file_path = (($folder) ? $folder . '/' : '') . $file;
   $full_file_path = $scan_path . '/' . $relative_file_path;
@@ -1750,6 +1793,13 @@ function islandora_digital_workflow_merge_uploaded_csv_files(&$batch_record, $no
   }
 }
 
+/**
+ * This will take an array and return it as a legal CSV string -- used for each
+ * row to make a while file CSV representation for the data.
+ *
+ * @param type $array
+ * @return type
+ */
 function islandora_digital_workflow_array_to_csv($array) {
   $cleansed_arr = array();
   foreach ($array as $value) {
@@ -1807,6 +1857,15 @@ function islandora_digital_workflow_object_model_datastream_requirements($model_
   return $return_array;
 }
 
+/**
+ * Will return the CSS class name for the action (which is dynamically created
+ * from the actions configuration to the correct glyph graphic for each action).
+ *
+ * @param string $transaction_name
+ *   The name of the action -- straight from the islandora_digital_workflow_actions.name field.
+ * @return string
+ *   The class name for the action that should display the correct glyph.
+ */
 function islandora_digital_workflow_glyph_class($transaction_name) {
   return 'transaction_action_' . (($transaction_name) ? strtolower(str_replace(array("-", " "), "_", $transaction_name)) : 'spacer');
 }

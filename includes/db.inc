@@ -1,6 +1,11 @@
 <?php
 
 /**
+ * @file
+ * Unit of database related functions.
+ */
+
+/**
  * Gets a SINGLE batch record for a `batch_name` value.
  *
  * @param string $batch_name
@@ -503,7 +508,7 @@ function islandora_digital_workflow_get_batch_transactions_by_nid($nid) {
   $rows = $results->fetchAll();
   foreach ($rows as $index => $row) {
     $rows[$index]->how_long_ago = islandora_digital_workflow_timeago_from_timestamp($row->timestamp);
-    $rows[$index]->glyph_class = 'transaction_action_' . (($row->action_name) ? strtolower(str_replace(array("-", " "), "_", $row->action_name)) : 'spacer');
+    $rows[$index]->glyph_class = islandora_digital_workflow_glyph_class($row->action_name);
     $rows[$index]->user_name = ($row->uid) ? l($row->name, 'user/' . $row->uid, array('attributes' => array('target' => '_blank'))) : 'system';
     $rows[$index]->admin_links = ($access_edit_transactions) ? TRUE : FALSE;
     $rows[$index]->nid = $nid;
@@ -568,7 +573,7 @@ function islandora_digital_workflow_get_batch_item_transactions($batch_item_id, 
   foreach ($rows as $index => $row) {
     $rows[$index]->how_long_ago = islandora_digital_workflow_timeago_from_timestamp($row->timestamp);
     $rows[$index]->user_name = ($row->uid) ? l($row->name, 'user/' . $row->uid, array('attributes' => array('target' => '_blank'))) : 'system';
-    $rows[$index]->glyph_class = 'transaction_action_' . (($row->action_name) ? strtolower(str_replace(array("-", " "), "_", $row->action_name)) : 'spacer');
+    $rows[$index]->glyph_class = islandora_digital_workflow_glyph_class($row->action_name);
     $rows[$index]->admin_links = ($access_edit_transactions) ? TRUE : FALSE;
     $rows[$index]->nid = $nid;
     $rows[$index]->is_batch_action = $row->is_batch_action;
@@ -578,8 +583,6 @@ function islandora_digital_workflow_get_batch_item_transactions($batch_item_id, 
   return $rows;
 }
 
-/**
- *
 /**
  * This will get all of the transactions records related to a given Drupal batch_item.
  *
@@ -1161,7 +1164,20 @@ function islandora_digital_workflow_get_workflow_sequences_for_model($model_name
   return $sequences;
 }
 
+/**
+ * Gets the required batch actions for a batch or node.
+ *
+ * This can use a batch_id identifier OR a node's nid value to find the actions.
+ * 
+ * @param integer $batch_id
+ *   Batch identifier (matches islandora_digital_workflow_batch.batch_id).
+ * @param integer $nid
+ *   Node identifier - matches a Drupal node record nid value.
+ * @return array
+ *   array of actions - related to the batch as specified by nid or batch_id.
+ */
 function islandora_digital_workflow_get_required_batch_actions($batch_id = NULL, $nid = NULL) {
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
   $query = db_select('islandora_digital_workflow_batch', 'b');
   $query->fields('b', array('batch_id', 'workflow_sequence_id'));
   $query->join('islandora_digital_workflow_sequence', 'ws', 'b.workflow_sequence_id = ws.workflow_sequence_id');
@@ -1195,7 +1211,7 @@ function islandora_digital_workflow_get_required_batch_actions($batch_id = NULL,
         'is_mixed' => $row->is_mixed,
         'workflow_sequence_id' => $row->workflow_sequence_id,
         'action_id' => $row->action_id,
-        'class_name' => 'transaction_action_' . ($row->action_name) ? strtolower(str_replace(array("-", " "), "_", $row->action_name)) : 'spacer',
+        'class_name' => islandora_digital_workflow_glyph_class($row->action_name),
     );
   }
   return $return_rows;
@@ -1210,6 +1226,7 @@ function islandora_digital_workflow_get_required_batch_actions($batch_id = NULL,
  *   The action record as an array.
  */
 function islandora_digital_workflow_get_action($action_id) {
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
   $query = db_select('islandora_digital_workflow_actions', 'wa');
   $query->fields('wa');
   $query->addField('wa', 'name', 'action_name');
@@ -1232,31 +1249,54 @@ function islandora_digital_workflow_get_action($action_id) {
         'is_triggered_by_single_item' => $row->is_triggered_by_single_item,
         'stage_taxonomy_tid' => $row->stage_taxonomy_tid,
         'term_name' => $row->name,
-        'class_name' => 'transaction_action_' . strtolower(str_replace(array("-", " "), "_", $row->name)),
+        'class_name' => islandora_digital_workflow_glyph_class($row->action_name),
     );
   }
   return $return;
 }
 
+/**
+ * Returns all currently configured workflow actions.
+ *
+ * @return array
+ *   An array of all workflow actions.
+ */
 function islandora_digital_workflow_get_all_actions() {
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
   $query = db_select('islandora_digital_workflow_actions', 'wa');
   $query->fields('wa');
+  $query->addField('wa', 'description', 'action_description');
+  $query->addField('wa', 'name', 'action_name');
   $results = $query->execute();
   $rows = $results->fetchAll();
   $return = array();
   // To have explicit control over the returned array results...
   foreach ($rows as $row) {
     $return[$row->action_id] = array(
+        // be careful, in other places where the actions join to the taxonomy
+        // table, the fields "name" and "description" can point to the taxonomy
+        // terms table.
         'name' => $row->name,
         'description' => $row->description,
+        'action_name' => $row->action_name,
+        'action_description' => $row->action_description,
         'glyph' => $row->glyph,
         'is_batch_action' => $row->is_batch_action,
-        'class_name' => 'transaction_action_' . strtolower(str_replace(array("-", " "), "_", $row->name)),
+        'class_name' => islandora_digital_workflow_glyph_class($row->action_name),
     );
   }
   return $return;
 }
 
+/**
+ * This will return a single batch_item record.
+ *
+ * @param integer $batch_item_id
+ *   The batch_item_id identifier (matches
+ * islandora_digital_workflow_batch_item.batch_item_id).
+ * @return array
+ *   The array item is a stdObject object.
+ */
 function islandora_digital_workflow_get_batch_item($batch_item_id) {
   $query = db_select('islandora_digital_workflow_batch_items', 'bi');
   $query->fields('bi');
@@ -1270,6 +1310,13 @@ function islandora_digital_workflow_get_batch_item($batch_item_id) {
   return $return;
 }
 
+/**
+ * This returns the next available "action_id" value -- for creating new
+ * actions.
+ *
+ * @return integer
+ *   The number to use for the next islandora_digital_workflow_action record.
+ */
 function islandora_digital_workflow_get_free_action_id() {
   // Run a query to get the maximum value of action_id that is under the range
   // limit defined by "item_action" vs. "batch_action".
@@ -1280,6 +1327,18 @@ function islandora_digital_workflow_get_free_action_id() {
   return $rows->next_action_id;
 }
 
+/**
+ * This will update the islandora_digital_workflow_batch_items record with
+ * the values in the $item_data array.
+ *
+ * @param array $batch_record
+ *   Only used for the output to display the batch record from which the item came.
+ * @param array $item_data
+ *   This key-value pair (with the key being each item's identifier) is used to
+ * set field data on the islandora_digital_workflow_batch_items table for the item.
+ * @return string
+ *   HTML markup from the item updating.
+ */
 function islandora_digital_workflow_update_item_file_data($batch_record, $item_data) {
    foreach ($item_data as $item_identifier => $identifer_data) {
      $total_file_size = 0;

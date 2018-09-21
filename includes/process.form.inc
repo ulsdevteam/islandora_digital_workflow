@@ -1,6 +1,11 @@
 <?php
 
 /**
+ * @file
+ * Form to diplay the utility functions that can be processed.
+ */
+
+/**
  * The Drupal process form representation.
  * 
  * This is to provide a form to enter identifiers of items or batch names and
@@ -11,7 +16,6 @@
  */
 function islandora_digital_workflow_process_form() {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/lookup.form');
-
   $lookup_form_markup = theme('islandora_digital_workflow_lookup', array('searchterm' => ''));
 
   $breadcrumb = array(

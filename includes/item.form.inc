@@ -1,6 +1,11 @@
 <?php
 
 /**
+ * @file
+ * Form to display a batch_item.
+ */
+
+/**
  * View a single batch_item
  *
  * @param object $node

@@ -1,6 +1,11 @@
 <?php
 
 /**
+ * @file
+ * Form to display the transactions related to a batch's workflow node.
+ */
+
+/**
  * Displays transactions for a batch and a form to either add / remove them
  * from a batch.
  *

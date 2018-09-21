@@ -1,6 +1,11 @@
 <?php
 
 /**
+ * @file
+ * Set of taxonomy related functions related to the Islandora Digital Workflow.
+ */
+
+/**
  * Gets the taxonomy vocabulary tid from the name.
  *
  * This may not work if the same name is used more than once within the $vocab.

@@ -1,6 +1,11 @@
 <?php
 
 /**
+ * @file
+ * Unit to handle some dynamic permission handling for the various Islandora models.
+ */
+
+/**
  * Used for setting up module permissions.
  *
  * @param string $cmodel

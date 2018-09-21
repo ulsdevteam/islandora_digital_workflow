@@ -1,6 +1,11 @@
 <?php
 
 /**
+ * @file
+ * Form to display the user dashboard with links to what the user can do.
+ */
+
+/**
  * Get the dashboard output.
  *
  * @return string
@@ -128,7 +133,12 @@ function islandora_digital_workflow_get_tasks_tables() {
       'action_link' => '',
       'show_message_status' => TRUE,
       'table_title' => 'Items moved to the "Problems" folder location',
-      'table_description' => 'Please resolve the folders listed below:',
+      'table_description' => '<p class="small_font">Aside from needing to satisfy ' .
+        'all of the actions in the workflow sequence, problems must be cleared ' .
+        'before the item or the batch can be ingested.  To clear a problem, place ' .
+        'the repaired files in the <b>Incoming Staging Directory</b> location;  ' .
+        'these files can then be imported back into the system which will resolve ' .
+        'the specific item\'s problem record.</p>Please resolve the folders listed below:',
     ));
   }
 

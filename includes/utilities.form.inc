@@ -1,6 +1,11 @@
 <?php
 
 /**
+ * @file
+ * Form to display the utilities functions that can be performed.
+ */
+
+/**
  * The Drupal process form representation.
  * 
  * This is to provide a form to enter identifiers of items or batch names and

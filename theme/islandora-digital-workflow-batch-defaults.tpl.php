@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * islandora-digital-workflow-batch-defaults.tpl display template.

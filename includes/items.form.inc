@@ -1,6 +1,11 @@
 <?php
 
 /**
+ * @file
+ * Form and functoins related to displaying all of the items in a batch.
+ */
+
+/**
  * Displays items related to a workflow_batch node.
  *
  * @return string
