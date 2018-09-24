@@ -149,7 +149,7 @@ function islandora_digital_workflow_do_ingest_item($batch_item_id, $batch_record
         'drupal_uid' => $user->uid,
         'drush_command' => $drush_prepare_command,
         'output' => serialize(array('output' => 'There was an exception when this command was called.')),
-        'return_val' => 0,$return_val,
+        'return_val' => $return_val,
     );
     // For development purposes for now... do not issue an actual drush command here
     //  -- just use the "pwd" command to execute so that nothing is prepared right now
