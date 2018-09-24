@@ -707,7 +707,7 @@ function islandora_digital_workflow_add_workflow_stage_taxonomy_terms() {
    'vid' => $vocab->vid,
   );
   taxonomy_term_save($term);
-  $problem_tid = islandora_digital_workflow_get_tid_by_name($vocab, $term->name);
+  $problem_tid = islandora_digital_workflow_get_tid_by_name($term->name, $vocab);
 
   $term = (object) array(
    'name' => 'New',
