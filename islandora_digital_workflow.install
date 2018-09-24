@@ -842,6 +842,7 @@ function islandora_digital_workflow_insert_islandora_digital_workflow_actions($p
         'action_id' => $action_id,
         'name' => $values['name'],
         'description' => $values['description'],
+        'glyph' => $values['glyph'],
         'is_batch_action' => (isset($values['is_batch_action']) ? $values['is_batch_action'] : 0),
         'stage_taxonomy_tid' => (isset($values['stage_taxonomy_tid']) ? $values['stage_taxonomy_tid'] : 0),
         'is_triggered_by_single_item' => (isset($values['is_triggered_by_single_item']) ? $values['is_triggered_by_single_item'] : 0),

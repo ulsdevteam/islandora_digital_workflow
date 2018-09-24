@@ -960,6 +960,8 @@ function islandora_digital_workflow_get_item_action_options($display_reserved_ac
   $return_array = array();
   foreach ($rows as $i => $row_obj) {
     $row_obj->is_batch_action = 0;
+    $row_obj->action_name = $row_obj->name;
+    $row_obj->action_description = $row_obj->description;
     $return_array[$row_obj->action_id] = (array) $row_obj;
   }
   return $return_array;
@@ -984,6 +986,8 @@ function islandora_digital_workflow_get_batch_action_options($display_reserved_a
   $rows = $query->fetchAll();
   $return_array = array();
   foreach ($rows as $i => $row_obj) {
+    $row_obj->action_name = $row_obj->name;
+    $row_obj->action_description = $row_obj->description;
     $row_obj->is_batch_action = 1;
     $return_array[$row_obj->action_id] = (array) $row_obj;
   }
