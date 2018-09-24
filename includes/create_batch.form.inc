@@ -53,10 +53,9 @@ function islandora_digital_workflow_create_empty_batch_form(array $form, array &
   if (count($batch_hosts) < 1) {
     drupal_set_message(t('<b>Available Host Aliases for Batch ingest</b> is ' .
         'not configured.  Please contact an administrator to ask them to ' .
-        'configure at least one "@link" before creating any workflow batches.',  array(
-            '@link' => l('Available Host Aliases for Batch ingest', '/admin/islandora/islandora_digital_workflow')
-        )),
-        'error');
+        'configure at least one "') . 
+        l('Available Host Aliases for Batch ingest', '/admin/islandora/islandora_digital_workflow') .
+        t(" before creating any workflow batches."), 'error');
     $configured = FALSE;
   }
 
@@ -64,12 +63,10 @@ function islandora_digital_workflow_create_empty_batch_form(array $form, array &
   if (count($accessible_models) < 2) {
     drupal_set_message(t('There are no <b>Supported Models</b> models configured ' . 
         'for creating batches or your user does not have permission to any models.  ' .
-        'Please contact an administrator to ask them to configure the @config_link ' .
-        ' and @permissions_link to any models.', array(
-            '@config_link' => l('Supported Models', '/admin/islandora/islandora_digital_workflow'),
-            '@permissions_link' => l(t('set up permissions'), '/admin/people/permissions'),
-        )
-        ), 'error');
+        'Please contact an administrator to ask them to configure the ') .
+        l('Supported Models', '/admin/islandora/islandora_digital_workflow') .
+        t(' and ') . l(t('set up permissions'), '/admin/people/permissions') .
+        t(' to any models.'), 'error');
     $configured = FALSE;
   }
   if (!$configured) {
@@ -160,10 +157,10 @@ function islandora_digital_workflow_create_empty_batch_form_submit(array $form, 
       $batch_record = islandora_digital_workflow_create_stub_batch_record($form_state);
       // Only two possible button text values -- edit or save.
       $current_time = date('H:i:s');
-      drupal_set_message(t('[@date] Created new batch: @edit_batch_link', array(
+      drupal_set_message(t('[@date] Created new batch: ', array(
           '@date' => $current_time,
-          '@edit_batch_link' => l($batch_record['batch_name'], 'islandora/islandora_digital_workflow/edit_batch/' . $batch_record['batch_name']))
-          ), 'status');
+        )) .
+        l($batch_record['batch_name'], 'islandora/islandora_digital_workflow/edit_batch/' . $batch_record['batch_name']), 'status');
       drupal_goto('islandora/islandora_digital_workflow/edit_batch/' . $batch_record['batch_name']);
       break;
     case 'edit-cancel':
@@ -629,9 +626,8 @@ function islandora_digital_workflow_create_empty_batch_form_validate(&$elements,
     form_set_error('batch_name', t('A batch already exists with the name @batch_name.',
         array('@batch_name' => $batch_name)));
     $edit_this_batch_link = l($batch_name, 'islandora/islandora_digital_workflow/edit_batch/' . $batch_name);
-    drupal_set_message(t('Edit existing batch "@edit_this_batch_link".', array(
-        '@edit_this_batch_link' => $edit_this_batch_link
-    )), 'warning');
+    drupal_set_message(t('Edit existing batch "') .
+        $edit_this_batch_link . '".', 'warning');
   }
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
   $legal_batch_name = islandora_digital_workflow_convert_to_filename($batch_name);
@@ -699,16 +695,16 @@ function islandora_digital_workflow_create_batch_form_submit(array $form, array 
       $current_time = date('H:i:s');
       $edit_batch_link = l($batch_record['batch_name'], 'islandora/islandora_digital_workflow/edit_batch/' . $batch_record['batch_name']);
       if ($create_new) {
-        drupal_set_message(t('[@date] Created new batch: @edit_batch_link', array(
+        drupal_set_message(t('[@date] Created new batch: ', array(
             '@date' => $current_time,
-            '@edit_batch_link' => $edit_batch_link)
-            ), 'status');
+          )) .
+          l($batch_record['batch_name'], 'islandora/islandora_digital_workflow/edit_batch/' . $batch_record['batch_name']), 'status');
       }
       else {
-        drupal_set_message(t('[@date] Batch updated:  @edit_batch_link', array(
+        drupal_set_message(t('[@date] Batch updated: ', array(
             '@date' => $current_time,
-            '@edit_batch_link' => $edit_batch_link)
-            ), 'status');
+          )) .
+          l($batch_record['batch_name'], 'islandora/islandora_digital_workflow/edit_batch/' . $batch_record['batch_name']), 'status');
       }
       if (file_exists($csv_filename)) {
         @unlink($csv_filename);

@@ -249,8 +249,8 @@ function islandora_digital_workflow_admin_form_check_private_files() {
     }
   }
   else {
-    drupal_set_message(t('The "Private Path" value (@link) is not set.', array(
-        '@link' => l('Media | File System', 'admin/config/media/file-system')
-    )), 'error');
+    drupal_set_message(t('The "Private Path" value (') .
+        l('Media | File System', 'admin/config/media/file-system') . 
+        t(') is not set.'), 'error');
   }
 }
