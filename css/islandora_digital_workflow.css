@@ -30,6 +30,10 @@ and open the template in the editor.
     background: url("../images/ingest-item-into-repository_20.png") 0px 0px no-repeat !important;
 }
 
+.transaction_action_add_mods_record {
+    background: url("../images/add-mods-record_20.png") 0px 0px no-repeat !important;
+}
+
 .transaction_action_add_marc_record {
     background: url("../images/add-marc-record_20.png") 0px 0px no-repeat !important;
 }
@@ -91,6 +95,7 @@ div.transaction_action_spacer,
 div.transaction_action_all_ingest,
 div.transaction_action_all_check_in,
 div.transaction_action_all_scan,
+div.transaction_action_add_mods_record,
 div.transaction_action_add_marc_record,
 div.transaction_action_problem,
 div.transaction_action_all_check_out,
