@@ -25,13 +25,16 @@ function islandora_digital_workflow_install() {
 
 
 function islandora_digital_workflow_add_taxonomy_data() {
-  $new_vocab = (object) array(
+  global $priority_vocab;
+  global $stage_vocab;
+
+  $stage_vocab = (object) array(
       'name' => 'Islandora Digital Workflow Stage vocabulary',
       'description' => 'This vocabulary has the various stages for ' .
         'workflow_batch nodes.',
       'machine_name' => IDW_STAGE_TAXONOMY_MACHINE_NAME,
    );
-  taxonomy_vocabulary_save($new_vocab);
+  taxonomy_vocabulary_save($stage_vocab);
   // add the individual "Stage" vocabulary terms
   islandora_digital_workflow_add_workflow_stage_taxonomy_terms();
 
@@ -45,13 +48,13 @@ function islandora_digital_workflow_add_taxonomy_data() {
   // add the individual "Content Type" vocabulary terms
   islandora_digital_workflow_add_workflow_content_type_taxonomy_terms();
 
-  $new_vocab = (object) array(
+  $priority_vocab = (object) array(
       'name' => 'Islandora Digital Workflow Batch Priority vocabulary',
       'description' => 'This vocabulary has the various priority levels for ' .
         'workflow_batch nodes.',
       'machine_name' => IDW_BATCH_PRIORITY_TAXONOMY_MACHINE_NAME,
    );
-  taxonomy_vocabulary_save($new_vocab);
+  taxonomy_vocabulary_save($priority_vocab);
   // add the individual "Batch Priority" vocabulary terms
   islandora_digital_workflow_add_workflow_batch_priority_taxonomy_terms();
 }
@@ -66,6 +69,9 @@ function islandora_digital_workflow_uninstall() {
   taxonomy_vocabulary_delete($vocab->vid);
   $vocab = taxonomy_vocabulary_machine_name_load(IDW_CONTENT_TYPE_TAXONOMY_MACHINE_NAME);
   taxonomy_vocabulary_delete($vocab->vid);
+  $vocab = taxonomy_vocabulary_machine_name_load(IDW_BATCH_PRIORITY_TAXONOMY_MACHINE_NAME);
+  taxonomy_vocabulary_delete($vocab->vid);
+
   // Remove any variables.
   variable_del('islandora_digital_workflow_islandora_models');
   variable_del('islandora_digital_workflow_stages');
@@ -722,6 +728,8 @@ function islandora_digital_workflow_add_workflow_content_type_taxonomy_terms() {
  * Helper function to create the batch priority taxonomy vocabulary.
  */
 function islandora_digital_workflow_add_workflow_batch_priority_taxonomy_terms() {
+  global $regular_priority_term;
+
   module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy-utilities');
   $vocab = taxonomy_vocabulary_machine_name_load(IDW_BATCH_PRIORITY_TAXONOMY_MACHINE_NAME);
 
@@ -739,15 +747,15 @@ function islandora_digital_workflow_add_workflow_batch_priority_taxonomy_terms()
    'vid' => $vocab->vid,
    'weight' => 4,
   );
-  $new_tid = taxonomy_term_save($term);
+  taxonomy_term_save($term);
 
-  $term = (object) array(
+  $regular_priority_term = (object) array(
    'name' => 'Regular',
    'description' => 'Regular priorty batch.',
    'vid' => $vocab->vid,
    'weight' => 3,
   );
-  taxonomy_term_save($term);
+  taxonomy_term_save($regular_priority_term);
 
   $term = (object) array(
    'name' => 'High',
@@ -774,6 +782,7 @@ function islandora_digital_workflow_add_workflow_batch_priority_taxonomy_terms()
  */
 function islandora_digital_workflow_add_workflow_stage_taxonomy_terms() {
   global $problem_tid;
+  global $new_stage_term;
 
   module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy-utilities');
   $vocab = taxonomy_vocabulary_machine_name_load(IDW_STAGE_TAXONOMY_MACHINE_NAME);
@@ -786,13 +795,13 @@ function islandora_digital_workflow_add_workflow_stage_taxonomy_terms() {
   taxonomy_term_save($term);
   $problem_tid = islandora_digital_workflow_get_tid_by_name($term->name, $vocab);
 
-  $term = (object) array(
+  $new_stage_term = (object) array(
    'name' => 'New',
    'description' => 'This is for workflow_batch nodes that are new.',
    'vid' => $vocab->vid,
   );
-  $new_tid = taxonomy_term_save($term);
-  $new_tid = $term->tid;
+  taxonomy_term_save($new_stage_term);
+  $new_stage_term->tid;
 
   $term = (object) array(
    'name' => 'Scanned',
@@ -961,8 +970,18 @@ function islandora_digital_workflow_create_cck_fields() {
 
 /**
  * Returns the field instances needed to create the View object.
+ *
+ * @global object $regular_priority_term
+ *   The "Regular" priority term - to be used as a default value.
+ * @global object $priority_vocab
+ *   The Priorities vocabulary - to be used as a default value.
  */
 function _islandora_digital_workflow_installed_instances() {
+  global $regular_priority_term;
+  global $priority_vocab;
+  global $new_stage_term;
+  global $stage_vocab;
+
   return array(
     'field_pid_count' => array(
       'field_name' => 'field_pid_count',
@@ -1203,7 +1222,7 @@ function _islandora_digital_workflow_installed_instances() {
       'field_name' => 'field_stage',
       'entity_type' => 'node',
       'bundle' => 'workflow_batch',
-      'required' => 0,
+      'required' => 1,
       'description' => '',
       'label' => 'Stage',
       'widget' => array(
@@ -1240,12 +1259,23 @@ function _islandora_digital_workflow_installed_instances() {
           'module' => 'taxonomy',
         ),
       ),
+      'default_value' => array(
+        0 => array(
+          'tid' => $new_stage_term->tid,
+          'vid' => $stage_vocab->vid,
+          'name' => $new_stage_term->name,
+          'description' => $new_stage_term->description,
+          'format' => $new_stage_term->format,
+          'weight' => $new_stage_term->weight,
+          'vocabulary_machine_name' => $stage_vocab->vocabulary_machine_name,
+        )
+      ),
     ),
     'field_islandora_model' => array(
       'field_name' => 'field_islandora_model',
       'entity_type' => 'node',
       'bundle' => 'workflow_batch',
-      'required' => 0,
+      'required' => 1,
       'description' => '',
       'label' => 'Islandora Model',
       'widget' => array(
@@ -1287,7 +1317,7 @@ function _islandora_digital_workflow_installed_instances() {
       'field_name' => 'field_priority',
       'entity_type' => 'node',
       'bundle' => 'workflow_batch',
-      'required' => 0,
+      'required' => 1,
       'description' => '',
       'label' => 'Batch Priority',
       'widget' => array(
@@ -1323,6 +1353,17 @@ function _islandora_digital_workflow_installed_instances() {
           'settings' => array(),
           'module' => 'taxonomy',
         ),
+      ),
+      'default_value' => array(
+        0 => array(
+          'tid' => $regular_priority_term->tid,
+          'vid' => $priority_vocab->vid,
+          'name' => $regular_priority_term->name,
+          'description' => $regular_priority_term->description,
+          'format' => $regular_priority_term->format,
+          'weight' => $regular_priority_term->weight,
+          'vocabulary_machine_name' => $priority_vocab->vocabulary_machine_name,
+        )
       ),
     ),
     'field_identifiers' => array(

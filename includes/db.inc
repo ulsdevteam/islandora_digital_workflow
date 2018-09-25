@@ -281,12 +281,55 @@ function islandora_digital_workflow_search_batch_csv_by_identifier($identifier) 
  *   Either returns an array of batch record objects or NULL if it cannot be found.
  */
 function islandora_digital_workflow_find_batch_records_no_details() {
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy-utilities');
   $query = db_select('islandora_digital_workflow_batch', 'b')
       ->fields('b')
       ->condition('b.ingest_namespace', NULL);
+  $query->addJoin('LEFT OUTER', 'taxonomy_term_data', 't', 'b.batch_priority_tid = t.tid');
+  $query->addField('t', 'weight');
+  $query->addField('t', 'name', 'priority');
+  $query->orderBy('weight');
   $results = $query->execute();
   $rows = $results->fetchAll();
-  return $rows;
+  $batch_records = array();
+  foreach ($rows as $row) {
+    $row->priority = islandora_digital_workflow_get_name_of_tid($row->batch_priority_tid);
+    $batch_records[$row->batch_id] = $row;
+  }
+  return $batch_records;
+}
+
+/**
+ * Returns the set of batch records that have no batch_items related to them.
+ *
+ * @return array
+ *   Array of stdObject rows.
+ */
+function islandora_digital_workflow_find_batch_records_no_items() {
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy-utilities');
+
+  $query = db_select('islandora_digital_workflow_batch', 'b')
+      ->fields('b');
+  $query->addJoin('LEFT OUTER', 'islandora_digital_workflow_batch_items', 'bi', 'b.batch_id = bi.batch_id');
+  $query->fields('bi');
+  $query->addJoin('LEFT OUTER', 'taxonomy_term_data', 't', 'b.batch_priority_tid = t.tid');
+  $query->addField('t', 'weight');
+  $query->addField('t', 'name', 'priority');
+  $query->orderBy('weight');
+
+  $query->groupBy('b.batch_id');
+
+  $results = $query->execute();
+  $rows = $results->fetchAll();
+  
+  $no_items = array();
+  // Check that the value of the batch_item_id is NULL
+  foreach ($rows as $row) {
+    if (is_null($row->batch_item_id)) {
+      $no_items[] = $row;
+    }
+  }
+  return $no_items;
 }
 
 /**

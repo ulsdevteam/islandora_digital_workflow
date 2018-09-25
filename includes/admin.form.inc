@@ -107,6 +107,15 @@ function islandora_digital_workflow_admin_form() {
             'modules support the `--assign_pid=### parameters.'),
         '#default_value' => variable_get('islandora_digital_workflow_assign_PIDs', 0),
       ),
+      'top_level_collection' => array(
+        '#type' => 'textfield',
+        '#title' => t('Top level collection'),
+        '#description' => t('For the purpose of creating a valid link to make new ' . 
+            'collections from the dashboard, this value represents the path the ' . 
+            'parent object of all Islandora Collection objects.'),
+        '#required' => true,
+        '#default_value' => variable_get('islandora_digital_workflow_top_level_collection', '/islandora/object/islandora:root'),
+      ),
       'ingest_staging_path' => array(
         '#type' => 'textfield',
         '#title' => t('Incoming Staging Directory'),
@@ -209,6 +218,7 @@ function islandora_digital_workflow_admin_form_submit(array $form, array &$form_
       islandora_digital_workflow_save_models($form_state['values']);
       variable_set('islandora_digital_workflow_ingest_namespace', $form_state['values']['ingest_namespace']);
       variable_set('islandora_digital_workflow_assign_PIDs', $form_state['values']['ingest_assign_PIDs']);
+      variable_set('islandora_digital_workflow_top_level_collection', $form_state['values']['top_level_collection']);
       variable_set('islandora_digital_workflow_ingest_staging_path', $form_state['values']['ingest_staging_path']);
       variable_set('islandora_digital_workflow_ingest_prepared_path', $form_state['values']['ingest_prepared_path']);
       variable_set('islandora_digital_workflow_ingest_problems_path', $form_state['values']['ingest_problems_path']);
@@ -222,6 +232,7 @@ function islandora_digital_workflow_admin_form_submit(array $form, array &$form_
       variable_del('islandora_digital_workflow_islandora_models');
       variable_del('islandora_digital_workflow_ingest_namespace');
       variable_del('islandora_digital_workflow_assign_PIDs');
+      variable_del('islandora_digital_workflow_top_level_collection');
       variable_del('islandora_digital_workflow_ingest_staging_path');
       variable_del('islandora_digital_workflow_ingest_prepared_path');
       variable_del('islandora_digital_workflow_ingest_problems_path');
@@ -234,6 +245,10 @@ function islandora_digital_workflow_admin_form_submit(array $form, array &$form_
   }
 }
 
+/**
+ * This routine will display a message if it is not able to write to the
+ * configured "Private Path".
+ */
 function islandora_digital_workflow_admin_form_check_private_files() {
   $private_path = variable_get('file_private_path');
   if ($private_path) {

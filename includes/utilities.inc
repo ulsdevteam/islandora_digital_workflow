@@ -106,6 +106,7 @@ function islandora_digital_workflow_create_batch_record_by_form($form_state, $no
         'batch_description' => $form_state['values']['batch_description'],
 	'is_batch_active' => $form_state['values']['is_batch_active'],
         'is_batch_request' => $form_state['values']['is_batch_request'],
+        'batch_priority_tid' => $form_state['values']['batch_priority'],
         'batch_requestor' => $form_state['values']['batch_requestor'],
         'batch_request_due_date' => $batch_request_date,
         'object_count' => $form_state['values']['object_count'],
@@ -2258,6 +2259,72 @@ function islandora_digital_workflow_convert_to_filename($string) {
   }
   return $string;
 }
+
+
+/**
+ * This will create collection objects and return nothing.  The collections
+ * will be used as the --parent parameter for ingesting objects.
+ *
+ * @param array $collection_pids
+ */
+function islandora_digital_workflow_create_review_collections($collection_pids) {
+  if (!$collection_pids) {
+    return FALSE;
+  }
+  $module_path = drupal_get_path('module', 'islandora_digital_workflow');
+  $connection = islandora_get_tuque_connection();
+  $repository = $connection->repository;
+  foreach ($collection_pids as $pid) {
+    $copy_from_pid = str_replace("_review", "", $pid);
+    $copy_from_object = islandora_object_load($copy_from_pid);
+    $use_label = (is_object($copy_from_object) ? $copy_from_object->label : 'unknown review collection');
+    $object_review = islandora_object_load($pid);
+    if (!is_object($object_review)) {
+      $object_review = $repository->constructObject($pid);
+      $object_review->label = $use_label;
+      $object_review->models = 'islandora:collectionCModel';
+
+      // COLLECTION_POLICY Datastream.
+      $datastream = $object_review->constructDatastream('COLLECTION_POLICY', 'X');
+      $datastream->label = 'COLLECTION_POLICY';
+      $datastream->mimetype = 'application/xml';
+      $datastream->setContentFromFile("$module_path/xml/islandora_basic_collection_collection_policy.xml", FALSE);
+      $object_review->ingestDatastream($datastream);
+
+      $repository->ingestObject($object_review);
+    }
+    else {
+      $alias = str_replace(array('[', ']', '"', "'"), '', str_replace(array(' ', ':', '_'), '-', strtolower($use_label)));
+      $source = 'islandora/object/' . $pid;
+      // copy the copy_from_object's pathauto record for this new object_review
+      $results = db_query("SELECT * FROM url_alias WHERE source like " .
+          "'%" . $copy_from_pid . "%' LIMIT 1")->fetchAll();
+      foreach ($results as $row) {
+        $alias = $row->alias . '-review';
+        $source = str_replace($copy_from_pid, $copy_from_pid . "_review", $row->source);
+      }
+      // Because pathauto can make multiple references using different routes, delete
+      // all possible source routes.
+      db_query("DELETE FROM url_alias WHERE alias = '" . $alias . "'");
+      // Now, the
+      db_query("REPLACE INTO url_alias (`alias`,`source`,`language`) VALUES ('" . $alias . "','" . $source . "','und')");
+    }
+
+    if (is_object($copy_from_object)) {
+      $object_review->relationships = $copy_from_object->relationships;
+      foreach ($copy_from_object as $copy_from_datastream) {
+        $datastream = $object_review->constructDatastream($copy_from_datastream->id);
+        $datastream->label = $copy_from_datastream->label . ' {review}';
+        $datastream->mimeType = $copy_from_datastream->mimeType;
+
+        $datastream->setContentFromString($copy_from_datastream->content);
+        $object_review->ingestDatastream($datastream);
+      }
+    }
+  }
+  return;
+}
+
 
 /**
  * Helper function to return the array of glyph filenames -- called from various

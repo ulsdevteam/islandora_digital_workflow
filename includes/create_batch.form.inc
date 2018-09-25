@@ -84,9 +84,13 @@ function islandora_digital_workflow_create_empty_batch_form(array $form, array &
   $batch_priorities_vocab = taxonomy_vocabulary_machine_name_load(IDW_BATCH_PRIORITY_TAXONOMY_MACHINE_NAME);
   $priority_options = array(0 => 'Select Batch Priority');
 
+  $regular_tid = 0;
   $terms = islandora_digital_workflow_get_all_terms_of_vocab($batch_priorities_vocab);
   foreach ($terms as $term) {
     $priority_options[$term->tid] = $term->name;
+    if ($term->name == 'Regular') {
+      $regular_tid = $term->tid;
+    }
   }
 
   $batch_name = '';
@@ -137,7 +141,7 @@ function islandora_digital_workflow_create_empty_batch_form(array $form, array &
         '#required' => true,
         '#options' => $priority_options,
         '#description' => 'Priority of this batch.',
-        '#default_value' => 0,
+        '#default_value' => $regular_tid,
       ),
       'batch_description' => array(
         '#type' => 'textarea',

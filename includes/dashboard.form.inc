@@ -85,8 +85,9 @@ function islandora_digital_workflow_get_dashboard_links() {
 function islandora_digital_workflow_get_dashboard_action_links() {
   $links = array();
 
-  if (user_access('create-child-collection')) {
-    $links[] = l('Create Collection', '/islandora/object/pitt:root/manage/overview/ingest');
+  if (user_access('create child collection')) {
+    $top_level_collection_uri = rtrim(variable_get('islandora_digital_workflow_top_level_collection', '/islandora/object/islandora:root'), "/");
+    $links[] = l('Create Collection', $top_level_collection_uri . '/manage/overview/ingest');
   }
   $links[] = l('Create Batch', '/islandora/islandora_digital_workflow/create_batch');
   return $links;
@@ -112,6 +113,15 @@ function islandora_digital_workflow_get_tasks_tables() {
     $tables[] = theme('islandora_digital_workflow_batch_records_table', array(
       'batch_records' => $batch_records_no_details,
       'table_title' => 'Batch records with no details',
+      'table_description' => 'Please complete or delete the following batch records:',
+    ));
+  }
+
+  $batch_records_no_items = islandora_digital_workflow_find_batch_records_no_items();
+  if (count($batch_records_no_items)) {
+    $tables[] = theme('islandora_digital_workflow_batch_records_table', array(
+      'batch_records' => $batch_records_no_items,
+      'table_title' => 'Batch records with no items',
       'table_description' => 'Please complete or delete the following batch records:',
     ));
   }
