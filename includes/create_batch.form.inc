@@ -44,6 +44,7 @@ function islandora_digital_workflow_create_batch() {
  */
 function islandora_digital_workflow_create_empty_batch_form(array $form, array &$form_state) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy-utilities');
 
   $accessible_models = islandora_digital_workflow_get_accessible_cmodels();
   $configured = TRUE;
@@ -77,6 +78,15 @@ function islandora_digital_workflow_create_empty_batch_form(array $form, array &
           'has been configured and permissions granted.</i>',
       )
     );
+  }
+
+  // $batch_priorities_vocab = taxonomy_vocabulary_machine_name_load('workflow_content_type_vocab');
+  $batch_priorities_vocab = taxonomy_vocabulary_machine_name_load(IDW_BATCH_PRIORITY_TAXONOMY_MACHINE_NAME);
+  $priority_options = array(0 => 'Select Batch Priority');
+
+  $terms = islandora_digital_workflow_get_all_terms_of_vocab($batch_priorities_vocab);
+  foreach ($terms as $term) {
+    $priority_options[$term->tid] = $term->name;
   }
 
   $batch_name = '';
@@ -121,12 +131,49 @@ function islandora_digital_workflow_create_empty_batch_form(array $form, array &
         '#description' => $supported_models_description,
         '#default_value' => $tid_for_cmodel_selected,
       ),
+      'batch_priority' => array(
+        '#title' => t('Batch Priority'),
+        '#type' => 'select',
+        '#required' => true,
+        '#options' => $priority_options,
+        '#description' => 'Priority of this batch.',
+        '#default_value' => 0,
+      ),
       'batch_description' => array(
         '#type' => 'textarea',
         '#title' => t('Batch description'),
         '#required' => true,
         '#description' => t('Description of the items in this batch.'),
-        '#default_value' => $batch_description,
+        '#default_value' => '',
+      ),
+
+      // Is a request? checkbox
+      'batch_request' => array(
+        '#title' => 'Batch Request?',
+        '#type' => 'fieldset',
+        '#collapsible' => TRUE,
+        '#collapsed' => TRUE,
+        'is_batch_request' => array(
+          '#type' => 'checkbox',
+          '#title' => t('Is a Request?'),
+          '#default_value' => 0,
+        ),
+        // Requestor: textfield
+        'batch_requestor' => array(
+          '#type' => 'textfield',
+          '#title' => t('Requestor'),
+          '#default_value' => '',
+        ),
+        // Request due date: textfield
+        'batch_request_due_date' => array(
+          '#type' => 'date',
+          '#default_value' => array(
+            'month' => format_date(time(), 'custom', 'n'),
+            'day' => format_date(time(), 'custom', 'j'),
+            'year' => format_date(time(), 'custom', 'Y'),
+           ),
+          '#title' => t('Request Due Date'),
+        ),
       ),
     );
 
@@ -269,6 +316,15 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
       '\:fedora\/islandora\:collectionCModel -PID:*_review', 'PID', 'fgs_label_s');
   asort($collections);
 
+  // $batch_priorities_vocab = taxonomy_vocabulary_machine_name_load('workflow_content_type_vocab');
+  $batch_priorities_vocab = taxonomy_vocabulary_machine_name_load(IDW_BATCH_PRIORITY_TAXONOMY_MACHINE_NAME);
+  $priority_options = array(0 => 'Select Batch Priority');
+
+  $terms = islandora_digital_workflow_get_all_terms_of_vocab($batch_priorities_vocab);
+  foreach ($terms as $term) {
+    $priority_options[$term->tid] = $term->name;
+  }
+
   // If the user can administer site config, then display the link to the 
   // supported models here.
   //
@@ -330,6 +386,14 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
         '#required' => true,
         '#description' => t('Description of the items in this batch.'),
         '#default_value' => $batch_description,
+      ),
+      'batch_priority' => array(
+        '#title' => t('Batch Priority'),
+        '#type' => 'select',
+        '#required' => true,
+        '#options' => $priority_options,
+        '#description' => 'Priority of this batch.',
+        '#default_value' => ($batch_record && isset($batch_record['batch_priority_tid'])) ? $batch_record['batch_priority_tid'] : 0,
       ),
 
       // Is batch active? checkbox

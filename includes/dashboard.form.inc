@@ -24,10 +24,13 @@ function islandora_digital_workflow_dashboard() {
   $dashboard_data = array();
   $tasks_tables = islandora_digital_workflow_get_tasks_tables();
   $links = islandora_digital_workflow_get_dashboard_links();
+  $action_links = islandora_digital_workflow_get_dashboard_action_links();
+
   return $lookup_form_markup .
       theme('islandora_digital_workflow_dashboard', array(
           'dashboard_data' => $dashboard_data,
-          'links' => $links)) .
+          'links' => $links,
+          'action_links' => $action_links)) .
       theme('islandora_digital_workflow_dashboard_tasks', array(
           'tasks_tables' => $tasks_tables));
 }
@@ -77,6 +80,16 @@ function islandora_digital_workflow_get_dashboard_links() {
   }
   
   return $links;  
+}
+
+function islandora_digital_workflow_get_dashboard_action_links() {
+  $links = array();
+
+  if (user_access('create-child-collection')) {
+    $links[] = l('Create Collection', '/islandora/object/pitt:root/manage/overview/ingest');
+  }
+  $links[] = l('Create Batch', '/islandora/islandora_digital_workflow/create_batch');
+  return $links;
 }
 
 /**

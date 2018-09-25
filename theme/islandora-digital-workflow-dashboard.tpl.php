@@ -11,7 +11,7 @@
 ?>
 <div id="no-sidebars">
   <div class="dashboard-report">
-    <ul class="action-links"><li><a href="/islandora/islandora_digital_workflow/create_batch">Create Batch</a></li></ul>
+    <ul class="action-links"><li><?php print implode("</li><li>", $action_links); ?></li></ul>
     <?php foreach ($links as $section => $section_links): ?>
     <ul id="link_section_<?php print $section; ?>" class="<?php print $section; ?>-links">
       <?php foreach ($section_links as $link) { ?>

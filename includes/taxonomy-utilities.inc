@@ -53,4 +53,3 @@ function islandora_digital_workflow_get_all_terms_of_vocab($vocab) {
   $terms = entity_load('taxonomy_term', FALSE, array('vid' => $vocab->vid));
   return $terms;
 }
-

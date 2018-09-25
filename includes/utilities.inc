@@ -28,14 +28,20 @@ function islandora_digital_workflow_create_stub_batch_record($form_state) {
     $batch_name = $form_state['values']['batch_name'];
     $batch_record = islandora_digital_workflow_get_batch_record_by_name($batch_name);
 
+    $batch_request_date = strtotime($form_state['values']['batch_request_due_date']['year'] . '/' .
+        $form_state['values']['batch_request_due_date']['month'] . '/' .
+        $form_state['values']['batch_request_due_date']['day']);
+
     $field_values = array(
         'batch_name' => $batch_name,
         'batch_description' => $form_state['values']['batch_description'],
         'default_type_of_resource' => islandora_digital_workflow_get_name_of_tid($form_state['values']['cmodel_select']),
         'is_batch_active' => 0,
-        'is_batch_request' => 0,
+        'is_batch_request' => $form_state['values']['is_batch_request'],
+        'batch_requestor' => $form_state['values']['batch_requestor'],
+        'batch_request_due_date' => $batch_request_date,
+        'batch_priority_tid' => $form_state['values']['batch_priority'],
         'user' => $user->name,
-//        'lastmod' => time(),
       );
 
     if ((!is_array($batch_record))) {
@@ -656,6 +662,38 @@ function islandora_digital_workflow_get_accessible_cmodels() {
     }
   }
   return $accessible_models;
+}
+
+/**
+ * This returns the set of islandora models that are configured to have
+ * workflow sequences.
+ *
+ * @return array
+ *   The possible array of islandora models that are currently configured
+ * to be handled by an existing workflow sequence.
+ */
+function islandora_digital_workflow_get_cmodels_having_sequences() {
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
+  $models = islandora_digital_workflow_get_reduced_readable_cmodels();
+  $model_pid_keys = array_keys($models);
+  // with the $model_pid_keys, run a mysql query to get the supported models
+  // from `islandora_digital_workflow_model_sequence`.
+  $sequences = islandora_digital_workflow_get_workflow_model_sequences();
+  $return_models = array();
+  // Only keep the values if they are also found within a workflow sequence.
+  foreach ($model_pid_keys as $islandora_model_pid) {
+    $found = FALSE;
+    foreach ($sequences as $sequence_id => $model_sequence) {
+      $found |= array_key_exists($islandora_model_pid, $model_sequence);
+    }
+    if ($found) {
+      $return_models[$islandora_model_pid] = array(
+          'pid' => $islandora_model_pid,
+          'label' => $models[$islandora_model_pid],
+      );
+    }
+  }
+  return $return_models;
 }
 
 /**

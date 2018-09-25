@@ -30,6 +30,10 @@
         }
         ?>
         <div class="lookup_result_indent">
+        <?php
+        if (!($batch_record->nid)) : ?>
+          <h2><?php print l($batch_record->batch_name, '/islandora/islandora_digital_workflow/edit_batch/' . $batch_record->batch_name); ?></h2
+        <?php endif; ?>
           <b>Description:</b> <?php print $batch_record->batch_description; ?>
           <?php if (isset($batch_record->identifiers)) { ?>
           <div><b>Matched Identifiers:</b> <?php print $batch_record->identifiers; ?></div>

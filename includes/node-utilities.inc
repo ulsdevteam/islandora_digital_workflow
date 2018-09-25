@@ -145,11 +145,24 @@ function islandora_digital_workflow_make_or_update_node($form_state, $csv_array,
   
   $stages_vocab = taxonomy_vocabulary_machine_name_load(IDW_STAGE_TAXONOMY_MACHINE_NAME);
   $stage_new_tid = islandora_digital_workflow_get_tid_by_name('New', $stages_vocab);
-  if ($stage_new_tid) {
+
+  $node_has_new_stage_already = FALSE;
+  $node_has_new_stage_already = (isset($node->field_stage) && (array_key_exists($node->language, $node->field_stage) &&
+      array_key_exists(0, $node->field_stage[$node->language]) &&
+      array_key_exists('tid', $node->field_stage[$node->language][0]) &&
+      $node->field_stage[$node->language][0]['tid'] == $stage_new_tid)) ? TRUE : FALSE;
+  if ($stage_new_tid && !$node_has_new_stage_already) {
     $node->field_stage[$node->language][] = array('tid' => $stage_new_tid);
   }
 
   if (array_key_exists('values', $form_state)) {
+    $content_types_vocab = taxonomy_vocabulary_machine_name_load(IDW_CONTENT_TYPE_TAXONOMY_MACHINE_NAME);
+    // For the Content Types cck field, the batch_record value is storing the term value
+//    $node->field_islandora_model[$node->language][0]['value'] = 8; //$form_state['values']['cmodel_select'];
+
+    // For the batch_priorities_tid cck field, the batch_record value has tid value
+//     $node->field_priority[$node->language][]['value'] = $form_state['values']['batch_priority'];
+
     $node->field_pid_count[$node->language][]['value'] = $form_state['values']['object_count'];
     foreach ($form_state['values']['collections_select'] as $collection_pid) {
       $node->field_collections_mapping[$node->language][]['value'] = $collection_pid;
@@ -163,7 +176,7 @@ function islandora_digital_workflow_make_or_update_node($form_state, $csv_array,
   // Since islandora_digital_workflow_csv_file_as_array returned all headings in
   // lowercase, look for "identifier"
   $csv_values_arr = islandora_digital_workflow_get_csv_values_for_fieldname('identifier', $csv_array);
-  if (count($csv_array) > 0) {
+  if (array_key_exists('identifier', $csv_array) && (count($csv_array) > 0)) {
     $node->field_identifiers[$node->language][0]['value'] = implode("\n", $csv_values_arr['identifier']);
   }
   else {
@@ -189,7 +202,8 @@ function islandora_digital_workflow_get_count_of_nodes_by_stage($stage_tid = 0) 
   $sql = "SELECT count(*) as `count` FROM {node} n " .
       "INNER JOIN {field_data_field_stage} s ON n.nid=s.entity_id " .
       "WHERE (n.type = 'workflow_batch') AND (n.status = 1)" .
-      ($stage_tid ? " AND s.field_stage_tid = " . $stage_tid : "");
+      ($stage_tid ? " AND s.field_stage_tid = " . $stage_tid : "") . 
+      " AND s.delta = 0";
   $result = db_query($sql);
   $results = $result->fetchAll();
   $first_row = array_pop($results);

@@ -9,6 +9,22 @@
  * Implements hook_uninstall().
  */
 function islandora_digital_workflow_install() {
+  islandora_digital_workflow_add_taxonomy_data();
+
+  // Insert any `islandora_digital_workflow` MySQL records.
+  islandora_digital_workflow_insert_islandora_digital_workflow_actions();
+
+  // Insert workflow_batch node_type and create required CCK fields.
+  islandora_digital_workflow_insert_workflow_batch_node_type();
+  islandora_digital_workflow_create_cck_fields();
+  
+  // Need to install the forena reports files
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
+  islandora_digital_workflow_check_and_deploy_forena_reports();
+}
+
+
+function islandora_digital_workflow_add_taxonomy_data() {
   $new_vocab = (object) array(
       'name' => 'Islandora Digital Workflow Stage vocabulary',
       'description' => 'This vocabulary has the various stages for ' .
@@ -17,7 +33,7 @@ function islandora_digital_workflow_install() {
    );
   taxonomy_vocabulary_save($new_vocab);
   // add the individual "Stage" vocabulary terms
-  list($stage_tid, $stage_vid, $problem_tid) = islandora_digital_workflow_add_workflow_stage_taxonomy_terms();
+  islandora_digital_workflow_add_workflow_stage_taxonomy_terms();
 
   $new_vocab = (object) array(
       'name' => 'Islandora Digital Workflow Content Type vocabulary',
@@ -28,16 +44,16 @@ function islandora_digital_workflow_install() {
   taxonomy_vocabulary_save($new_vocab);
   // add the individual "Content Type" vocabulary terms
   islandora_digital_workflow_add_workflow_content_type_taxonomy_terms();
-  // Insert any `islandora_digital_workflow` MySQL records.
-  islandora_digital_workflow_insert_islandora_digital_workflow_actions($problem_tid);
 
-  // Insert workflow_batch node_type and create required CCK fields.
-  islandora_digital_workflow_insert_workflow_batch_node_type();
-  islandora_digital_workflow_create_cck_fields($stage_tid, $stage_vid);
-  
-  // Need to install the forena reports files
-  module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
-  islandora_digital_workflow_check_and_deploy_forena_reports();
+  $new_vocab = (object) array(
+      'name' => 'Islandora Digital Workflow Batch Priority vocabulary',
+      'description' => 'This vocabulary has the various priority levels for ' .
+        'workflow_batch nodes.',
+      'machine_name' => IDW_BATCH_PRIORITY_TAXONOMY_MACHINE_NAME,
+   );
+  taxonomy_vocabulary_save($new_vocab);
+  // add the individual "Batch Priority" vocabulary terms
+  islandora_digital_workflow_add_workflow_batch_priority_taxonomy_terms();
 }
 
 /**
@@ -189,6 +205,14 @@ function islandora_digital_workflow_schema() {
         'type' => 'text',
         'size' => 'normal',
         'not null' => TRUE,
+      ),
+      'batch_priority_tid' => array(
+        'description' => 'Drupal taxonomy term tid value',
+        'type' => 'int',
+        'size' => 'medium',
+        'unsigned' => TRUE,
+        'default' => 0,
+        'not null' => FALSE,
       ),
       'is_batch_active' => array(
         'description' => 'Is the batch Active?',
@@ -695,9 +719,62 @@ function islandora_digital_workflow_add_workflow_content_type_taxonomy_terms() {
 }
 
 /**
+ * Helper function to create the batch priority taxonomy vocabulary.
+ */
+function islandora_digital_workflow_add_workflow_batch_priority_taxonomy_terms() {
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy-utilities');
+  $vocab = taxonomy_vocabulary_machine_name_load(IDW_BATCH_PRIORITY_TAXONOMY_MACHINE_NAME);
+
+  $term = (object) array(
+   'name' => 'Lowest',
+   'description' => 'Lowest priority batch.',
+   'vid' => $vocab->vid,
+   'weight' => 5,
+  );
+  taxonomy_term_save($term);
+
+  $term = (object) array(
+   'name' => 'Low',
+   'description' => 'Low priority batch.',
+   'vid' => $vocab->vid,
+   'weight' => 4,
+  );
+  $new_tid = taxonomy_term_save($term);
+
+  $term = (object) array(
+   'name' => 'Regular',
+   'description' => 'Regular priorty batch.',
+   'vid' => $vocab->vid,
+   'weight' => 3,
+  );
+  taxonomy_term_save($term);
+
+  $term = (object) array(
+   'name' => 'High',
+   'description' => 'High priorty batch.',
+   'vid' => $vocab->vid,
+   'weight' => 2,
+  );
+  taxonomy_term_save($term);
+
+  $term = (object) array(
+   'name' => 'Highest',
+   'description' => 'Highest priorty batch.',
+   'vid' => $vocab->vid,
+   'weight' => 1,
+  );
+  taxonomy_term_save($term);
+}
+
+/**
  * Helper function to create the workflow stage taxonomy vocabulary.
+ *
+ * @global integer $problem_tid
+ *   The term identifier for the "Problem" term in the Stages vocabulary.
  */
 function islandora_digital_workflow_add_workflow_stage_taxonomy_terms() {
+  global $problem_tid;
+
   module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy-utilities');
   $vocab = taxonomy_vocabulary_machine_name_load(IDW_STAGE_TAXONOMY_MACHINE_NAME);
 
@@ -737,14 +814,16 @@ function islandora_digital_workflow_add_workflow_stage_taxonomy_terms() {
    'vid' => $vocab->vid,
   );
   taxonomy_term_save($term);
-  // Need to return the term id for the "New" term:
-  return array($vocab->vid, $new_tid, $problem_tid);
 }
 
 /**
  * Helper routine to insert islandora_digital_workflow_actions records.
+ *
+ * @global integer $problem_tid
+ *   The term identifier for the "Problem" term in the Stages vocabulary.
  */
-function islandora_digital_workflow_insert_islandora_digital_workflow_actions($problem_tid) {
+function islandora_digital_workflow_insert_islandora_digital_workflow_actions() {
+  global $problem_tid;
   $islandora_digital_workflow_actions = array(
     // defaults for batch_item actions
     IDW_ACTION_CHECK_IN => array(
@@ -865,13 +944,8 @@ function islandora_digital_workflow_insert_workflow_batch_node_type() {
 
 /**
  * Helper function to create the CCK fields needed for this module.
- *
- * @param integer $stage_tid
- *   The taxonomy term tid value for the term in the vocabulary.
- * @param integer $stage_vid
- *   The taxonomy term vid value for the vocabulary.
  */
-function islandora_digital_workflow_create_cck_fields($stage_tid, $stage_vid) {
+function islandora_digital_workflow_create_cck_fields() {
   foreach (_islandora_digital_workflow_installed_fields() as $field) {
     if (!field_info_field($field['field_name'])) {
       field_create_field($field);
@@ -887,13 +961,8 @@ function islandora_digital_workflow_create_cck_fields($stage_tid, $stage_vid) {
 
 /**
  * Returns the field instances needed to create the View object.
- *
- * @param integer $stage_tid
- *   The taxonomy term tid value for the term in the vocabulary.
- * @param integer $stage_vid
- *   The taxonomy term vid value for the vocabulary.
  */
-function _islandora_digital_workflow_installed_instances($stage_tid = 0, $stage_vid = 0) {
+function _islandora_digital_workflow_installed_instances() {
   return array(
     'field_pid_count' => array(
       'field_name' => 'field_pid_count',
@@ -1179,6 +1248,48 @@ function _islandora_digital_workflow_installed_instances($stage_tid = 0, $stage_
       'required' => 0,
       'description' => '',
       'label' => 'Islandora Model',
+      'widget' => array(
+        'weight' => 1,
+        'type' => 'taxonomy_autocomplete',
+        'module' => 'taxonomy',
+        'active' => 0,
+        'settings' => array(
+          'size' => 60,
+          'autocomplete_path' => 'islandora_digital_workflow/autocomplete/content-models',
+        ),
+      ),
+      'settings' => array('user_register_form' => '',),
+      'display' => array(
+        'default' => array(
+          'label' => 'inline',
+          'type' => 'taxonomy_term_reference_link',
+          'weight' => 1,
+          'settings' => array(),
+          'module' => 'taxonomy',
+        ),
+        'teaser' => array(
+          'label' => 'above',
+          'type' => 'taxonomy_term_reference_link',
+          'weight' => 1,
+          'settings' => array(),
+          'module' => 'taxonomy',
+        ),
+        'full' => array(
+          'label' => 'above',
+          'type' => 'taxonomy_term_reference_link',
+          'weight' => 1,
+          'settings' => array(),
+          'module' => 'taxonomy',
+        ),
+      ),
+    ),
+    'field_priority' => array(
+      'field_name' => 'field_priority',
+      'entity_type' => 'node',
+      'bundle' => 'workflow_batch',
+      'required' => 0,
+      'description' => '',
+      'label' => 'Batch Priority',
       'widget' => array(
         'weight' => 1,
         'type' => 'taxonomy_autocomplete',
@@ -1558,7 +1669,7 @@ function _islandora_digital_workflow_installed_fields() {
       'settings' => array(
         'allowed_values' => array(
           '0' => array(
-            'vocabulary' => 'workflow_stage_vocab',
+            'vocabulary' => 'workflow_content_type_vocab',
             'parent' => 0,
           ),
         ),
@@ -1575,6 +1686,53 @@ function _islandora_digital_workflow_installed_fields() {
             ),
             'FIELD_LOAD_REVISION' => array(
               'field_revision_field_islandora_model' => array('tid' => 'field_islandora_model_tid',),
+            ),
+          ),
+        ),
+      ),
+      'foreign keys' => array(
+        'tid' => array(
+          'table' => 'taxonomy_term_data',
+          'columns' => array('tid' => 'tid',),
+        ),
+      ),
+      'indexes' => array(
+        'tid' => array('0' => 'tid',),
+      ),
+    ),
+    'field_priority' => array(
+      'field_name' => 'field_priority',
+      'type' => 'taxonomy_term_reference',
+      'entity_types' => array(),
+      'module' => 'taxonomy',
+      'active' => 1,
+      'storage_type' => 'field_sql_storage',
+      'storage_module' => 'field_sql_storage',
+      'storage_active' => 1,
+      'locked' => 0,
+      'cardinality' => -1,
+      'translatable' => 0,
+      'deleted' => 0,
+      'settings' => array(
+        'allowed_values' => array(
+          '0' => array(
+            'vocabulary' => 'workflow_batch_priority_vocab',
+            'parent' => 0,
+          ),
+        ),
+      ),
+      'storage' => array(
+        'type' => 'field_sql_storage',
+        'settings' => array(),
+        'module' => 'field_sql_storage',
+        'active' => 1,
+        'details' => array(
+          'sql' => array(
+            'FIELD_LOAD_CURRENT' => array(
+              'field_data_field_priority' => array('tid' => 'field_priority_tid',),
+            ),
+            'FIELD_LOAD_REVISION' => array(
+              'field_revision_field_priority' => array('tid' => 'field_priority_tid',),
             ),
           ),
         ),

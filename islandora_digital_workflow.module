@@ -8,6 +8,7 @@
 // Taxonomy Vocabulary
 define('IDW_STAGE_TAXONOMY_MACHINE_NAME', 'workflow_stage_vocab');
 define('IDW_CONTENT_TYPE_TAXONOMY_MACHINE_NAME', 'workflow_content_type_vocab');
+define('IDW_BATCH_PRIORITY_TAXONOMY_MACHINE_NAME', 'workflow_batch_priority_vocab');
 
 // action constants
 define('IDW_ACTION_CHECK_IN', 1);
@@ -138,7 +139,6 @@ function islandora_digital_workflow_menu() {
       'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_MANAGE_SEQUENCES),
       'file' => 'includes/workflow_sequences.form.inc',
     ),
-
     // the "standard Workflow user" (usually ISLANDORA_DIGITAL_WORKFLOW) menu handlers:
     'islandora/islandora_digital_workflow' => array(
       'title' => t('Islandora Digital Workflow Dashboard'),
@@ -326,6 +326,27 @@ function islandora_digital_workflow_menu() {
       'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW),
       'file' => 'includes/islandora_digital_workflow_css.inc',
     ),
+
+    // autocomplete callback for places that need autocomplete on Islandora Models
+    // that are limited to the ones supported by the digital workflow module.
+    'islandora_digital_workflow/autocomplete/content-models' => array(
+      'title' => 'Autocomplete callback',
+      'description' => 'Autocomplete a Fedora content model PID.',
+      'file' => 'includes/content_model.autocomplete.inc',
+      'page callback' => 'islandora_digital_workflow_content_model_autocomplete',
+      'page arguments' => array(3),
+      'access arguments' => array('administer site configuration'),
+      'type' => MENU_CALLBACK,
+    ),
+    'islandora_digital_workflow/autocomplete/field_islandora_model/content-models' => array(
+      'title' => 'Autocomplete callback',
+      'description' => 'Autocomplete a Fedora content model PID.',
+      'file' => 'includes/content_model.autocomplete.inc',
+      'page callback' => 'islandora_digital_workflow_content_model_autocomplete',
+      'page arguments' => array(3),
+      'access arguments' => array('administer site configuration'),
+      'type' => MENU_CALLBACK,
+    ),
   );
 }
 
@@ -441,6 +462,7 @@ function islandora_digital_workflow_theme() {
       'variables' => array(
         'dashboard_data' => NULL,
         'links' => array(),
+        'action_links' => array(),
       ),
     ),
     'islandora_digital_workflow_batch_defaults' => array(
@@ -823,6 +845,5 @@ function islandora_digital_workflow_user_view_alter(&$build) {
 
 function islandora_digital_workflow_user_post_render(&$markup) {
   $dashboard_link = l('Islandora Digital Workflow', 'islandora/islandora_digital_workflow');
-
   print str_replace('content">','content">' . $dashboard_link, $markup);
 }
