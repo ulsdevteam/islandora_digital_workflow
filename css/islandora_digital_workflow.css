@@ -389,7 +389,7 @@ div.form-disabled label.enabled_text {
     color: #02b;
 }
 
-.report_table table {
+.report, .report_table table {
     font-size: 0.9em;
     max-height: 600px;
     overflow: auto;
@@ -420,7 +420,22 @@ div.form-disabled label.enabled_text {
     box-shadow: 1px 1px 3px #888;
 }
 
-.report_table fieldset.oddrow, .report_table table tr.oddrow {
+table.report tr {
+    height: 90px;
+}
+td.as_textarea {
+    display: block;
+    overflow: auto;
+    height: 120px;
+    max-height: 120px;
+    margin-bottom: 4px;
+    white-space: pre;
+    font-family: monospace;
+    color: #BBFFBB;
+    background-color: black;
+}
+
+table.report tr.oddrow td textarea, table.report tr.oddrow, .report_table fieldset.oddrow, .report_table table tr.oddrow {
     background-color: #f2f2f2;
 }
 
@@ -707,6 +722,11 @@ ul.utility-links {
 
 ul.admin-links {
     background: transparent url("../images/cog.png") no-repeat 4px 4px;
+}
+
+.double_space {
+    margin-bottom: 1em;
+    clear: both;
 }
 
 .td_wide_normal {

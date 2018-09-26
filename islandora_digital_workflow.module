@@ -40,6 +40,7 @@ define('ISLANDORA_DIGITAL_WORKFLOW_EDIT_DELETE_TRANSACTIONS', 'digital workflow 
 define('ISLANDORA_DIGITAL_WORKFLOW_UPDATE_ITEMS', 'digital workflow update items');
 define('ISLANDORA_DIGITAL_WORKFLOW_INGEST_ITEMS', 'digital workflow ingest items');
 define('ISLANDORA_DIGITAL_WORKFLOW_MANAGE_SEQUENCES', 'digital workflow manage sequences');
+define('ISLANDORA_DIGITAL_WORKFLOW_VIEW_EXTRA_INFO', 'digital workflow view extra info');
 define('ISLANDORA_DIGITAL_WORKFLOW_RUN_REPORTS', 'digital workflow run reports');
 define('ISLANDORA_DIGITAL_WORKFLOW_USE_UTILITIES', 'digital workflow use utilities');
 define('ISLANDORA_DIGITAL_WORKFLOW_SYNC_STAGING', 'digital workflow sync staging');
@@ -389,6 +390,10 @@ function islandora_digital_workflow_permission() {
       'title' => t('Manage Workflow Sequences'),
       'description' => t('User can manage workflow sequences and required actions'),
     ),
+    ISLANDORA_DIGITAL_WORKFLOW_VIEW_EXTRA_INFO => array(
+      'title' => t('View extra debug info'),
+      'description' => t('User will see additional debug info where it is available'),
+    ),
     ISLANDORA_DIGITAL_WORKFLOW_RUN_REPORTS => array(
       'title' => t('Run reports'),
       'description' => t('User can run and view reports on batches and items'),
@@ -509,6 +514,7 @@ function islandora_digital_workflow_theme() {
         'previous_problems' => array(),
         'unresolved_problems' => array(),
         'item_record_transactions' => array(),
+        'drush_log_entries' => array(),
         'pid' => '',
         'can_ingest' => FALSE,
         'ingested_links' => '',

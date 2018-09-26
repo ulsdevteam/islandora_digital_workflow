@@ -38,11 +38,11 @@
           array_key_exists('is_required', $transaction_action)) ?
               ($transaction_action['is_required'] == 1 ? ' required_action' : ' optional_action') : '';
       if (is_array($transaction_action) && array_key_exists('class_name', $transaction_action)) {
-        $class_name = 'transaction_action_' . $transaction_action['class_name'];
+        $class_name = $transaction_action['class_name'];
       }
       else {
-        $class_name = 'transaction_action_' . (($transaction_action_name) ? strtolower(str_replace(array("-", " "), "_", $transaction_action_name)) : 'spacer');
+        $class_name = (($transaction_action_name) ? strtolower(str_replace(array("-", " "), "_", $transaction_action_name)) : 'transaction_action_spacer');
       } ?>
     <div class="<?php print $class_name . $required_class;?>" title="<?php print $transaction_action_description; ?>">&nbsp;</div>
     <?php } ?>
-</div><br>
+</div><br class="double_space">

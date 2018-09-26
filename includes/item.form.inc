@@ -119,6 +119,7 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
   }
 
   $item_record_results = islandora_digital_workflow_get_batch_item_record($batch_item_id);
+  $drush_log_entries = islandora_digital_workflow_get_drush_log_for_batch_item($batch_item_id);
   $item = array_pop($item_record_results);
   @list($namespace, $pid) = explode(":", $item->identifier);
 
@@ -161,6 +162,7 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
         'previous_problems' => $previous_problems,
         'unresolved_problems' => $unresolved_problems,
         'item_record_transactions' => $item_record_transactions,
+        'drush_log_entries' => $drush_log_entries,
         'pid' => $pid,
         'can_ingest' => $can_ingest,
         'ingested_links' => $ingested_links,

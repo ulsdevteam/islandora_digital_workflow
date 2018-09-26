@@ -545,6 +545,12 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
       '#attributes' => array('autocomplete' => 'off'),
       '#options' => $collections,
     );
+  if (user_access('create child collection')) {
+    $top_level_collection_uri = rtrim(variable_get('islandora_digital_workflow_top_level_collection', '/islandora/object/islandora:root'), "/");
+    $form['ingest_options_frame']['collections_select']['#description'] = l('Create Collection', $top_level_collection_uri . '/manage/overview/ingest', array('attributes'=>array('target' => '_blank'))) .
+        ' if a new Islandora collection is needed.  In order to select any newly created collections, this page will need to be reloaded.';
+  }
+
 
   // This is a value that is only only used when configured.
   if (variable_get('islandora_digital_workflow_use_isMemberOfSite', 0)) {

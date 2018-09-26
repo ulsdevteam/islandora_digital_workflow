@@ -8,6 +8,7 @@
 * - $batch_record => array(),
 * - $item => stdObject,
 * - $transaction_records => array(),
+* - $drush_log_entries => array(),
 * - $item_record_transactions => array(),
 * - $found_files => array(),
 */
@@ -44,7 +45,8 @@
   </div>
   <?php endif; ?>
 
-  <?php if ($workflow_sequences[$batch_record->workflow_sequence_id]['max_timestamp'] > $max_timestamp_and_how_long_ago->max_timestamp): ?>
+  <?php if ($max_timestamp_and_how_long_ago->max_timestamp && 
+      ($workflow_sequences[$batch_record->workflow_sequence_id]['max_timestamp'] > $max_timestamp_and_how_long_ago->max_timestamp)): ?>
   <div class="dashboard-report messages info">
     <h3>Workflow Sequence updated</h3>
       <p>Workflow Sequence has been updated AFTER action/s on this Item.
@@ -111,7 +113,7 @@
             <th>Description</th>
             <th>User</th>
             <th>When</th>
-            <th>Timestamp</th>
+            <th>Date</th>
         </tr>
       <?php foreach ($item_record_transactions as $transaction_record) { ?>
           <?php
@@ -171,5 +173,32 @@
     <?php endif; ?>
 
   </div><!-- /end report_table "Item Transactions" -->
+  
+  <?php if (user_access(ISLANDORA_DIGITAL_WORKFLOW_VIEW_EXTRA_INFO) && (count($drush_log_entries) > 0)): ?>
+    <?php $toggle = FALSE; ?>
+    <h3>Ingest Commands</h3>
+    <p>Return Code values that are non-zero are considered an error.  All other rows are assumed to have succeeded in being processed and handled by the shell.</p>
+  <table class="report">
+      <thead>
+          <th>Drush Command</th>
+          <th>User</th>
+          <th>Date</th>
+          <th>Return Code</th>
+          <th width="300">Output</th>
+      </thead>
+      <tbody>
+    <?php foreach ($drush_log_entries as $drush_log_entry): ?>
+    <?php $toggle = !$toggle; ?>
+      <tr class="<?php print (($drush_log_entry->return_val) ? 'bad' : 'good') . ' ' . (($toggle) ? 'evenrow' : 'oddrow'); ?>">
+          <td><?php print $drush_log_entry->drush_command; ?></td>
+          <td><?php print $drush_log_entry->user_link; ?></td>
+          <td><?php print $drush_log_entry->timestamp; ?></td>
+          <td><?php print $drush_log_entry->return_val; ?></td>
+          <td class="as_textarea"><?php foreach (unserialize($drush_log_entry->output) as $output_line): ?><?php print $output_line . "\n"; ?><?php endforeach; ?></td>
+      </tr>
+    <?php endforeach; ?>
+      </tbody>
+  </table>
+  <?php endif; ?>
 
 </div><!-- /end no-sidebars -->

@@ -775,6 +775,26 @@ function islandora_digital_workflow_get_batch_item_record($batch_item_id) {
 }
 
 /**
+ * This returns the drush log entries for a given $batch_item_id.
+ *
+ * @return array
+ *   An array of drush log records.
+ */
+function islandora_digital_workflow_get_drush_log_for_batch_item($batch_item_id) {
+  $query = db_select('islandora_digital_workflow_drush_log', 'd')
+      ->fields('d')
+      ->condition('d.batch_item_id', $batch_item_id);
+  $query->join('users', 'u', 'u.uid = d.drupal_uid');
+  $query->fields('u', array('name'));
+  $results = $query->execute();
+  $rows = $results->fetchAll();
+  foreach ($rows as $id => $row) {
+    $rows[$id]->user_link = l($row->name, 'user/' . $row->drupal_uid . '/edit');
+  }
+  return $rows;
+}
+
+/**
  * Updates an existing batch_item record.
  *
  * @param integer $batch_item_id
