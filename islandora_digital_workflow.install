@@ -35,6 +35,7 @@ function islandora_digital_workflow_add_taxonomy_data() {
       'machine_name' => IDW_STAGE_TAXONOMY_MACHINE_NAME,
    );
   taxonomy_vocabulary_save($stage_vocab);
+  $stage_vocab = taxonomy_vocabulary_machine_name_load(IDW_STAGE_TAXONOMY_MACHINE_NAME);
   // add the individual "Stage" vocabulary terms
   islandora_digital_workflow_add_workflow_stage_taxonomy_terms();
 
@@ -397,7 +398,21 @@ function islandora_digital_workflow_schema() {
         'description' => 'The description for the batch',
         'type' => 'varchar',
         'length' => 255,
-        'not null' => TRUE,
+        'not null' => FALSE,
+      ),
+      'type_of_resource' => array(
+        'description' => 'The type of Islandora object',
+        'type' => 'varchar',
+        'length' => 50,
+        'not null' => FALSE,
+      ),
+      'assigned_pid' => array(
+        'description' => 'The Islandora PID value for the item.  This may be ' .
+          'used for assigning the value, or updated from the auto-generated ' .
+          'value after ingest.',
+        'type' => 'varchar',
+        'length' => 64,
+        'not null' => FALSE,
       ),
       'mods' => array(
         'description' => 'MODS xml created from CSV row for object',
@@ -1265,9 +1280,9 @@ function _islandora_digital_workflow_installed_instances() {
           'vid' => $stage_vocab->vid,
           'name' => $new_stage_term->name,
           'description' => $new_stage_term->description,
-          'format' => $new_stage_term->format,
+          'format' => isset($new_stage_term->format) ? $new_stage_term->format : NULL,
           'weight' => $new_stage_term->weight,
-          'vocabulary_machine_name' => $stage_vocab->vocabulary_machine_name,
+          'vocabulary_machine_name' => $stage_vocab->machine_name,
         )
       ),
     ),
@@ -1360,9 +1375,9 @@ function _islandora_digital_workflow_installed_instances() {
           'vid' => $priority_vocab->vid,
           'name' => $regular_priority_term->name,
           'description' => $regular_priority_term->description,
-          'format' => $regular_priority_term->format,
+          'format' => isset($regular_priority_term->format) ? $regular_priority_term->format : NULL,
           'weight' => $regular_priority_term->weight,
-          'vocabulary_machine_name' => $priority_vocab->vocabulary_machine_name,
+          'vocabulary_machine_name' => $priority_vocab->machine_name,
         )
       ),
     ),

@@ -93,7 +93,7 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
     $records_updated = islandora_digital_workflow_update_batch_item_record($batch_item_id, $_POST, $original_values);
     if ($records_updated) {
       $mods_file_changed = (trim($original_values->mods) <> trim($_POST['mods']));
-      $marc_file_changed = ($is_paged && trim($original_values->marc) <> trim($_POST['marc']));
+      $marc_file_changed = ($is_paged_content && trim($original_values->marc) <> trim($_POST['marc']));
       drupal_set_message(t('This batch object record has been updated <br>' .
           '<b>Previous Title:</b> "@o_title"<br>' .
           '<b>Updated Title:</b> "<span class="@title_class">@u_title</span>"<br>' .
@@ -101,7 +101,6 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
           '<b>Updated Identifier:</b> "<span class="@identifier_class">@u_identifier</span>"<br>' .
           (($mods_file_changed) ? '<b>MODS file changed:</b><i>changes not displayed here</i>' : '') .
           (($marc_file_changed) ? '<b>MARC file changed:</b><i>changes not displayed here</i>' : '') .
-          '<b>Previous Identifier:</b>"@o_identifier"<br>' .
           (($is_paged_content) ?
           '<b>Previous Filename:</b> "@o_filename"<br>' .
           '<b>Updated Filename:</b> "<span class="@filename_class">@u_filename</span>"' : ''), array(
@@ -138,6 +137,42 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
 
   $previous_problems = islandora_digital_workflow_get_batch_item_problems($batch_item_id, $batch_record->batch_id, FALSE);
   $unresolved_problems = islandora_digital_workflow_get_batch_item_problems($batch_item_id, $batch_record->batch_id, TRUE);
+
+  // calculate the select box options for type_of_resource field... if it is ingested,
+  // make this field read-only input box... else a select box that displays all
+  // of the configured models for the batch's workflow sequence.
+  $ingested = FALSE;
+  $resource_select_box  = '';
+  if ($ingested) {
+    $resource_select_box = '<input type="text" disabled readonly="readonly" ' .
+        'value="' . $item->type_of_resource . '" ' .
+        'id="edit-type-of-resource" name="type_of_resource">';
+  }
+  elseif ($batch_record->default_type_of_resource) {
+    // use the value for the item if it has a type_of_resource value -- 
+    //     else, use the batch.default_type_of_resource value.
+    $use_value = ($item->type_of_resource) ? $item->type_of_resource : $batch_record->default_type_of_resource;
+    $options = array('0' => '<option value="0">Select type of object</option>');
+    $cmodels = islandora_digital_workflow_get_accessible_cmodels();
+
+    $model_sequences = islandora_digital_workflow_get_workflow_model_sequences();
+    if (array_key_exists($batch_record->workflow_sequence_id, $model_sequences)) {
+      $this_batch_sequence_models = $model_sequences[$batch_record->workflow_sequence_id];
+    }
+    else {
+      $this_batch_sequence_models = array();
+    }
+    foreach ($this_batch_sequence_models as $value => $value) {
+      $tid = array_search($value, $cmodels);
+      $options[] = ($value == $use_value) ?
+          '<option value="' . $tid . '" selected="selected">' . $value . '</option>'
+          : '<option value="' . $tid . '">' . $value . '</option>';
+    }
+
+    $resource_select_box = '<select id="edit-type-of-resource" name="type_of_resource">' . "\n" .
+        implode("\n", $options) . "\n" . '</select>';
+  }
+
   islandora_digital_workflow_merge_transactions_with_item_actions($item_record_transactions, $required_batch_actions, $node->nid);
   $islandora_object = islandora_object_load($pid);
   if (is_object($islandora_object)) {
@@ -167,6 +202,7 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
         'can_ingest' => $can_ingest,
         'ingested_links' => $ingested_links,
         'found_files' => $found_files,
+        'resource_select_box' => $resource_select_box,
         'max_timestamp_and_how_long_ago' => $max_timestamp_and_how_long_ago,
         'workflow_sequences' => $workflow_sequences,
       ));

@@ -519,6 +519,7 @@ function islandora_digital_workflow_theme() {
         'can_ingest' => FALSE,
         'ingested_links' => '',
         'found_files' => array(),
+        'resource_select_box' => '',
         'max_timestamp_and_how_long_ago' => array(),
         'workflow_sequences' => array(),
       ),

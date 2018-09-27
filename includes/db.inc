@@ -811,6 +811,8 @@ function islandora_digital_workflow_update_batch_item_record($batch_item_id, $up
         'title' => $update_values['title'],
         'identifier' => $update_values['identifier'],
         // 'filename' => $update_values['filename'],
+        'assigned_pid' => $update_values['assigned_pid'],
+        'type_of_resource' => $update_values['type_of_resource'],
         'mods' => $update_values['mods'],
         'marc' => (array_key_exists('marc', $update_values) ? $update_values['marc'] : ''),
       ))
@@ -838,7 +840,7 @@ function islandora_digital_workflow_update_batch_item_record($batch_item_id, $up
 
     // Compare the underlying MARC file to the value that is passed by $update_values --
     // and overwrite that file if needed.
-    if ($update_values['marc'] <> $original_values->marc) {
+    if (array_key_exists('marc', $update_values) && ($update_values['marc'] <> $original_values->marc)) {
       $orig_filename_pathinfo = pathinfo($original_values->filename);
       $calculated_marc_filename = (array_key_exists('extension', $orig_filename_pathinfo)) ?
           str_replace('.' . $orig_filename_pathinfo['extension'], '.xml', $original_values->filename) :

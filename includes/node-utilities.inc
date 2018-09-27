@@ -158,10 +158,10 @@ function islandora_digital_workflow_make_or_update_node($form_state, $csv_array,
   if (array_key_exists('values', $form_state)) {
     $content_types_vocab = taxonomy_vocabulary_machine_name_load(IDW_CONTENT_TYPE_TAXONOMY_MACHINE_NAME);
     // For the Content Types cck field, the batch_record value is storing the term value
-    $node->field_islandora_model[$node->language][0]['value'] = $form_state['values']['cmodel_select'];
+    $node->field_islandora_model[$node->language][0]['tid'] = $form_state['values']['cmodel_select'];
 
     // For the batch_priorities_tid cck field, the batch_record value has tid value
-    $node->field_priority[$node->language][]['value'] = $form_state['values']['batch_priority'];
+    $node->field_priority[$node->language][]['tid'] = $form_state['values']['batch_priority'];
 
     $node->field_pid_count[$node->language][]['value'] = $form_state['values']['object_count'];
     foreach ($form_state['values']['collections_select'] as $collection_pid) {

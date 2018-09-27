@@ -506,7 +506,11 @@ function islandora_digital_workflow_workflow_sequence_actions_form(array $form, 
     }
   }
   $models_link = l(t('Edit models association'), 'admin/islandora/islandora_digital_workflow/workflow_sequence_models/' . $workflow_sequence_id);
-  $models_desc = str_replace(": ,", ": (default), ", '.  Current Models using this sequence: ' . implode(", ", $workflow_model_sequences[$workflow_sequence_id])) . '. ';
+
+  $models_desc =  str_replace(": ,", ": (default), ", '.  Current Models using this sequence: ' .
+        ((array_key_exists($workflow_sequence_id, $workflow_model_sequences)) ? 
+            implode(", ", $workflow_model_sequences[$workflow_sequence_id]) :
+            '(none)') . '. ');
 
   $form = array(
     '#tree' => TRUE,

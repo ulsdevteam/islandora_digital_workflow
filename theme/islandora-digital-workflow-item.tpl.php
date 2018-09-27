@@ -79,12 +79,13 @@
             <label for="edit-filename">Filename: </label>
             <input id="edit-filename" name="filename" value="<?php print $item->master_filename_basename; ?>">
             <?php endif; ?>
+            <label for="edit-assigned-pid">Assign Fedora PID: </label>
+            <input id="edit-assigned-pid" name="assigned_pid" value="<?php print $item->assigned_pid; ?>"
+               placeholder="<?php print (($batch_record->ingest_namespace) ? $batch_record->ingest_namespace : variable_get('islandora_digital_workflow_ingest_namespace', 'islandora'));?>:">
+            <label for="edit-type-of-resource">Type of resource: </label>
+            <?php print $resource_select_box; ?>
             <label for="edit-pending1" class="disabled_text">ITEM PROP 1: </label>
             <input id="edit-pending1" name="pending" disabled readonly="readonly" value="pending development">
-            <label for="edit-pending2" class="disabled_text">ITEM PROP 2: </label>
-            <input id="edit-pending2" name="pending" disabled readonly="readonly" value="pending development">
-            <label for="edit-pending3" class="disabled_text">ITEM PROP 3: </label>
-            <input id="edit-pending3" name="pending" disabled readonly="readonly" value="pending development">
 
             <label for="edit-mods">MODS: </label>
             <textarea rows=8 class="short-text-area" id="edit-mods" name="mods"><?php print $item->mods; ?></textarea>
