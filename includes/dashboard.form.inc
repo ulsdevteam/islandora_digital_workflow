@@ -48,20 +48,42 @@ function islandora_digital_workflow_dashboard() {
 function islandora_digital_workflow_get_dashboard_links() {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy-utilities');
   module_load_include('inc', 'islandora_digital_workflow', 'includes/node-utilities');
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
   
   // first link is "All" stages
   // remaining links are all based on the stage taxonomy terms  
   $stages_vocab = taxonomy_vocabulary_machine_name_load(IDW_STAGE_TAXONOMY_MACHINE_NAME);
-  $node_count = islandora_digital_workflow_get_count_of_nodes_by_stage();
+  $priorities_vocab = taxonomy_vocabulary_machine_name_load(IDW_BATCH_PRIORITY_TAXONOMY_MACHINE_NAME);
+  $content_type_vocab = taxonomy_vocabulary_machine_name_load(IDW_CONTENT_TYPE_TAXONOMY_MACHINE_NAME);
+  $accessible_models = islandora_digital_workflow_get_cmodels_having_sequences();
+
+  $node_count = islandora_digital_workflow_get_count_of_nodes_by_tid();
   $all_batches_link = l(t('All Batches'), '/islandora/islandora_digital_workflow/batches/all') .
           ($node_count ? ' <span class="small_lt_text">- ' . $node_count . ' batch' . ($node_count == 1 ? '' : 'es'). '</span>' : '');
-  $links = array('batches' => array($all_batches_link));
+  $links = array('batch_stages' => array($all_batches_link));
 
   $stages = array('New', 'Scanned', 'Problem', 'Reviewed', 'Done');
   foreach ($stages as $stage) {
     $tid = islandora_digital_workflow_get_tid_by_name($stage, $stages_vocab);
-    $node_count = islandora_digital_workflow_get_count_of_nodes_by_stage($tid);
-    $links['batches'][] = l($stage, '/islandora/islandora_digital_workflow/batches/' . $tid) .
+    $node_count = islandora_digital_workflow_get_count_of_nodes_by_tid('field_stage', $tid);
+    $links['batch_stages'][] = l($stage, '/islandora/islandora_digital_workflow/batches/' . $tid) .
+        ($node_count ? ' <span class="small_lt_text">- ' . $node_count . ' batch' . ($node_count == 1 ? '' : 'es'). '</span>' : '');
+  }
+
+  $priorities = array('Highest', 'High', 'Regular', 'Low', 'Lowest');
+  foreach ($priorities as $priority) {
+    $lc_term = strtolower($priority);
+    $tid = islandora_digital_workflow_get_tid_by_name($priority, $priorities_vocab);
+    $node_count = islandora_digital_workflow_get_count_of_nodes_by_tid('field_priority', $tid);
+    $links['batch_priorities'][] = l($priority, '/islandora-digital-workflow-batch-priority-vocabulary/' . $lc_term) .
+        ($node_count ? ' <span class="small_lt_text">- ' . $node_count . ' batch' . ($node_count == 1 ? '' : 'es'). '</span>' : '');
+  }
+
+  foreach ($accessible_models as $accessible_model => $pid_label) {
+    $lc_term = strtolower(str_replace(array("_", " ", ":"), "-", $accessible_model));
+    $tid = islandora_digital_workflow_get_tid_by_name($accessible_model, $content_type_vocab);
+    $node_count = islandora_digital_workflow_get_count_of_nodes_by_tid('field_islandora_model', $tid);
+    $links['batch_content_types'][] = l($pid_label['label'], '/islandora-digital-workflow-batch-content-type-vocabulary/' . $lc_term) .
         ($node_count ? ' <span class="small_lt_text">- ' . $node_count . ' batch' . ($node_count == 1 ? '' : 'es'). '</span>' : '');
   }
 

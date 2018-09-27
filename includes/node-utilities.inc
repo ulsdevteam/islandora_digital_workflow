@@ -192,17 +192,20 @@ function islandora_digital_workflow_make_or_update_node($form_state, $csv_array,
  * Get the count of workflow_batch nodes that have field_stage_tid value set
  * to $stage_tid.
  *
- * @param string $stage_tid
- *   The name of the stage in question such as the taxonomy term's tid value
+ * @param string $field_name
+ *   The name of the cck field pointing to the taxonomy term
+ * @param string $tid
+ *   The taxonomy term's tid value
  * for terms such as "New" or "Problem".
  * @return integer
  *   The number of nodes that match the given $stage_tid value.
  */
-function islandora_digital_workflow_get_count_of_nodes_by_stage($stage_tid = 0) {
+function islandora_digital_workflow_get_count_of_nodes_by_tid($field_name = '', $tid = 0) {
+  $join_table = ($field_name) ? 'field_data_' . $field_name : 'field_data_field_stage';
   $sql = "SELECT count(*) as `count` FROM {node} n " .
-      "INNER JOIN {field_data_field_stage} s ON n.nid=s.entity_id " .
+      "INNER JOIN {" . $join_table . "} s ON n.nid=s.entity_id " .
       "WHERE (n.type = 'workflow_batch') AND (n.status = 1)" .
-      ($stage_tid ? " AND s.field_stage_tid = " . $stage_tid : "") . 
+      ($tid ? " AND s." . $field_name . "_tid = " . $tid : "") .
       " AND s.delta = 0";
   $result = db_query($sql);
   $results = $result->fetchAll();

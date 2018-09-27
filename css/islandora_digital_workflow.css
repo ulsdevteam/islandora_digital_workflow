@@ -683,7 +683,17 @@ li.no_indent {
 
 .batches-links {
     float: left;
-    width: 46%;
+    width: 47%;
+}
+
+.batch_stages-links, .batch_priorities-links, .batch_content_types-links {
+    float: left;
+    width: 31%;
+}
+
+.batch_stages-links .list_header, .batch_priorities-links .list_header, .batch_content_types-links .list_header {
+    margin-bottom: 12px;
+    font-size: 1.2em;
 }
 
 /* ---- some themes do not have a graphic for this class ---- */
@@ -702,10 +712,16 @@ ul.action-links a {
     background: transparent url("../images/add.png") no-repeat 0 center;
 }
 
-ul.report-links, ul.utility-links, ul.admin-links {
+ul.report-links, ul.utility-links, ul.admin-links, .batches-links {
     border-radius: 5px;
     margin: 10px;
     border: 1px solid #ddd;
+    box-shadow: 2px 2px 2px #ccc;
+    
+}
+.batches-links {
+    background-color: #fbfbfb;
+    box-shadow: 2px 2px 2px #aaa;
 }
 
 ul.report-links li, ul.utility-links li, ul.admin-links li {
