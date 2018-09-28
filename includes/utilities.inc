@@ -2368,3 +2368,52 @@ function islandora_digital_workflow_static_glyph_filenames() {
       'custom-glyph-21' => 'images/custom-glyph-21_20.png',
       );
 }
+
+function islandora_digital_workflow_make_process_set($title, $mode, $items) {
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
+  // If there are items, look up the identifiers' item_id values from the
+  // items table, else return an empty string.
+  $item_ids = islandora_digital_workflow_get_batch_item_ids($items);
+  $process_set_id = islandora_digital_workflow_make_process_set_records($mode, $item_ids);
+  // Before leaving, close the mysql connection.
+  return theme('islandora_digital_workflow_process_set_display', array(
+          'title' => $title,
+          'process_set_id' => $process_set_id,
+          'items' => $items));
+}
+
+/**
+ * Update the batch status record for the matching a given $ingested_object.  This will
+ * create an item record if it does not exist already.
+ *
+ * @param object $ingested_object
+ * @param integer $transaction_action_id
+ */
+function islandora_digital_workflow_set_status_for_pid($ingested_object, $action_id) {
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
+
+  // Take the namespace off of the object id to the identifier
+  $ingest_namespace = upitt_workflow_get_ingest_namespace();
+  @list($namespace, $identifier) = explode(":", $ingested_object->id);
+  // Look up the batch_items record for this identifier -- and add a transaction
+  // to set the provided $action_id value.
+  $batch_item_id = islandora_digital_workflow_get_batch_item_record_by_identifier($identifier);
+  if (!islandora_digital_workflow_insert_transactions_record($action_id, NULL, $batch_item_id, NULL, '')) {
+    $variables = array('@ingested_pid' => $ingested_object->id, '@action_id' => $action_id);
+    watchdog('islandora_digital_workflow', 'The system was not able to add a ' .
+        'transaction [@action_id.] for a recently ingested object with PID ' .
+        '"@ingested_pid". If this object was ingested outside of the Islandora ' .
+        'Digital Workflow, this message can be ignored.', $variables,
+            WATCHDOG_NOTICE);
+  }
+}
+
+function islandora_digital_workflow_post_text_to_array($posted_text, $trim_lines = TRUE) {
+  $as_array = explode("\n", $posted_text);
+  if ($trim_lines) {
+    foreach ($as_array as $idx => $line) {
+      $as_array[$idx] = trim($line);
+    }
+  }
+  return $as_array;
+}

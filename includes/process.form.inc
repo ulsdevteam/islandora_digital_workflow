@@ -39,17 +39,31 @@ function islandora_digital_workflow_process_form() {
  *   The Drupal form definition.
  */
 function islandora_digital_workflow_actual_process_form($form, &$form_state) {
+  if (array_key_exists('build_info', $form_state) &&
+      array_key_exists('args', $form_state['build_info']) &&
+      array_key_exists(0, $form_state['build_info']['args']) &&
+      array_key_exists('values', $form_state['build_info']['args'][0])) {
+    $form_state['values'] = $form_state['build_info']['args'][0]['values'];
+    // "rebuild" will cause this to return the form rebuilt to the call from
+    // upitt_workflow_process_set to drupal_get_form.
+    $form_state['rebuild'] = TRUE;
+  }
   $mode_options = array(
-    'something' => 'Do something',
+    '1' => 'Standard Processing',
+    'something' => 'Something',
+    '2' => 'Special Functionality',
     'somethingelse' => 'Something else',
     'blah' => 'And now for something completely different',
+    '3' => 'Info / Cleanup',
+    'check_ingested' => 'Check ingested',
   );
   $form = array(
       'identifiers' => array(
           '#type' => 'textarea',
           '#title' => 'Identifiers',
           '#description' => 'Enter item identifiers or batch names. Each barcode should be on a separate line.',
-          '#default_value' => 'default value',
+          '#default_value' => ((array_key_exists('values', $form_state) && array_key_exists('identifiers', $form_state['values']))   ?
+            $form_state['values']['identifiers'] : ''),
       ),
 
       'mode' => array(
@@ -57,7 +71,8 @@ function islandora_digital_workflow_actual_process_form($form, &$form_state) {
           '#title' => 'Processing mode',
           '#description' => 'Depending on what needs to be done, select the specific processing mode operation.',
           '#options' => $mode_options,
-          '#default_value' => '',
+          '#default_value' => ((array_key_exists('values', $form_state) && array_key_exists('mode', $form_state['values']))   ?
+            $form_state['values']['mode'] : ''),
       ),
 
       'submit' => array(
@@ -89,6 +104,7 @@ function islandora_digital_workflow_actual_process_form($form, &$form_state) {
  *   The Drupal form definition.
  */
 function islandora_digital_workflow_actual_process_form_submit($form, &$form_state) {
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
   $markup = '';
 
   $btn_id = $form_state['triggering_element']['#id'];
@@ -103,7 +119,10 @@ function islandora_digital_workflow_actual_process_form_submit($form, &$form_sta
       // Make a variable to set the function name for the call below:
       $fn = 'islandora_digital_workflow_process_mode__' . $mode;
       if (function_exists($fn)) {
-        $markup = $fn($form_state['values']['barcodes']);
+        $identifiers_as_text = $form_state['values']['identifiers'];
+        $identifiers_array = islandora_digital_workflow_post_text_to_array($form_state['values']['identifiers']);
+        // If there is a function, the value for $markup can now be populated.
+        $markup = $fn($identifiers_array);
       }
       else {
         drupal_set_message('That processing mode function "' . $fn . '" does not exist.', 'warning');
@@ -121,40 +140,105 @@ function islandora_digital_workflow_actual_process_form_submit($form, &$form_sta
 }
 
 /**
+ * TESTING "check_ingested"
+ *
+ * @param type $identifiers_array
+ */
+function islandora_digital_workflow_process_mode__check_ingested(&$identifiers_array) {
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
+
+  $timestamps['start'] = date('Y-m-d H:i:s');
+  $contents = islandora_digital_workflow_make_process_set('Not ingested', 'check_ingested', $identifiers_array);
+  $timestamps['done'] = date('Y-m-d H:i:s');
+
+  $markup = theme('islandora_digital_workflow_text_report_wrapper', array(
+    'inner_title' => 'Check ingested',
+    'contents' => $contents,
+    'footer' => "<b>" . count($identifiers_array) . " objects</b><br>",
+    'timestamps' => $timestamps,
+  ));
+
+  return "<br>check_ingested tested<hr>" . $markup;
+}
+
+/**
  * TESTING "something"
  *
- * @param type $identifiers
+ * @param type $identifiers_array
  */
-function islandora_digital_workflow_process_mode__something(&$identifiers) {
-  return "something tested<hr>";
+function islandora_digital_workflow_process_mode__something(&$identifiers_array) {
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
+
+  $timestamps['start'] = date('Y-m-d H:i:s');
+  $contents = islandora_digital_workflow_make_process_set('Not ingested', 'something', $identifiers_array);
+  $timestamps['done'] = date('Y-m-d H:i:s');
+
+  $markup = theme('islandora_digital_workflow_text_report_wrapper', array(
+    'inner_title' => 'islandora_digital_workflow_process_mode__something',
+    'contents' => $contents,
+    'footer' => "<b>" . count($identifiers_array) . " objects</b><br>",
+    'timestamps' => $timestamps,
+  ));
+
+  return "<br>something tested<hr>" . $markup;
 }
 
 /**
  * TESTING "somethingelse"
  *
- * @param type $identifiers
+ * @param type $identifiers_array
  */
-function islandora_digital_workflow_process_mode__somethingelse(&$identifiers) {
-  return "somethingelse tested<hr>";
+function islandora_digital_workflow_process_mode__somethingelse(&$identifiers_array) {
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
+
+  $timestamps['start'] = date('Y-m-d H:i:s');
+  $contents = islandora_digital_workflow_make_process_set('Not ingested', 'somethingelse', $identifiers_array);
+  $timestamps['done'] = date('Y-m-d H:i:s');
+
+  $markup = theme('islandora_digital_workflow_text_report_wrapper', array(
+    'inner_title' => 'islandora_digital_workflow_process_mode__somethingelse',
+    'contents' => $contents,
+    'footer' => "<b>" . count($identifiers_array) . " objects</b><br>",
+    'timestamps' => $timestamps,
+  ));
+
+  return "<br>somethingelse tested<hr>" . $markup;
 }
 
 /**
  * TESTING "blah"
  *
- * @param type $identifiers
+ * @param type $identifiers_array
  */
-function islandora_digital_workflow_process_mode__blah(&$identifiers) {
-  $identifiers_arr = explode("\n", $identifiers);
-  $markup = '<div class="text-report">';
-  $markup .= "<b>Start " . date('Y-m-d H:i:s') . "</b><br>";
-
-  foreach ($identifiers_arr as $identifier) {
+function islandora_digital_workflow_process_mode__blah(&$identifiers_array) {
+  $timestamps['start'] = date('Y-m-d H:i:s');
+  $contents = array();
+  foreach ($identifiers_array as $identifier) {
     $identifier = trim($identifier);
-    $markup .= 'diff for ' . $identifier . "<br>";
+    $contents[] = 'diff for ' . $identifier . "<br>";
   }
-  $markup .= "<b>Done " . date('Y-m-d H:i:s') . "</b><br>";
-  $markup .= "<b>" . count($identifiers_arr) . " objects processed</b><br>";
-  $markup .= '</div>';
-  return $markup;
+  $timestamps['done'] = date('Y-m-d H:i:s');
+
+  $markup = theme('islandora_digital_workflow_text_report_wrapper', array(
+    'inner_title' => 'islandora_digital_workflow_process_mode__blah',
+    'contents' => implode("\n", $contents),
+    'footer' => "<b>" . count($identifiers_array) . " objects</b><br>",
+    'timestamps' => $timestamps,
+  ));
+  return "<br>blah tested<hr>" . $markup;
 }
 
+function islandora_digital_workflow_process_set($process_set_id) {
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
+
+  islandora_digital_workflow_get_process_set_records($process_set_id, $mode, $items);
+  $form_state = array();
+  $form_state['values'] = array(
+      'mode' => $mode,
+      'identifiers' => implode("\n", $items),
+  );
+  $form_name = 'islandora_digital_workflow_actual_process_form';
+  $process_form = drupal_get_form($form_name, $form_state);
+
+  return drupal_render($process_form);
+}

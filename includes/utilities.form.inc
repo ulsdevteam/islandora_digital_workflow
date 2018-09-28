@@ -97,3 +97,4 @@ function islandora_digital_workflow_recalculate_files() {
   return $return_form;
 }
 
+

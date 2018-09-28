@@ -313,6 +313,14 @@ function islandora_digital_workflow_menu() {
       'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_USE_UTILITIES),
       'file' => 'includes/process.form.inc',
     ),
+    'islandora/islandora_digital_workflow/utilities/process_set/%' => array(
+      'title' => ('Process Set'),
+      'page callback' => 'islandora_digital_workflow_process_set',
+      'page arguments' => array(4),
+      'type' => MENU_CALLBACK,
+      'file' => 'includes/process.form.inc',
+      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_USE_UTILITIES),
+    ),
     'islandora/islandora_digital_workflow/utilities/recalculate_files' => array(
       'title' => t('Islandora Digital Workflow - Process Identifiers'),
       'type' => MENU_NORMAL_ITEM,
@@ -425,7 +433,7 @@ function islandora_digital_workflow_permission() {
 }
 
 /**
- * Implements hook_preprocess_theme().
+ * Implements hook_preprocess_html().
  *
  * This code will remove the sidebar and must check to see whether or not the path is on a user page.
  */
@@ -611,6 +619,23 @@ function islandora_digital_workflow_theme() {
         'sequence_in_use' => FALSE,
       ),
     ),
+    'islandora_digital_workflow_process_set_display' => array(
+      'template' => 'theme/islandora-digital-workflow-process-set-display',
+      'variables' => array(
+          'title' => '',
+          'process_set_id' => '',
+          'items' => array(),
+      ),
+    ),
+    'islandora_digital_workflow_text_report_wrapper' => array(
+      'template' => 'theme/islandora-digital-workflow-text-report-wrapper',
+      'variables' => array(
+          'inner_title' => '',
+          'contents' => '',
+          'footer' => '',
+          'timestamps' => array(),
+      ),
+    )
   );
 }
 
@@ -806,7 +831,7 @@ function islandora_digital_workflow_islandora_batch_process_finished($sets) {
         $ingested_object = islandora_object_load($ingested_pid);
         if (is_object($ingested_object)) {
           // Update the batch status record for the matching batch record for this set's $ingested_pid
-          islandora_digital_workflow_set_status_for_pid($ingested_object, UPITT_WORKFLOW_ACTION_INGESTED_COMPLETELY, TRUE);
+          islandora_digital_workflow_set_status_for_pid($ingested_object, IDW_ACTION_SYSTEM_INGEST);
         }
         else {
           $variables = array('@ingested_pid' => $ingested_pid, '@set' => $set);

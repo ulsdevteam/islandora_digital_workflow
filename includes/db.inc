@@ -999,7 +999,6 @@ function islandora_digital_workflow_get_workflow_sequences() {
   foreach ($rows as $i => $row) {
     $row->how_long_ago = islandora_digital_workflow_timeago_from_timestamp($row->max_timestamp);
     $return_array[$row->workflow_sequence_id] = (array) $row;
-
   }
 
   return $return_array;
@@ -1490,4 +1489,78 @@ function islandora_digital_workflow_unset_problems_records($batch_id) {
      )
     )';
   db_query($sql);
+}
+
+
+function islandora_digital_workflow_get_batch_item_ids($identifiers) {
+  $query = db_select('islandora_digital_workflow_batch_items', 'bi')
+      ->fields('bi', array('batch_item_id'))
+      ->condition('bi.identifier', $identifiers, 'IN');
+  $results = $query->execute();
+  $rows = $results->fetchAll();
+  $return_array = array();
+  foreach ($rows as $i => $row) {
+    $return_array[] = $row->batch_item_id;
+  }
+  return $return_array;
+}
+
+
+function islandora_digital_workflow_make_process_set_records($mode, $item_ids) {
+  if (count($item_ids) > 0) {
+    $process_set_id = db_insert('islandora_digital_workflow_process_set')
+        ->fields(array(
+          'set_mode' => $mode,
+        ))
+        ->execute();
+    // Insert the islandora_digital_workflow_process_set_items records.
+    foreach ($item_ids as $item_id) {
+      db_insert('islandora_digital_workflow_process_set_items')
+          ->fields(array(
+            'process_set_id' => $process_set_id,
+            'batch_item_id' => $item_id,
+          ))
+          ->execute();
+    }
+
+    // Delete old process_set and islandora_digital_workflow_process_set_items
+    // records (3 days = 259200 seconds)
+    $query = db_select('islandora_digital_workflow_process_set', 'p')
+        ->fields('p', array('process_set_id'))
+        ->condition('p.timestamp', 'NOW() - 259200', '<');
+    $results = $query->execute();
+    $rows = $results->fetchAssoc();
+    foreach ($rows as $del_process_set_id) {
+      db_delete('islandora_digital_workflow_process_set_items')
+        ->condition('process_set_id', $del_process_set_id)
+        ->execute();
+      db_delete('islandora_digital_workflow_process_set')
+        ->condition('process_set_id', $del_process_set_id)
+        ->execute();
+    }
+    return $process_set_id;
+  }
+}
+
+function islandora_digital_workflow_get_process_set_records($process_set_id, &$mode, &$items) {
+  $query = db_select('islandora_digital_workflow_process_set', 'p')
+      ->fields('p', array('set_mode'))
+      ->condition('p.process_set_id', $process_set_id)
+      ->range(0,1);
+
+  $results = $query->execute();
+  $row = $results->fetchAssoc();
+  $mode = $row['set_mode'];
+
+  $items = array();
+  $query = db_select('islandora_digital_workflow_batch_items', 'bi');
+  $query->join('islandora_digital_workflow_process_set_items', 'pi', 'pi.batch_item_id = bi.batch_item_id');
+  $query->fields('bi', array('identifier'));
+  $query->condition('pi.process_set_id', $process_set_id)->execute();
+  $results = $query->execute();
+  $rows = $results->fetchAll();
+  $return_array = array();
+  foreach ($rows as $row) {
+    $items[] = $row->identifier;
+  }
 }
