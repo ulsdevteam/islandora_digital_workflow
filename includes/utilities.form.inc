@@ -69,32 +69,57 @@ function islandora_digital_workflow_recalculate_files() {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
 
-  $markup_arr = array();
-  $empty_size_count_arr = array('size' => 0, 'count' => 0, 'files' => array());
+  $breadcrumb = array(
+    l(t('Home'), '<front>'),
+    l(t('Islandora Digital Workflow'), 'islandora/islandora_digital_workflow'),
+    l(t('Utilities'), 'islandora/islandora_digital_workflow/utilities'),
+  );
+  drupal_set_breadcrumb($breadcrumb);
+  
+  $batch_name = arg(4);
+
+  $markup_arr = $markup_bottom_arr = array();
+  $markup_arr[] = '<p>Click on batches to recalculate the items / files size.</p>';
 
   $batch_records = islandora_digital_workflow_get_all_batch_records();
   foreach ($batch_records as $batch_record) {
-    $batch_path = islandora_digital_workflow_batch_path($batch_record);
-    $batch_folders = islandora_digital_workflow_find_folders_files($batch_path);
-    $item_data = array();
-    foreach ($batch_folders as $item_identifier => $found_folders_files) {
-      foreach ($found_folders_files['filesize_date_files_raw'] as $filesize_date_files_raw) {
-        $record_identifier = $batch_record->ingest_namespace . ":" . $item_identifier;
-        $item_data[$record_identifier][] = $filesize_date_files_raw;
+    if ($batch_name == $batch_record->batch_name || $batch_name == '' || $batch_name == '*') {
+      $batch_path = islandora_digital_workflow_batch_path($batch_record);
+      $batch_folders = islandora_digital_workflow_find_folders_files($batch_path);
+      $item_data = array();
+      if (count($batch_folders) > 0) {
+        if ($batch_name == '') {
+          $markup_arr[] = '<b>' . l(t('Recalculate for ALL batches'),
+            'islandora/islandora_digital_workflow/utilities/recalculate_files/*') . '</b><br>';
+          $markup_arr[] = l(t('Recalculate for "' .  $batch_record->batch_name . '"'),
+            'islandora/islandora_digital_workflow/utilities/recalculate_files/' . $batch_record->batch_name) . '<br>';
+        }
+        else {
+          $markup_arr[] = '<p>Processing batch "' . $batch_record->batch_name . '"</p>';
+          foreach ($batch_folders as $item_identifier => $found_folders_files) {
+            foreach ($found_folders_files['filesize_date_files_raw'] as $filesize_date_files_raw) {
+              $record_identifier = $batch_record->ingest_namespace . ":" . $item_identifier;
+              $item_data[$record_identifier][] = $filesize_date_files_raw;
+            }
+          }
+          $markup_bottom_arr[] = islandora_digital_workflow_update_item_file_data($batch_record, $item_data);
+        }
       }
     }
-    $markup_arr[] = islandora_digital_workflow_update_item_file_data($batch_record, $item_data);
+    if ($batch_name == $batch_record->batch_name || $batch_name == '*') {
+      $markup_arr[] = '<b class="good">Batch "' . $batch_record->batch_name .
+          '" done recalculating item records\' "File Size" and "File ' .
+          'Count" values.</b><br>';
+    }
   }
 
-  $markup_arr[] = '<h3 class="good">FINISHED recalculating the item records\' "File Size" and "File Count" values.</h3>';
-  $markup_arr[] = t('Return to ') . l('Islandora Digital Workflow - Utilities', 'islandora/islandora_digital_workflow/utilities');
+  $markup_bottom_arr[] = '<hr>' . t('Return to ') . l('Islandora Digital Workflow - Utilities', 'islandora/islandora_digital_workflow/utilities');
   $return_form = array(
       'file_size_recalc' => array(
           '#type' => 'item',
-          '#markup' => implode("\n", $markup_arr),
+          '#markup' => implode("\n", $markup_arr) . implode("\n", $markup_bottom_arr),
       )
   );
   return $return_form;
 }
-
 

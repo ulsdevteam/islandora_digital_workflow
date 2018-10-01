@@ -331,28 +331,45 @@ function islandora_digital_workflow_batch_items_form(array $form, array &$form_s
           (($item_transactions_count < 9) ? 'td_wide_180' :
           ($item_transactions_count < 11) ? 'td_wide_240' :
           (($item_transactions_count < 18) ? 'td_wide_320' : 'td_wide_400')));
+
+  $is_batch_paged_content = islandora_digital_workflow_is_paged_object($batch_record->islandora_model);
+  $all_items_are_paged_content = TRUE;
   foreach ($items as $item) {
+    $all_items_are_paged_content &= islandora_digital_workflow_is_paged_object($item->islandora_model);
     $options[$item->identifier] = array(
       'id' => $item->identifier,
       'Transactions' => array('data' => theme('islandora_digital_workflow_transactions_glyphs', array('transaction_actions' => $item->transactions)),
           'class' => array($transactions_cell_class)),
-      'Identifier' => l($item->identifier, '/node/' . $node->nid . '/item/' . $item->batch_item_id),
-      'Title' => $item->title,
-      'Ready for' => $item->ready_for,
-      'Last action' => $item->last_action,
-      'When' => $item->when,
-//      'Filename' => $item->master_filename_basename,
+      'Title' => array('data' => l($item->title, '/node/' . $node->nid . '/item/' . $item->batch_item_id),
+          'class' => array('small_font', 'not_too_wide')),
+      'Identifier' => '<span class="small_font">' . l($item->identifier, '/node/' . $node->nid . '/item/' . $item->batch_item_id) . '</span>',
+      'Filename' => '<span class="small_font">' . $item->master_filename_basename . '</span>',
+      'Ready for' => '<span class="small_font">' . $item->ready_for . '</span>',
+      'Last action' => '<span class="small_font">' . $item->last_action . '</span>',
+      'When' => '<span class="small_font">' . $item->when . '</span>',
     );
   }
   $items_header = array(
-    'Transactions' => 'Transactions',
-    'Identifier' => 'Identifier',
-    'Title' => 'Title',
-    'Ready for' => 'Ready for',
-    'Last action' => 'Last action',
-    'When' => 'When',
-//    'Filename' => 'Filename',
+    'Transactions' => t('Transactions'),
+    'Title' => array('data' => t('Title'),
+          'class' => array('not_too_wide')), //  'Title',
+    'Identifier' => t('Identifier'),
+    'Filename' => t('Filename'),
+    'Ready for' => t('Ready for'),
+    'Last action' => t('Last action'),
+    'When' => t('When'),
   );
+
+  // For paged content, remove the filename column -- only if the entire set of
+  // items are paged as well because a mixed batch could have some paged items
+  // and some that are not, but we'd still want to display that column
+  if ($all_items_are_paged_content || $is_batch_paged_content) {
+    unset($items_header['Filename']);
+    foreach ($options as $ident => $option) {
+      unset($options[$ident]['Filename']);
+    }
+  }
+
   $required_batch_actions = islandora_digital_workflow_get_required_batch_actions($batch_record->batch_id);
   // Easy to loop through the set of $required_batch_actions to set the ones that
   // are valid for this batch's sequence.

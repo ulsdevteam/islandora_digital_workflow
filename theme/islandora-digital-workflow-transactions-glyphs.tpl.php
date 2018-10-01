@@ -23,6 +23,7 @@
         </small>
     </div>
     <?php endif; ?>
+
     <?php foreach ($transaction_actions as $transaction_action) {
       // Since this set of actions can be used for a batch to represent required
       // actions AS WELL AS to display just the descriptions of the actions that 
@@ -41,7 +42,7 @@
         $class_name = $transaction_action['class_name'];
       }
       else {
-        $class_name = (($transaction_action_name) ? strtolower(str_replace(array("-", " "), "_", $transaction_action_name)) : 'transaction_action_spacer');
+        $class_name = (($transaction_action_name) ? 'transaction_action_' . strtolower(str_replace(array("-", " ", "transaction_action_"), array("_", "_", ""), $transaction_action_name)) : 'transaction_action_spacer');
       } ?>
     <div class="<?php print $class_name . $required_class;?>" title="<?php print $transaction_action_description; ?>">&nbsp;</div>
     <?php } ?>

@@ -278,8 +278,8 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
     $read_only_att = array();
     $button_text = SAVE_BUTTON_TEXT;
   }
-  if (!(array_key_exists($batch_record['default_type_of_resource'], $readable_models) === FALSE)) {
-    $cmodel = $batch_record['default_type_of_resource'];
+  if (!(array_key_exists($batch_record['islandora_model'], $readable_models) === FALSE)) {
+    $cmodel = $batch_record['islandora_model'];
     $tid_for_cmodel_selected = islandora_digital_workflow_get_tid_by_name($cmodel, $content_types_vocab);
   }
   else {
@@ -319,7 +319,7 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
   $collections = islandora_digital_workflow_get_solr_options('RELS_EXT_hasModel_uri_ms:info' .
       '\:fedora\/islandora\:collectionCModel -PID:*_review', 'PID', 'fgs_label_s');
   asort($collections);
-
+  $default_type_of_resources = islandora_digital_workflow_get_default_type_of_resource_options(TRUE);
   // $batch_priorities_vocab = taxonomy_vocabulary_machine_name_load('workflow_content_type_vocab');
   $batch_priorities_vocab = taxonomy_vocabulary_machine_name_load(IDW_BATCH_PRIORITY_TAXONOMY_MACHINE_NAME);
   $priority_options = array(0 => 'Select Batch Priority');
@@ -436,6 +436,75 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
         ),
       ),
     );
+
+  // Batch defaults frame
+  $form['batch_edit_frame']['batch_defaults_frame'] = array(
+      '#type' => 'fieldset',
+      '#title' => 'Batch defaults',
+      '#collapsible' => TRUE,
+      '#collapsed' => FALSE,
+    );
+
+  // Default copyright status: select (hard-coded options based off MODS
+  // typeOfResource specification).
+  $form['batch_edit_frame']['batch_defaults_frame']['default_type_of_resource'] = array(
+      '#title' => t('Default type of resource'),
+      '#type' => 'select',
+      '#required' => true,
+      '#options' => $default_type_of_resources,
+      '#description' => 'Select the default type of resource for this batch.  ' .
+        'Refer to <a href="https://www.loc.gov/standards/mods/userguide/' .
+        'typeofresource.html">documentation on the MODS "typeOfResource" field.</a>',
+      '#default_value' => ($batch_record && isset($batch_record['default_type_of_resource'])) ? $batch_record['default_type_of_resource'] : '',
+    );
+
+  // Default genre: textfield
+  $form['batch_edit_frame']['batch_defaults_frame']['default_genre'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Default Genre'),
+      '#default_value' => ($batch_record && isset($batch_record['default_genre'])) ? $batch_record['default_genre'] : '',
+    );
+
+    // Default depositor: textfield
+  $form['batch_edit_frame']['batch_defaults_frame']['default_depositor'] = array(
+        '#type' => 'textfield',
+        '#description' => 'This value will only be used if the spreadsheet MODS does not contain a value for the depositor.',
+        '#title' => t('Default Depositor'),
+        '#default_value' => ($batch_record && isset($batch_record['default_depositor'])) ? $batch_record['default_depositor'] : '',
+      );
+
+  // Default copyright status: select (hard-coded options)
+  $form['batch_edit_frame']['batch_defaults_frame']['batch_default_CR_status'] = array(
+      '#type' => 'select',
+      '#title' => t('Default Copyright Status'),
+      '#options' => array(''=>'Select Default Copyright Status',
+        'copyrighted' => 'copyrighted',
+        'pd' => 'public domain',
+        'pd_usfed' => 'public domain - us federal document',
+        'pd_holder' => 'public domain - dedicated by rights holder',
+        'pd_expired' => 'public domain - expired copyright',
+        'unknown' => 'unknown',
+      ),
+      '#default_value' => ($batch_record && isset($batch_record['batch_default_CR_status'])) ? $batch_record['batch_default_CR_status'] : '',
+    );
+  // Default publication status: select (hard-coded options)
+  $form['batch_edit_frame']['batch_defaults_frame']['batch_default_pub_status'] = array(
+      '#type' => 'select',
+      '#title' => t('Default Publication Status'),
+      '#options' => array(''=>'Select Default Publication Status',
+        'published' => 'published',
+        'unpublished' => 'unpublished',
+        'unknown' => 'unknown',
+      ),
+      '#default_value' => ($batch_record && isset($batch_record['batch_default_pub_status'])) ? $batch_record['batch_default_pub_status'] : '',
+    );
+  // Default copyright holder name: textarea
+  $form['batch_edit_frame']['batch_defaults_frame']['batch_default_CR_holder'] = array(
+      '#type' => 'textarea',
+      '#title' => t('Default Copyright Holder Name'),
+      '#default_value' => ($batch_record && isset($batch_record['batch_default_CR_holder'])) ? $batch_record['batch_default_CR_holder'] : '',
+    );
+
 
   // Objects frame
   $form['batch_objects_frame'] = array(
@@ -564,61 +633,6 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
         '#attributes' => array('autocomplete' => 'off'),
       );
   }
-
-  // Batch defaults frame
-  $form['batch_defaults_frame'] = array(
-      '#type' => 'fieldset',
-      '#title' => 'Batch defaults',
-      '#collapsible' => TRUE,
-      '#collapsed' => FALSE,
-    );
-
-  // Default depositor: textfield
-  $form['batch_defaults_frame']['default_depositor'] = array(
-        '#type' => 'textfield',
-        '#description' => 'This value will only be used if the spreadsheet MODS does not contain a value for the depositor.',
-        '#title' => t('Default Depositor'),
-        '#default_value' => ($batch_record && isset($batch_record['default_depositor'])) ? $batch_record['default_depositor'] : '',
-      );
-
-  // Default genre: textfield
-  $form['batch_defaults_frame']['default_genre'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Default Genre'),
-      '#default_value' => ($batch_record && isset($batch_record['default_genre'])) ? $batch_record['default_genre'] : '',
-    );
-  
-  // Default copyright status: select (hard-coded options)
-  $form['batch_defaults_frame']['batch_default_CR_status'] = array(
-      '#type' => 'select',
-      '#title' => t('Default Copyright Status'),
-      '#options' => array(''=>'Select Default Copyright Status',
-        'copyrighted' => 'copyrighted',
-        'pd' => 'public domain',
-        'pd_usfed' => 'public domain - us federal document',
-        'pd_holder' => 'public domain - dedicated by rights holder',
-        'pd_expired' => 'public domain - expired copyright',
-        'unknown' => 'unknown',
-      ),
-      '#default_value' => ($batch_record && isset($batch_record['batch_default_CR_status'])) ? $batch_record['batch_default_CR_status'] : '',
-    );
-  // Default publication status: select (hard-coded options)
-  $form['batch_defaults_frame']['batch_default_pub_status'] = array(
-      '#type' => 'select',
-      '#title' => t('Default Publication Status'),
-      '#options' => array(''=>'Select Default Publication Status',
-        'published' => 'published',
-        'unpublished' => 'unpublished',
-        'unknown' => 'unknown',
-      ),
-      '#default_value' => ($batch_record && isset($batch_record['batch_default_pub_status'])) ? $batch_record['batch_default_pub_status'] : '',
-    );
-  // Default copyright holder name: textarea
-  $form['batch_defaults_frame']['batch_default_CR_holder'] = array(
-      '#type' => 'textarea',
-      '#title' => t('Default Copyright Holder Name'),
-      '#default_value' => ($batch_record && isset($batch_record['batch_default_CR_holder'])) ? $batch_record['batch_default_CR_holder'] : '',
-    );
 
   islandora_digital_workflow_remove_model_based_form_elements($model_name, $form);
   $form['submit'] = array(

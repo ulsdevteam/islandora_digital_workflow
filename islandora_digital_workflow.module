@@ -328,6 +328,14 @@ function islandora_digital_workflow_menu() {
       'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_USE_UTILITIES),
       'file' => 'includes/utilities.form.inc',
     ),
+    'islandora/islandora_digital_workflow/utilities/recalculate_files/%' => array(
+      'title' => t('Islandora Digital Workflow - Process Identifiers'),
+      'type' => MENU_NORMAL_ITEM,
+      'page callback' => array('islandora_digital_workflow_recalculate_files'),
+      // arguments are handled with arg(4)
+      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_USE_UTILITIES),
+      'file' => 'includes/utilities.form.inc',
+    ),
     // Callback to serve up the dynamically generated CSS file
     'islandora/islandora_digital_workflow_css.css' => array(
       'type' => MENU_CALLBACK,
@@ -528,6 +536,7 @@ function islandora_digital_workflow_theme() {
         'ingested_links' => '',
         'found_files' => array(),
         'resource_select_box' => '',
+        'islandora_model_select_box' => '',
         'max_timestamp_and_how_long_ago' => array(),
         'workflow_sequences' => array(),
       ),

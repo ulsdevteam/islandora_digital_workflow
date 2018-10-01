@@ -11,6 +11,8 @@
 * - $drush_log_entries => array(),
 * - $item_record_transactions => array(),
 * - $found_files => array(),
+* - $resource_select_box - prerendered HTML for a <select ... > input box.
+* - $islandora_model_select_box - prerendered HTML for a <select ... > input box.
 */
 ?>
 <div id="no-sidebars">
@@ -46,12 +48,12 @@
   <?php endif; ?>
 
   <?php if ($max_timestamp_and_how_long_ago->max_timestamp && 
-      ($workflow_sequences[$batch_record->workflow_sequence_id]['max_timestamp'] > $max_timestamp_and_how_long_ago->max_timestamp)): ?>
+      ($workflow_sequences[$batch_record['workflow_sequence_id']]['max_timestamp'] > $max_timestamp_and_how_long_ago->max_timestamp)): ?>
   <div class="dashboard-report messages info">
     <h3>Workflow Sequence updated</h3>
       <p>Workflow Sequence has been updated AFTER action/s on this Item.
-      The sequence was modified <?php print $workflow_sequences[$batch_record->workflow_sequence_id]['how_long_ago']; ?> on
-      <?php print $workflow_sequences[$batch_record->workflow_sequence_id]['max_timestamp']; ?>
+      The sequence was modified <?php print $workflow_sequences[$batch_record['workflow_sequence_id']]['how_long_ago']; ?> on
+      <?php print $workflow_sequences[$batch_record['workflow_sequence_id']]['max_timestamp']; ?>
       while the most recent transaction for this item happened
       <?php print $max_timestamp_and_how_long_ago->how_long_ago; ?> on
       <?php print $max_timestamp_and_how_long_ago->max_timestamp; ?>.</p>
@@ -75,18 +77,17 @@
             <input id="edit-title" name="title" value="<?php print htmlspecialchars($item->title); ?>">
             <label for="edit-identifier">Identifier: </label>
             <input id="edit-identifier" name="identifier" value="<?php print $item->identifier; ?>">
-            <?php if ($is_paged_content): ?>
+            <?php if (!$is_paged_content): ?>
             <label for="edit-filename">Filename: </label>
             <input id="edit-filename" name="filename" value="<?php print $item->master_filename_basename; ?>">
             <?php endif; ?>
             <label for="edit-assigned-pid">Assign Fedora PID: </label>
             <input id="edit-assigned-pid" name="assigned_pid" value="<?php print $item->assigned_pid; ?>"
-               placeholder="<?php print (($batch_record->ingest_namespace) ? $batch_record->ingest_namespace : variable_get('islandora_digital_workflow_ingest_namespace', 'islandora'));?>:">
+               placeholder="<?php print (($batch_record['ingest_namespace']) ? $batch_record['ingest_namespace'] : variable_get('islandora_digital_workflow_ingest_namespace', 'islandora'));?>:">
             <label for="edit-type-of-resource">Type of resource: </label>
             <?php print $resource_select_box; ?>
-            <label for="edit-pending1" class="disabled_text">ITEM PROP 1: </label>
-            <input id="edit-pending1" name="pending" disabled readonly="readonly" value="pending development">
-
+            <label for="edit-islandora-model">Islandora model: </label>
+            <?php print $islandora_model_select_box; ?>
             <label for="edit-mods">MODS: </label>
             <textarea rows=8 class="short-text-area" id="edit-mods" name="mods"><?php print $item->mods; ?></textarea>
             <em>NOTE:</em> The MODS is generated from the CSV upload and editing this here may not be the right thing to do.

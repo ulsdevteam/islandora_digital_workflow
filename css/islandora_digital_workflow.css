@@ -310,6 +310,10 @@ div.info p.info {
     margin-bottom: 0px;
 }
 
+.not_too_wide {
+    max-width: 220px;
+}
+
 .small_font {
     font-size: 0.8em;
 }
@@ -330,6 +334,7 @@ div.form-disabled label.enabled_text {
 .small_lt_text {
     color: #888;
     font-size: small;
+    line-height: 0.85em;
 }
 
 .good {
@@ -595,7 +600,11 @@ tr.spaceUnder>td {
     margin-top: 0px;
 }
 
-.lookup_result_indent label, .lookup_result_indent input {
+.lookup_result_indent select {
+    display: block;
+}
+
+.lookup_result_indent select, .lookup_result_indent label, .lookup_result_indent input {
     float: left;
 }
 
@@ -695,7 +704,6 @@ li.no_indent {
 .display_none {
     display: none !important;
 }
-
 
 .small_right_float {
     font-size: 0.8em;

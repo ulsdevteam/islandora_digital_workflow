@@ -201,11 +201,11 @@ function islandora_digital_workflow_schema() {
         'length' => 50,
         'not null' => TRUE,
       ),
-      'default_type_of_resource' => array(
-        'description' => 'The fedora model for the destination islandora objects',
+      'islandora_model' => array(
         'type' => 'varchar',
         'length' => 50,
-        'not null' => TRUE,
+        'not null' => FALSE,
+        'default' => '',
       ),
       'batch_description' => array(
         'description' => 'The description for the batch',
@@ -303,6 +303,12 @@ function islandora_digital_workflow_schema() {
         'type' => 'varchar',
         'length' => 100,
         'not null' => FALSE,
+      ),
+      'default_type_of_resource' => array(
+        'description' => 'The fedora model for the destination islandora objects',
+        'type' => 'varchar',
+        'length' => 50,
+        'not null' => TRUE,
       ),
       'default_genre' => array(
         'description' => 'Default genre value for destination islandora objects',
@@ -405,6 +411,12 @@ function islandora_digital_workflow_schema() {
         'type' => 'varchar',
         'length' => 50,
         'not null' => FALSE,
+      ),
+      'islandora_model' => array(
+        'type' => 'varchar',
+        'length' => 50,
+        'not null' => FALSE,
+        'default' => '',
       ),
       'assigned_pid' => array(
         'description' => 'The Islandora PID value for the item.  This may be ' .

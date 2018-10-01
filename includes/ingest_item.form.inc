@@ -200,12 +200,12 @@ function islandora_digital_workflow_make_drush_prepare_statement($batch_item_obj
   $this_domain = 'http://' . $_SERVER['HTTP_HOST'];
   $drush_command_prefix = 'drush -v -u ' . $user->uid . ' --uri=' . $this_domain . ' ';
 
-  $type_of_resource = (isset($batch_item_object->type_of_resource) ?
-      $batch_item_object->type_of_resource : $batch_record['default_type_of_resource']);
+  $content_model = (isset($batch_item_object->islandora_model) ?
+      $batch_item_object->islandora_model : $batch_record['islandora_model']);
   $batch_item_path = $batch_item_object->filename;
   $path_info = pathinfo($batch_item_path);
   $filepath = $path_info['dirname'];
-  $batch_preprocessor = islandora_digital_workflow_get_preprocessor($type_of_resource);
+  $batch_preprocessor = islandora_digital_workflow_get_preprocessor($content_model);
 
   $ingest_namespace = islandora_digital_workflow_get_ingest_namespace($batch_record);
   $ingest_namespace_nocolon = rtrim($ingest_namespace, ':');
@@ -217,7 +217,7 @@ function islandora_digital_workflow_make_drush_prepare_statement($batch_item_obj
   //   config variable_get('islandora_digital_workflow_ingest_namespace', 'islandora')
   //   ELSE islandora_pid value
   $param_and_vals = array();
-  $param_and_vals[] = 'content_models=' . $type_of_resource;
+  $param_and_vals[] = 'content_models=' . $content_model;
   $param_and_vals[] = 'namespace=' . $ingest_namespace_nocolon;
   $param_and_vals[] = 'type=directory';
   if (variable_get('islandora_digital_workflow_assign_PIDs', 0)) {

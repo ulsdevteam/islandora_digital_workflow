@@ -121,7 +121,8 @@ function islandora_digital_workflow_create_batch_record_by_form($form_state, $no
 	'batch_default_pub_status' => $form_state['values']['batch_default_pub_status'],
 	'batch_default_CR_status' => $form_state['values']['batch_default_CR_status'],
 	'batch_default_CR_holder' => $form_state['values']['batch_default_CR_holder'],
-        'default_type_of_resource' => islandora_digital_workflow_get_name_of_tid($form_state['values']['cmodel_select']),
+        'islandora_model' => islandora_digital_workflow_get_name_of_tid($form_state['values']['cmodel_select']),
+        'default_type_of_resource' => $form_state['values']['default_type_of_resource'],
         'mapto_collections' => implode(",", $form_state['values']['collections_select']),
         'workflow_sequence_id' => $form_state['values']['workflow_sequence_id'],
         'nid' => is_object($node) ? $node->nid : 0,
@@ -2207,6 +2208,9 @@ function islandora_digital_workflow_is_paged_object($object_or_string) {
   if (is_object($object_or_string)) {
     return (is_object($object_or_string)) ? array_intersect($paged_content_models, $object_or_string->models) : FALSE;
   }
+  elseif (is_null($object_or_string)) {
+    return FALSE;
+  }
   else {
     $array = array($object_or_string);
     return array_intersect($paged_content_models, $array);
@@ -2246,7 +2250,7 @@ function islandora_digital_workflow_path_needs_js($path) {
  */
 function islandora_digital_workflow_convert_to_filename($string) {
   // Replace spaces with underscores and makes the string lowercase
-  $string = str_replace (" ", "_", $string);
+  $string = str_replace (array(" ", "-", ")", "(", "[", "]", "{", "}", "?", "!"), "_", $string);
   $string = str_replace ("..", ".", $string);
   $string = strtolower ($string);
 
@@ -2416,4 +2420,31 @@ function islandora_digital_workflow_post_text_to_array($posted_text, $trim_lines
     }
   }
   return $as_array;
+}
+
+/**
+ * Returns the select box options for MODS typeOfResource field.
+ *
+ * Values taken from https://www.loc.gov/standards/mods/userguide/typeofresource.html
+ *
+ * @return array
+ *   An array of the typeOfResource values.
+ */
+function islandora_digital_workflow_get_default_type_of_resource_options($include_select_value_option = FALSE) {
+  $retarray = array();
+  if ($include_select_value_option) {
+    $retarray[] = 'Select a type of resource';
+  }
+  $retarray['text'] = 'text';
+  $retarray['cartographic'] = 'cartographic';
+  $retarray['notated music'] = 'notated music';
+  $retarray['sound recording'] = 'sound recording';
+  $retarray['sound recording-musical'] = 'sound recording-musical';
+  $retarray['sound recording-nonmusical'] = 'sound recording-nonmusical';
+  $retarray['still image'] = 'still image';
+  $retarray['moving image'] = 'moving image';
+  $retarray['three dimensional object'] = 'three dimensional object';
+  $retarray['software; multimedia'] = 'software; multimedia';
+  $retarray['mixed material'] = 'mixed material';
+  return $retarray;
 }

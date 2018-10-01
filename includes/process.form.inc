@@ -21,6 +21,7 @@ function islandora_digital_workflow_process_form() {
   $breadcrumb = array(
     l(t('Home'), '<front>'),
     l(t('Islandora Digital Workflow'), 'islandora/islandora_digital_workflow'),
+    l(t('Utilities'), 'islandora/islandora_digital_workflow/utilities'),
   );
   drupal_set_breadcrumb($breadcrumb);
 
@@ -48,6 +49,7 @@ function islandora_digital_workflow_actual_process_form($form, &$form_state) {
     // upitt_workflow_process_set to drupal_get_form.
     $form_state['rebuild'] = TRUE;
   }
+
   $mode_options = array(
     '1' => 'Standard Processing',
     'something' => 'Something',

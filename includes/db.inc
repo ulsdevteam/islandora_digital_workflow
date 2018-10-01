@@ -442,6 +442,7 @@ function islandora_digital_workflow_check_trigger_stage_change($transaction_id =
     $transaction_values = islandora_digital_workflow_get_batch_transaction($transaction_id);
   }
 
+  $transaction_values = (array) $transaction_values;
   // Given the transaction record, we can see what the action_id is and look that 
   // up to see whether or not it should trigger a "Stage" change - then to look
   // further to know whether or not this change alone or "all batch items" have to 
@@ -455,10 +456,11 @@ function islandora_digital_workflow_check_trigger_stage_change($transaction_id =
     $batch_record = islandora_digital_workflow_get_batch_record_by_batch_id($batch_item_record->batch_id);
   }
   else {
+    $batch_item_record = NULL;
     $batch_record = islandora_digital_workflow_get_batch_record_by_batch_id($transaction_values['batch_id']);
   }
 
-  if (!isset($action_record['stage_taxonomy_tid'])) {
+  if (!isset($action_record['stage_taxonomy_tid']) || is_null($action_record['term_name'])) {
     return;
   }
 
@@ -466,13 +468,19 @@ function islandora_digital_workflow_check_trigger_stage_change($transaction_id =
       '"@action_description" has been added' :
       'All Items in the batch have "@action_description"');
   $message_args = array(
-               '@action_description' => $action_record['action_description'],
-               '@stage' => $action_record['term_name'],
-               '@batch_name' => $batch_record['batch_name'],);
+      '@action_description' => $action_record['action_description'],
+      '@stage' => $action_record['term_name'],
+      '@batch_item_identifier' => (($batch_item_record &&
+        is_object($batch_item_record->identifier)) ?
+          $batch_item_record->identifier : ''),
+      '@batch_name' => $batch_record['batch_name'],);
+  $message_string = 
+    (($batch_item_record) ? ' for the item @batch_item_identifier' . $batch_item_record->identifier : '') .
+    (($batch_record) ? ' on the batch "@batch_name"' : '');
   if ($action_record['is_batch_action'] == 1 || $action_record['is_triggered_by_single_item']) {
     islandora_digital_workflow_set_node_stage($batch_record['nid'], '', $action_record['stage_taxonomy_tid']);
     drupal_set_message(t($affects . ' which triggers the "@stage stage" for ' .
-           '"@batch_name".', $message_args));
+        $message_string, $message_args));
   }
   else {
     // the load the $items with the $batch_record->nid value
@@ -485,7 +493,7 @@ function islandora_digital_workflow_check_trigger_stage_change($transaction_id =
     if ($all_items_have_action) {
       islandora_digital_workflow_set_node_stage($batch_record['nid'], '', $action_record['stage_taxonomy_tid']);
       drupal_set_message(t($affects . ' which triggers the "@stage stage" for ' .
-          '"@batch_name".', $message_args));
+          $message_string, $message_args));
     }
     // else, the Stage does not get set here because all items did not have that action.
   }
@@ -707,7 +715,7 @@ function islandora_digital_workflow_get_batch_items_by_nid($nid) {
   // Due to the nature of this query and how stubborn the db_select is with creating
   // a LEFT JOIN query that uses GROUP BY and GROUP_CONCAT to display the needed
   // field values, this is much MUCH MUCH easier to write out as a SQL statement.
-  $query = db_query('SELECT bi.identifier, bi.title, bi.filename,
+  $query = db_query('SELECT bi.identifier, bi.title, bi.islandora_model, bi.filename,
     \'\' as `ready_for`,
     (SELECT description FROM islandora_digital_workflow_actions wfa
      JOIN islandora_digital_workflow_transactions wft ON (wft.action_id = wfa.action_id)
@@ -810,8 +818,9 @@ function islandora_digital_workflow_update_batch_item_record($batch_item_id, $up
       ->fields(array(
         'title' => $update_values['title'],
         'identifier' => $update_values['identifier'],
-        // 'filename' => $update_values['filename'],
+        'filename' => $update_values['filename'],
         'assigned_pid' => $update_values['assigned_pid'],
+        'islandora_model' => $update_values['islandora_model'],
         'type_of_resource' => $update_values['type_of_resource'],
         'mods' => $update_values['mods'],
         'marc' => (array_key_exists('marc', $update_values) ? $update_values['marc'] : ''),
