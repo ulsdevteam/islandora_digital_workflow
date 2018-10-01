@@ -92,7 +92,7 @@ function islandora_digital_workflow_admin_form() {
       '#collapsed' => FALSE,
       'ingest_namespace' => array(
         '#type' => 'textfield',
-        '#title' => t('Ingest namespace'),
+        '#title' => t('Fedora object prefix (ingest namespace)'),
         '#description' => t('The namespace for objects that get ingested for ' .
             'batches by default.  Each batch can override this value.'),
         '#default_value' => variable_get('islandora_digital_workflow_ingest_namespace', 'islandora'),

@@ -80,10 +80,10 @@ function islandora_digital_workflow_get_dashboard_links() {
   }
 
   foreach ($accessible_models as $accessible_model => $pid_label) {
-    $lc_term = strtolower(str_replace(array("_", " ", ":"), "-", $accessible_model));
+    $lc_term = strtolower(str_replace(array("_", " "), array(" ", "-"), $accessible_model));
     $tid = islandora_digital_workflow_get_tid_by_name($accessible_model, $content_type_vocab);
     $node_count = islandora_digital_workflow_get_count_of_nodes_by_tid('field_islandora_model', $tid);
-    $links['batch_content_types'][] = l($pid_label['label'], '/islandora-digital-workflow-batch-content-type-vocabulary/' . $lc_term) .
+    $links['batch_content_types'][] = l($pid_label['label'], '/islandora-digital-workflow-content-type-vocabulary/' . $lc_term) .
         ($node_count ? ' <span class="small_lt_text">- ' . $node_count . ' batch' . ($node_count == 1 ? '' : 'es'). '</span>' : '');
   }
 

@@ -712,17 +712,22 @@ li.no_indent {
 
 .dashboard-report.action-links, .report-links, .utility-links, .admin-links {
     float: left;
-    width: 44%;
+    width: 38%;
 }
 
 .batches-links {
     float: left;
-    width: 47%;
+    width: 54%;
 }
 
 .batch_stages-links, .batch_priorities-links, .batch_content_types-links {
     float: left;
+}
+.batch_stages-links {
     width: 31%;
+}
+.batch_priorities-links, .batch_content_types-links {
+    width: 35%;    
 }
 
 .batch_stages-links .list_header, .batch_priorities-links .list_header, .batch_content_types-links .list_header {

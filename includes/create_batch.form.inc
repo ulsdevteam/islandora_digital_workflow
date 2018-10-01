@@ -600,7 +600,9 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
   $form['ingest_options_frame']['ingest_namespace'] = array(
       'ingest_namespace' => array(
         '#type' => 'textfield',
-        '#title' => t('Ingest namespace'),
+        '#title' => t('Fedora object prefix (ingest namespace)'),
+        '#description' => t('The namespace for objects that get ingested for ' .
+            'batches by default.  Each batch can override this value.'),
         '#required' => true,
         '#default_value' => ($batch_record && isset($batch_record['ingest_namespace'])) ? $batch_record['ingest_namespace'] : variable_get('islandora_digital_workflow_ingest_namespace', 'islandora'),
       ),

@@ -1306,7 +1306,7 @@ function islandora_digital_workflow_prepare_csv2mods($input_filename, $batch_rec
       $bytes_written += fwrite($handle, $strxml);
       fclose($handle);
     }
-    $filename = ($keep_created_MODS_files) ? islandora_digital_workflow_XMLtoMODS($batch_path . '/' . $row_mods_id . '/' . $outputFilename) : "";
+    $filename = ($keep_created_MODS_files) ? islandora_digital_workflow_XMLtoMODS($batch_path . '/' . $row_mods_id . '/' . $outputFilename, $batch_record['batch_id'], $ingest_namespace . $row_mods_id) : "";
     $mods_created += ($keep_created_MODS_files) ? ($filename <> '') : 1;
     // echo "<p>created MODS from spreadsheet for <b>" . $row_mods_id . "</b></p>";
 
@@ -1359,7 +1359,14 @@ function islandora_digital_workflow_fix_if_csv_date_approximate($headers, &$row)
  * @return string
  *   the filename for the new MODS file.
  */
-function islandora_digital_workflow_XMLtoMODS($xml_filename) {
+function islandora_digital_workflow_XMLtoMODS($xml_filename, $batch_id, $identifier) {
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
+  
+  $batch_item_id = islandora_digital_workflow_get_batch_item_record_by_identifier($identifier, $batch_id);
+  if ($batch_item_id) {
+    islandora_digital_workflow_insert_transactions_record(IDW_ACTION_ADD_MODS_RECORD, NULL, $batch_item_id);
+  }
+
   $xsl = str_replace("/includes", "", dirname(__FILE__).'/transforms/sheet2mods.xsl');
 
   $xml_file = islandora_digital_workflow_convert_smart_quotes(file_get_contents($xml_filename));
@@ -1743,7 +1750,7 @@ function islandora_digital_workflow_merge_uploaded_csv_files(&$batch_record, $no
 
     // Check the rows from this CSV are in the same order as the rows defined
     // from first row of the batch record's uploaded_csv_file.
-    if ((count($new_rows) > 1) && (count($old_rows) > 1)) {
+    if ((count($new_rows) > 1)) { //  && (count($old_rows) > 1)) {
       $old_header_str = implode(",", $old_header);
       $new_header_str = implode(",", $new_header);
       if ($old_header_str == $new_header_str) {
