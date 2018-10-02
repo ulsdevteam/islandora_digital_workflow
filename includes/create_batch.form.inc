@@ -97,6 +97,7 @@ function islandora_digital_workflow_create_empty_batch_form(array $form, array &
   $batch_description = '';
   $button_text = SAVE_BUTTON_TEXT;
   $tid_for_cmodel_selected = '';
+  $default_type_of_resources = islandora_digital_workflow_get_default_type_of_resource_options(TRUE);
 
   // If the user can administer site config, then display the link to the
   // supported models here.
@@ -134,6 +135,16 @@ function islandora_digital_workflow_create_empty_batch_form(array $form, array &
         '#options' => $accessible_models,
         '#description' => $supported_models_description,
         '#default_value' => $tid_for_cmodel_selected,
+      ),
+      'default_type_of_resource' => array(
+        '#title' => t('Default type of resource'),
+        '#type' => 'select',
+        '#required' => true,
+        '#options' => $default_type_of_resources,
+        '#description' => 'Select the default type of resource for this batch.  ' .
+          'Refer to <a href="https://www.loc.gov/standards/mods/userguide/' .
+          'typeofresource.html">documentation on the MODS "typeOfResource" field.</a>',
+        '#default_value' => 0,
       ),
       'batch_priority' => array(
         '#title' => t('Batch Priority'),
