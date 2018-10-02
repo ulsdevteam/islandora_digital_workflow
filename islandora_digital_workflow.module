@@ -323,7 +323,7 @@ function islandora_digital_workflow_menu() {
       'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_USE_UTILITIES),
     ),
     'islandora/islandora_digital_workflow/utilities/recalculate_files' => array(
-      'title' => t('Islandora Digital Workflow - Process Identifiers'),
+      'title' => t('Islandora Digital Workflow - Update Item Stats From Files'),
       'type' => MENU_NORMAL_ITEM,
       'page callback' => array('islandora_digital_workflow_recalculate_files'),
       'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_USE_UTILITIES),
