@@ -1102,18 +1102,6 @@ function _islandora_digital_workflow_installed_instances() {
           ),
           'module' => 'number',
         ),
-        'teaser' => array(
-          'label' => 'inline',
-          'type' => 'number_integer',
-          'weight' => 2,
-          'settings' => array(
-            'thousand_separator' => ',',
-            'decimal_separator' => '.',
-            'scale' => 0,
-            'prefix_suffix' => 1,
-          ),
-          'module' => 'number',
-        ),
       ),
       'default_value' => array(
         '0' => array('value' => 1,),
@@ -1146,13 +1134,6 @@ function _islandora_digital_workflow_installed_instances() {
           'module' => 'text',
         ),
         'full' => array(
-          'label' => 'inline',
-          'type' => 'text_default',
-          'weight' => 0,
-          'settings' => array(),
-          'module' => 'text',
-        ),
-        'teaser' => array(
           'label' => 'inline',
           'type' => 'text_default',
           'weight' => 0,
@@ -1318,14 +1299,14 @@ function _islandora_digital_workflow_installed_instances() {
           'module' => 'taxonomy',
         ),
         'teaser' => array(
-          'label' => 'above',
+          'label' => 'inline',
           'type' => 'taxonomy_term_reference_link',
           'weight' => 1,
           'settings' => array(),
           'module' => 'taxonomy',
         ),
         'full' => array(
-          'label' => 'above',
+          'label' => 'inline',
           'type' => 'taxonomy_term_reference_link',
           'weight' => 1,
           'settings' => array(),
@@ -1371,14 +1352,14 @@ function _islandora_digital_workflow_installed_instances() {
           'module' => 'taxonomy',
         ),
         'teaser' => array(
-          'label' => 'above',
+          'label' => 'inline',
           'type' => 'taxonomy_term_reference_link',
           'weight' => 1,
           'settings' => array(),
           'module' => 'taxonomy',
         ),
         'full' => array(
-          'label' => 'above',
+          'label' => 'inline',
           'type' => 'taxonomy_term_reference_link',
           'weight' => 1,
           'settings' => array(),
@@ -1413,14 +1394,14 @@ function _islandora_digital_workflow_installed_instances() {
           'module' => 'taxonomy',
         ),
         'teaser' => array(
-          'label' => 'above',
+          'label' => 'inline',
           'type' => 'taxonomy_term_reference_link',
           'weight' => 1,
           'settings' => array(),
           'module' => 'taxonomy',
         ),
         'full' => array(
-          'label' => 'above',
+          'label' => 'inline',
           'type' => 'taxonomy_term_reference_link',
           'weight' => 1,
           'settings' => array(),

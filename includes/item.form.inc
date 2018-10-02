@@ -93,7 +93,17 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
     $records_updated = islandora_digital_workflow_update_batch_item_record($batch_item_id, $_POST, $original_values);
     if ($records_updated) {
       $mods_file_changed = (trim($original_values->mods) <> trim($_POST['mods']));
+
       $marc_file_changed = ($is_paged_content && trim($original_values->marc) <> trim($_POST['marc']));
+      // Enter the appropriate actions if these changed:
+      if ($mods_file_changed || $marc_file_changed) {
+        if ($mods_file_changed) {
+          islandora_digital_workflow_insert_transactions_record(IDW_ACTION_ADD_MODS_RECORD, NULL, $batch_item_id);
+        }
+        if ($marc_file_changed) {
+          islandora_digital_workflow_insert_transactions_record(IDW_ACTION_ADD_MARC_RECORD, NULL, $batch_item_id);
+        }
+      }
       drupal_set_message(t('This batch object record has been updated <br>' .
           '<b>Previous Title:</b> "@o_title"<br>' .
           '<b>Updated Title:</b> "<span class="@title_class">@u_title</span>"<br>' .

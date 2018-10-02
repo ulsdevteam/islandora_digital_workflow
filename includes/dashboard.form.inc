@@ -152,6 +152,16 @@ function islandora_digital_workflow_get_tasks_tables() {
     }
   }
 
+  if (user_access(ISLANDORA_DIGITAL_WORKFLOW_UPDATE_ITEMS)) {
+    $batch_records_is_batch_request = islandora_digital_workflow_find_batch_records_is_batch_request();
+    if (count($batch_records_is_batch_request)) {
+      $tables[] = theme('islandora_digital_workflow_batch_records_table', array(
+        'batch_records' => $batch_records_is_batch_request,
+        'table_title' => 'Requested Batches',
+        'table_description' => 'The following batches all have been requested.',
+      ));
+    }
+  }
   $batch_names = islandora_digital_workflow_get_batch_record_names();
   $staging_root = variable_get('islandora_digital_workflow_ingest_staging_path', '');
   $staging_folders = islandora_digital_workflow_find_folders_files($staging_root);

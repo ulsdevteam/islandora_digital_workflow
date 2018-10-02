@@ -437,17 +437,17 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
       ),
     );
 
-  // Batch defaults frame
-  $form['batch_edit_frame']['batch_defaults_frame'] = array(
+  // Metadata defaults frame
+  $form['batch_edit_frame']['meta_defaults_frame'] = array(
       '#type' => 'fieldset',
-      '#title' => 'Batch defaults',
+      '#title' => 'Metadata defaults',
       '#collapsible' => TRUE,
       '#collapsed' => FALSE,
     );
 
   // Default copyright status: select (hard-coded options based off MODS
   // typeOfResource specification).
-  $form['batch_edit_frame']['batch_defaults_frame']['default_type_of_resource'] = array(
+  $form['batch_edit_frame']['meta_defaults_frame']['default_type_of_resource'] = array(
       '#title' => t('Default type of resource'),
       '#type' => 'select',
       '#required' => true,
@@ -459,14 +459,14 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
     );
 
   // Default genre: textfield
-  $form['batch_edit_frame']['batch_defaults_frame']['default_genre'] = array(
+  $form['batch_edit_frame']['meta_defaults_frame']['default_genre'] = array(
       '#type' => 'textfield',
       '#title' => t('Default Genre'),
       '#default_value' => ($batch_record && isset($batch_record['default_genre'])) ? $batch_record['default_genre'] : '',
     );
 
     // Default depositor: textfield
-  $form['batch_edit_frame']['batch_defaults_frame']['default_depositor'] = array(
+  $form['batch_edit_frame']['meta_defaults_frame']['default_depositor'] = array(
         '#type' => 'textfield',
         '#description' => 'This value will only be used if the spreadsheet MODS does not contain a value for the depositor.',
         '#title' => t('Default Depositor'),
@@ -474,7 +474,7 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
       );
 
   // Default copyright status: select (hard-coded options)
-  $form['batch_edit_frame']['batch_defaults_frame']['batch_default_CR_status'] = array(
+  $form['batch_edit_frame']['meta_defaults_frame']['batch_default_CR_status'] = array(
       '#type' => 'select',
       '#title' => t('Default Copyright Status'),
       '#options' => array(''=>'Select Default Copyright Status',
@@ -488,7 +488,7 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
       '#default_value' => ($batch_record && isset($batch_record['batch_default_CR_status'])) ? $batch_record['batch_default_CR_status'] : '',
     );
   // Default publication status: select (hard-coded options)
-  $form['batch_edit_frame']['batch_defaults_frame']['batch_default_pub_status'] = array(
+  $form['batch_edit_frame']['meta_defaults_frame']['batch_default_pub_status'] = array(
       '#type' => 'select',
       '#title' => t('Default Publication Status'),
       '#options' => array(''=>'Select Default Publication Status',
@@ -499,7 +499,7 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
       '#default_value' => ($batch_record && isset($batch_record['batch_default_pub_status'])) ? $batch_record['batch_default_pub_status'] : '',
     );
   // Default copyright holder name: textarea
-  $form['batch_edit_frame']['batch_defaults_frame']['batch_default_CR_holder'] = array(
+  $form['batch_edit_frame']['meta_defaults_frame']['batch_default_CR_holder'] = array(
       '#type' => 'textarea',
       '#title' => t('Default Copyright Holder Name'),
       '#default_value' => ($batch_record && isset($batch_record['batch_default_CR_holder'])) ? $batch_record['batch_default_CR_holder'] : '',

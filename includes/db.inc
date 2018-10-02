@@ -307,7 +307,6 @@ function islandora_digital_workflow_find_batch_records_no_details() {
  */
 function islandora_digital_workflow_find_batch_records_no_items() {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy-utilities');
-
   $query = db_select('islandora_digital_workflow_batch', 'b')
       ->fields('b');
   $query->addJoin('LEFT OUTER', 'islandora_digital_workflow_batch_items', 'bi', 'b.batch_id = bi.batch_id');
@@ -325,11 +324,43 @@ function islandora_digital_workflow_find_batch_records_no_items() {
   $no_items = array();
   // Check that the value of the batch_item_id is NULL
   foreach ($rows as $row) {
+    $row->priority = islandora_digital_workflow_get_name_of_tid($row->batch_priority_tid);
     if (is_null($row->batch_item_id)) {
       $no_items[] = $row;
     }
   }
   return $no_items;
+}
+
+/**
+ * Returns the set of batch records that are requested batches with a due date.
+ *
+ * @return array
+ *   Array of stdObject rows.
+ */
+function islandora_digital_workflow_find_batch_records_is_batch_request() {
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy-utilities');
+  $query = db_select('islandora_digital_workflow_batch', 'b')
+      ->fields('b')
+      ->condition('b.is_batch_request', 1);
+  $query->addJoin('LEFT OUTER', 'taxonomy_term_data', 't', 'b.batch_priority_tid = t.tid');
+  $query->addField('t', 'weight');
+  $query->addField('t', 'name', 'priority');
+  $query->orderBy('b.batch_request_due_date');
+
+  $query->groupBy('b.batch_id');
+
+  $results = $query->execute();
+  $rows = $results->fetchAll();
+
+  $batch_request_rows = array();
+  // Check that the value of the batch_item_id is NULL
+  foreach ($rows as $row) {
+    $row->priority = islandora_digital_workflow_get_name_of_tid($row->batch_priority_tid);
+    $row->how_long_from_now = islandora_digital_workflow_timeago_from_timestamp(date('c', $row->batch_request_due_date));
+    $batch_request_rows[] = $row;
+  }
+  return $batch_request_rows;
 }
 
 /**

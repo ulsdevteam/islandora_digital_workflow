@@ -31,8 +31,9 @@
               <li><b>Priority:</b> <?php print $batch_record->priority; ?></li>
               <li><b>Description:</b> <?php print $batch_record->batch_description; ?></li>
               <?php if (isset($batch_record->is_batch_request) && $batch_record->is_batch_request): ?>
-              <li><b class="bad">Request due date:</b> <?php print format_date($batch_record->batch_request_due_date, 'custom', 'Y/m/d'); ?></li>
               <li><b>Requestor:</b> <?php print $batch_record->batch_requestor; ?></li>
+              <li><b>Request due date:</b> <span class="bad"><?php print format_date($batch_record->batch_request_due_date, 'custom', 'Y/m/d'); ?></span>
+                  <i>- <?php print $batch_record->how_long_from_now; ?></i></li>
               <?php endif; ?>
               </ul>
           </div>

@@ -28,9 +28,11 @@ function islandora_digital_workflow_create_stub_batch_record($form_state) {
     $batch_name = $form_state['values']['batch_name'];
     $batch_record = islandora_digital_workflow_get_batch_record_by_name($batch_name);
 
-    $batch_request_date = strtotime($form_state['values']['batch_request_due_date']['year'] . '/' .
-        $form_state['values']['batch_request_due_date']['month'] . '/' .
-        $form_state['values']['batch_request_due_date']['day']);
+    $batch_request_date = (($form_state['values']['is_batch_request'] == 1) ?
+        strtotime($form_state['values']['batch_request_due_date']['year'] . '/' .
+          $form_state['values']['batch_request_due_date']['month'] . '/' .
+          $form_state['values']['batch_request_due_date']['day']) :
+        NULL);
 
     $field_values = array(
         'batch_name' => $batch_name,
@@ -93,9 +95,11 @@ function islandora_digital_workflow_create_batch_record_by_form($form_state, $no
     $batch_record = islandora_digital_workflow_get_batch_record_by_name($batch_name);
 
     $uploaded_csv_file = ($csv_filename) ? file_get_contents(drupal_realpath($csv_filename)) : FALSE;
-    $batch_request_date = strtotime($form_state['values']['batch_request_due_date']['year'] . '/' .
-        $form_state['values']['batch_request_due_date']['month'] . '/' .
-        $form_state['values']['batch_request_due_date']['day']);
+    $batch_request_date = (($form_state['values']['is_batch_request'] == 1) ?
+        strtotime($form_state['values']['batch_request_due_date']['year'] . '/' .
+          $form_state['values']['batch_request_due_date']['month'] . '/' .
+          $form_state['values']['batch_request_due_date']['day']) :
+        NULL);
 
     // Since the form can be modified and potentially may not include some
     // values, check whether or not these form_state fields exist before
@@ -1447,6 +1451,7 @@ function islandora_digital_workflow_timeago_from_timestamp($timestamp) {
   $dbDate = new DateTime($timestamp);
   $currDate = new DateTime(date('Ymd H:i:s'));
   $interval = $currDate->diff($dbDate);
+  $_compared = ($dbDate > $currDate) ? ' from now' : ' ago';
   $ago_arr = array();
   if ($interval->y > 0) {
     $ago_arr[] = $interval->y . " yr" . ($interval->y == 1 ? '' : 's');
@@ -1466,7 +1471,7 @@ function islandora_digital_workflow_timeago_from_timestamp($timestamp) {
   if ($interval->s > 0) {
     $ago_arr[] = $interval->s . " s";
   }
-  return implode(", ", $ago_arr) . ((count($ago_arr) > 0) ? ' ago' : '');
+  return implode(", ", $ago_arr) . ((count($ago_arr) > 0) ? $_compared : '');
 }
 
 /**

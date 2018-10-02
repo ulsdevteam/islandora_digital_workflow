@@ -723,9 +723,11 @@ li.no_indent {
 .batch_stages-links, .batch_priorities-links, .batch_content_types-links {
     float: left;
 }
+
 .batch_stages-links {
     width: 31%;
 }
+
 .batch_priorities-links, .batch_content_types-links {
     width: 35%;    
 }
