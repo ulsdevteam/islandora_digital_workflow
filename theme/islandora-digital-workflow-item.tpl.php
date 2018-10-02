@@ -29,7 +29,7 @@
     <p class="disabled_text">Aside from needing to satisfy all of the actions in
         the workflow sequence, problems must be cleared before the item or the
         batch can be ingested.  To clear a problem, place the repaired files in
-        the <b>Incoming Staging Directory</b> location;  these files can then be
+        the <b>Incoming Delivery Directory</b> location;  these files can then be
         imported back into the system which will resolve the specific item's problem record.</p>
   </div>
   <?php endif; ?>

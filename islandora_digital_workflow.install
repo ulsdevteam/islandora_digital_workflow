@@ -81,7 +81,7 @@ function islandora_digital_workflow_uninstall() {
   variable_del('islandora_digital_workflow_ingest_prepared_path');
   variable_del('islandora_digital_workflow_hosts_for_ingest');
   variable_del('islandora_digital_workflow_use_isMemberOfSite');
-  variable_del('islandora_digital_workflow_ingest_staging_path');
+  variable_del('islandora_digital_workflow_ingest_delivery_path');
   variable_del('islandora_digital_workflow_ingest_problems_path');
 
   // Loop through the fields that are created for this module and delete them.

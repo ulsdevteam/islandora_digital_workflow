@@ -136,16 +136,6 @@ function islandora_digital_workflow_create_empty_batch_form(array $form, array &
         '#description' => $supported_models_description,
         '#default_value' => $tid_for_cmodel_selected,
       ),
-      'default_type_of_resource' => array(
-        '#title' => t('Default type of resource'),
-        '#type' => 'select',
-        '#required' => true,
-        '#options' => $default_type_of_resources,
-        '#description' => 'Select the default type of resource for this batch.  ' .
-          'Refer to <a href="https://www.loc.gov/standards/mods/userguide/' .
-          'typeofresource.html">documentation on the MODS "typeOfResource" field.</a>',
-        '#default_value' => 0,
-      ),
       'batch_priority' => array(
         '#title' => t('Batch Priority'),
         '#type' => 'select',
@@ -160,6 +150,24 @@ function islandora_digital_workflow_create_empty_batch_form(array $form, array &
         '#required' => true,
         '#description' => t('Description of the items in this batch.'),
         '#default_value' => '',
+      ),
+
+      // Is a request? checkbox
+      'meta_defaults_frame' => array(
+        '#title' => 'Metadata defaults',
+        '#type' => 'fieldset',
+        '#collapsible' => TRUE,
+        '#collapsed' => FALSE,
+        'default_type_of_resource' => array(
+          '#title' => t('Default type of resource'),
+          '#type' => 'select',
+          '#required' => true,
+          '#options' => $default_type_of_resources,
+          '#description' => 'Select the default type of resource for this batch.  ' .
+            'Refer to <a href="https://www.loc.gov/standards/mods/userguide/' .
+            'typeofresource.html">documentation on the MODS "typeOfResource" field.</a>',
+          '#default_value' => 0,
+        ),
       ),
 
       // Is a request? checkbox

@@ -1554,7 +1554,7 @@ function islandora_digital_workflow_find_folders_files($root) {
  *   An array of possible batch folder names that is used for checking.
  * @return array
  *   The set of folder names that were removed and will not be inspected as
- * other staging folders.
+ * other delivery folders.
  */
 function islandora_digital_workflow_filter_out_non_batch_folders(&$values, $item_names) {
   $bad_folder_names = array();
@@ -2053,7 +2053,7 @@ function islandora_digital_workflow_using_action($workflow_sequence_actions, $ac
  * @param integer $batch_item_id
  *   The batch_item_id identifier that needs to have its file moved.
  * @param string $destination_root
- *   The root path -- could be the problems folder, could be staging.
+ *   The root path -- could be the problems folder, could be delivery.
  * @param string $problem_notes
  *   Any notes that the user entered for setting the action to problem state.
  * ONLY applies when setting the action to the problem state IDW_ACTION_PROBLEM.

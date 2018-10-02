@@ -116,12 +116,12 @@ function islandora_digital_workflow_admin_form() {
         '#required' => true,
         '#default_value' => variable_get('islandora_digital_workflow_top_level_collection', '/islandora/object/islandora:root'),
       ),
-      'ingest_staging_path' => array(
+      'ingest_delivery_path' => array(
         '#type' => 'textfield',
-        '#title' => t('Incoming Staging Directory'),
-        '#description' => t('The staging directory is where the files will be after they are scanned.'),
+        '#title' => t('Incoming Delivery Directory'),
+        '#description' => t('The delivery directory is where the files will be after they are scanned.'),
         '#required' => true,
-        '#default_value' => variable_get('islandora_digital_workflow_ingest_staging_path', ''),
+        '#default_value' => variable_get('islandora_digital_workflow_ingest_delivery_path', ''),
       ),
       'ingest_prepared_path' => array(
         '#type' => 'textfield',
@@ -219,7 +219,7 @@ function islandora_digital_workflow_admin_form_submit(array $form, array &$form_
       variable_set('islandora_digital_workflow_ingest_namespace', $form_state['values']['ingest_namespace']);
       variable_set('islandora_digital_workflow_assign_PIDs', $form_state['values']['ingest_assign_PIDs']);
       variable_set('islandora_digital_workflow_top_level_collection', $form_state['values']['top_level_collection']);
-      variable_set('islandora_digital_workflow_ingest_staging_path', $form_state['values']['ingest_staging_path']);
+      variable_set('islandora_digital_workflow_ingest_delivery_path', $form_state['values']['ingest_delivery_path']);
       variable_set('islandora_digital_workflow_ingest_prepared_path', $form_state['values']['ingest_prepared_path']);
       variable_set('islandora_digital_workflow_ingest_problems_path', $form_state['values']['ingest_problems_path']);
       variable_set('islandora_digital_workflow_ingest_ignore_filenames', $form_state['values']['ingest_ignore_filenames']);
@@ -233,7 +233,7 @@ function islandora_digital_workflow_admin_form_submit(array $form, array &$form_
       variable_del('islandora_digital_workflow_ingest_namespace');
       variable_del('islandora_digital_workflow_assign_PIDs');
       variable_del('islandora_digital_workflow_top_level_collection');
-      variable_del('islandora_digital_workflow_ingest_staging_path');
+      variable_del('islandora_digital_workflow_ingest_delivery_path');
       variable_del('islandora_digital_workflow_ingest_prepared_path');
       variable_del('islandora_digital_workflow_ingest_problems_path');
       variable_del('islandora_digital_workflow_ingest_ignore_filenames');

@@ -161,17 +161,17 @@ function islandora_digital_workflow_get_tasks_tables() {
     }
   }
   $batch_names = islandora_digital_workflow_get_batch_record_names();
-  $staging_root = variable_get('islandora_digital_workflow_ingest_staging_path', '');
-  $staging_folders = islandora_digital_workflow_find_folders_files($staging_root);
-  $bad_staging_folder_names = islandora_digital_workflow_filter_out_non_batch_folders($staging_folders, $batch_names);
+  $delivery_root = variable_get('islandora_digital_workflow_ingest_delivery_path', '');
+  $delivery_folders = islandora_digital_workflow_find_folders_files($delivery_root);
+  $bad_delivery_folder_names = islandora_digital_workflow_filter_out_non_batch_folders($delivery_folders, $batch_names);
 
-  if (count($staging_folders)) {
+  if (count($delivery_folders)) {
     $tables[] = theme('islandora_digital_workflow_files_table', array(
-      'folders' => $staging_folders,
-      'root' => $staging_root,
-      'action_link' => (user_access(ISLANDORA_DIGITAL_WORKFLOW_SYNC_STAGING) ? '/islandora/islandora_digital_workflow/sync_staging_files/' : ''),
+      'folders' => $delivery_folders,
+      'root' => $delivery_root,
+      'action_link' => (user_access(ISLANDORA_DIGITAL_WORKFLOW_SYNC_DELIVERY) ? '/islandora/islandora_digital_workflow/sync_delivery_files/' : ''),
       'show_message_status' => TRUE,
-      'table_title' => 'Items moved to the "Staging" folder location',
+      'table_title' => 'Items moved to the "Delivery" folder location',
       'table_description' => 'Resolved by using the Sync operation for each of ' .
           'the folders listed below, but <b>be sure that the folder is ready to be ' .
           'moved back</b> over to the working directory.',
@@ -193,18 +193,18 @@ function islandora_digital_workflow_get_tasks_tables() {
       'table_description' => '<p class="small_font">Aside from needing to satisfy ' .
         'all of the actions in the workflow sequence, problems must be cleared ' .
         'before the item or the batch can be ingested.  To clear a problem, place ' .
-        'the repaired files in the <b>Incoming Staging Directory</b> location;  ' .
+        'the repaired files in the <b>Incoming Delivery Directory</b> location;  ' .
         'these files can then be imported back into the system which will resolve ' .
         'the specific item\'s problem record.</p>Please resolve the folders listed below:',
     ));
   }
 
-  if (count($bad_staging_folder_names) > 0) {
-    drupal_set_message('At least one folder name in the configured Staging path "' .
-        $staging_root . '" did not match a known batch name and should be ' .
+  if (count($bad_delivery_folder_names) > 0) {
+    drupal_set_message('At least one folder name in the configured Delivery path "' .
+        $delivery_root . '" did not match a known batch name and should be ' .
         'inspected manually to determine whether or not the files are needed.  ' .
         'These folder names were: <ul><li>' .
-        implode("</li><li>", $bad_staging_folder_names) . '</ul><br>', 'warning');
+        implode("</li><li>", $bad_delivery_folder_names) . '</ul><br>', 'warning');
   }
   if (count($bad_problem_folder_names) > 0) {
     drupal_set_message('At least one folder name in the configured Problems path "' .

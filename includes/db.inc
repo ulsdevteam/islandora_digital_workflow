@@ -1510,7 +1510,7 @@ function islandora_digital_workflow_create_islandora_digital_workflow_sql_config
  * to a given batch_id.
  *
  * @param integer $batch_id
- *   The batch_id of the batch being sync'd from the staging directory,
+ *   The batch_id of the batch being sync'd from the delivery directory,
  */
 function islandora_digital_workflow_unset_problems_records($batch_id) {
   $sql = 'UPDATE islandora_digital_workflow_problem_items 

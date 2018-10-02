@@ -2,12 +2,12 @@
 
 /**
  * @file
- * Form and functions related to syncing the files from the "Staging" folder
+ * Form and functions related to syncing the files from the "Delivery" folder
  * back to system as well as moving them back into the working directory.
  */
 
 /**
- * Displays the form to sync_staging_files from a batch item.
+ * Displays the form to sync_delivery_files from a batch item.
  *
  * This approache is needed in order to display two separate forms on a single
  * page.  The lookup form's action needs to be handled separately from the
@@ -17,18 +17,18 @@
  * @return string
  *   HTML markup.
  */
-function islandora_digital_workflow_sync_staging_files() {
+function islandora_digital_workflow_sync_delivery_files() {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/lookup.form');
   $lookup_form_markup = theme('islandora_digital_workflow_lookup', array('searchterm' => ''));
   $batch_name = arg(3);
-  drupal_set_title(t('Islandora Digital Workflow - Sync staging files'), CHECK_PLAIN);
-  $form = drupal_get_form('islandora_digital_workflow_sync_staging_files_form', $batch_name);
+  drupal_set_title(t('Islandora Digital Workflow - Sync Delivery files'), CHECK_PLAIN);
+  $form = drupal_get_form('islandora_digital_workflow_sync_delivery_files_form', $batch_name);
   $markup = $lookup_form_markup . drupal_render($form);
   return $markup;
 }
 
 /**
- * Displays form for sync_staging_files.
+ * Displays form for sync_delivery_files.
  *
  * @param array $form
  *   The Drupal form definition.
@@ -37,7 +37,7 @@ function islandora_digital_workflow_sync_staging_files() {
  * @return string
  *   HTML markup.
  */
-function islandora_digital_workflow_sync_staging_files_form(array $form, array &$form_state, $batch_name) {
+function islandora_digital_workflow_sync_delivery_files_form(array $form, array &$form_state, $batch_name) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
 
@@ -47,21 +47,21 @@ function islandora_digital_workflow_sync_staging_files_form(array $form, array &
   // explicitly loaded like this, but it doesn't work here unless this library is included.
   drupal_add_library('system', 'drupal.collapse');
 
-  $staging_root = variable_get('islandora_digital_workflow_ingest_staging_path', '');
-  $batch_staging_root = $staging_root . '/' . $batch_name;
-  $batch_staging_folders = islandora_digital_workflow_find_folders_files($staging_root);
-  foreach ($batch_staging_folders as $found_staging_item_name => $info) {
-    if ($found_staging_item_name <> $batch_name) {
-      unset($batch_staging_folders[$found_staging_item_name]);
+  $delivery_root = variable_get('islandora_digital_workflow_ingest_delivery_path', '');
+  $batch_delivery_root = $delivery_root . '/' . $batch_name;
+  $batch_delivery_folders = islandora_digital_workflow_find_folders_files($delivery_root);
+  foreach ($batch_delivery_folders as $found_delivery_item_name => $info) {
+    if ($found_delivery_item_name <> $batch_name) {
+      unset($batch_delivery_folders[$found_delivery_item_name]);
     }
   }
-  $markup = (count($batch_staging_folders)) ?
+  $markup = (count($batch_delivery_folders)) ?
     theme('islandora_digital_workflow_files_table', array(
-      'folders' => $batch_staging_folders,
-      'root' => $batch_staging_root,
+      'folders' => $batch_delivery_folders,
+      'root' => $batch_delivery_root,
       'action_link' => '',
       'show_message_status' => FALSE,
-      'table_title' => 'Items moved to the "Staging" folder location',
+      'table_title' => 'Items moved to the "Delivery" folder location',
       'table_description' => 'Sync the files listed below back to the ingest working directory:',
     )) : '';
 
@@ -79,7 +79,7 @@ function islandora_digital_workflow_sync_staging_files_form(array $form, array &
 }
 
 /**
- * The sync_staging_files form submit handler.
+ * The sync_delivery_files form submit handler.
  *
  * Function that updates a batch transaction with user's input.
  *
@@ -88,26 +88,26 @@ function islandora_digital_workflow_sync_staging_files_form(array $form, array &
  * @param array $form_state
  *   The Drupal form state.
  */
-function islandora_digital_workflow_sync_staging_files_form_submit(array $form, array &$form_state) {
+function islandora_digital_workflow_sync_delivery_files_form_submit(array $form, array &$form_state) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
 
   $batch_name = $form_state['values']['batch_name'];
-  $source_root = variable_get('islandora_digital_workflow_ingest_staging_path', '');
-  $batch_staging_folders = islandora_digital_workflow_find_folders_files($source_root);
+  $source_root = variable_get('islandora_digital_workflow_ingest_delivery_path', '');
+  $batch_delivery_folders = islandora_digital_workflow_find_folders_files($source_root);
   $batch_record = islandora_digital_workflow_get_batch_record_by_name($batch_name);
 
   $destination_path = $batch_record['batch_host'] . '/' . $batch_name;
   $source_path = $source_root . '/' . $batch_name;
-  foreach ($batch_staging_folders as $found_staging_item_name => $info) {
-    if ($found_staging_item_name <> $batch_name) {
-      unset($batch_staging_folders[$found_staging_item_name]);
+  foreach ($batch_delivery_folders as $found_delivery_item_name => $info) {
+    if ($found_delivery_item_name <> $batch_name) {
+      unset($batch_delivery_folders[$found_delivery_item_name]);
     }
   }
   $success_moving = FALSE;
-  if (array_key_exists($batch_name, $batch_staging_folders)) {
-    if (array_key_exists('files', $batch_staging_folders[$batch_name])) {
-      $files = $batch_staging_folders[$batch_name]['files'];
+  if (array_key_exists($batch_name, $batch_delivery_folders)) {
+    if (array_key_exists('files', $batch_delivery_folders[$batch_name])) {
+      $files = $batch_delivery_folders[$batch_name]['files'];
       foreach ($files as $file) {
         $from_file = $source_path . '/' . $file;
         $to_file = $destination_path . '/' . $file;
@@ -138,7 +138,7 @@ function islandora_digital_workflow_sync_staging_files_form_submit(array $form, 
         }
         if (file_exists($source_path)) {
           // Done moving subfolders, now we can remove that empty folder from
-          // the staging root.
+          // the delivery root.
           rmdir($source_path);
         }
         // Update the "problem_resolved_timestamp" value for the related
@@ -148,7 +148,7 @@ function islandora_digital_workflow_sync_staging_files_form_submit(array $form, 
     }
   }
   else {
-    drupal_set_message('The staging folder did not contain a folder that matched the batch name of "' . $batch_name . '".', 'warning');
+    drupal_set_message('The Delivery folder did not contain a folder that matched the batch name of "' . $batch_name . '".', 'warning');
   }
   drupal_set_message('Form submitted');
 }

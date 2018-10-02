@@ -44,7 +44,7 @@ define('ISLANDORA_DIGITAL_WORKFLOW_MANAGE_SEQUENCES', 'digital workflow manage s
 define('ISLANDORA_DIGITAL_WORKFLOW_VIEW_EXTRA_INFO', 'digital workflow view extra info');
 define('ISLANDORA_DIGITAL_WORKFLOW_RUN_REPORTS', 'digital workflow run reports');
 define('ISLANDORA_DIGITAL_WORKFLOW_USE_UTILITIES', 'digital workflow use utilities');
-define('ISLANDORA_DIGITAL_WORKFLOW_SYNC_STAGING', 'digital workflow sync staging');
+define('ISLANDORA_DIGITAL_WORKFLOW_SYNC_DELIVERY', 'digital workflow sync delivery');
 
 /**
  * Implements hook_menu().
@@ -285,13 +285,13 @@ function islandora_digital_workflow_menu() {
       'file' => 'includes/create_batch.form.inc',
       'weight' => 90,
     ),
-    'islandora/islandora_digital_workflow/sync_staging_files/%' => array(
-      'title' => t('Islandora Digital Workflow - Sync staging files'),
+    'islandora/islandora_digital_workflow/sync_delivery_files/%' => array(
+      'title' => t('Islandora Digital Workflow - Sync Delivery files'),
       'type' => MENU_NORMAL_ITEM,
-      'page callback' => 'islandora_digital_workflow_sync_staging_files',
+      'page callback' => 'islandora_digital_workflow_sync_delivery_files',
       // arguments are handled with arg(3)
-      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_SYNC_STAGING),
-      'file' => 'includes/sync_staging_files.inc',
+      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_SYNC_DELIVERY),
+      'file' => 'includes/sync_delivery_files.inc',
     ),
     'islandora/islandora_digital_workflow/reports' => array(
       'title' => t('Islandora Digital Workflow - Reports'),
@@ -423,9 +423,9 @@ function islandora_digital_workflow_permission() {
       'title' => t('Use batch and items utilities forms'),
       'description' => t('User can use batch and item utilities forms'),
     ),
-    ISLANDORA_DIGITAL_WORKFLOW_SYNC_STAGING => array(
-      'title' => t('User can "Sync" files from Staging to workflow'),
-      'description' => t('User can use the "Sync" function to bring the resolved files from Staging location back to workflow'),
+    ISLANDORA_DIGITAL_WORKFLOW_SYNC_DELIVERY => array(
+      'title' => t('User can "Sync" files from Delivery to workflow'),
+      'description' => t('User can use the "Sync" function to bring the resolved files from Delivery location back to workflow'),
     ),
   );
   $model_based_permissions = array();
