@@ -1425,6 +1425,9 @@ function islandora_digital_workflow_runXslTransform($info) {
  *   The modified markup that could contain highlights.
  */
 function islandora_digital_workflow_highlight($text, $word, $case_sensitive = FALSE) {
+  // This has to use a "higlighting-as-we-go" approach due to the possible
+  // highlight replacement to tag attributes, etc.  This parses the entire content
+  // and only highlights what is between tags.
   $lines = explode("\r\n", $text);
   $opened_tag = FALSE;
   $render_output = '';
@@ -1433,7 +1436,8 @@ function islandora_digital_workflow_highlight($text, $word, $case_sensitive = FA
   foreach ($lines as $line) {
     for ($line_index = 0; $line_index  < strlen($line); $line_index ++) {
       if ($line[$line_index] == '<') {
-        $render_output .= $tag_queue . ($tag_queue ? '>' : '') . islandora_digital_workflow_highlight_queue_replacement($current_queue, $word, $case_sensitive);
+        $render_output .= $tag_queue . ($tag_queue ? '>' : '') .
+            islandora_digital_workflow_highlight_queue_replacement($current_queue, $word, $case_sensitive);
         $tag_queue = '';
         $current_queue = '';
       }
@@ -1453,23 +1457,19 @@ function islandora_digital_workflow_highlight($text, $word, $case_sensitive = FA
   $render_output .= islandora_digital_workflow_highlight_queue_replacement($current_queue, $word, $case_sensitive);
   return $render_output;
 }
-/*
-  $highlighted_text = "<span class='highlighted'>$word</span>";
-  $text = ($case_sensitive) ?
-      str_replace($word, $highlighted_text, $text) :
-      str_ireplace($word, $highlighted_text, $text);
 
-  // Could fix other html replacements like attributes on any element
-  preg_match_all("'<a.*?href=\"(.*?)\"[^>]*?>(.*?)</a>'si", $text, $matches);
-  foreach ($matches[1] as $messed_up_link) {
-    $updated_link = str_replace("<span class='highlighted'>" . $word . "</span>", $word, $messed_up_link);
-    if ($messed_up_link <> $updated_link) {
-      $text = str_replace($messed_up_link, $updated_link, $text);
-    }
-  }
-  return $text;
-} */
-
+/**
+ * Little helper function for "higlighting-as-we-go" approach.
+ *
+ * @param string $text
+ *   Content "queued" string to highlight.
+ * @param string $word
+ *   The word to highlight.
+ * @param type $case_sensitive
+ *   Whether or not the highlighting is supposed to be case-sensitive.
+ * @return string
+ *   The section of content with any highlighting applied.
+ */
 function islandora_digital_workflow_highlight_queue_replacement($text, $word, $case_sensitive = FALSE) {
   $highlighted_text = "<span class='highlighted'>$word</span>";
   $text = ($case_sensitive) ?
@@ -2315,7 +2315,6 @@ function islandora_digital_workflow_convert_to_filename($string) {
   return $string;
 }
 
-
 /**
  * This will create collection objects and return nothing.  The collections
  * will be used as the --parent parameter for ingesting objects.
@@ -2380,7 +2379,6 @@ function islandora_digital_workflow_create_review_collections($collection_pids) 
   return;
 }
 
-
 /**
  * Helper function to return the array of glyph filenames -- called from various
  * places in the code.
@@ -2424,6 +2422,21 @@ function islandora_digital_workflow_static_glyph_filenames() {
       );
 }
 
+/**
+ * This has dual-purposes:
+ *   1) generate the output for a set of items to be processed with a given mode
+ *   2) add the items / processing mode to the islandora_digital_workflow_process_set
+ *      and islandora_digital_workflow_process_set_items tables.
+ *
+ * @param string $title
+ *   The title for the display block.
+ * @param string $mode
+ *   The processing mode.
+ * @param type $items
+ *   Array of item identifiers.
+ * @return string
+ *   HTML output for the process set.
+ */
 function islandora_digital_workflow_make_process_set($title, $mode, $items) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
   // If there are items, look up the identifiers' item_id values from the
@@ -2448,7 +2461,7 @@ function islandora_digital_workflow_set_status_for_pid($ingested_object, $action
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
 
   // Take the namespace off of the object id to the identifier
-  $ingest_namespace = upitt_workflow_get_ingest_namespace();
+  $ingest_namespace = islandora_digital_workflow_get_ingest_namespace();
   @list($namespace, $identifier) = explode(":", $ingested_object->id);
   // Look up the batch_items record for this identifier -- and add a transaction
   // to set the provided $action_id value.
@@ -2463,6 +2476,16 @@ function islandora_digital_workflow_set_status_for_pid($ingested_object, $action
   }
 }
 
+/**
+ * Helper function to process the input identifiers for "process identifiers".
+ *
+ * @param string $posted_text
+ *   Text that was entered in the identifiers textarea control.
+ * @param boolean $trim_lines
+ *   Whether or not to trim the whitespace from lines
+ * @return array
+ *   An array with each line as an array element.
+ */
 function islandora_digital_workflow_post_text_to_array($posted_text, $trim_lines = TRUE) {
   $as_array = explode("\n", $posted_text);
   if ($trim_lines) {
@@ -2498,4 +2521,57 @@ function islandora_digital_workflow_get_default_type_of_resource_options($includ
   $retarray['software; multimedia'] = 'software; multimedia';
   $retarray['mixed material'] = 'mixed material';
   return $retarray;
+}
+
+function islandora_digital_workflow_purge_ds_for_identifiers($identifiers, $dsid) {
+  module_load_include('inc', 'islandora_paged_content', 'includes/utilities');
+
+  $missing_identifiers = array();
+  $identifiers_arr = explode("\n", $identifiers);
+  $markup = '<div class="text-report">';
+  $ingest_namespace = islandora_digital_workflow_get_ingest_namespace();
+  foreach ($identifiers_arr as $identifier) {
+    $identifier = trim($identifier);
+    $pid = $ingest_namespace . $identifier;
+    $islandora_object = islandora_object_load($pid);
+    if (is_object($islandora_object)) {
+      $is_paged = islandora_digital_workflow_is_paged_object($islandora_object);
+      $pages = ($is_paged) ? islandora_paged_content_get_pages($islandora_object) : array();
+      islandora_digital_workflow_purge_childpages_datastreams($islandora_object, $pages, $dsid);
+      if (!$is_paged) {
+        @$islandora_object->purgeDatastream($dsid);
+      }
+      $markup .= '<div class="good">Successfully purged ' . $dsid . ' datastream for ' .
+          (($is_paged ? 'all pages of ' : '')) . $pid . '.</div>';
+    }
+    else {
+      if ($identifier) {
+        $missing_identifiers[] = $identifier;
+      }
+    }
+  }
+  if (count($missing_identifiers) > 0) {
+    drupal_set_message('Some identifiers could not be found ' . implode(", ", $missing_identifiers), 'warning');
+  }
+  $markup .= '</div>';
+  return $markup;
+}
+
+/**
+ * Helper function that will purge the datastreams from the child page objects - used
+ * after PDF, or OCR datastreams have been aggregated successfully.  This will check for the
+ * datastream to exist on the parent object before deleting the child's datastreams.
+ *
+ */
+function islandora_digital_workflow_purge_childpages_datastreams($islandora_object, $pages, $dsid) {
+  // Remove the PDF datastreams for all child pages if the PDF has been aggregated
+  if (isset($islandora_object[$dsid])) {
+    foreach ($pages as $page) {
+      $page_object = islandora_object_load($page['pid']);
+      $datastream = @$page_object[$dsid];
+      if ($datastream) {
+        @$page_object->purgeDatastream($dsid);
+      }
+    }
+  }
 }

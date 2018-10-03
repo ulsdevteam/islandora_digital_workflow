@@ -33,26 +33,53 @@ function islandora_digital_workflow_lookup_form_submitted($searchterm = '') {
   // Try to load a islandora_digital_workflow_batch record by name ... if it 
   // does not come back, the searchterm may relate to an identifier that is
   // associated with a batch.
+  $breadcrumb = array(
+    l(t('Home'), '<front>'),
+    l(t('Islandora Digital Workflow'), 'islandora/islandora_digital_workflow'),
+  );
+  if ($searchterm) {
+    $breadcrumb[] = 'Searched for "' . $searchterm . '"';
+  }
+  drupal_set_breadcrumb($breadcrumb);
+
   $matched_csv_only = FALSE;
+  $reason = '';
   $batch_records = islandora_digital_workflow_find_batch_records_by_name($searchterm);
   if (!is_array($batch_records) || count($batch_records) < 1) {
     $batch_records = islandora_digital_workflow_find_batch_records_by_description($searchterm);
   }
+  elseif (!$reason) {
+    $reason = 'batch name';
+  }
   if (!is_array($batch_records) || count($batch_records) < 1) {
     $batch_records = islandora_digital_workflow_get_batch_record_by_items_identifier($searchterm);
+  }
+  elseif (!$reason) {
+    $reason = 'batch description';
   }
   if (!is_array($batch_records) || count($batch_records) < 1) {
     $batch_records = islandora_digital_workflow_search_batch_csv_by_identifier($searchterm);
     $matched_csv_only = TRUE;
+    // This time, setting the reason must be done right after the call to find
+    // matching batch records, because there are no other if conditionals that 
+    // would catch this after this attempt.
+    if (is_array($batch_records)) {
+      $reason = 'uploaded CSV file';
+    }
+  }
+  elseif (!$reason) {
+    // This if from the above call to find matches by items identifier
+    $reason = 'batch item identifier';
   }
   if (is_array($batch_records) && count($batch_records) > 0) {
     // If there is only one result, jump to that page --- else, present the
     // results as a list that can be used to jump to each.
     if (count($batch_records) < 2) {
       drupal_set_message(t('Located batch "@batch_name" by an item that matched ' .
-          'identifier value "@searchterm".',
+          '"@searchterm" <em>in <b>@reason</b> values</em>', // 'identifier value "@searchterm".',
           array('@batch_name' => $batch_records[0]->batch_name,
-              '@searchterm' => $searchterm)));
+              '@searchterm' => $searchterm,
+              '@reason' => $reason)));
       if ($batch_records[0]->nid) {
         drupal_goto('node/' . $batch_records[0]->nid . '/batch');
       }
@@ -64,23 +91,36 @@ function islandora_digital_workflow_lookup_form_submitted($searchterm = '') {
       module_load_include('inc', 'islandora_digital_workflow', 'includes/lookup.form');
       $markup = theme('islandora_digital_workflow_lookup', array('searchterm' => ''));
 
-      return $markup . islandora_digital_workflow_highlight(islandora_digital_workflow_make_content_clean_output_to_search(theme('islandora_digital_workflow_lookup_results', array(
-          'batch_records' => $batch_records,
-          'results_count' => count($batch_records),
-          'searchterm' => $searchterm,
-          'matched_csv_only' => $matched_csv_only,
+      return $markup . islandora_digital_workflow_highlight(
+        islandora_digital_workflow_make_content_clean_output_to_highlight(
+          theme('islandora_digital_workflow_lookup_results', array(
+            'batch_records' => $batch_records,
+            'results_count' => count($batch_records),
+            'searchterm' => $searchterm,
+            'reason' => $reason,
+            'matched_csv_only' => $matched_csv_only,
+          )
         )
-      )), $searchterm);
+      ),
+      $searchterm);
     }
   }
   else {
     drupal_set_message('"' . $searchterm . '" ' . t('could not be located.'));
     drupal_goto('islandora/islandora_digital_workflow/');
   }
-
 }
 
-function islandora_digital_workflow_make_content_clean_output_to_search($content) {
+/**
+ *
+ *
+ * @param string $content
+ *   HTML content that needs to be cleaned for search.
+ * @return string
+ *   "cleaned" HTML content ready for highlighting.
+ *
+ */
+function islandora_digital_workflow_make_content_clean_output_to_highlight($content) {
   $content = htmlspecialchars_decode(str_replace(array(
       '&nbsp;',
     ), array(

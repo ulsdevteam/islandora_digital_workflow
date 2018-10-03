@@ -14,6 +14,8 @@
 * - $sequence_last_modified 
 *
 */
+  // This will be handy later when the l() function is used.
+  $link_button_class = array('attributes' => array('class' => array('link_button')));
 ?><div class="dashboard-report">
     <div class="small_right_float">
       <?php print l(t('Edit'), 'admin/islandora/islandora_digital_workflow/edit_workflow_sequence/' . $workflow_sequence_id); ?>
@@ -26,11 +28,11 @@
     <h3><a name="<?php print $sequence_name; ?>"><?php print l($sequence_name, 'admin/islandora/islandora_digital_workflow/edit_workflow_sequence/' . $workflow_sequence_id); ?></a></h3>
     <p><?php print $sequence_name; ?></p>
     <div class="lookup_result_square">
-      <p><b><?php print l(t('Models'), 'admin/islandora/islandora_digital_workflow/workflow_sequence_models/' . $workflow_sequence_id); ?>:</b> <?php print $models; ?></p>
+      <p><?php print l(t('Edit Models'), 'admin/islandora/islandora_digital_workflow/workflow_sequence_models/' . $workflow_sequence_id, $link_button_class); ?> <?php if ($models) { print 'Currently configured Models: ' . $models; } ?></p>
       <?php if ($is_mixed): ?>
         <ul>
         <?php foreach ($sequence_models as $model): ?>
-          <p><b><?php print l($model . t(' Actions'), 'admin/islandora/islandora_digital_workflow/workflow_sequences/' . $workflow_sequence_id . '|' . $model); ?>:</b></p>
+          <p><b><?php print l('Edit ' . $model . t(' Actions'), 'admin/islandora/islandora_digital_workflow/workflow_sequences/' . $workflow_sequence_id . '|' . $model, $link_button_class); ?>:</b></p>
           <ul>
           <?php if (array_key_exists($model, $markup_batch_actions) && count($markup_batch_actions[$model]) > 0): ?>
             <li class="no_indent">Batch actions
@@ -47,7 +49,7 @@
           <?php endif; ?>
         </ul>
       <?php else: ?>
-        <p><b><?php print l(t('Actions'), 'admin/islandora/islandora_digital_workflow/workflow_sequences/' . $workflow_sequence_id); ?>:</b></p>
+        <p><?php print l(t('Edit Actions'), 'admin/islandora/islandora_digital_workflow/workflow_sequences/' . $workflow_sequence_id, $link_button_class); ?></p>
         <ul>
         <?php if (count($markup_batch_actions) > 0): ?>
           <li class="no_indent">Batch actions

@@ -36,3 +36,14 @@ function stage_selection(control) {
     jQuery('.form-item-is-triggered-by-single-item label').addClass("disabled_text");
   }
 }
+
+function processing_mode_selected(control) {
+    if ((control.value === 'gen_notimelimit_OCR') || (control.value === 'gen_OCR')) {
+        jQuery('#edit-language-options').show();
+        jQuery('#edit-language-options').removeClass("display_none");
+    }
+    else {
+        jQuery('#edit-language-options').hide();
+        jQuery('#edit-language-options').addClass("display_none");
+    }
+}

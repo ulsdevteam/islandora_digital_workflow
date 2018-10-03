@@ -46,24 +46,38 @@ function islandora_digital_workflow_actual_process_form($form, &$form_state) {
       array_key_exists('values', $form_state['build_info']['args'][0])) {
     $form_state['values'] = $form_state['build_info']['args'][0]['values'];
     // "rebuild" will cause this to return the form rebuilt to the call from
-    // upitt_workflow_process_set to drupal_get_form.
+    // islandora_digital_workflow_process_set to drupal_get_form.
     $form_state['rebuild'] = TRUE;
+  }
+  $mode = (isset($_POST['mode'])) ?
+      $_POST['mode'] : '';
+  $ocr_language_display = ($mode == 'gen_OCR' || $mode == 'gen_notimelimit_OCR') ?
+      array() :
+      array('class' => array('display_none'));
+  $islandora_ocr_tesseract_enabled_languages = variable_get('islandora_ocr_tesseract_enabled_languages');
+  $selected_languages = array();
+  foreach ($islandora_ocr_tesseract_enabled_languages as $k => $v) {
+    if ($v) {
+      $selected_languages[$k] = $v;
+    }
   }
 
   $mode_options = array(
     '1' => 'Standard Processing',
-    'something' => 'Something',
+      'something' => 'Something',
+      'gen_OCR' => ' - Generate OCR',
+      'gen_notimelimit_OCR' => ' - Generate OCR (no time limit for tesseract)',
     '2' => 'Special Functionality',
-    'somethingelse' => 'Something else',
-    'blah' => 'And now for something completely different',
+      'somethingelse' => 'Something else',
+      'blah' => 'And now for something completely different',
     '3' => 'Info / Cleanup',
-    'check_ingested' => 'Check ingested',
+      'check_ingested' => 'Check ingested',
   );
   $form = array(
       'identifiers' => array(
           '#type' => 'textarea',
           '#title' => 'Identifiers',
-          '#description' => 'Enter item identifiers or batch names. Each barcode should be on a separate line.',
+          '#description' => 'Enter item identifiers or batch names. Each identifier should be on a separate line.',
           '#default_value' => ((array_key_exists('values', $form_state) && array_key_exists('identifiers', $form_state['values']))   ?
             $form_state['values']['identifiers'] : ''),
       ),
@@ -76,7 +90,17 @@ function islandora_digital_workflow_actual_process_form($form, &$form_state) {
           '#default_value' => ((array_key_exists('values', $form_state) && array_key_exists('mode', $form_state['values']))   ?
             $form_state['values']['mode'] : ''),
       ),
-
+      'language_options' => array(
+        '#type' => 'fieldset',
+        '#attributes' => $ocr_language_display,
+        'ocr_language' => array(
+          '#type' => 'select',
+          '#title' => 'OCR Language',
+          '#description' => 'Select the language to use for performing the OCR. ' . l('configure the available languages', '/admin/islandora/tools/ocr') . '.',
+          '#options' => $selected_languages,
+          '#default_value' => 'eng',
+        ),
+      ),
       'submit' => array(
           '#type' => 'submit',
           '#value' => t('Submit'),
@@ -230,6 +254,11 @@ function islandora_digital_workflow_process_mode__blah(&$identifiers_array) {
   return "<br>blah tested<hr>" . $markup;
 }
 
+/**
+ *
+ * @param type $process_set_id
+ * @return type
+ */
 function islandora_digital_workflow_process_set($process_set_id) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
 
@@ -243,4 +272,83 @@ function islandora_digital_workflow_process_set($process_set_id) {
   $process_form = drupal_get_form($form_name, $form_state);
 
   return drupal_render($process_form);
+}
+
+
+function islandora_digital_workflow_gen_OCR_for_identifiers($identifiers) {
+  $markup = islandora_digital_workflow_purge_ds_for_identifiers($identifiers, 'OCR');
+  global $user;
+  $identifiers_arr = explode("\n", $identifiers);
+  $ocr_language = isset($_POST['ocr_language']) ? $_POST['ocr_language'] : 'eng';
+
+  $markup .= '<div class="text-report">';
+  $markup .= '<h2>Generate OCR derivatives for These Barcodes</h2><pre style="color:blue">' . implode("\n", $identifiers_arr) . '</pre><hr>';
+  $ingest_namespace = islandora_digital_workflow_get_ingest_namespace();
+
+  foreach ($identifiers_arr as $identifier) {
+    $identifier = trim($identifier);
+    $this_domain = 'http://' . $_SERVER['HTTP_HOST'];
+    $pid = $ingest_namespace . $identifier;
+
+    $islandora_object = islandora_object_load($pid);
+    if (!is_object($islandora_object)) {
+      $markup .= '<div class="bad">Object not found ' . $pid . '</div>';
+    }
+    if (!islandora_digital_workflow_is_paged_object($islandora_object)) {
+      $markup .= '<div class="bad">Object found ' . $pid . ', but it is not a paged content object.</div>';
+    } else {
+      $drush_command = 'drush -v -u ' . $user->uid . ' --uri=' . $this_domain .
+        ' upitt_workflow_generate_ocr_datastreams --paged_object_pid=' . $pid . ' --ocr_language=' . $ocr_language;
+      $markup .= '<h4>Called upitt_workflow_generate_ocr_datastreams</h4><code>' . $drush_command . '</code>';
+
+      $output = $return_var = array();
+      exec($drush_command, $output, $return_var);
+
+      if (($return_var == -1 || $return_var == 255 || $return_var == 1)) {
+        drupal_set_message('There was an error calling the drush command : ' . $drush_command);
+      }
+      $markup .= "<hr>drush command return = " . $return_var . "<br>drush command output = " . print_r($output, true) . "</pre>";
+    }
+  }
+  $markup .= '</div>';
+  return $markup;
+}
+
+function islandora_digital_workflow_gen_notimelimit_OCR_for_identifiers($identifiers) {
+  $markup = islandora_digital_workflow_purge_ds_for_identifiers($identifiers, 'OCR');
+  global $user;
+  $identifiers_arr = explode("\n", $identifiers);
+  $ocr_language = isset($_POST['ocr_language']) ? $_POST['ocr_language'] : 'eng';
+
+  $markup .= '<div class="text-report">';
+  $markup .= '<h2>Generate OCR derivatives for These Barcodes (no time limit)</h2><pre style="color:blue">' . implode("\n", $identifiers_arr) . '</pre><hr>';
+  $ingest_namespace = islandora_digital_workflow_get_ingest_namespace();
+
+  foreach ($identifiers_arr as $identifier) {
+    $identifier = trim($identifier);
+    $this_domain = 'http://' . $_SERVER['HTTP_HOST'];
+    $pid = $ingest_namespace . $identifier;
+
+    $islandora_object = islandora_object_load($pid);
+    if (!is_object($islandora_object)) {
+      $markup .= '<div class="bad">Object not found ' . $pid . '</div>';
+    }
+    if (!islandora_digital_workflow_is_paged_object($islandora_object)) {
+      $markup .= '<div class="bad">Object found ' . $pid . ', but it is not a paged content object.</div>';
+    } else {
+      $drush_command = 'drush -v -u ' . $user->uid . ' --uri=' . $this_domain .
+        ' upitt_workflow_generate_notimelimit_ocr_datastreams --paged_object_pid=' . $pid . ' --ocr_language=' . $ocr_language;
+      $markup .= '<h4>Called upitt_workflow_generate_notimelimit_ocr_datastreams</h4><code>' . $drush_command . '</code>';
+
+      $output = $return_var = array();
+      exec($drush_command, $output, $return_var);
+
+      if (($return_var == -1 || $return_var == 255 || $return_var == 1)) {
+        drupal_set_message('There was an error calling the drush command : ' . $drush_command);
+      }
+      $markup .= "<hr>drush command return = " . $return_var . "<br>drush command output = " . print_r($output, true) . "</pre>";
+    }
+  }
+  $markup .= '</div>';
+  return $markup;
 }

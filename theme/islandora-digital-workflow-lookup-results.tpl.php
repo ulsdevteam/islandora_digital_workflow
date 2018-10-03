@@ -14,9 +14,11 @@
 ?>
 <div class="lookup_results">
     <h3>Searched for "<?php print $searchterm; ?>"</h3>
-    <p>Found <?php print $results_count; ?> results
-      <?php if ($matched_csv_only) : ?> <i>(found only in uploaded CSV file)</i><?php endif; ?>.
-    </p>
+    <p>Found <?php print $results_count; ?> results<?php
+    if ($matched_csv_only) : ?> <i>(found only in uploaded CSV file)</i><?php endif; ?><?php
+    if ($reason): ?>
+    <em>found in <b><?php print $reason; ?></b> values</em>
+    <?php endif; ?></p>
 
     <?php $toggle = FALSE; ?>
     <?php foreach ($batch_records as $batch_record) { ?>

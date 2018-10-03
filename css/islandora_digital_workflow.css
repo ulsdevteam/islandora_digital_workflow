@@ -181,36 +181,10 @@ span.transaction_action_reserved_action_spacer {
 #edit-add-batch-action option[value="4"] { background:url(../images/check-out-physical-item_20.png) no-repeat;}
 #edit-add-batch-action option[value="5"] { background:url(../images/rescanned-the-item_20.png) no-repeat;}
 
-.stage_New, .stage_Scanned, .stage_Problem, .stage_Reviewed, .stage_Done {
-    padding: 4px;
-    border-radius: 4px;
+#edit-mode option[value="0"], #edit-mode option[value="1"], #edit-mode option[value="2"], #edit-mode option[value="3"] {
+  font-weight: bold;
+  text-transform: uppercase;
 }
-
-.stage_New, .stage_New a {
-    background-color: #48d;
-    color: #FFF;
-}
-
-.stage_Scanned,  .stage_Scanned a {
-    background-color: #472;
-    color: #FFF;
-}
-
-.stage_Problem, .stage_Problem a {
-    background-color: #F00;
-    color: #FF3;
-}
-
-.stage_Reviewed, .stage_Reviewed a {
-    background-color: #DDD;
-    color: #888;
-}
-
-.stage_Done, .stage_Done a{
-    background-color: #2C2;
-    color: #FFF;
-}
-/* The above block could be customized in the dynamically created CSS */
 
 .dashboard-task h3, .corner_bordered h3 {
     font-size: 1.2em;
@@ -242,14 +216,15 @@ div.info {
   background-image: url("../images/message-24-info.png");
   border-color: #bbb;
 }
-div.info,
-.info {
+
+div.info, .info {
   color: #444;
 }
-div.info,
-table tr.info {
+
+div.info, table tr.info {
   background-color: #F4F4F4;
 }
+
 div.info p.info {
   color: #333;
 }
@@ -804,4 +779,16 @@ ul.admin-links {
 
 td.slide-cross {
     min-width: 38px;
+}
+
+.link_button {
+  font: bold 11px Arial;
+  text-decoration: none;
+  background-color: #EEEEEE;
+  color: #333333;
+  padding: 2px 6px 2px 6px;
+  border-top: 1px solid #CCCCCC;
+  border-right: 1px solid #333333;
+  border-bottom: 1px solid #333333;
+  border-left: 1px solid #CCCCCC;
 }

@@ -347,8 +347,9 @@ function islandora_digital_workflow_workflow_sequence_create_submit($form, &$for
   ))->fetchAll();
 
   $result_obj = array_pop($results);
-  $edit_models_link = l(t('Models'), 'admin/islandora/islandora_digital_workflow/workflow_sequence_models/' . $result_obj->workflow_sequence_id);
-  $edit_actions_link = l(t('Actions'), 'admin/islandora/islandora_digital_workflow/workflow_sequences/' . $result_obj->workflow_sequence_id);
+  $link_button_class = array('attributes' => array('class' => array('link_button')));
+  $edit_models_link = l(t('Models'), 'admin/islandora/islandora_digital_workflow/workflow_sequence_models/' . $result_obj->workflow_sequence_id, $link_button_class);
+  $edit_actions_link = l(t('Actions'), 'admin/islandora/islandora_digital_workflow/workflow_sequences/' . $result_obj->workflow_sequence_id, $link_button_class);
   drupal_set_message('The new workflow sequence has been saved.  Manage ' . $edit_models_link . ' | ' . $edit_actions_link);
   drupal_goto('admin/islandora/islandora_digital_workflow/workflow_sequences');
 }
@@ -448,8 +449,9 @@ function islandora_digital_workflow_workflow_sequence_edit_submit($form, &$form_
             ':is_mixed' => $form_state['values']['sequence_is_mixed'],
             ':workflow_sequence_id' => $workflow_sequence_id,
     ));
-    $edit_models_link = l(t('Models'), 'admin/islandora/islandora_digital_workflow/workflow_sequence_models/' . $workflow_sequence_id);
-    $edit_actions_link = l(t('Actions'), 'admin/islandora/islandora_digital_workflow/workflow_sequences/' . $workflow_sequence_id);
+    $link_button_class = array('attributes' => array('class' => array('link_button')));
+    $edit_models_link = l(t('Models'), 'admin/islandora/islandora_digital_workflow/workflow_sequence_models/' . $workflow_sequence_id, $link_button_class);
+    $edit_actions_link = l(t('Actions'), 'admin/islandora/islandora_digital_workflow/workflow_sequences/' . $workflow_sequence_id, $link_button_class);
     drupal_set_message('The workflow sequence has been saved.  Manage ' . $edit_models_link . ' | ' . $edit_actions_link);
     drupal_goto('admin/islandora/islandora_digital_workflow/workflow_sequences');
   }
@@ -505,12 +507,14 @@ function islandora_digital_workflow_workflow_sequence_actions_form(array $form, 
       }
     }
   }
-  $models_link = l(t('Edit models association'), 'admin/islandora/islandora_digital_workflow/workflow_sequence_models/' . $workflow_sequence_id);
+  $link_button_class = array('attributes' => array('class' => array('link_button')));
+  $models_link = '<br>' . l(t('Edit Models for this sequence'),
+      'admin/islandora/islandora_digital_workflow/workflow_sequence_models/' . $workflow_sequence_id, $link_button_class) . ' &nbsp;';
 
-  $models_desc =  str_replace(": ,", ": (default), ", '.  Current Models using this sequence: ' .
+  $models_desc =  str_replace(": ,", ": (default), ", 'Current Models using this sequence: ' .
         ((array_key_exists($workflow_sequence_id, $workflow_model_sequences)) ? 
             implode(", ", $workflow_model_sequences[$workflow_sequence_id]) :
-            '(none)') . '. ');
+            '(none)') . '.');
 
   $form = array(
     '#tree' => TRUE,
@@ -539,11 +543,6 @@ function islandora_digital_workflow_workflow_sequence_actions_form(array $form, 
           '#options' => $insert_batch_action_options,
           '#default_value' => '',
           '#attributes' => array('class' => array('batch_action')),
-      ),
-      'models' => array(
-          '#type' => 'item',
-          '#title' => t('Models'),
-          '#description' => $models_link . $models_desc,
       ),
     ),
     'model' => array(
@@ -612,6 +611,11 @@ function islandora_digital_workflow_workflow_sequence_actions_form(array $form, 
   drupal_set_breadcrumb($breadcrumb);
 
   $form['submit'] = array('#type' => 'submit', '#value' => t('Save changes'));
+  $form['models'] = array(
+      '#type' => 'item',
+      '#title' => t('Models'),
+      '#description' => $models_link . $models_desc,
+  );
 
   $related_batch_nodes = islandora_digital_workflow_get_batches_by_workflow_sequence_id($workflow_sequence_id);
 
@@ -815,6 +819,10 @@ function islandora_digital_workflow_workflow_sequence_models_form(array $form, a
   );
   drupal_set_breadcrumb($breadcrumb);
 
+  $link_button_class = array('attributes' => array('class' => array('link_button')));
+  $actions_link = '<br>' . l(t('Edit Actions for this sequence'),
+      'admin/islandora/islandora_digital_workflow/workflow_sequences/' . $workflow_sequence_id, $link_button_class);
+
   // Have two controls -- one to add another model to use this sequence and the 
   // other to remove a currently configured model from this sequence.
   $form = array('configured_wrapper' => array(
@@ -864,6 +872,12 @@ function islandora_digital_workflow_workflow_sequence_models_form(array $form, a
         '#type' => 'submit',
         '#value' => t('Save changes')
       );
+
+  $form['actions'] = array(
+      '#type' => 'item',
+      '#title' => t('Actions'),
+      '#description' => $actions_link,
+  );
 
   $related_batch_nodes = islandora_digital_workflow_get_batches_by_workflow_sequence_id($workflow_sequence_id);
 
