@@ -437,8 +437,7 @@ td.as_textarea {
     margin-bottom: 4px;
     white-space: pre;
     font-family: monospace;
-    color: #BBFFBB;
-    background-color: black;
+    background-color: #f8f8f8;
 }
 
 table.report tr.oddrow td textarea, table.report tr.oddrow, .report_table fieldset.oddrow, .report_table table tr.oddrow {
@@ -782,13 +781,21 @@ td.slide-cross {
 }
 
 .link_button {
-  font: bold 11px Arial;
   text-decoration: none;
-  background-color: #EEEEEE;
-  color: #333333;
+  background-color: #e1e1e1;
+  color: #333;
   padding: 2px 6px 2px 6px;
-  border-top: 1px solid #CCCCCC;
-  border-right: 1px solid #333333;
-  border-bottom: 1px solid #333333;
-  border-left: 1px solid #CCCCCC;
+  border-top: 1px solid #aaa;
+  border-right: 1px solid #666;
+  border-bottom: 1px solid #666;
+  border-left: 1px solid #aaa;
+}
+
+.link_button:hover {
+  text-decoration: none;
+  background-color: #E5F1FB;
+  border-top: 1px solid #4397D3;
+  border-right: 1px solid #0068B7;
+  border-bottom: 1px solid #0068B7;
+  border-left: 1px solid #4397D3;
 }

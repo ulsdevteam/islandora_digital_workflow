@@ -44,34 +44,24 @@ function islandora_digital_workflow_lookup_form_submitted($searchterm = '') {
 
   $matched_csv_only = FALSE;
   $reason = '';
-  $batch_records = islandora_digital_workflow_find_batch_records_by_name($searchterm);
-  if (!is_array($batch_records) || count($batch_records) < 1) {
-    $batch_records = islandora_digital_workflow_find_batch_records_by_description($searchterm);
-  }
-  elseif (!$reason) {
-    $reason = 'batch name';
-  }
-  if (!is_array($batch_records) || count($batch_records) < 1) {
-    $batch_records = islandora_digital_workflow_get_batch_record_by_items_identifier($searchterm);
-  }
-  elseif (!$reason) {
-    $reason = 'batch description';
-  }
-  if (!is_array($batch_records) || count($batch_records) < 1) {
-    $batch_records = islandora_digital_workflow_search_batch_csv_by_identifier($searchterm);
-    $matched_csv_only = TRUE;
-    // This time, setting the reason must be done right after the call to find
-    // matching batch records, because there are no other if conditionals that 
-    // would catch this after this attempt.
-    if (is_array($batch_records)) {
-      $reason = 'uploaded CSV file';
+  $found_batch_records = array();
+  $found_total = 0;
+  $records = islandora_digital_workflow_find_batch_records_by_name($searchterm);
+  $found_batch_records['batch name'] = $records;
+  $found_total += ((is_array($records)) ? count($records) : 0);
+  $records = islandora_digital_workflow_find_batch_records_by_description($searchterm);
+  $found_batch_records['batch description'] = $records;
+  $found_total += ((is_array($records)) ? count($records) : 0);
+  $records = islandora_digital_workflow_get_batch_record_by_items_identifier($searchterm);
+  $found_batch_records['batch item identifier'] = $records;
+  $found_total += ((is_array($records)) ? count($records) : 0);
+  $records = islandora_digital_workflow_search_batch_csv_by_identifier($searchterm);
+  $found_batch_records['uploaded CSV file'] = $records;
+  $found_total += ((is_array($records)) ? count($records) : 0);
+
+  if ($found_total == 1) {
+    foreach ($found_batch_records as $reason => $batch_records) {
     }
-  }
-  elseif (!$reason) {
-    // This if from the above call to find matches by items identifier
-    $reason = 'batch item identifier';
-  }
-  if (is_array($batch_records) && count($batch_records) > 0) {
     // If there is only one result, jump to that page --- else, present the
     // results as a list that can be used to jump to each.
     if (count($batch_records) < 2) {
@@ -87,23 +77,23 @@ function islandora_digital_workflow_lookup_form_submitted($searchterm = '') {
         drupal_goto('islandora/islandora_digital_workflow/edit_batch/' . $batch_records[0]->batch_name);
       }
     }
-    else {
-      module_load_include('inc', 'islandora_digital_workflow', 'includes/lookup.form');
-      $markup = theme('islandora_digital_workflow_lookup', array('searchterm' => ''));
-
-      return $markup . islandora_digital_workflow_highlight(
-        islandora_digital_workflow_make_content_clean_output_to_highlight(
-          theme('islandora_digital_workflow_lookup_results', array(
-            'batch_records' => $batch_records,
-            'results_count' => count($batch_records),
-            'searchterm' => $searchterm,
-            'reason' => $reason,
-            'matched_csv_only' => $matched_csv_only,
-          )
+  }
+  if ($found_total > 1) {
+    $markup = theme('islandora_digital_workflow_lookup', array('searchterm' => ''));
+    // reorder the found_batch_records so that it removes duplicates and sorts
+    // by the number of match reasons.
+    $found_batch_records = islandora_digital_workflow_ungroup_search_records($found_batch_records);
+    return $markup . islandora_digital_workflow_highlight(
+      islandora_digital_workflow_make_content_clean_output_to_highlight(
+        theme('islandora_digital_workflow_lookup_results', array(
+          'batch_records' => $found_batch_records,
+          'results_count' => count($found_batch_records),
+          'searchterm' => $searchterm,
+          'matched_csv_only' => $matched_csv_only,
         )
-      ),
-      $searchterm);
-    }
+      )
+    ),
+    $searchterm);
   }
   else {
     drupal_set_message('"' . $searchterm . '" ' . t('could not be located.'));
@@ -112,13 +102,12 @@ function islandora_digital_workflow_lookup_form_submitted($searchterm = '') {
 }
 
 /**
- *
+ * This returns some "cleaned" output that is ready to be highlighted.
  *
  * @param string $content
  *   HTML content that needs to be cleaned for search.
  * @return string
  *   "cleaned" HTML content ready for highlighting.
- *
  */
 function islandora_digital_workflow_make_content_clean_output_to_highlight($content) {
   $content = htmlspecialchars_decode(str_replace(array(
@@ -127,4 +116,50 @@ function islandora_digital_workflow_make_content_clean_output_to_highlight($cont
       ' ',
     ), $content));
   return $content;
+}
+
+/**
+ * This will ungroup the search results arrays that contain arrays of results
+ * that are keyed by the reason they match.  The final array is sorted by the
+ * # of matched reasons (reverse high to low).
+ *
+ * @param array $found_batch_records
+ *   An array of batch records that matched a search, but the results are each
+ * grouped into a sub-array with the key of that array being their "match reason".
+ * @return array
+ *   An array of search results (batch records objects) with an additional
+ * property that specifies their reasons of matching the search.
+ */
+function islandora_digital_workflow_ungroup_search_records($found_batch_records) {
+  $raw_records_found = $records_found = $keysort_results = array();
+  foreach ($found_batch_records as $reason => $found_records) {
+    foreach ($found_records as $found_record_obj) {
+      if (!(array_key_exists($found_record_obj->batch_id, $raw_records_found))) {
+        $raw_records_found[$found_record_obj->batch_id] = $found_record_obj;
+      }
+      if (!isset($raw_records_found[$found_record_obj->batch_id]->reasons)) {
+        $raw_records_found[$found_record_obj->batch_id]->reasons = array($reason);
+      }
+      else {
+        $raw_records_found[$found_record_obj->batch_id]->reasons[] = $reason;
+      }
+    }
+  }
+  foreach ($raw_records_found as $batch_id => $found_object) {
+    $reasons_count = count($found_object->reasons);
+    $keysort_results[$reasons_count][] = $found_object;
+  }
+  ksort($keysort_results);
+  $keysort_results = array_reverse($keysort_results);
+  foreach ($keysort_results as $result) {
+    if (is_array($result)) {
+      foreach ($result as $result_item) {
+        $records_found[] = $result_item;
+      }
+    }
+    else {
+      $records_found[] = $result;
+    }
+  }
+  return $records_found;
 }
