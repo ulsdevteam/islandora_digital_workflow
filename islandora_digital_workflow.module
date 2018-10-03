@@ -152,7 +152,7 @@ function islandora_digital_workflow_menu() {
     // Lookup form
     'islandora/islandora_digital_workflow/lookup' => array(
       'page callback' => array('islandora_digital_workflow_lookup'),
-      'type' => MENU_NORMAL_ITEM,
+      'type' => MENU_SUGGESTED_ITEM,
       'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW),
       'file' => 'includes/lookup.form.inc',
     ),
@@ -160,7 +160,7 @@ function islandora_digital_workflow_menu() {
     // result, else displays the lookup results.
     'islandora/islandora_digital_workflow/lookup/%' => array(
       'title' => t('Islandora Digital Workflow Search'),
-      'type' => MENU_NORMAL_ITEM,
+      'type' => MENU_SUGGESTED_ITEM,
       'page callback' => array('islandora_digital_workflow_lookup_form_submitted'),
       'page arguments' => array(3),
       'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW),

@@ -56,25 +56,25 @@ function islandora_digital_workflow_get_dashboard_links() {
   $priorities_vocab = taxonomy_vocabulary_machine_name_load(IDW_BATCH_PRIORITY_TAXONOMY_MACHINE_NAME);
   $content_type_vocab = taxonomy_vocabulary_machine_name_load(IDW_CONTENT_TYPE_TAXONOMY_MACHINE_NAME);
   $accessible_models = islandora_digital_workflow_get_cmodels_having_sequences();
+  $priority_terms = islandora_digital_workflow_sort_array_objects_by_weight(islandora_digital_workflow_get_all_terms_of_vocab($priorities_vocab));
+  $stages_terms = islandora_digital_workflow_sort_array_objects_by_weight(islandora_digital_workflow_get_all_terms_of_vocab($stages_vocab));
 
   $node_count = islandora_digital_workflow_get_count_of_nodes_by_tid();
   $all_batches_link = l(t('All Batches'), '/islandora/islandora_digital_workflow/batches/all') .
           ($node_count ? ' <span class="small_lt_text">- ' . $node_count . ' batch' . ($node_count == 1 ? '' : 'es'). '</span>' : '');
   $links = array('batch_stages' => array($all_batches_link));
 
-  $stages = array('New', 'Scanned', 'Problem', 'Reviewed', 'Done');
-  foreach ($stages as $stage) {
-    $tid = islandora_digital_workflow_get_tid_by_name($stage, $stages_vocab);
+  foreach ($stages_terms as $tid => $stage_obj) {
     $node_count = islandora_digital_workflow_get_count_of_nodes_by_tid('field_stage', $tid);
-    $links['batch_stages'][] = l($stage, '/islandora/islandora_digital_workflow/batches/' . $tid) .
+    $link_att = array('attributes' => array('title' => $stage_obj->description));
+    $links['batch_stages'][] = l($stage_obj->name, '/islandora/islandora_digital_workflow/batches/' . $tid, $link_att) .
         ($node_count ? ' <span class="small_lt_text">- ' . $node_count . ' batch' . ($node_count == 1 ? '' : 'es'). '</span>' : '');
   }
 
   $priorities = array('Highest', 'High', 'Regular', 'Low', 'Lowest');
-  foreach ($priorities as $priority) {
-    $tid = islandora_digital_workflow_get_tid_by_name($priority, $priorities_vocab);
+  foreach ($priority_terms as $tid => $priority_obj) {
     $node_count = islandora_digital_workflow_get_count_of_nodes_by_tid('field_priority', $tid);
-    $links['batch_priorities'][] = l($priority, 'taxonomy/term/' . $tid) .
+    $links['batch_priorities'][] = l($priority_obj->name, 'taxonomy/term/' . $tid) .
         ($node_count ? ' <span class="small_lt_text">- ' . $node_count . ' batch' . ($node_count == 1 ? '' : 'es'). '</span>' : '');
   }
 

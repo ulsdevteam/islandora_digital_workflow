@@ -2575,3 +2575,52 @@ function islandora_digital_workflow_purge_childpages_datastreams($islandora_obje
     }
   }
 }
+
+/**
+ * This will sort the array of objects by their weight field value.
+ *
+ * If the object does not have a weight field value, the $fallback_field_name value will
+ * be used.
+ *
+ * @param array $array_of_objects
+ *   Array of objects - for example an array of Drupal vocabulary terms.
+ * @param string $fallback_field_name
+ *   OPTIONAL parameter to specify the field to use if any of the objects does
+ * not have the weight field set.
+ * @param string $final_key_field
+ *   Optional parameter to specify the object's field name used as the key for
+ * the final array.
+ * @return array
+ *   Structure should be the same as the passed array, but sorted items by
+ * their underlying objects' weight values.
+ */
+function islandora_digital_workflow_sort_array_objects_by_weight($array_of_objects, $fallback_field_name = 'tid', $final_key_field = 'tid') {
+  $sorted_array = array();
+  $sort_field = 'weight';
+  // Loop through to be sure that all have a weight -- else, use the tid field,
+  // else set to 'tid'
+  foreach ($array_of_objects as $object_index => $object) {
+    if (!isset($object->weight)) {
+      // Other fields on an object *could be* tested and coded for here.
+      $sort_field = $fallback_field_name;
+    }
+  }
+
+  foreach ($array_of_objects as $object_index => $object) {
+    $sorted_array[$object->$sort_field][] = array($object_index => $object);
+  }
+
+  ksort($sorted_array);
+  if (count($sorted_array) > 0) {
+    $return_array = array();
+    foreach ($sorted_array as $sorted_kv => $object_array) {
+      foreach ($object_array as $obj_index => $object) {
+        $object = array_pop($object);
+        $return_array[$object->$final_key_field] = $object;
+      }
+    }
+    return $return_array;
+  } else {
+    return $array_of_objects;
+  }
+}
