@@ -1317,7 +1317,7 @@ function islandora_digital_workflow_prepare_csv2mods($input_filename, $batch_rec
 
     $identifiers_and_filepaths[] = array(
         'title' => $title,
-        'identifier' => $ingest_namespace . $row_mods_id,
+        'identifier' => $row_mods_id,
         'filename' => $row_file_name,
         'mods_filename' => $filename);
     $row_counter++;
@@ -1425,18 +1425,56 @@ function islandora_digital_workflow_runXslTransform($info) {
  *   The modified markup that could contain highlights.
  */
 function islandora_digital_workflow_highlight($text, $word, $case_sensitive = FALSE) {
+  $lines = explode("\r\n", $text);
+  $opened_tag = FALSE;
+  $render_output = '';
+  $tag_queue = '';
+  $current_queue = '';
+  foreach ($lines as $line) {
+    for ($line_index = 0; $line_index  < strlen($line); $line_index ++) {
+      if ($line[$line_index] == '<') {
+        $render_output .= $tag_queue . ($tag_queue ? '>' : '') . islandora_digital_workflow_highlight_queue_replacement($current_queue, $word, $case_sensitive);
+        $tag_queue = '';
+        $current_queue = '';
+      }
+      $opened_tag |= ($line[$line_index] == '<');
+      if ($opened_tag && ($line[$line_index] == '>')) {
+        $opened_tag = FALSE;
+      }
+      elseif (!$opened_tag) {
+        $current_queue .= $line[$line_index];
+      }
+      if ($opened_tag) {
+        $tag_queue .= $line[$line_index];
+      }
+    }
+    $render_output .= "\r\n";
+  }
+  $render_output .= islandora_digital_workflow_highlight_queue_replacement($current_queue, $word, $case_sensitive);
+  return $render_output;
+}
+/*
   $highlighted_text = "<span class='highlighted'>$word</span>";
   $text = ($case_sensitive) ?
       str_replace($word, $highlighted_text, $text) :
       str_ireplace($word, $highlighted_text, $text);
-  preg_match_all("'<a.*?href=\"(.*?)\"[^>]*?>(.*?)</a>'si", $text, $matches);
 
+  // Could fix other html replacements like attributes on any element
+  preg_match_all("'<a.*?href=\"(.*?)\"[^>]*?>(.*?)</a>'si", $text, $matches);
   foreach ($matches[1] as $messed_up_link) {
     $updated_link = str_replace("<span class='highlighted'>" . $word . "</span>", $word, $messed_up_link);
     if ($messed_up_link <> $updated_link) {
       $text = str_replace($messed_up_link, $updated_link, $text);
     }
   }
+  return $text;
+} */
+
+function islandora_digital_workflow_highlight_queue_replacement($text, $word, $case_sensitive = FALSE) {
+  $highlighted_text = "<span class='highlighted'>$word</span>";
+  $text = ($case_sensitive) ?
+      str_replace($word, $highlighted_text, $text) :
+      str_ireplace($word, $highlighted_text, $text);
   return $text;
 }
 

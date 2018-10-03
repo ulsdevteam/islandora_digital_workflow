@@ -105,10 +105,12 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
         }
       }
       drupal_set_message(t('This batch object record has been updated <br>' .
+          (($_POST['title'] <> $original_values->title) ?
           '<b>Previous Title:</b> "@o_title"<br>' .
-          '<b>Updated Title:</b> "<span class="@title_class">@u_title</span>"<br>' .
+          '<b>Updated Title:</b> "<span class="@title_class">@u_title</span>"<br>' : '') .
+          (($_POST['identifier'] <> $original_values->identifier) ?
           '<b>Previous Identifier:</b>"@o_identifier"<br>' .
-          '<b>Updated Identifier:</b> "<span class="@identifier_class">@u_identifier</span>"<br>' .
+          '<b>Updated Identifier:</b> "<span class="@identifier_class">@u_identifier</span>"<br>' : '') .
           (($mods_file_changed) ? '<b>MODS file changed:</b><i>changes not displayed here</i>' : '') .
           (($marc_file_changed) ? '<b>MARC file changed:</b><i>changes not displayed here</i>' : '') .
           (($is_paged_content) ?

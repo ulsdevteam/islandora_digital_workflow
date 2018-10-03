@@ -23,6 +23,14 @@ function islandora_digital_workflow_create_batch() {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/lookup.form');
   $lookup_form_markup = theme('islandora_digital_workflow_lookup', array('searchterm' => ''));
   $batch_name = arg(3);
+
+  $breadcrumb = array(
+    l(t('Home'), '<front>'),
+    l(t('Islandora Digital Workflow'), 'islandora/islandora_digital_workflow'),
+    ((!$batch_name) ? 'Create' : 'Edit') . ' Batch',
+  );
+  drupal_set_breadcrumb($breadcrumb);
+
   $form = (!$batch_name) ?
     drupal_get_form('islandora_digital_workflow_create_empty_batch_form') :
     drupal_get_form('islandora_digital_workflow_create_batch_form', $batch_name);

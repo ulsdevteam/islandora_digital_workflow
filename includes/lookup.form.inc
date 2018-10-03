@@ -53,19 +53,24 @@ function islandora_digital_workflow_lookup_form_submitted($searchterm = '') {
           'identifier value "@searchterm".',
           array('@batch_name' => $batch_records[0]->batch_name,
               '@searchterm' => $searchterm)));
-      drupal_goto('node/' . $batch_records[0]->nid . '/batch');
+      if ($batch_records[0]->nid) {
+        drupal_goto('node/' . $batch_records[0]->nid . '/batch');
+      }
+      else {
+        drupal_goto('islandora/islandora_digital_workflow/edit_batch/' . $batch_records[0]->batch_name);
+      }
     }
     else {
       module_load_include('inc', 'islandora_digital_workflow', 'includes/lookup.form');
       $markup = theme('islandora_digital_workflow_lookup', array('searchterm' => ''));
 
-      return $markup . islandora_digital_workflow_highlight(theme('islandora_digital_workflow_lookup_results', array(
+      return $markup . islandora_digital_workflow_highlight(islandora_digital_workflow_make_content_clean_output_to_search(theme('islandora_digital_workflow_lookup_results', array(
           'batch_records' => $batch_records,
           'results_count' => count($batch_records),
           'searchterm' => $searchterm,
           'matched_csv_only' => $matched_csv_only,
         )
-      ), $searchterm);
+      )), $searchterm);
     }
   }
   else {
@@ -75,3 +80,11 @@ function islandora_digital_workflow_lookup_form_submitted($searchterm = '') {
 
 }
 
+function islandora_digital_workflow_make_content_clean_output_to_search($content) {
+  $content = htmlspecialchars_decode(str_replace(array(
+      '&nbsp;',
+    ), array(
+      ' ',
+    ), $content));
+  return $content;
+}

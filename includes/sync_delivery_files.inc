@@ -144,6 +144,7 @@ function islandora_digital_workflow_sync_delivery_files_form_submit(array $form,
         // Update the "problem_resolved_timestamp" value for the related
         // problem state record of the item.
         islandora_digital_workflow_unset_problems_records($batch_record['batch_id']);
+        drupal_goto('node/' . $batch_record['nid']);
       }
     }
   }
