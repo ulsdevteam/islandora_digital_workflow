@@ -23,11 +23,18 @@ function islandora_digital_workflow_batch_items() {
   if ($node) {
     $breadcrumb[] = l($node->title, 'node/' . $node->nid);
   }
+  // Need to load the batch record related to the node so that we can access the
+  // batch's description.
+  $batch_record = islandora_digital_workflow_get_batch_record_by_nid($node->nid);
+
   drupal_set_breadcrumb($breadcrumb);
   $transactions_form = drupal_get_form('islandora_digital_workflow_batch_items_form', $node);
   $add_item_form = drupal_get_form('islandora_digital_workflow_add_item_form', $node);
   $add_items_form = drupal_get_form('islandora_digital_workflow_add_items_form', $node);
   $markup = $lookup_form_markup .
+      theme('islandora_digital_workflow_batch_description', array(
+          'description' => $batch_record['batch_description'],
+      )) .
       drupal_render($add_item_form) .
       drupal_render($add_items_form) .
       drupal_render($transactions_form);

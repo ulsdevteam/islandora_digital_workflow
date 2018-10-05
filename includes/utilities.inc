@@ -1976,21 +1976,21 @@ function islandora_digital_workflow_glyph_class($transaction_name) {
  * @return boolean
  *   TRUE if all required actions for the objects' workflow sequence are completed.
  */
-function islandora_digital_workflow_item_non_system_actions_all_done($item_record_transactions, $required_batch_actions) {
+function islandora_digital_workflow_item_ingest_prerequisites_all_done($item_record_transactions, $required_batch_actions) {
   // To see if all actions are done, loop through all of the item actions to see
   // if any of these are "stub transaction" objects that are needed to indicate
   // any required actions on the item that have not been completed.
   $retval = TRUE;
-  // Make an array of the required_batch_actions that are set to is_system_action.
-  $system_action_ids = array();
+  // Make an array of the required_batch_actions that are set to is_ingest_prerequisite.
+  $ingest_prerequisite_ids = array();
   foreach ($required_batch_actions as $required_batch_action) {
-    if ($required_batch_action['is_system_action']) {
-      $system_action_ids[] = $required_batch_action['action_id'];
+    if ($required_batch_action['is_ingest_prerequisite']) {
+      $ingest_prerequisite_ids[] = $required_batch_action['action_id'];
     }
   }
   foreach ($item_record_transactions as $transaction_obj) {
-    $action_is_system_action = !(array_search($transaction_obj->action_id, $system_action_ids) === FALSE);
-    if (!$action_is_system_action) {
+    $action_is_ingest_prerequisite = !(array_search($transaction_obj->action_id, $ingest_prerequisite_ids) === FALSE);
+    if (!$action_is_ingest_prerequisite) {
       $retval &= ($transaction_obj->transaction_id <> -1);
     }
   }

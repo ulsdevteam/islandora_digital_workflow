@@ -17,7 +17,10 @@ function islandora_digital_workflow_install() {
   // Insert workflow_batch node_type and create required CCK fields.
   islandora_digital_workflow_insert_workflow_batch_node_type();
   islandora_digital_workflow_create_cck_fields();
-  
+
+  // This will prevent these nodes from displaying that annoying info when
+  // rendered such as: "Submitted by TARKA on Tue, 10/02/2018 - 14:28"
+  variable_set('node_submitted_workflow_batch', FALSE);
   // Need to install the forena reports files
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
   islandora_digital_workflow_check_and_deploy_forena_reports();
@@ -83,6 +86,7 @@ function islandora_digital_workflow_uninstall() {
   variable_del('islandora_digital_workflow_use_isMemberOfSite');
   variable_del('islandora_digital_workflow_ingest_delivery_path');
   variable_del('islandora_digital_workflow_ingest_problems_path');
+  variable_del('node_submitted_workflow_batch');
 
   // Loop through the fields that are created for this module and delete them.
   // As a side-effect, this results in field_deleted_* tables being created on
@@ -702,7 +706,7 @@ function islandora_digital_workflow_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-      'is_system_action' => array(
+      'is_ingest_prerequisite' => array(
         'type' => 'int',
         'size' => 'tiny',
         'default' => 0,

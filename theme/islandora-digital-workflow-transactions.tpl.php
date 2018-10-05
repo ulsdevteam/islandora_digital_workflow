@@ -25,7 +25,7 @@
         $toggle = !$toggle;
         ?>
         <div class="lookup_result_indent">
-          <b>Description:</b> <?php print $batch_record->batch_description; ?>
+          <b>Description:</b> <?php print $batch_record['batch_description']; ?>
         </div>
     </div>
 

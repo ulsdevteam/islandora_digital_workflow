@@ -650,7 +650,11 @@ function islandora_digital_workflow_theme() {
           'footer' => '',
           'timestamps' => array(),
       ),
-    )
+    ),
+    'islandora_digital_workflow_batch_description' => array(
+      'variables' => array('description' => ''),
+      'template' => 'theme/islandora-digital-workflow-batch-description',
+    ),
   );
 }
 
@@ -809,7 +813,7 @@ function theme_islandora_digital_workflow_workflow_sequence_actions_form($variab
         drupal_render($form['wrapper']['rows'][$action_id]['action_id']),
         drupal_render($form['wrapper']['rows'][$action_id]['action_description']),
         drupal_render($form['wrapper']['rows'][$action_id]['is_required']),
-        drupal_render($form['wrapper']['rows'][$action_id]['is_system_action']),
+        drupal_render($form['wrapper']['rows'][$action_id]['is_ingest_prerequisite']),
         drupal_render($form['wrapper']['rows'][$action_id]['weight']),
         drupal_render($form['wrapper']['rows'][$action_id]['op']),
       ),
@@ -817,7 +821,7 @@ function theme_islandora_digital_workflow_workflow_sequence_actions_form($variab
     );
   }
 
-  $header = array('', '', t('Action (If empty, title is used)'), t('Required?'), t('System Action?'), t('Weight'), t('Operations'));
+  $header = array('', '', t('Action (If empty, title is used)'), t('Required?'), t('Ingest Prerequisite?'), t('Weight'), t('Operations'));
   $output = theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => array('id' => 'rows-order-' . $sequence_id)));
   $output .= drupal_render_children($form);
 

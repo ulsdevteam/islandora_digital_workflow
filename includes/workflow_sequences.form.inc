@@ -569,9 +569,9 @@ function islandora_digital_workflow_workflow_sequence_actions_form(array $form, 
           '#type' => 'checkbox',
           '#default_value' => $sequence_array['is_required'],
         ),
-        'is_system_action' => array(
+        'is_ingest_prerequisite' => array(
           '#type' => 'checkbox',
-          '#default_value' => $sequence_array['is_system_action'],
+          '#default_value' => $sequence_array['is_ingest_prerequisite'],
         ),
         'weight' => array(
           '#type' => 'weight',
@@ -688,7 +688,7 @@ function islandora_digital_workflow_workflow_sequence_actions_form_submit($form,
         'action_name' => $all_actions[$form_state['values']['wrapper']['add_new_item_action']]['name'],
         'workflow_sequence_id' => $workflow_sequence_id,
         'is_required' => 0,
-        'is_system_action' => 0,
+        'is_ingest_prerequisite' => 0,
         'weight' => 10,
     );
     $form_state['values']['wrapper']['rows'][$index] = $insert_row;
@@ -703,7 +703,7 @@ function islandora_digital_workflow_workflow_sequence_actions_form_submit($form,
         'action_name' => $all_actions[$form_state['values']['batch_wrapper']['add_new_batch_action']]['name'],
         'workflow_sequence_id' => $workflow_sequence_id,
         'is_required' => 0,
-        'is_system_action' => 0,
+        'is_ingest_prerequisite' => 0,
         'weight' => 10,
     );
     $form_state['values']['wrapper']['rows'][$index] = $insert_row;
@@ -734,13 +734,13 @@ function islandora_digital_workflow_workflow_sequence_actions_form_submit($form,
       if ($item['action_id'] <> $remove_item_action_id) {
         $replaced = db_query('REPLACE INTO {islandora_digital_workflow_sequence_actions} ' .
                 '(workflow_sequence_id, action_id, islandora_model, is_required, ' .
-                'is_system_action, `order`) ' .
+                'is_ingest_prerequisite, `order`) ' .
                 'VALUES (:workflow_sequence_id, :action_id, :islandora_model, :is_required, ' .
-                ':is_system_action, :weight)',
+                ':is_ingest_prerequisite, :weight)',
           array(
               ':weight' => $item['weight'],
               ':is_required' => $item['is_required'],
-              ':is_system_action' => $item['is_system_action'],
+              ':is_ingest_prerequisite' => $item['is_ingest_prerequisite'],
               ':workflow_sequence_id' => $workflow_sequence_id,
               ':action_id' => $item['action_id'],
               ':islandora_model' => $model,

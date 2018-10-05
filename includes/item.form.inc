@@ -212,7 +212,7 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
   }
   $can_ingest = (user_access(ISLANDORA_DIGITAL_WORKFLOW_INGEST_ITEMS) &&
       (is_array($required_batch_actions)) &&
-      islandora_digital_workflow_item_non_system_actions_all_done($item_record_transactions, $required_batch_actions));
+      islandora_digital_workflow_item_ingest_prerequisites_all_done($item_record_transactions, $required_batch_actions));
   return $lookup_form_markup .
       theme('islandora_digital_workflow_item', array(
         'batch_record' => $batch_record,

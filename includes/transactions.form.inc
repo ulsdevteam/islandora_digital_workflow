@@ -49,9 +49,7 @@ function islandora_digital_workflow_batch_transactions_form(array $form, array &
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
 
   $batch_name = $node->title;
-  $results = islandora_digital_workflow_find_batch_records_by_name($batch_name);
-  $batch_record = array_pop($results);
-
+  $batch_record = islandora_digital_workflow_get_batch_record_by_nid($node->nid);
   $transactions = islandora_digital_workflow_get_batch_transactions_by_nid($node->nid);
 
   $tr = theme('islandora_digital_workflow_transactions', array(
@@ -65,7 +63,7 @@ function islandora_digital_workflow_batch_transactions_form(array $form, array &
 
   $form['batch_id'] = array(
       '#type' => 'hidden',
-      '#value' => $batch_record->batch_id,
+      '#value' => $batch_record['batch_id'],
   );
   $form['info'] = array(
       '#type' => 'item',
