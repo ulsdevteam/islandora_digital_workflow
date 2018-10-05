@@ -1604,3 +1604,44 @@ function islandora_digital_workflow_get_process_set_records($process_set_id, &$m
     $items[] = $row->identifier;
   }
 }
+
+/**
+ * Helper function to return the tablename for a given primary key fieldname
+ *
+ * @param string $identifier_fieldname
+ *   The name of the primary key field.
+ * @return string
+ *   The name of the table if found, else an empty string.
+ */
+function islandora_digital_workflow_get_tablename_for_debug_fieldname($identifier_fieldname) {
+  $mapping = array('drush_log_id' => 'islandora_digital_workflow_drush_log');
+  return ((array_key_exists($identifier_fieldname, $mapping)) ? $mapping[$identifier_fieldname] : '');
+}
+
+/**
+ * This could bring back any one record from a table given the primary key value, 
+ * that primary key fieldname, and the tablename.
+ *
+ * @param integer $id_value
+ *   The value for the primary key field.
+ * @param string $id_fieldname
+ *   The name of the primary key field for the table
+ * @param string $table_name
+ *   The name of the table from which the debug record is coming.
+ * @return array
+ *   The record as an array.
+ */
+function islandora_digital_workflow_get_debug_record($id_value, $id_fieldname, $table_name) {
+  if ($table_name) {
+    $query = db_select($table_name, 't')
+        ->fields('t')
+        ->condition('t.' . $id_fieldname, $id_value)
+        ->range(0,1);
+    $results = $query->execute();
+    $row = $results->fetchAssoc();
+    return $row;
+  }
+  else {
+    return NULL;
+  }
+}

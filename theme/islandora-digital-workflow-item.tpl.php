@@ -199,7 +199,11 @@
           <td><?php print $drush_log_entry->user_link; ?></td>
           <td><?php print $drush_log_entry->timestamp; ?></td>
           <td><?php print $drush_log_entry->return_val; ?></td>
-          <td class="as_textarea"><?php foreach (unserialize($drush_log_entry->output) as $output_line): ?><?php print $output_line . "\n"; ?><?php endforeach; ?></td>
+          <td><div class="as_terminal_output"><?php foreach (unserialize($drush_log_entry->output) as $output_line): ?><?php print $output_line . "\n"; ?><?php
+          endforeach; ?></div><div><?php
+            print l('View fullscreen', 'islandora/islandora_digital_workflow/debug_view/drush_log_id/' . $drush_log_entry->drush_log_id,
+                    array('attributes' => array('class' => array('small_right_float'))));
+            ?></div></td>
       </tr>
     <?php endforeach; ?>
       </tbody>

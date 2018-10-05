@@ -1984,7 +1984,7 @@ function islandora_digital_workflow_item_ingest_prerequisites_all_done($item_rec
   // Make an array of the required_batch_actions that are set to is_ingest_prerequisite.
   $ingest_prerequisite_ids = array();
   foreach ($required_batch_actions as $required_batch_action) {
-    if ($required_batch_action['is_ingest_prerequisite']) {
+    if (!$required_batch_action['is_ingest_prerequisite']) {
       $ingest_prerequisite_ids[] = $required_batch_action['action_id'];
     }
   }

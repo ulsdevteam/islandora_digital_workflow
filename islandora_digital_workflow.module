@@ -344,6 +344,15 @@ function islandora_digital_workflow_menu() {
       'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW),
       'file' => 'includes/islandora_digital_workflow_css.inc',
     ),
+    // Handler to display a given debug value
+    'islandora/islandora_digital_workflow/debug_view/%/%' => array(
+      'title' => t('Islandora Digital Workflow - Debug entry viewer'),
+      'type' => MENU_NORMAL_ITEM,
+      'page callback' => array('islandora_digital_workflow_debug_view'),
+      // arguments are handled with arg(3) and arg(4)
+      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW),
+      'file' => 'includes/item.form.inc',
+    ),
 
     // autocomplete callback for places that need autocomplete on Islandora Models
     // that are limited to the ones supported by the digital workflow module.
@@ -654,6 +663,12 @@ function islandora_digital_workflow_theme() {
     'islandora_digital_workflow_batch_description' => array(
       'variables' => array('batch_record' => array()),
       'template' => 'theme/islandora-digital-workflow-batch-description',
+    ),
+    'islandora_digital_workflow_batch_debug_record' => array(
+      'template' => 'theme/islandora-digital-workflow-debug-record',
+      'variables' => array(
+        'debug_record' => array(),
+      ),
     ),
   );
 }

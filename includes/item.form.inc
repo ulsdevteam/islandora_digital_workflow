@@ -332,3 +332,30 @@ function islandora_digital_workflow_transaction_action_objects($merged_item_reco
   }
   return $return_array;
 }
+
+/**
+ * Simple handler to display a debug entry.
+ *
+ * @return array
+ *   The Drupal form definition.
+ */
+function islandora_digital_workflow_debug_view() {
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
+
+  $id_fieldname = arg(3);
+  $id_value = arg(4);
+  $table_name = islandora_digital_workflow_get_tablename_for_debug_fieldname($id_fieldname);
+  $debug_record = islandora_digital_workflow_get_debug_record($id_value, $id_fieldname, $table_name);
+  $debug_record_output = theme('islandora_digital_workflow_batch_debug_record', array(
+      'debug_record' => $debug_record,
+  ));
+  $form = array(
+      'wrapper' => array(
+        '#type' => 'fieldset',
+        '#title' => 'Debug Info',
+        '#description' =>  $debug_record_output,
+      )
+  );
+
+  return $form;
+}
