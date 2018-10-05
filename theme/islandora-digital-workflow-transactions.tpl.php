@@ -20,14 +20,6 @@
     <?php } ?>
 
     <?php $toggle = FALSE; ?>
-    <div class="lookup_result <?php print ($toggle) ? 'evenrow' : 'oddrow'; ?>">
-        <?php
-        $toggle = !$toggle;
-        ?>
-        <div class="lookup_result_indent">
-          <b>Description:</b> <?php print $batch_record['batch_description']; ?>
-        </div>
-    </div>
 
     <?php if (count($transaction_records) > 0) : ?>
     <table>

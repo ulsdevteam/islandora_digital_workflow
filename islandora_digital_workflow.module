@@ -652,7 +652,7 @@ function islandora_digital_workflow_theme() {
       ),
     ),
     'islandora_digital_workflow_batch_description' => array(
-      'variables' => array('description' => ''),
+      'variables' => array('batch_record' => array()),
       'template' => 'theme/islandora-digital-workflow-batch-description',
     ),
   );
@@ -885,15 +885,23 @@ function islandora_digital_workflow_preprocess_page(&$vars) {
  */
 function islandora_digital_workflow_user_view_alter(&$build) {
   // Before hooking in a post-render callback, check that the user should
-  // even have the link to the workflow dashboard.
-
-  // Test this user for the ISLANDORA_DIGITAL_WORKFLOW permission
+  // has ISLANDORA_DIGITAL_WORKFLOW permission to the workflow dashboard.
   if (user_access(ISLANDORA_DIGITAL_WORKFLOW, $build['#account'])) {
     // Add a #post_render callback to act on the rendered HTML of the user.
     $build['#post_render'][] = 'islandora_digital_workflow_user_post_render';
   }
 }
 
+/**
+ * This will return the user view markup with a link to the Islandora Digital
+ * Workflow injected at the top of the content.
+ *
+ * This is a bit of a hack to do it this way -- it exists as a link in the
+ * Navigation menu under the Islandora Repository link (/islandora)... which
+ * is a block that I believe MOST institutions would not display.
+ *
+ * @param type $markup
+ */
 function islandora_digital_workflow_user_post_render(&$markup) {
   $dashboard_link = l('Islandora Digital Workflow', 'islandora/islandora_digital_workflow');
   print str_replace('content">','content">' . $dashboard_link, $markup);

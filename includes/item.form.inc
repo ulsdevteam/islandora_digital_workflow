@@ -22,7 +22,7 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
 
   $breadcrumb = array(
     l(t('Home'), '<front>'),
-    l(t('Islandora Digital Workflow'), 'islandora/islandora_digital_workflow'),
+    l(t('Islandora what Workflow'), 'islandora/islandora_digital_workflow'),
   );
   if ($node) {
     $breadcrumb[] = l($node->title, 'node/' . $node->nid);
@@ -35,8 +35,13 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
   $lookup_form_markup = theme('islandora_digital_workflow_lookup', array('searchterm' => ''));
 
   $batch_name = $node->title;
+
   $batch_record = islandora_digital_workflow_get_batch_record_by_name($batch_name);
   $batch_path = islandora_digital_workflow_batch_path($batch_record);
+
+  $batch_description_markup = theme('islandora_digital_workflow_batch_description', array(
+      'batch_record' => $batch_record,
+  ));
 
   $required_batch_actions = islandora_digital_workflow_get_required_batch_actions($batch_record['batch_id']);
   if (is_array($required_batch_actions)) {
@@ -214,6 +219,7 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
       (is_array($required_batch_actions)) &&
       islandora_digital_workflow_item_ingest_prerequisites_all_done($item_record_transactions, $required_batch_actions));
   return $lookup_form_markup .
+      $batch_description_markup .
       theme('islandora_digital_workflow_item', array(
         'batch_record' => $batch_record,
         'item' => $item,

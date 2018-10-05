@@ -29,14 +29,15 @@ function islandora_digital_workflow_files($node) {
   $lookup_form_markup = theme('islandora_digital_workflow_lookup', array('searchterm' => ''));
 
   $batch_name = $node->title;
-  $results = islandora_digital_workflow_find_batch_records_by_name($batch_name);
-  $batch_record = array_pop($results);
-
+  $batch_record = islandora_digital_workflow_get_batch_record_by_nid($node->nid);
+  $batch_description_markup = theme('islandora_digital_workflow_batch_description', array(
+      'batch_record' => $batch_record,
+  ));
   $file_records = islandora_digital_workflow_get_batch_files_by_nid($node->nid);
   $batch_path = islandora_digital_workflow_batch_path($batch_record);
   // Scan for files in that directory - this will mark any files that are expected,
   // but not found with "bad" class.
-  $is_paged_content = islandora_digital_workflow_is_paged_object($batch_record->islandora_model);
+  $is_paged_content = islandora_digital_workflow_is_paged_object($batch_record['islandora_model']);
   if ($is_paged_content) {
     $found_files = islandora_digital_workflow_scandir_paged_content_files($batch_path);
   }
@@ -50,7 +51,8 @@ function islandora_digital_workflow_files($node) {
     $file_records[$index]->class = (array_key_exists($relative_folder_file, $found_files) ? '' : 'bad');
   }
 
-  return $lookup_form_markup . theme('islandora_digital_workflow_files', array(
+  return $lookup_form_markup . $batch_description_markup .
+      theme('islandora_digital_workflow_files', array(
         'table_title' => 'Batch Files',
         'table_description' => 'Listed below are all of the files related to the batch:',
         'batch_record' => $batch_record,

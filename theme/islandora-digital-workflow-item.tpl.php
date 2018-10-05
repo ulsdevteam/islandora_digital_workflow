@@ -89,18 +89,18 @@
             <label for="edit-islandora-model">Islandora model: </label>
             <?php print $islandora_model_select_box; ?>
             <label for="edit-mods">MODS: </label>
-            <textarea rows=4 class="<?php
+            <textarea rows=5 class="<?php
             print (user_access(ISLANDORA_DIGITAL_WORKFLOW_EDIT_ITEM_META) ? '': 'disabled_text '); ?>short-text-area" id="edit-mods" name="mods"<?php
             print (user_access(ISLANDORA_DIGITAL_WORKFLOW_EDIT_ITEM_META) ? '': ' readonly="readonly"'); ?>><?php print $item->mods; ?></textarea>
             <em>NOTE:</em> The MODS is generated from the CSV upload and editing this here may not be the right thing to do.
             <?php if ($is_paged_content) : ?>
             <div>
-                <label for="edit-marc-file">MARC (MAchine-Readable Cataloging) record:</label><br>
+                <label for="edit-marc-file">MARC record:</label><br>
                 <input type="file" id="edit-marc-file" name="marc_file" />
             </div>
-            <textarea rows=8 class="<?php
+            <textarea rows=5 class="<?php
             print (user_access(ISLANDORA_DIGITAL_WORKFLOW_EDIT_ITEM_META) ? '': 'disabled_text '); ?>short-text-area" id="edit-marc" name="marc"<?php
-            print (user_access(ISLANDORA_DIGITAL_WORKFLOW_EDIT_ITEM_META) ? '': ' readonly="readonly"'); ?>>print $item->marc; ?></textarea>
+            print (user_access(ISLANDORA_DIGITAL_WORKFLOW_EDIT_ITEM_META) ? '': ' readonly="readonly"'); ?>><?php print $item->marc; ?></textarea>
             <?php endif; ?>
         </fieldset>
       <?php if ($can_update) : ?>

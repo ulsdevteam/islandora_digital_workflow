@@ -26,10 +26,9 @@
         $toggle = !$toggle;
         ?>
         <div class="lookup_result_indent">
-            <b>Description:</b> <?php print $batch_record->batch_description; ?><br>
-            <span class="<?php print (count($item_file_records) == $batch_record->object_count) ? 'good' : 'bad'; ?>">
-            <b>How many physical objects:</b><?php print $batch_record->object_count; ?>
-            <?php if (count($item_file_records) <> $batch_record->object_count) : ?>
+            <span class="<?php print (count($item_file_records) == $batch_record['object_count']) ? 'good' : 'bad'; ?>">
+            <b>How many physical objects:</b><?php print $batch_record['object_count']; ?>
+            <?php if (count($item_file_records) <> $batch_record['object_count']) : ?>
             <em>(<?php print count($item_file_records); ?> items records)</em>
             <?php endif; ?>
             </span>

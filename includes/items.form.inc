@@ -13,6 +13,7 @@
  */
 function islandora_digital_workflow_batch_items() {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/lookup.form');
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
   $lookup_form_markup = theme('islandora_digital_workflow_lookup', array('searchterm' => ''));
   $nid = arg(1);
   $node = ($nid) ? node_load($nid) : NULL;
@@ -33,7 +34,7 @@ function islandora_digital_workflow_batch_items() {
   $add_items_form = drupal_get_form('islandora_digital_workflow_add_items_form', $node);
   $markup = $lookup_form_markup .
       theme('islandora_digital_workflow_batch_description', array(
-          'description' => $batch_record['batch_description'],
+        'batch_record' => $batch_record,
       )) .
       drupal_render($add_item_form) .
       drupal_render($add_items_form) .
