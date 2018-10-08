@@ -58,7 +58,7 @@ function islandora_digital_workflow_menu() {
       'type' => MENU_LOCAL_TASK,
       'page callback' => 'drupal_get_form',
       'page arguments' => array('islandora_digital_workflow_admin_form'),
-      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW),
+      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_MANAGE),
       'file' => 'includes/admin.form.inc',
     ),
     'admin/islandora/islandora_digital_workflow/workflow_sequences' => array(

@@ -84,11 +84,12 @@ Installing this module will also set up the following:
 *This module also uses two free image libraries for the various action glyphs.  These images allow for usage but not distribution.  They are  https://www.icondeposit.com/theicondeposit:159 and http://brankic1979.com/icons/.*
 
 ## Permissions
-Each islandora model is exposed as an "{MODEL_NAME} Islandora Digital Workflow" permission under the Drupal permissions table `/admin/people/permissions`.  User roles and individual users will need to be configured for access to the various models.  
+Each islandora model is exposed as an "{MODEL_NAME} Islandora Digital Workflow" permission under the Drupal permissions table `/admin/people/permissions`.  User roles and individual users will need to be configured for access to the various models.
 
-The users of the workflow who are granted access to the "Run reports - User can run and view reports on batches and items" permission will also need to be granted separate permissions "Access Islandora Workflow Reports Data" and "List reports" for the Forena reports.
+[Permissions.md](docs/Permissions.md) contains more detailed information on setting up Permissions for the workflow.
 
-Additionally, the roles' access to specific Islandora models can be controlled with the module's configuration `/admin/islandora/islandora_digital_workflow`.
+One important note about the reports.  Since this uses the Forena reporting system, any users of the workflow who are granted access to the "Run reports - User can run and view reports on batches and items" permission will also need to be granted separate permissions "Access Islandora Workflow Reports Data" and "List reports" for the Forena reports.
+
 
 ***NOTE:**  even though permissions exist for **all islandora models**, the "Supported Models" settings within the Islandora Digital Workflow limit the total set of object models that could ever appearing within the various parts of the interface before consideration of the user permissions.*
 
