@@ -37,6 +37,7 @@ define('ISLANDORA_DIGITAL_WORKFLOW_MANAGE', 'digital workflow manage');
 define('ISLANDORA_DIGITAL_WORKFLOW_CREATE_NEW_BATCH', 'digital workflow create batches');
 define('ISLANDORA_DIGITAL_WORKFLOW_VIEW_TRANSACTIONS', 'digital workflow view transactions');
 define('ISLANDORA_DIGITAL_WORKFLOW_EDIT_ITEM_META', 'digital workflow edit item meta');
+define('ISLANDORA_DIGITAL_WORKFLOW_DELETE_ITEMS', 'digital workflow delete items');
 define('ISLANDORA_DIGITAL_WORKFLOW_EDIT_DELETE_TRANSACTIONS', 'digital workflow edit transactions');
 define('ISLANDORA_DIGITAL_WORKFLOW_UPDATE_ITEMS', 'digital workflow update items');
 define('ISLANDORA_DIGITAL_WORKFLOW_INGEST_ITEMS', 'digital workflow ingest items');
@@ -184,8 +185,15 @@ function islandora_digital_workflow_menu() {
       'title' => t('Islandora Digital Workflow - Delete Batch'),
       'type' => MENU_NORMAL_ITEM,
       'page callback' => array('islandora_digital_workflow_delete_batch'),
-      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW),
+      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_DELETE_ITEMS),
       'file' => 'includes/delete_batch.form.inc',
+    ),
+    'islandora/islandora_digital_workflow/delete_batch_item/%' => array(
+      'title' => t('Islandora Digital Workflow - Delete Batch Item'),
+      'type' => MENU_NORMAL_ITEM,
+      'page callback' => array('islandora_digital_workflow_delete_batch_items'),
+      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_DELETE_ITEMS),
+      'file' => 'includes/delete_batch_items.form.inc',
     ),
     // Node enhancement functions
     'node/%node/batch' => array(
@@ -403,6 +411,10 @@ function islandora_digital_workflow_permission() {
     ISLANDORA_DIGITAL_WORKFLOW_EDIT_ITEM_META => array(
       'title' => t('Edit Item MODS / MARC directly'),
       'description' => t('User can edit item MODS / MARC directly from item form'),
+    ),
+    ISLANDORA_DIGITAL_WORKFLOW_DELETE_ITEMS => array(
+      'title' => t('Delete Batches and Batch Items'),
+      'description' => t('User can delete batches and individual batch items'),
     ),
     ISLANDORA_DIGITAL_WORKFLOW_EDIT_DELETE_TRANSACTIONS => array(
       'title' => t('Edit / Delete Batch Transactions'),
@@ -745,8 +757,10 @@ function islandora_digital_workflow_islandora_datastream_ingested(AbstractObject
     module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
     $pid = $object->id;
     @list($ns, $identifier) = explode(":", $pid, 2);
-    $batch_item_arr = islandora_digital_workflow_get_batch_item_record_by_identifier($identifier);
-    islandora_digital_workflow_insert_transactions_record(IDW_ACTION_SYSTEM_MADE_DERIVATIVES, NULL, $batch_item_arr['batch_item_id']);
+    $batch_item_arr = islandora_digital_workflow_get_batch_item_ids_by_assigned_pid($pid);
+    foreach ($batch_item_ids as $batch_item_id) {
+      islandora_digital_workflow_insert_transactions_record(IDW_ACTION_SYSTEM_MADE_DERIVATIVES, NULL, $batch_item_id);
+    }
   }
 }
 

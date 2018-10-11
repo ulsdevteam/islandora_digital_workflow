@@ -881,10 +881,11 @@ function islandora_digital_workflow_update_batch_item_record($batch_item_id, $up
     // Compare the underlying MARC file to the value that is passed by $update_values --
     // and overwrite that file if needed.
     if (array_key_exists('marc', $update_values) && ($update_values['marc'] <> $original_values->marc)) {
-      $orig_filename_pathinfo = pathinfo($original_values->filename);
+      $calculated_marc_filename = islandora_digital_workflow_filename_sanitize($original_values->filename, '.xml');
+/*      $orig_filename_pathinfo = pathinfo($original_values->filename);
       $calculated_marc_filename = (array_key_exists('extension', $orig_filename_pathinfo)) ?
           str_replace('.' . $orig_filename_pathinfo['extension'], '.xml', $original_values->filename) :
-          $original_values->filename . '.xml';
+          $original_values->filename . '.xml'; */
       $bytes_written = ($calculated_marc_filename) ?
           file_put_contents($calculated_marc_filename, $update_values['marc']) : 0;
       if ($bytes_written <> strlen($update_values['marc'])) {
@@ -896,10 +897,7 @@ function islandora_digital_workflow_update_batch_item_record($batch_item_id, $up
     // Compare the underlying MODS file to the value that is passed by $update_values --
     // and overwrite that file if needed.
     if ($update_values['mods'] <> $original_values->mods) {
-      $orig_filename_pathinfo = pathinfo($original_values->filename);
-      $calculated_mods_filename = (array_key_exists('extension', $orig_filename_pathinfo)) ?
-          str_replace('.' . $orig_filename_pathinfo['extension'], '.xml', $original_values->filename) :
-          $original_values->filename . '.xml';
+      $calculated_mods_filename = islandora_digital_workflow_filename_sanitize($original_values->filename, '.xml');
       $bytes_written = ($calculated_mods_filename) ?
           file_put_contents($calculated_mods_filename, $update_values['mods']) : 0;
       if ($bytes_written <> strlen($update_values['mods'])) {
@@ -1156,28 +1154,63 @@ function islandora_digital_workflow_get_workflow_model_sequences() {
 }
 
 /**
- * Returns the matching islandora_digital_workflow_batch_items record.
+ * Returns the matching islandora_digital_workflow_batch_items batch_item_id value.
  *
  * @param string $identifier
+ * $use__batch_id string 
+ *   Optional value of a batch_id to search within.
+ * $like_identifier boolean
+ *   Optional parameter to use a LIKE '%identifier%' MySQL condition, else
+ * the condition is an exact match.
  * @return stdObject
  *   The batch_item record object.
  */
-function islandora_digital_workflow_get_batch_item_record_by_identifier($identifier, $use__batch_id = NULL) {
+function islandora_digital_workflow_get_batch_item_id_by_identifier($identifier, $use__batch_id = NULL, $like_identifier = TRUE) {
   if ($use__batch_id) {
-    $results = db_select('islandora_digital_workflow_batch_items', 'bi')
-          ->fields('bi', array('batch_item_id'))
-          ->condition('batch_id', $use__batch_id)
-          ->condition('identifier', '%' . db_like($identifier), 'LIKE')
-          ->execute();
+    $query = db_select('islandora_digital_workflow_batch_items', 'bi')
+      ->fields('bi', array('batch_item_id'))
+      ->condition('batch_id', $use__batch_id);
   }
   else {
-    $results = db_select('islandora_digital_workflow_batch_items', 'bi')
-          ->fields('bi', array('batch_item_id'))
-          ->condition('identifier', '%' . db_like($identifier), 'LIKE')
-          ->execute();
+    $query = db_select('islandora_digital_workflow_batch_items', 'bi')
+          ->fields('bi', array('batch_item_id'));
   }
+  if ($like_identifier) {
+    $query->condition('identifier', '%' . db_like($identifier), 'LIKE');
+  }
+  else {
+    $query->condition('identifier', $identifier);
+  }
+  $results = $query->execute();
   $row = $results->fetchAssoc();
   return (is_array($row)) ? array_pop($row) : $row;
+}
+
+/**
+ * This will return the batch_item_id values of recorsd that have a given
+ * `assigned_pid` value.
+ *
+ * @param string $assigned_pid
+ *   The `assigned_pid` value of an islandora_digital_workflow_batch_item record.
+ * This should be distinct based on assumptions, but there could be more than
+ * one record with the same final `assigned_pid` value, and this should return
+ * all of the references because this is only called from the "datastream ingested"
+ * hook which is only trying to set a transaction for that item/s.
+ * @return integer
+ *   The batch_item_id value of the record that matches the "assigned_pid" value
+ * of a record.
+ */
+function islandora_digital_workflow_get_batch_item_ids_by_assigned_pid($assigned_pid) {
+  $query = db_select('islandora_digital_workflow_batch_items', 'bi')
+    ->fields('bi', array('batch_item_id'))
+    ->condition('assigned_pid', $assigned_pid);
+  $results = $query->execute();
+  $rows = $results->fetchAll();
+  $batch_item_ids = array();
+  foreach ($rows as $row) {
+    $batch_item_ids[] = $row->batch_item_id;
+  }
+  return $batch_item_ids;
 }
 
 /**
@@ -1208,6 +1241,7 @@ function islandora_digital_workflow_insert_batch_item($fields) {
  */
 function islandora_digital_workflow_insert_transactions_record($action_id, $batch_id = NULL, $batch_item_id = NULL, $alternative_uid = NULL, $problem_notes = '') {
   global $user;
+  drupal_set_message('insert_transaction: ' . $action_id . ' on ' . $batch_item_id);
   if (!is_null($batch_id) || !is_null($batch_item_id)) {
     $transaction_id = db_insert('islandora_digital_workflow_transactions')
         ->fields(array(
@@ -1493,7 +1527,7 @@ function islandora_digital_workflow_create_islandora_digital_workflow_sql_config
     'path' => $private_path . 'islandora_digital_workflow_sql',
     'debug' => 0
   );
-  // make the value serialized like:  //  a:7:{s:6:"source";s:4:"user";s:13:"...
+  // Make the value serialized like:  //  a:7:{s:6:"source";s:4:"user";s:13:"...
   $config_str = serialize($config_array);
   db_insert('forena_repositories')
     ->fields(array(

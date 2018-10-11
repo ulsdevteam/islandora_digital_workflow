@@ -11,9 +11,9 @@
  * @return array
  *   The Drupal form definition.
  */
-function islandora_digital_workflow_delete_batch() {
+function islandora_digital_workflow_delete_batch_items() {
   $batch_name = arg(3);
-  $form = drupal_get_form('islandora_digital_workflow_delete_batch_form', $batch_name);
+  $form = drupal_get_form('islandora_digital_workflow_delete_batch_items_form', $batch_name);
   $markup = drupal_render($form);
   return $markup;
 }
@@ -25,20 +25,28 @@ function islandora_digital_workflow_delete_batch() {
  *   The Drupal form definition.
  * @param array $form_state
  *   The Drupal form state.
- * @param string $batch_name
- *   The name of the batch to delete.
+ * @param string $batch_item_id
+ *   Either "ids_by_session" or single id value of the items that need to be
+ * deleted for these records in the islandora_digital_workflow_batch_items
+ * table  When ids_by_session is used, the _SESSION['ids_by_session'] value
+ * should contain the batch_item_id values of the underlying items for deletion.
  * @return array
  *   The Drupal form definition.
  */
-function islandora_digital_workflow_delete_batch_form(array $form, array &$form_state, $batch_name = NULL) {
+function islandora_digital_workflow_delete_batch_items_form(array $form, array &$form_state, $batch_item_id = NULL) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
-
+  if (isset($_SESSION['ids_by_session'])) {
+    drupal_set_message('ids_by_session');
+    drupal_set_message('<pre>' . print_r($_SESSION['ids_by_session'], true) . '</pre>');
+  }
+die($batch_item_id);
+return;
   // If this form is processing an existing batch by batch_name, set up some
   // values
-  $batch_record = islandora_digital_workflow_get_batch_record_by_name($batch_name);
+  $batch_record = islandora_digital_workflow_get_batch_record_by_name($batch_item_id);
   if (isset($batch_record['batch_name']) && $batch_record['batch_name']) {
-    $batch_name = $batch_record['batch_name'];
+    $batch_item_id = $batch_record['batch_name'];
     $batch_description = $batch_record['batch_description'];
 
     $read_only_att = array('readonly' => 'readonly', 'disabled' => 'disabled');
@@ -50,15 +58,15 @@ function islandora_digital_workflow_delete_batch_form(array $form, array &$form_
     drupal_goto('islandora/islandora_digital_workflow/');
   }
 
-  $form['batch_name'] = array(
+  $form['batch_item_id'] = array(
       '#type' => 'hidden',
-      '#default_value' => $batch_name
+      '#default_value' => $batch_item_id
   );
   $form['warning'] = array(
       '#type' => 'item',
-      '#markup' => '<div class="big_font bad">' . 
+      '#markup' => '<div class="big_font bad">' .
           t('<b>THIS CAN NOT BE UNDONE!</b><br>Are you SURE that you need to ' .
-            'delete this batch and all of the batch items and any transactions?') .
+            'delete this item and any transactions?') .
       '</div>',
     );
   $form['frame'] = array(
@@ -100,7 +108,7 @@ function islandora_digital_workflow_delete_batch_form(array $form, array &$form_
  * @param array $form_state
  *   The Drupal form state.
  */
-function islandora_digital_workflow_delete_batch_form_submit(array $form, array &$form_state) {
+function islandora_digital_workflow_delete_batch_items_form_submit(array $form, array &$form_state) {
   $id = $form_state['triggering_element']['#id'];
   module_load_include('inc', 'islandora_digital_workflow', 'includes/node-utilities');
   $batch_record = islandora_digital_workflow_get_batch_record_by_name($form_state['values']['batch_name']);

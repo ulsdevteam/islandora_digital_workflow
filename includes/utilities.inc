@@ -545,6 +545,7 @@ function islandora_digital_workflow_batch_path($batch_values) {
         'error');
   }
   $batch_path = rtrim($ingest_path, '/') . '/' . $batch_values['batch_name'];
+  $batch_path = islandora_digital_workflow_filename_sanitize($batch_path);
   if (!file_exists($batch_path)) {
     $call = mkdir($batch_path);
     if (!$call) {
@@ -1221,11 +1222,8 @@ function islandora_digital_workflow_prepare_csv2mods($input_filename, $batch_rec
     // MOVE the file into the row's working directory
     if ($row_file_name) {
       if (file_exists($row_file_name)) {
-        // Try to use drupal_move_uploaded_file instead of issuing "exec" commands like this
-        drupal_move_uploaded_file($row_file_name, $batch_path . '/' . $row_mods_id . '/' . $row_file_name);
-        // $command = "cp $row_file_name $batch_path" . '/' . $row_mods_id . '/.';
-        // exec($command);
-        // echo "COPY $row_file_name to $batch_path" . '/' . $row_mods_id ."/.<br>";
+        $santized_filename = islandora_digital_workflow_filename_sanitize($row_mods_id . '/' . $row_file_name);
+        drupal_move_uploaded_file($row_file_name, $batch_path . '/' . $santized_filename);
         $files_copied++;
       }
     }
@@ -1367,7 +1365,7 @@ function islandora_digital_workflow_fix_if_csv_date_approximate($headers, &$row)
 function islandora_digital_workflow_XMLtoMODS($xml_filename, $batch_id, $identifier) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
   
-  $batch_item_id = islandora_digital_workflow_get_batch_item_record_by_identifier($identifier, $batch_id);
+  $batch_item_id = islandora_digital_workflow_get_batch_item_id_by_identifier($identifier, $batch_id);
   if ($batch_item_id) {
     islandora_digital_workflow_insert_transactions_record(IDW_ACTION_ADD_MODS_RECORD, NULL, $batch_item_id);
   }
@@ -1383,6 +1381,7 @@ function islandora_digital_workflow_XMLtoMODS($xml_filename, $batch_id, $identif
           ) : '';
 
   // This file must be deleted in the process function that called this.
+  $xml_filename = islandora_digital_workflow_filename_sanitize($xml_filename);
   $bytes_written = file_put_contents($xml_filename, $MODS);
 
   return ($bytes_written) ? $xml_filename : '';
@@ -2465,7 +2464,7 @@ function islandora_digital_workflow_set_status_for_pid($ingested_object, $action
   @list($namespace, $identifier) = explode(":", $ingested_object->id);
   // Look up the batch_items record for this identifier -- and add a transaction
   // to set the provided $action_id value.
-  $batch_item_id = islandora_digital_workflow_get_batch_item_record_by_identifier($identifier);
+  $batch_item_id = islandora_digital_workflow_get_batch_item_id_by_identifier($identifier);
   if (!islandora_digital_workflow_insert_transactions_record($action_id, NULL, $batch_item_id, NULL, '')) {
     $variables = array('@ingested_pid' => $ingested_object->id, '@action_id' => $action_id);
     watchdog('islandora_digital_workflow', 'The system was not able to add a ' .
@@ -2624,3 +2623,46 @@ function islandora_digital_workflow_sort_array_objects_by_weight($array_of_objec
     return $array_of_objects;
   }
 }
+
+/**
+ * Will sanitize a string so that it is legal to use as a filename.
+ *
+ * This could cause a problem if two similar strings are passed into here with
+ * the intention that they need to represent two separate files, and they both
+ * result in the same sanitized string.
+ *
+ * For example:  "sanitized?.zip" and "sanitized***[].zip" could both end up
+ *   with a name of "sanitized.zip"
+ *
+ * @param string $filename
+ *   An intended filename value.
+ * @param string $extension
+ *   Optional parameter to set an extension for the file.
+ * @return string
+ *   The sanitized filename should be legal for any file system.
+ */
+function islandora_digital_workflow_filename_sanitize($filename, $extension = '') {
+  $orig_filename_pathinfo = pathinfo($filename);
+  $path = ($extension && array_key_exists('extension', $orig_filename_pathinfo)) ?
+      str_replace('.' . $orig_filename_pathinfo['extension'], $extension, $filename) :
+      $filename . $extension;
+
+  $pathinfo = pathinfo($path);
+  $dirname = (array_key_exists('dirname', $pathinfo) ? (($pathinfo['dirname'] <> '.') ? $pathinfo['dirname'] : '') : '');
+  if (strstr($dirname, '/') <> '') {
+    $dirname_parts = explode("/", $dirname);
+    foreach ($dirname_parts as $idx => $dirname_part) {
+      $dirname_parts[$idx] = islandora_digital_workflow_filename_sanitize($dirname_part);
+    }
+    $dirname = implode("/", $dirname_parts);
+  }
+
+  // Make sure it ends with a slash.
+  $dirname = (($dirname) ? rtrim($dirname, '/') . '/' : '');
+  $sanitized = (array_key_exists('basename', $pathinfo) ? $pathinfo['basename'] : $path);
+  $sanitized = mb_ereg_replace("([^\w\s\d\-_~.])", '', $sanitized);
+  $sanitized = mb_ereg_replace("([\.]{2,})", '', $sanitized);
+
+  return $dirname . $sanitized;
+}
+

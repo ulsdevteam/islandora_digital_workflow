@@ -507,9 +507,6 @@ function islandora_digital_workflow_workflow_sequence_actions_form(array $form, 
       }
     }
   }
-  $link_button_class = array('attributes' => array('class' => array('link_button')));
-  $models_link = '<br>' . l(t('Edit Models for this sequence'),
-      'admin/islandora/islandora_digital_workflow/workflow_sequence_models/' . $workflow_sequence_id, $link_button_class) . ' &nbsp;';
 
   $models_desc =  str_replace(": ,", ": (default), ", 'Current Models using this sequence: ' .
         ((array_key_exists($workflow_sequence_id, $workflow_model_sequences)) ? 
@@ -614,7 +611,8 @@ function islandora_digital_workflow_workflow_sequence_actions_form(array $form, 
   $form['models'] = array(
       '#type' => 'item',
       '#title' => t('Models'),
-      '#description' => $models_link . $models_desc,
+      '#description' => $models_desc . '<br><br>' . l(t('Edit Models for this sequence'),
+          'admin/islandora/islandora_digital_workflow/workflow_sequence_models/' . $workflow_sequence_id) . '.',
   );
 
   $related_batch_nodes = islandora_digital_workflow_get_batches_by_workflow_sequence_id($workflow_sequence_id);
@@ -819,10 +817,6 @@ function islandora_digital_workflow_workflow_sequence_models_form(array $form, a
   );
   drupal_set_breadcrumb($breadcrumb);
 
-  $link_button_class = array('attributes' => array('class' => array('link_button')));
-  $actions_link = '<br>' . l(t('Edit Actions for this sequence'),
-      'admin/islandora/islandora_digital_workflow/workflow_sequences/' . $workflow_sequence_id, $link_button_class);
-
   // Have two controls -- one to add another model to use this sequence and the 
   // other to remove a currently configured model from this sequence.
   $form = array('configured_wrapper' => array(
@@ -876,7 +870,8 @@ function islandora_digital_workflow_workflow_sequence_models_form(array $form, a
   $form['actions'] = array(
       '#type' => 'item',
       '#title' => t('Actions'),
-      '#description' => $actions_link,
+      '#description' => 'Manage the Actions related to this sequence ' . l(t('here'),
+      'admin/islandora/islandora_digital_workflow/workflow_sequences/' . $workflow_sequence_id) . '.',
   );
 
   $related_batch_nodes = islandora_digital_workflow_get_batches_by_workflow_sequence_id($workflow_sequence_id);

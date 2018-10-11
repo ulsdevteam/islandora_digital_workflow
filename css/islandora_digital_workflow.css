@@ -326,6 +326,10 @@ div.form-disabled label.enabled_text {
     color: red;
 }
 
+.big_font {
+    font-size: 1.4em;
+}
+
 .numeric {
     text-align: right;
 }

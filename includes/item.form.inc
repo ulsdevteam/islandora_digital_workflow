@@ -72,8 +72,10 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
         'occur for this batch\'s objects, ' .
         l(t('select a "Workflow Sequence" for this batch'), '/node/' . $node->nid . '/batch') . '.';
   }
+  if (isset($_POST['deletebatchitem']) && isset($_POST['batch_item_id'])) {
+    drupal_goto('islandora/islandora_digital_workflow/delete_batch_item/' . $_POST['batch_item_id']);
+  }
   $is_paged_content = islandora_digital_workflow_is_paged_object($batch_record['islandora_model']);
-
   // Did the user post an update to this batch item data?  If so, handle that update here
   if (isset($_POST['title'])) {
     $item_record_results = islandora_digital_workflow_get_batch_item_record($batch_item_id);
@@ -84,8 +86,14 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
         $marc = file_get_contents($_FILES['marc_file']['tmp_name']);
         $_POST['marc'] = $marc;
         @list($namespace, $item_identifier) = explode(":", $original_values->identifier);
+        // Since the identifier could contain a character that is not legal for all
+        // file systems, call islandora_digital_workflow_filename_sanitize() on
+        // the intended filename so that it uses the santize process and still
+        // return a distinct filename.  The batch_path value should already be legal,
+        // but the $item_identifier may cause problems.
+        $santized_filename = islandora_digital_workflow_filename_sanitize($item_identifier . '/' . $_FILES['marc_file']['name']);
         // Move the uploaded file to the $batch_path + specific item folder
-        drupal_move_uploaded_file($_FILES['marc_file']['tmp_name'], $batch_path . '/' . $item_identifier . '/' . $_FILES['marc_file']['name']);
+        drupal_move_uploaded_file($_FILES['marc_file']['tmp_name'], $batch_path . '/' . $santized_filename);
       }
     }
     $filename_pathinfo = pathinfo($original_values->filename);
@@ -99,7 +107,7 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
     if ($records_updated) {
       $mods_file_changed = (trim($original_values->mods) <> trim($_POST['mods']));
 
-      $marc_file_changed = ($is_paged_content && trim($original_values->marc) <> trim($_POST['marc']));
+      $marc_file_changed = ($is_paged_content && (trim($original_values->marc) <> trim($_POST['marc'])));
       // Enter the appropriate actions if these changed:
       if ($mods_file_changed || $marc_file_changed) {
         if ($mods_file_changed) {

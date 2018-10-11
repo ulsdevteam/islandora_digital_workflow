@@ -87,16 +87,33 @@ function islandora_digital_workflow_get_dashboard_links() {
 
   // Now add some utility links that may be permission-based...
   if (user_access(ISLANDORA_DIGITAL_WORKFLOW_RUN_REPORTS)) {
-    $links['report'][] = l('Reports', '/islandora/islandora_digital_workflow/reports') . '<br><span class="small_lt_text">Run reports on batches and items.</span><br><br>';
+    $links['report'][] = l('Reports', '/islandora/islandora_digital_workflow/reports') .
+        '<br><span class="small_lt_text">Run reports on batches and items.</span>' .
+        (user_access('administer forena reports') ? '<br>' .
+           l(t('Administer reports'), '/admin/structure/forena') .
+            '<br><span class="small_lt_text">Forena reports administration</span>' : '') . '<br><br>';
   }
   if (user_access(ISLANDORA_DIGITAL_WORKFLOW_USE_UTILITIES)) {
-    $links['utility'][] = l('Utilities', '/islandora/islandora_digital_workflow/utilities') . '<br><span class="small_lt_text">Perform functions on a set of batches and items.</span><br><br>';
+    $links['utility'][] = l('Utilities', '/islandora/islandora_digital_workflow/utilities') .
+        '<br><span class="small_lt_text">Perform functions on a set of batches ' .
+        'and items.</span><br><br>';
   }
   if (user_access(ISLANDORA_DIGITAL_WORKFLOW_MANAGE)) {
-    $links['admin'][] = l('Islandora Digital Workflow Settings', '/admin/islandora/islandora_digital_workflow') . '<br><span class="small_lt_text">Configure options and settings for the Islandora Digital Workflow module.</span><br><br>';
+    $links['admin'][] = l('Islandora Digital Workflow Settings', '/admin/islandora/islandora_digital_workflow') .
+        '<br><span class="small_lt_text">Configure options and settings for ' .
+        'the Islandora Digital Workflow module.</span><br><br>';
+  }
+  if (user_access(ISLANDORA_DIGITAL_WORKFLOW_MANAGE_SEQUENCES)) {
+    $links['admin'][] = l('Workflow Actions', '/admin/islandora/islandora_digital_workflow/workflow_sequence_actions') .
+        '<br><span class="small_lt_text">Configure the specific actions that can ' .
+        'be used as steps in a workflow sequence.</span><br><br>';
+    $links['admin'][] = l('Workflow Sequences', '/admin/islandora/islandora_digital_workflow/workflow_sequences') .
+        '<br><span class="small_lt_text">Configure the actions required and ' .
+        'the model-associations for various workflow sequences.</span><br><br>';
   }
   if (user_access('administer permissions')) {
-    $links['admin'][] = l(t('User Permissions'), '/admin/people/permissions') . '<br><span class="small_lt_text">Manage user permissions.</span><br><br>';
+    $links['admin'][] = l(t('User Permissions'), '/admin/people/permissions') .
+        '<br><span class="small_lt_text">Manage user permissions.</span><br><br>';
   }
   
   return $links;  
@@ -109,7 +126,9 @@ function islandora_digital_workflow_get_dashboard_action_links() {
     $top_level_collection_uri = rtrim(variable_get('islandora_digital_workflow_top_level_collection', '/islandora/object/islandora:root'), "/");
     $links[] = l('Create Collection', $top_level_collection_uri . '/manage/overview/ingest');
   }
-  $links[] = l('Create Batch', '/islandora/islandora_digital_workflow/create_batch');
+  if (user_access(ISLANDORA_DIGITAL_WORKFLOW_CREATE_NEW_BATCH)) {
+    $links[] = l('Create Batch', '/islandora/islandora_digital_workflow/create_batch');
+  }
   return $links;
 }
 

@@ -668,6 +668,18 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
       '#type' => 'submit',
       '#value' => t($button_text),
     );
+
+  // Add a "Delete Batch" button if the user has permission to use it.
+  if (user_access(ISLANDORA_DIGITAL_WORKFLOW_DELETE_ITEMS)) {
+    $form['deletebatch'] = array(
+        '#type' => 'submit',
+        '#value' => t('Delete Batch'),
+        '#attributes' => array('class' => array(
+          'bad'
+        )),
+      );
+  }
+
   $form['cancel'] = array(
       '#type' => 'submit',
       '#value' => t('Cancel'),
@@ -827,6 +839,11 @@ function islandora_digital_workflow_create_batch_form_submit(array $form, array 
         @unlink($csv_filename);
       }
       drupal_goto('node/' . $batch_record['nid']);
+      break;
+    case 'edit-deletebatch':
+      $batch_record = islandora_digital_workflow_get_batch_record_by_name($form_state['values']['batch_name']);
+      // Redirect the user to the "Delete Batch" form.
+      drupal_goto('islandora/islandora_digital_workflow/delete_batch/' . $batch_record['batch_name']);
       break;
     case 'edit-cancel':
       drupal_set_message('Create Batch has been cancelled.');

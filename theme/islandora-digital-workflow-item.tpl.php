@@ -72,6 +72,7 @@
   <h3>Item Details</h3>
   <div class="lookup_result oddrow">
       <form action="" method="POST" enctype="multipart/form-data">
+          <input name="batch_item_id" type="hidden" value="<?php print $item->batch_item_id; ?>">
         <fieldset class="lookup_result_indent evenrow"<?php print ($can_update) ? '' : ' disabled' ?>>
             <label for="edit-title">Title: </label>
             <input id="edit-title" name="title" value="<?php print htmlspecialchars($item->title); ?>">
@@ -105,6 +106,9 @@
         </fieldset>
       <?php if ($can_update) : ?>
       <input type="submit" value="Update Batch Item">
+      <?php endif; ?>
+      <?php if (user_access(ISLANDORA_DIGITAL_WORKFLOW_DELETE_ITEMS)) : ?>
+      <input type="submit" name="deletebatchitem" class="bad" value="Delete Batch Item">
       <?php endif; ?>
       </form>
   </div>
