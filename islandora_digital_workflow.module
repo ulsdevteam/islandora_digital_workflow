@@ -3,7 +3,11 @@
 /**
  * @file
  * Module code for Islandora Digital Workflow module.
+ *
+ * @todo: rename the two functions that begin with "RENAME_LATER_" so that they take over the 
+ *        handling of the Islandora "object ingested" and "datastream ingested" hooks.
  */
+
 
 // Taxonomy Vocabulary
 define('IDW_STAGE_TAXONOMY_MACHINE_NAME', 'workflow_stage_vocab');
@@ -694,7 +698,7 @@ function islandora_digital_workflow_theme() {
  * @param AbstractObject $object
  *   The object that was just ingested.
  */
-function islandora_digital_workflow_islandora_object_ingested(AbstractObject $object) {
+function RENAME_LATER_islandora_digital_workflow_islandora_object_ingested(AbstractObject $object) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
   $pid = $object->id;
   @list($ns, $identifier) = explode(":", $pid, 2);
@@ -717,7 +721,7 @@ function islandora_digital_workflow_islandora_object_ingested(AbstractObject $ob
  * @param AbstractObject $object
  * @param AbstractDatastream $datastream
  */
-function islandora_digital_workflow_islandora_datastream_ingested(AbstractObject $object, AbstractDatastream $datastream) {
+function RENAME_LATER_islandora_digital_workflow_islandora_datastream_ingested(AbstractObject $object, AbstractDatastream $datastream) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
   $applicable_paged_content_cmodels = islandora_digital_workflow_retrieve_applicable_paged_content_cmodels();
   $object->models;
