@@ -437,6 +437,8 @@ function islandora_digital_workflow_batch_items_form(array $form, array &$form_s
             '#attributes' => array('class' => array(
           'bad'
         )),
+        '#suffix' => '&nbsp;' . t(' <b>NOTE: </b>This can not be undone.'),
+
     );
   }
 
@@ -503,6 +505,7 @@ function islandora_digital_workflow_batch_items_form(array $form, array &$form_s
  *   HTML markup.
  */
 function islandora_digital_workflow_batch_items_form_submit(array $form, array &$form_state) {
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
   $selected_identifiers = array_filter($form_state['values']['items']);
   drupal_set_message("<pre>".print_r($selected_identifiers, true)."</pre>");
   $using__batch_id = $form_state['values']['using__batch_id'];
@@ -512,7 +515,9 @@ function islandora_digital_workflow_batch_items_form_submit(array $form, array &
   if ($form_state['values']['op'] == 'Delete') {
     $batch_item_ids = array();
     foreach ($selected_identifiers as $identifier) {
-      $batch_item_id = islandora_digital_workflow_get_batch_item_record_by_identifier($identifier, $using__batch_id, TRUE);
+      $batch_item_id = islandora_digital_workflow_get_batch_item_id_by_identifier($identifier, $using__batch_id, TRUE);
+      dpm($batch_item);
+      dpm($identifier . ' on ' . $using__batch_id);
       $batch_item_ids[] = $batch_item['batch_item_id'];
     }
     $_SESSION['ids_by_session'] = $batch_item_ids;

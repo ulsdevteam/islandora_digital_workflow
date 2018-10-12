@@ -40,22 +40,21 @@ function islandora_digital_workflow_delete_batch_items_form(array $form, array &
     drupal_set_message('ids_by_session');
     drupal_set_message('<pre>' . print_r($_SESSION['ids_by_session'], true) . '</pre>');
   }
-die($batch_item_id);
-return;
+
+  unset($_SESSION['ids_by_session']);
   // If this form is processing an existing batch by batch_name, set up some
   // values
-  $batch_record = islandora_digital_workflow_get_batch_record_by_name($batch_item_id);
+  $item_record_arr = islandora_digital_workflow_get_batch_item_record($batch_item_id);
+  $item_obj = array_pop($item_record_arr);
+  $batch_record = islandora_digital_workflow_get_batch_record_by_batch_id($item_obj->batch_id);
   if (isset($batch_record['batch_name']) && $batch_record['batch_name']) {
-    $batch_item_id = $batch_record['batch_name'];
-    $batch_description = $batch_record['batch_description'];
-
     $read_only_att = array('readonly' => 'readonly', 'disabled' => 'disabled');
     $button_text = '';
     $batch_path = islandora_digital_workflow_batch_path($batch_record);
   }
   else {
     drupal_set_message('That is strange.  The batch record by that name does not exist and can not be deleted.');
-    drupal_goto('islandora/islandora_digital_workflow/');
+//    drupal_goto('islandora/islandora_digital_workflow/');
   }
 
   $form['batch_item_id'] = array(
@@ -78,20 +77,23 @@ return;
         '#required' => true,
         '#attributes' => $read_only_att,
         '#description' => t('Human readable name for the batch of digital objects.'),
-        '#default_value' => $batch_name,
+        '#default_value' => $batch_record['batch_name'],
       ),
       'batch_description' => array(
         '#type' => 'textarea',
         '#title' => t('Batch description'),
         '#attributes' => $read_only_att,
         '#description' => t('Description of the items in this batch.'),
-        '#default_value' => $batch_description,
+        '#default_value' => $batch_record['batch_description'],
       ),
     );
 
   $form['delete'] = array(
       '#type' => 'submit',
       '#value' => t('Delete'),
+      '#attributes' => array('class' => array(
+        'bad'
+      )),
     );
   $form['cancel'] = array(
       '#type' => 'submit',
@@ -112,12 +114,12 @@ function islandora_digital_workflow_delete_batch_items_form_submit(array $form, 
   $id = $form_state['triggering_element']['#id'];
   module_load_include('inc', 'islandora_digital_workflow', 'includes/node-utilities');
   $batch_record = islandora_digital_workflow_get_batch_record_by_name($form_state['values']['batch_name']);
-
+dpm($form_state);
   switch ($id) {
     case 'edit-delete':
       // Only two possible button text values -- edit or save.
       $current_time = date('H:i:s');
-      drupal_set_message(t('[@date] Batch deleted', array(
+      drupal_set_message(t('[@date] Batch item deleted', array(
           '@date' => $current_time,
         )));
       drupal_goto('islandora/islandora_digital_workflow');
