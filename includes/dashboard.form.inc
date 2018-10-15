@@ -158,6 +158,7 @@ function islandora_digital_workflow_get_tasks_tables() {
     }
   }
 
+  // View batches that have no items yet
   if (user_access(ISLANDORA_DIGITAL_WORKFLOW_UPDATE_ITEMS)) {
     $batch_records_no_items = islandora_digital_workflow_find_batch_records_no_items();
     if (count($batch_records_no_items)) {
@@ -169,6 +170,19 @@ function islandora_digital_workflow_get_tasks_tables() {
     }
   }
 
+  // View batches that report a different number of items than "How many physical objects".
+  if (user_access(ISLANDORA_DIGITAL_WORKFLOW_UPDATE_ITEMS)) {
+    $batch_records_mismatch = islandora_digital_workflow_find_batch_items_count_mismatch();
+    if (count($batch_records_mismatch)) {
+      $tables[] = theme('islandora_digital_workflow_batch_records_table', array(
+        'batch_records' => $batch_records_mismatch,
+        'table_title' => 'Number of items records does not equal the intended "How many physical objects"',
+        'table_description' => 'Please complete or delete the following batch records:',
+      ));
+    }
+  }
+
+  // View any batches that have "Request by" date values
   if (user_access(ISLANDORA_DIGITAL_WORKFLOW_UPDATE_ITEMS)) {
     $batch_records_is_batch_request = islandora_digital_workflow_find_batch_records_is_batch_request();
     if (count($batch_records_is_batch_request)) {
@@ -179,58 +193,62 @@ function islandora_digital_workflow_get_tasks_tables() {
       ));
     }
   }
-  $batch_names = islandora_digital_workflow_get_batch_record_names();
-  $delivery_root = variable_get('islandora_digital_workflow_ingest_delivery_path', '');
-  $delivery_folders = islandora_digital_workflow_find_folders_files($delivery_root);
-  $bad_delivery_folder_names = islandora_digital_workflow_filter_out_non_batch_folders($delivery_folders, $batch_names);
 
-  if (count($delivery_folders)) {
-    $tables[] = theme('islandora_digital_workflow_files_table', array(
-      'folders' => $delivery_folders,
-      'root' => $delivery_root,
-      'action_link' => (user_access(ISLANDORA_DIGITAL_WORKFLOW_SYNC_DELIVERY) ? '/islandora/islandora_digital_workflow/sync_delivery_files/' : ''),
-      'show_message_status' => TRUE,
-      'table_title' => 'Items moved to the "Delivery" folder location',
-      'table_description' => 'Resolved by using the Sync operation for each of ' .
-          'the folders listed below, but <b>be sure that the folder is ready to be ' .
-          'moved back</b> over to the working directory.',
-    ));
-  }
-  
-  // $batch_host_folders = islandora_digital_workflow_batch_path
-  // batches or items that have been moved into the "problems" folder
-  $problems_root = variable_get('islandora_digital_workflow_ingest_problems_path', '');
-  $problems_folders = islandora_digital_workflow_find_folders_files($problems_root);
-  $bad_problem_folder_names = islandora_digital_workflow_filter_out_non_batch_folders($problems_folders, $batch_names);
-  if (count($problems_folders)) {
-    $tables[] = theme('islandora_digital_workflow_files_table', array(
-      'folders' => $problems_folders,
-      'root' => $problems_root,
-      'action_link' => '',
-      'show_message_status' => TRUE,
-      'table_title' => 'Items moved to the "Problems" folder location',
-      'table_description' => '<p class="small_font">Aside from needing to satisfy ' .
-        'all of the actions in the workflow sequence, problems must be cleared ' .
-        'before the item or the batch can be ingested.  To clear a problem, place ' .
-        'the repaired files in the <b>Incoming Delivery Directory</b> location;  ' .
-        'these files can then be imported back into the system which will resolve ' .
-        'the specific item\'s problem record.</p>Please resolve the folders listed below:',
-    ));
-  }
+  // View Problem and Staging files related to batches
+  if (user_access(ISLANDORA_DIGITAL_WORKFLOW_DASHBOARD_VIEW_PROBLEMS)) {
+    $batch_names = islandora_digital_workflow_get_batch_record_names();
+    $delivery_root = variable_get('islandora_digital_workflow_ingest_delivery_path', '');
+    $delivery_folders = islandora_digital_workflow_find_folders_files($delivery_root);
+    $bad_delivery_folder_names = islandora_digital_workflow_filter_out_non_batch_folders($delivery_folders, $batch_names);
 
-  if (count($bad_delivery_folder_names) > 0) {
-    drupal_set_message('At least one folder name in the configured Delivery path "' .
-        $delivery_root . '" did not match a known batch name and should be ' .
-        'inspected manually to determine whether or not the files are needed.  ' .
-        'These folder names were: <ul><li>' .
-        implode("</li><li>", $bad_delivery_folder_names) . '</ul><br>', 'warning');
-  }
-  if (count($bad_problem_folder_names) > 0) {
-    drupal_set_message('At least one folder name in the configured Problems path "' .
-        $problems_root . '" did not match a known batch name and should be ' .
-        'inspected manually to determine whether or not the files are needed.  ' .
-        'These folder names were: <ul><li>' .
-        implode("</li><li>", $bad_problem_folder_names) . '</ul><br>', 'warning');
+    if (count($delivery_folders)) {
+      $tables[] = theme('islandora_digital_workflow_files_table', array(
+        'folders' => $delivery_folders,
+        'root' => $delivery_root,
+        'action_link' => (user_access(ISLANDORA_DIGITAL_WORKFLOW_SYNC_DELIVERY) ? '/islandora/islandora_digital_workflow/sync_delivery_files/' : ''),
+        'show_message_status' => TRUE,
+        'table_title' => 'Items moved to the "Delivery" folder location',
+        'table_description' => 'Resolved by using the Sync operation for each of ' .
+            'the folders listed below, but <b>be sure that the folder is ready to be ' .
+            'moved back</b> over to the working directory.',
+      ));
+    }
+
+    // $batch_host_folders = islandora_digital_workflow_batch_path
+    // batches or items that have been moved into the "problems" folder
+    $problems_root = variable_get('islandora_digital_workflow_ingest_problems_path', '');
+    $problems_folders = islandora_digital_workflow_find_folders_files($problems_root);
+    $bad_problem_folder_names = islandora_digital_workflow_filter_out_non_batch_folders($problems_folders, $batch_names);
+    if (count($problems_folders)) {
+      $tables[] = theme('islandora_digital_workflow_files_table', array(
+        'folders' => $problems_folders,
+        'root' => $problems_root,
+        'action_link' => '',
+        'show_message_status' => TRUE,
+        'table_title' => 'Items moved to the "Problems" folder location',
+        'table_description' => '<p class="small_font">Aside from needing to satisfy ' .
+          'all of the actions in the workflow sequence, problems must be cleared ' .
+          'before the item or the batch can be ingested.  To clear a problem, place ' .
+          'the repaired files in the <b>Incoming Delivery Directory</b> location;  ' .
+          'these files can then be imported back into the system which will resolve ' .
+          'the specific item\'s problem record.</p>Please resolve the folders listed below:',
+      ));
+    }
+
+    if (count($bad_delivery_folder_names) > 0) {
+      drupal_set_message('At least one folder name in the configured Delivery path "' .
+          $delivery_root . '" did not match a known batch name and should be ' .
+          'inspected manually to determine whether or not the files are needed.  ' .
+          'These folder names were: <ul><li>' .
+          implode("</li><li>", $bad_delivery_folder_names) . '</ul><br>', 'warning');
+    }
+    if (count($bad_problem_folder_names) > 0) {
+      drupal_set_message('At least one folder name in the configured Problems path "' .
+          $problems_root . '" did not match a known batch name and should be ' .
+          'inspected manually to determine whether or not the files are needed.  ' .
+          'These folder names were: <ul><li>' .
+          implode("</li><li>", $bad_problem_folder_names) . '</ul><br>', 'warning');
+    }
   }
   return $tables;
 }

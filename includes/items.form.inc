@@ -516,8 +516,6 @@ function islandora_digital_workflow_batch_items_form_submit(array $form, array &
     $batch_item_ids = array();
     foreach ($selected_identifiers as $identifier) {
       $batch_item_id = islandora_digital_workflow_get_batch_item_id_by_identifier($identifier, $using__batch_id, TRUE);
-      dpm($batch_item);
-      dpm($identifier . ' on ' . $using__batch_id);
       $batch_item_ids[] = $batch_item['batch_item_id'];
     }
     $_SESSION['ids_by_session'] = $batch_item_ids;
