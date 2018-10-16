@@ -299,22 +299,30 @@ function islandora_digital_workflow_find_batch_records_no_details() {
   return $batch_records;
 }
 
+/**
+ * Returns all batches that have a different number for object_count than the
+ * actual number of items in the islandora_digital_workflow_batch_items table.
+ *
+ * @return  array
+ *   Either returns an array of values related to counting the items for batch
+ * records where the object_count value is not equal to the number of records
+ * related to the same batch's islandora_digital_workflow_batch_items table.
+ */
 function islandora_digital_workflow_find_batch_items_count_mismatch() {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy-utilities');
-  $query = db_select('islandora_digital_workflow_batch', 'b')
-      ->fields('b')
-      ->condition('b.nid', 0, '>');
-  $query->addJoin('LEFT OUTER', 'taxonomy_term_data', 't', 'b.batch_priority_tid = t.tid');
-  $query->addField('t', 'weight');
-  $query->addField('t', 'name', 'priority');
-  $query->orderBy('weight');
-  $query->addJoin('LEFT OUTER', 'field_data_field_pid_count', 'fc', 'b.nid = fc.entity_id AND b.object_count != fc.field_pid_count_value');
-
-  $query->addField('fc', 'field_pid_count_value');
-  $query->isNotNull('fc.field_pid_count_value');
-
-  $results = $query->execute();
+  // Since this needs to use a subquery, the SQL is MUCH easier to write out
+  $sql = 'SELECT jbi.items_count, b.object_count, b.*, t.weight, t.name as `priority` ' .
+         'FROM islandora_digital_workflow_batch b ' .
+         'LEFT OUTER JOIN taxonomy_term_data t ON (b.batch_priority_tid = t.tid) ' .
+         'LEFT OUTER JOIN ' .
+         '(SELECT count(*) as `items_count`, batch_id ' .
+         ' FROM islandora_digital_workflow_batch_items GROUP BY batch_id) as jbi ' .
+         ' ON (jbi.batch_id = b.batch_id) ' .
+         'HAVING jbi.items_count <> b.object_count ' .
+         'ORDER BY `weight`';
+  $results = db_query($sql);
   $rows = $results->fetchAll();
+
   $batch_records = array();
   foreach ($rows as $row) {
     $row->priority = islandora_digital_workflow_get_name_of_tid($row->batch_priority_tid);

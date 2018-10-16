@@ -177,7 +177,7 @@ function islandora_digital_workflow_get_tasks_tables() {
       $tables[] = theme('islandora_digital_workflow_batch_records_table', array(
         'batch_records' => $batch_records_mismatch,
         'table_title' => 'Number of items records does not equal the intended "How many physical objects"',
-        'table_description' => 'Please complete or delete the following batch records:',
+        'table_description' => 'Please resolve the number of objects or items for the following batches:',
       ));
     }
   }
