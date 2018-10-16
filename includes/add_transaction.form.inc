@@ -140,18 +140,26 @@ function islandora_digital_workflow_add_transactions_form_submit(array $form, ar
   $timestamp = $form_state['values']['timestamp'];
   $action_id = $form_state['values']['transaction_action'];
   $batch_item_id = $form_state['values']['batch_item_id'];
+  $batch_item_object = islandora_digital_workflow_get_batch_item($batch_item_id);
+  $batch_item_identifier = $batch_item_object->identifier;
   $refer = $form_state['values']['refer'];
   $refer_url_parts = parse_url($refer);
   $action_record = islandora_digital_workflow_get_action($action_id);
   $problem_notes = ($action_id == IDW_ACTION_PROBLEM) ? $form_state['values']['problem_notes'] : '';
   $nid = $form_state['values']['nid'];
-  // Based on the action_id, set the $goto variable to return user to the correct
-  // previous page. /node/163/item/62 - else can use the refer path value.
-  $goto = (islandora_digital_workflow_is_batch_action($action_record)) ? $refer_url_parts['path'] :
-    '/node/' . $nid . '/item/' . $batch_item_id;
+
+
   if ($form_state['triggering_element']['#value'] == t('Cancel')) {
     drupal_goto($goto);
   }
   islandora_digital_workflow_insert_transactions_record($action_id, NULL, $batch_item_id, NULL, $problem_notes);
+  // If inserting this transaction record triggers a Stage change, the value for
+  // $goto will be wrong since $batch_item_id no longer points to this element.
+  $batch_item_id = islandora_digital_workflow_get_batch_item_id_by_identifier($batch_item_identifier, NULL, FALSE);
+  // Based on the action_id, set the $goto variable to return user to the correct
+  // previous page. /node/163/item/62 - else can use the refer path value.
+  $goto = (islandora_digital_workflow_is_batch_action($action_record)) ? $refer_url_parts['path'] :
+    '/node/' . $nid . '/item/' . $batch_item_id;
+
   drupal_goto($goto);
 }

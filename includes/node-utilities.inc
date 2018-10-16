@@ -48,9 +48,9 @@ function islandora_digital_workflow_sync_node_batch_record_info($node, $form_sta
     // Sync the CCK field for Batch Defaults with the latest values
     if (is_array($batch_record) && is_object($node)) {
       $new_value = theme('islandora_digital_workflow_batch_defaults', array('islandora_digital_workflow_batch' => $batch_record));
-      $node->field_batch_defaults[LANGUAGE_NONE][0]['value'] = $new_value;
+      $node->field_batch_defaults[$node->language][0]['value'] = $new_value;
       // Make sure that the format is Full HTML here so it doesn't strip any HTML tags.
-      $node->field_batch_defaults[LANGUAGE_NONE][0]['format'] = 'full_html';
+      $node->field_batch_defaults[$node->language][0]['format'] = 'full_html';
       field_attach_update('node', $node);
     }
     if (isset($_SESSION['uploaded_csv_filename'])) {
@@ -60,6 +60,20 @@ function islandora_digital_workflow_sync_node_batch_record_info($node, $form_sta
     if (file_exists($csv_filename)) {
       @unlink($csv_filename);
     }
+  }
+  else {
+    // This maps any of the node CCK fields to the ['values']['fieldname'] that 
+    // an islandora_digital_workflow_batch record would have as if this was being 
+    // passed via the Create Batch / Edit Batch form.
+    module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy-utilities');
+    $form_state = array('values' => array(
+      // batch_name is a Unique key, but should not allow the node editor to
+      // change that value...
+      'batch_name' => $batch_record['batch_name'],
+      'islandora_model' => islandora_digital_workflow_get_name_of_tid($node->field_islandora_model[$node->language][0]['tid']),
+      'batch_priority_tid' => $node->field_priority[$node->language][0]['tid'],
+    ));
+    $batch_record = islandora_digital_workflow_create_batch_record_by_form($form_state, $node, $csv_filename);
   }
   return $batch_record;
 }
@@ -81,7 +95,7 @@ function islandora_digital_workflow_set_node_stage($nid, $state_name = '', $stag
       $stage_tid = islandora_digital_workflow_get_tid_by_name($state_name, $stages_vocab);
     }
     if ($stage_tid) {
-      $node->field_stage[$node->language][0] = array('tid' => $stage_tid);
+      $node->field_stage[$node->language][] = array('tid' => $stage_tid);
       node_save($node);
     }
   }
@@ -161,9 +175,9 @@ function islandora_digital_workflow_make_or_update_node($form_state, $csv_array,
     $node->field_islandora_model[$node->language][0]['tid'] = $form_state['values']['cmodel_select'];
 
     // For the batch_priorities_tid cck field, the batch_record value has tid value
-    $node->field_priority[$node->language][]['tid'] = $form_state['values']['batch_priority'];
+    $node->field_priority[$node->language][0]['tid'] = $form_state['values']['batch_priority'];
 
-    $node->field_pid_count[$node->language][]['value'] = $form_state['values']['object_count'];
+    $node->field_pid_count[$node->language][0]['value'] = $form_state['values']['object_count'];
     foreach ($form_state['values']['collections_select'] as $collection_pid) {
       $node->field_collections_mapping[$node->language][]['value'] = $collection_pid;
     }

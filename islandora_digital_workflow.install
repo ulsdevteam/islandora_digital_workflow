@@ -1809,7 +1809,7 @@ function _islandora_digital_workflow_installed_fields() {
       'storage_module' => 'field_sql_storage',
       'storage_active' => 1,
       'locked' => 0,
-      'cardinality' => -1,
+      'cardinality' => 1,
       'translatable' => 0,
       'deleted' => 0,
       'settings' => array(

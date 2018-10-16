@@ -96,7 +96,7 @@ function islandora_digital_workflow_create_batch_record_by_form($form_state, $no
     $batch_record = islandora_digital_workflow_get_batch_record_by_name($batch_name);
 
     $uploaded_csv_file = ($csv_filename) ? file_get_contents(drupal_realpath($csv_filename)) : FALSE;
-    $batch_request_date = (($form_state['values']['is_batch_request'] == 1) ?
+    $batch_request_date = ((array_key_exists('is_batch_request', $form_state['values'])) && ($form_state['values']['is_batch_request'] == 1) ?
         strtotime($form_state['values']['batch_request_due_date']['year'] . '/' .
           $form_state['values']['batch_request_due_date']['month'] . '/' .
           $form_state['values']['batch_request_due_date']['day']) :
@@ -106,32 +106,78 @@ function islandora_digital_workflow_create_batch_record_by_form($form_state, $no
     // values, check whether or not these form_state fields exist before
     // trying to access their values.  This is the reason for some of these
     // fields to have a logic test for setting the record's value.
-    $field_values = array(
-        'batch_name' => $batch_name,
-        'batch_description' => $form_state['values']['batch_description'],
-	'is_batch_active' => $form_state['values']['is_batch_active'],
-        'is_batch_request' => $form_state['values']['is_batch_request'],
-        'batch_priority_tid' => $form_state['values']['batch_priority'],
-        'batch_requestor' => $form_state['values']['batch_requestor'],
-        'batch_request_due_date' => $batch_request_date,
-        'object_count' => $form_state['values']['object_count'],
-        'ingest_namespace' => $form_state['values']['ingest_namespace'],
-        'default_ead_id' => (array_key_exists('default_ead_id', $form_state['values'])) ?
-          $form_state['values']['default_ead_id'] : '',
-        'ocr_language' => (array_key_exists('ocr_language', $form_state['values'])) ?
-          $form_state['values']['ocr_language'] : '',
-        'default_depositor' => $form_state['values']['default_depositor'],
-	'batch_host' => $form_state['values']['batch_host'],
-	'default_genre' => $form_state['values']['default_genre'],
-	'batch_default_pub_status' => $form_state['values']['batch_default_pub_status'],
-	'batch_default_CR_status' => $form_state['values']['batch_default_CR_status'],
-	'batch_default_CR_holder' => $form_state['values']['batch_default_CR_holder'],
-        'islandora_model' => islandora_digital_workflow_get_name_of_tid($form_state['values']['cmodel_select']),
-        'default_type_of_resource' => $form_state['values']['default_type_of_resource'],
-        'mapto_collections' => implode(",", $form_state['values']['collections_select']),
-        'workflow_sequence_id' => $form_state['values']['workflow_sequence_id'],
-        'nid' => is_object($node) ? $node->nid : 0,
-        'user' => $user->name,
+    $field_values = array();
+    if ($batch_name) {
+      $field_values['batch_name'] = $batch_name;
+    }
+    if (array_key_exists('batch_description', $form_state['values'])) {
+      $field_values['batch_description'] = $form_state['values']['batch_description'];
+    }
+    if (array_key_exists('is_batch_active', $form_state['values'])) {
+      $field_values['is_batch_active'] = $form_state['values']['is_batch_active'];
+    }
+    if (array_key_exists('is_batch_request', $form_state['values'])) {
+      $field_values['is_batch_request'] = $form_state['values']['is_batch_request'];
+    }
+    if (array_key_exists('batch_priority', $form_state['values'])) {
+      $field_values['batch_priority_tid'] = $form_state['values']['batch_priority'];
+    }
+    if (array_key_exists('batch_requestor', $form_state['values'])) {
+      $field_values['batch_requestor'] = $form_state['values']['batch_requestor'];
+    }
+    if ($batch_request_date) {
+      $field_values['batch_request_due_date'] = $batch_request_date;
+    }
+    if (array_key_exists('object_count', $form_state['values'])) {
+      $field_values['object_count'] = $form_state['values']['object_count'];
+    }
+    if (array_key_exists('ingest_namespace', $form_state['values'])) {
+      $field_values['ingest_namespace'] = $form_state['values']['ingest_namespace'];
+    }
+    if (array_key_exists('default_ead_id', $form_state['values'])) {
+      $field_values['default_ead_id'] = $form_state['values']['default_ead_id'];
+    }
+    else {
+      $field_values['default_ead_id'] = '';
+    }
+    if (array_key_exists('ocr_language', $form_state['values'])) {
+      $field_values['ocr_language'] = $form_state['values']['ocr_language'];
+    }
+    else {
+      $field_values['ocr_language'] = '';
+    }
+    if (array_key_exists('default_depositor', $form_state['values'])) {
+      $field_values['default_depositor'] = $form_state['values']['default_depositor'];
+    }
+    if (array_key_exists('batch_host', $form_state['values'])) {
+      $field_values['batch_host'] = $form_state['values']['batch_host'];
+    }
+    if (array_key_exists('default_genre', $form_state['values'])) {
+      $field_values['default_genre'] = $form_state['values']['default_genre'];
+    }
+    if (array_key_exists('batch_default_pub_status', $form_state['values'])) {
+      $field_values['batch_default_pub_status'] = $form_state['values']['batch_default_pub_status'];
+    }
+    if (array_key_exists('batch_default_CR_status', $form_state['values'])) {
+      $field_values['batch_default_CR_status'] = $form_state['values']['batch_default_CR_status'];
+    }
+    if (array_key_exists('batch_default_CR_holder', $form_state['values'])) {
+      $field_values['batch_default_CR_holder'] = $form_state['values']['batch_default_CR_holder'];
+    }
+    if (array_key_exists('cmodel_select', $form_state['values'])) {
+      $field_values['islandora_model'] = islandora_digital_workflow_get_name_of_tid($form_state['values']['cmodel_select']);
+    }
+    if (array_key_exists('default_type_of_resource', $form_state['values'])) {
+      $field_values['default_type_of_resource'] = $form_state['values']['default_type_of_resource'];
+    }
+    if (array_key_exists('collections_select', $form_state['values'])) {
+      $field_values['mapto_collections'] = implode(",", $form_state['values']['collections_select']);
+    }
+    if (array_key_exists('workflow_sequence_id', $form_state['values'])) {
+      $field_values['workflow_sequence_id'] = $form_state['values']['workflow_sequence_id'];
+    }
+    $field_values['nid'] = is_object($node) ? $node->nid : 0;
+    $field_values['user'] = $user->name;
 //        'lastmod' => time(),
 
         // default_type_of_resource - the text value of the selected Islandora Model
@@ -147,12 +193,13 @@ function islandora_digital_workflow_create_batch_record_by_form($form_state, $no
         'page_edge_treatment' => '',
         'batch_condition_handling' => '',
         */
-      );
 
     // if configured, set the site_id field and value
     //   mapto_site_id_values / sites_select
     if (variable_get('islandora_digital_workflow_use_isMemberOfSite', 0)) {
-      $field_values['mapto_site_id_values'] = implode(",", $form_state['values']['sites_select']);
+      if (array_key_exists('sites_select', $form_state['values'])) {
+        $field_values['mapto_site_id_values'] = implode(",", $form_state['values']['sites_select']);
+      }
     }
 
     // Only update the uploaded CSV file if the file was passed in.  In other words

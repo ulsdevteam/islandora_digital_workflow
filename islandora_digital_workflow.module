@@ -786,6 +786,50 @@ function islandora_digital_workflow_node_update($node) {
 }
 
 /**
+ * Implements hook_form_alter().
+ *
+ * Set a callback to handle the #after_build for the workflow_batch core Drupal
+ * "node edit" form.
+ *
+ * @param array $form
+ *   The Drupal form definition.
+ * @param array $form_state
+ *   The Drupal form state.
+ * @param string $form_id
+ *   The form_id that is being validated -- optional.
+ */
+function islandora_digital_workflow_form_alter(&$form, &$form_state, $form_id) {
+  if ($form_id == 'workflow_batch_node_form') {
+    $form['#after_build'][] = 'islandora_digital_workflow_node_after_build';
+  }
+}
+
+/**
+ * Routine to lock the field_batch_name CCK field on the node edit form.
+ *
+ * @param array $form
+ *   The Drupal form definition.
+ * @param array $form_state
+ *   The Drupal form state.
+ * @return array
+ *   A Drupal form definition.
+ */
+function islandora_digital_workflow_node_after_build($form, &$form_state) {
+  // Only lock the batch name field down if there is a value for it already.
+  if (array_key_exists('value', $form['field_batch_name']['und'][0]) && $form['field_batch_name']['und'][0]['value']['#value'] <> '') {
+    $form['field_batch_name']['und'][0]['value']['#attributes'] = array_merge(
+        array('class' => array('disabled_text'), 'readonly' => 'readonly', 'disabled' => 'disabled'),
+        $form['field_batch_name']['und'][0]['value']['#attributes']
+    );
+    $form['title']['#attributes'] = array_merge(
+        array('class' => array('disabled_text'), 'readonly' => 'readonly', 'disabled' => 'disabled'),
+        $form['title']['#attributes']
+    );
+  }
+  return $form;
+}
+
+/**
  * Checks whether the node is a workflow_batch - and potentially whether or not
  * the user has access to this permission.
  *
