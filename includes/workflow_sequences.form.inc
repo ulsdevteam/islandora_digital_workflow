@@ -532,6 +532,12 @@ function islandora_digital_workflow_workflow_sequence_actions_form(array $form, 
           '#default_value' => '',
           '#attributes' => array('class' => array('item_action')),
       ),
+      'submit_add_1' => array(
+          '#type' => 'submit',
+          '#title' => 'add',
+          '#value' => t('+'),
+          '#attributes' => array(
+              'title' => 'Add Item Action')),
     ),
     'batch_wrapper' => array(
       '#type' => 'fieldset',
@@ -543,6 +549,12 @@ function islandora_digital_workflow_workflow_sequence_actions_form(array $form, 
           '#default_value' => '',
           '#attributes' => array('class' => array('batch_action')),
       ),
+      'submit_add_2' => array(
+          '#type' => 'submit',
+          '#title' => 'add',
+          '#value' => t('+'),
+          '#attributes' => array(
+              'title' => 'Add Batch Action')),
     ),
     'model' => array(
       '#type' => 'hidden',
