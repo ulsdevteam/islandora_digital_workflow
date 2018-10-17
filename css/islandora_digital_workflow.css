@@ -225,6 +225,10 @@ div.info, table tr.info {
   background-color: #F8F8F8;
 }
 
+div.info h3 {
+    margin-top: 0 !important;
+}
+
 div.info p.info {
   color: #333;
 }

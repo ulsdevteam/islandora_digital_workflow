@@ -1202,6 +1202,10 @@ function islandora_digital_workflow_get_workflow_model_sequences() {
  *   The batch_item record object.
  */
 function islandora_digital_workflow_get_batch_item_id_by_identifier($identifier, $use__batch_id = NULL, $like_identifier = TRUE) {
+  // If this has been passed a $pid value, just use whatever comes after the colon.
+  if (strstr($identifier, ':')) {
+    @list($namespace, $identifier) = explode(":", $identifier);
+  }
   if ($use__batch_id) {
     $query = db_select('islandora_digital_workflow_batch_items', 'bi')
       ->fields('bi', array('batch_item_id'))

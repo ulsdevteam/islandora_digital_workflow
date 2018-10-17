@@ -555,6 +555,7 @@ function islandora_digital_workflow_theme() {
       'template' => 'theme/islandora-digital-workflow-item',
       'variables' => array(
         'batch_record' => array(),
+        'description_markup' => '',
         'item' => array(),
         'is_paged_content' => FALSE,
         'workflow_sequence_text' => '',

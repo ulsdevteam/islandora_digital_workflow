@@ -220,8 +220,9 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
   if (is_object($islandora_object)) {
     $link_att = array('attributes' => array('target' => '_blank'));
     $ingested_links = l($islandora_object->label, 'islandora/object/' . $pid, $link_att) .
-            '<br>' . l(t('Manage'), 'islandora/object/' . $pid . '/manage', $link_att) .
-            l(t('Datastreams'), 'islandora/object/' . $pid . '/manage/datastreams', $link_att);
+            '<br><span class="small_font">' . l(t('Manage'), 'islandora/object/' . $pid . '/manage', $link_att) . ' | ' .
+            l(t('Datastreams'), 'islandora/object/' . $pid . '/manage/datastreams', $link_att) .
+            '</span>';
   }
   else {
     $ingested_links = '';
@@ -230,9 +231,9 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
       (is_array($required_batch_actions)) &&
       islandora_digital_workflow_item_ingest_prerequisites_all_done($item_record_transactions, $required_batch_actions));
   return $lookup_form_markup .
-      $batch_description_markup .
       theme('islandora_digital_workflow_item', array(
         'batch_record' => $batch_record,
+        'description_markup' => $batch_description_markup,
         'item' => $item,
         'is_paged_content' => $is_paged_content,
         'workflow_sequence_text' => $workflow_sequence_text,

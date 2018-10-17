@@ -6,6 +6,7 @@
 *
 * Variables available:
 * - $batch_record => array(),
+* - $description_markup = '',
 * - $item => stdObject,
 * - $transaction_records => array(),
 * - $drush_log_entries => array(),
@@ -61,12 +62,20 @@
   <?php endif; ?>
 
   <?php if ($ingested_links): ?>
-  <h3>Object has been ingested</h3>
-    <?php print $ingested_links; ?>
-  <?php elseif ($can_ingest): ?>
-  <div class="good"><p>All requirements are completed.
-      <b>Ingest this item into Islandora now: <a href="/islandora/islandora_digital_workflow/ingest_item/<?php print urlencode($item->batch_item_id); ?>"><?php print $item->identifier; ?></a></b>
+  <div class="messages info">
+    <h3>Object has been ingested</h3>
+      <?php print $ingested_links; ?>
   </div>
+  <?php elseif ($can_ingest): ?>
+  <div class="messages info">
+    <div class="good"><p>All requirements are completed.
+        <b>Ingest this item into Islandora now: <a href="/islandora/islandora_digital_workflow/ingest_item/<?php print urlencode($item->batch_item_id); ?>"><?php print $item->identifier; ?></a></b>
+    </div>
+  </div>
+  <?php endif; ?>
+    
+  <?php if ($description_markup): ?>
+    <?php print $description_markup; ?>
   <?php endif; ?>
 
   <h3>Item Details</h3>

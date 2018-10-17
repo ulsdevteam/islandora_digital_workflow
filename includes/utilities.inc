@@ -1421,9 +1421,6 @@ function islandora_digital_workflow_XMLtoMODS($xml_filename, $batch_id, $identif
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
   
   $batch_item_id = islandora_digital_workflow_get_batch_item_id_by_identifier($identifier, $batch_id);
-  if ($batch_item_id) {
-    islandora_digital_workflow_insert_transactions_record(IDW_ACTION_ADD_MODS_RECORD, NULL, $batch_item_id);
-  }
 
   $xsl = str_replace("/includes", "", dirname(__FILE__).'/transforms/sheet2mods.xsl');
 
@@ -1438,7 +1435,9 @@ function islandora_digital_workflow_XMLtoMODS($xml_filename, $batch_id, $identif
   // This file must be deleted in the process function that called this.
   $xml_filename = islandora_digital_workflow_filename_sanitize($xml_filename);
   $bytes_written = file_put_contents($xml_filename, $MODS);
-
+  if ($batch_item_id && $bytes_written) {
+    islandora_digital_workflow_insert_transactions_record(IDW_ACTION_ADD_MODS_RECORD, NULL, $batch_item_id);
+  }
   return ($bytes_written) ? $xml_filename : '';
 }
 
