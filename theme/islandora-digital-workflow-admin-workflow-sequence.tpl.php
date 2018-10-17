@@ -7,6 +7,7 @@
 * Variables available:
 * - $workflow_sequence_id => '',
 * - $sequence_name => '',
+* - $sequence_description => '',
 * - $markup_batch_actions => array(),
 * - $markup_item_actions => array(),
 * - $models => '',
@@ -26,9 +27,9 @@
       <?php endif; ?>
     </div>
     <h3><a name="<?php print $sequence_name; ?>"><?php print l($sequence_name, 'admin/islandora/islandora_digital_workflow/edit_workflow_sequence/' . $workflow_sequence_id); ?></a></h3>
-    <p><?php print $sequence_name; ?></p>
+    <p class="small_lt_text"><?php print $sequence_description; ?></p>
     <div class="lookup_result_square">
-      <p><?php print l(t('Edit Models'), 'admin/islandora/islandora_digital_workflow/workflow_sequence_models/' . $workflow_sequence_id, $link_button_class); ?> <?php if ($models) { print 'Currently configured Models: ' . $models; } ?></p>
+      <p><?php print l(t('Edit Models'), 'admin/islandora/islandora_digital_workflow/workflow_sequence_models/' . $workflow_sequence_id, $link_button_class); ?> <?php if ($models) { print 'Models: ' . $models; } ?></p>
       <?php if ($is_mixed): ?>
         <ul>
         <?php foreach ($sequence_models as $model): ?>

@@ -86,6 +86,7 @@ function islandora_digital_workflow_sequences() {
       }
     }
     $affected_batch_nodes = islandora_digital_workflow_get_batches_by_workflow_sequence_id($workflow_sequence_id);
+
     $sequence_in_use = (count($affected_batch_nodes) > 0);
     $sequence_models = array_key_exists($workflow_sequence_id, $models_arr) ? $models_arr[$workflow_sequence_id] : array();
     $form['wrapper']['workflow_sequence_id_' . $workflow_sequence_id] = array(
@@ -98,6 +99,7 @@ function islandora_digital_workflow_sequences() {
       '#markup' => theme('islandora_digital_workflow_admin_workflow_sequence', array(
           'workflow_sequence_id' => $workflow_sequence_id,
           'sequence_name' => $sequence_info['name'],
+          'sequence_description' => $sequence_info['description'],
           'is_mixed' => $sequence_info['is_mixed'],
           'sequence_models' => $sequence_models,
           'markup_batch_actions' => $markup_batch_actions,
