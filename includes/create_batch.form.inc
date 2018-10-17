@@ -242,7 +242,7 @@ function islandora_digital_workflow_create_empty_batch_form_submit(array $form, 
       drupal_goto('islandora/islandora_digital_workflow/edit_batch/' . $batch_record['batch_name']);
       break;
     case 'edit-cancel':
-      drupal_set_message('Create Batch has been cancelled.');
+      drupal_set_message(t('Create Batch has been cancelled.'), 'info');
       drupal_goto('islandora/islandora_digital_workflow/');
       break;
   }
@@ -297,7 +297,7 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
   }
   else {
     if (arg(2) === 'edit_batch') {
-      drupal_set_message($batch_name . t(' did not exist -- redirected to Create Batch page.'));
+      drupal_set_message($batch_name . t(' did not exist -- redirected to Create Batch page.'), 'info');
       drupal_goto('/islandora/islandora_digital_workflow/create_batch');
     }
     $batch_name = '';
@@ -330,9 +330,9 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
     foreach ($file_header as $header) {
       $machine_header = str_replace(" ", "_", strtolower(trim($header)));
       if ($machine_header && !(array_key_exists($machine_header, $csv_header_mappings))) {
-        drupal_set_message('CSV column "' . $header . '" not recognized.  Batch ' . 
+        drupal_set_message('CSV ' . t('column "') . $header . t('" not recognized.  Batch ' .
             'may not be able to ingest or process.  Please replace the attached ' .
-            'CSV file.', 'error');
+            'CSV file.'), 'error');
       }
     }
     @unlink($tmp_uploaded_csv_file);
@@ -846,7 +846,7 @@ function islandora_digital_workflow_create_batch_form_submit(array $form, array 
       drupal_goto('islandora/islandora_digital_workflow/delete_batch/' . $batch_record['batch_name']);
       break;
     case 'edit-cancel':
-      drupal_set_message('Create Batch has been cancelled.');
+      drupal_set_message(t('Create Batch has been cancelled.'), 'info');
       drupal_goto('islandora/islandora_digital_workflow/');
       break;
   }
@@ -923,11 +923,11 @@ function islandora_digital_workflow_sync_batch_items_confirmation_submit(array $
 
   switch ($id) {
     case 'edit-submit':
-      drupal_set_message('Sync Batch Items submitted.');
+      drupal_set_message(t('Sync Batch Items submitted.'));
       islandora_digital_workflow_sync_items_process_node($node);
       break;
     case 'edit-cancel':
-      drupal_set_message('Sync Batch Items has been cancelled.');
+      drupal_set_message(t('Sync Batch Items has been cancelled.'));
       break;
   }
   if (is_object($node)) {

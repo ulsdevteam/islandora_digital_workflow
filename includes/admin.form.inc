@@ -239,7 +239,6 @@ function islandora_digital_workflow_admin_form_submit(array $form, array &$form_
       variable_del('islandora_digital_workflow_ingest_ignore_filenames');
       variable_del('islandora_digital_workflow_hosts_for_ingest');
       variable_del('islandora_digital_workflow_use_isMemberOfSite');
-
       drupal_set_message('[' . date('H:i:s') . '] The settings have been reset.');
       break;
   }

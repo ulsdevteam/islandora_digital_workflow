@@ -149,7 +149,9 @@ function islandora_digital_workflow_sync_delivery_files_form_submit(array $form,
     }
   }
   else {
-    drupal_set_message('The Delivery folder did not contain a folder that matched the batch name of "' . $batch_name . '".', 'warning');
+    drupal_set_message(t('The Delivery folder did not contain a folder that matched the batch name of "@batch_name".', array(
+        '@batch_name' => $batch_name
+    )), 'warning');
   }
-  drupal_set_message('Form submitted');
+  drupal_set_message(t('Form submitted'));
 }

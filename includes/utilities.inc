@@ -576,8 +576,8 @@ function islandora_digital_workflow_batch_path($batch_values) {
     $batch_values = (array) $batch_values;
   }
   if (!is_array($batch_values) || !array_key_exists('batch_name', $batch_values)) {
-    drupal_set_message('The batch path could not be determined.  Either the values are missing or ' .
-            'there is no value for the batch "Name" (batch_name field) yet.', 'warning');
+    drupal_set_message(t('The batch path could not be determined.  Either the values are missing or ' .
+            'there is no value for the batch "Name" (batch_name field) yet.'), 'warning');
     return '';
   }
   $ingest_path = $batch_values['batch_host'];
@@ -585,10 +585,10 @@ function islandora_digital_workflow_batch_path($batch_values) {
     $ingest_path = variable_get('islandora_digital_workflow_ingest_prepared_path', file_directory_temp());
   } elseif (strstr($ingest_path, ":")) {
     @list($ingest_host, $ingest_path) = explode(":", $ingest_path);
-    drupal_set_message('This batch is configured to use files from a different server.  ' .
+    drupal_set_message(t('This batch is configured to use files from a different server.  ' .
         'That server needs to be configured as a mounted folder under the /ingest ' .
-        'directory and the ' . l(t('Available Host Alias'), '/admin/islandora/islandora_digital_workflow') .
-        ' configuration would need to be updated to point to the mounted location.',
+        'directory and the ') . l(t('Available Host Alias'), '/admin/islandora/islandora_digital_workflow') .
+        t(' configuration would need to be updated to point to the mounted location.'),
         'error');
   }
   $batch_path = rtrim($ingest_path, '/') . '/' . $batch_values['batch_name'];
@@ -596,7 +596,9 @@ function islandora_digital_workflow_batch_path($batch_values) {
   if (!file_exists($batch_path)) {
     $call = mkdir($batch_path);
     if (!$call) {
-      drupal_set_message('The batch folder "' . $batch_path . '" could not be created.', 'error');
+      drupal_set_message(t('The batch folder "@batch_path" could not be created.', array(
+          '@batch_path' => $batch_path
+      )), 'error');
     }
   }
 
@@ -944,7 +946,9 @@ function islandora_digital_workflow_make_custom_csv_dates($short_date, $suppress
     elseif ($short_date_length <> 8 && !$from_date) {
       if ($short_date <> '') {
         if (!$suppress_display_messages) {
-          drupal_set_message('bad date format for date value of "' . $short_date . '".', 'error');
+          drupal_set_message(t('Bad date format for date value of "@short_date".', array(
+              '@short_date' => $short_date
+          )), 'error');
         }
         return '';
       }
@@ -960,7 +964,9 @@ function islandora_digital_workflow_make_custom_csv_dates($short_date, $suppress
     }
     elseif ($short_date_length <> 10 && !$from_date) {
       if (!$suppress_display_messages) {
-        drupal_set_message('bad date format for date value of "' . $short_date . '".', 'error');
+          drupal_set_message(t('Bad date format for date value of "@short_date".', array(
+              '@short_date' => $short_date
+          )), 'error');
       }
       return '';
     }
@@ -1045,8 +1051,10 @@ function islandora_digital_workflow_models_table() {
     }
     if (!$this_model_module_info['exists']) {
       $configured_models[$cmodel]['#default_value'] = 0;
-      drupal_set_message('The module is not installed that can ingest ' . $model . ' objects, ' .
-          ' so they can not be managed using the workflow until that module is installed (' .
+      drupal_set_message(t('The module is not installed that can ingest @model objects, ' .
+          ' so they can not be managed using the workflow until that module is installed (', array(
+              '@model' => $model
+          )) .
           $this_model_module_info['git_link'] . ', ' . $this_model_module_info['uls_git_link'] .
           ').');
       $configured_models[$cmodel]['#disabled'] = TRUE;
@@ -2157,7 +2165,10 @@ function islandora_digital_workflow_move_batch_item_file($batch_item_id, $destin
 
   // Check that the source folder exists.
   if (!file_exists($source_root)) {
-    drupal_set_message('The item folder "' . $source_root . '" does not exist and the files can not be moved to the ' . $destination_root . ' folder.', 'warning');
+    drupal_set_message(t('The item folder "@source_root" does not exist and the files can not be moved to the "@destination_root" folder.', array(
+        '@source_root' => $source_root,
+        '@destination_root' => $destination_root
+    )), 'warning');
   }
   else {
     $source_files = islandora_digital_workflow_scan_files($source_root);
@@ -2198,9 +2209,9 @@ function islandora_digital_workflow_move_batch_item_file($batch_item_id, $destin
 function islandora_digital_workflow_check_and_deploy_forena_reports() {
   if (!module_exists('forena')) {
     $link_att = array('attributes' => array('target' => '_blank'));
-    drupal_set_message('The Forena reporting module is not installed.  ' .
+    drupal_set_message(t('The Forena reporting module is not installed.  ') .
         l('Forena', 'https://git.drupal.org/project/forena.git', $link_att) . ' | ' .
-        l('ulsdevteam "Forena"', 'https://github.com/ulsdevteam/forena.git', $link_att)
+        l('ulsdevteam "Forena"', 'https://github.com/ulsdevteam/forena.git', $link_att), 'error'
     );
     return FALSE;
   }
@@ -2228,16 +2239,22 @@ function islandora_digital_workflow_check_and_deploy_forena_reports() {
       $from =  $this_folder . '/forena_reports/frx';
       $to = $sites_location . $forena_frx_path;
       islandora_digital_workflow_deploy_files_to_forena_install($from, $to);
-      drupal_set_message('Deployed Forena FRX files to: ' . $to . '<br>' .
-          'from: ' . $from);
+      drupal_set_message(t('Deployed Forena FRX files to: "@to"<br>' .
+          'from: "@from".', array(
+              '@to' => $to,
+              '@from' => $from,
+          )), 'info');
     }
     // Only deploy the SQL files if they do not exist
     if (count($sql_files) < 1) {
       $from = $this_folder . '/forena_reports/sql';
       $to = $sites_location . $forena_sql_path;
       islandora_digital_workflow_deploy_files_to_forena_install($from, $to);
-      drupal_set_message('Deployed Forena SQL files to: ' . $to  . '<br>' .
-          'from: ' . $from);
+      drupal_set_message(t('Deployed Forena SQL files to: "@to"<br>' .
+          'from: "@from".', array(
+              '@to' => $to,
+              '@from' => $from,
+          )), 'info');
     }
   }
   else {
@@ -2271,9 +2288,10 @@ function islandora_digital_workflow_deploy_files_to_forena_install($from, $to) {
   if (!file_exists($to)) {
     $success = mkdir($to);
     if (!$success) {
-      drupal_set_message('The destination folder did not exist and could not ' .
-          'be created.  Please check the file permissions of the parent folder for "' .
-          $to . '".');
+      drupal_set_message(t('The destination folder did not exist and could not ' .
+          'be created.  Please check the file permissions of the parent folder for "@to".', array(
+              '@to' => $to
+          )), 'error');
     }
     return FALSE;
   }
@@ -2285,9 +2303,10 @@ function islandora_digital_workflow_deploy_files_to_forena_install($from, $to) {
     $success &= copy($from . '/' . $file, $to . '/' . $file);
   }
   if (!$success) {
-      drupal_set_message('The forena files could not be deployed due to permissions ' .
-          'on the folder.  Please check the file permissions of the parent folder for "' .
-          $to . '".');
+      drupal_set_message(t('The forena files could not be deployed due to permissions ' .
+          'on the folder.  Please check the file permissions of the parent folder for "@to".', array(
+              '@to' => $to
+          )), 'error');
   }
   return $success;
 }
@@ -2597,7 +2616,7 @@ function islandora_digital_workflow_purge_ds_for_identifiers($identifiers, $dsid
     }
   }
   if (count($missing_identifiers) > 0) {
-    drupal_set_message('Some identifiers could not be found ' . implode(", ", $missing_identifiers), 'warning');
+    drupal_set_message(t('Some identifiers could not be found ') . implode(", ", $missing_identifiers), 'warning');
   }
   $markup .= '</div>';
   return $markup;

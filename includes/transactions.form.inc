@@ -119,25 +119,33 @@ function islandora_digital_workflow_batch_transactions_form_submit(array $form, 
   $add_action_id = $form_state['values']['add_batch_action'];
   $remove_action_id = $form_state['values']['remove_batch_action'];
   if ($remove_action_id == '' && $add_action_id == '') {
-    drupal_set_message('No transactions were added or removed');
+    drupal_set_message(t('No transactions were added or removed.'));
   }
   else {
     if ($add_action_id) {
       $action_name = $batch_items_actions[$add_action_id];
       if (!(islandora_digital_workflow_insert_transactions_record($add_action_id, $batch_id, NULL))) {
-        drupal_set_message('The transaction "' . $action_name . '" could not be added.');
+        drupal_set_message(t('The transaction "@action_name" could not be added.', array(
+            '@action_name' => $action_name
+        )), 'error');
       }
       else {
-        drupal_set_message('The transaction "' . $action_name . '" has been added.');
+        drupal_set_message(t('The transaction "@action_name" has been added.', array(
+            '@action_name' => $action_name
+        )));
       }
     }
     if ($remove_action_id) {
       $action_name = $batch_items_actions[$remove_action_id];
       if (!(islandora_digital_workflow_remove_transactions_record($remove_action_id, $batch_id, NULL))) {
-        drupal_set_message('The transaction "' . $action_name . '" could not be removed.');
+        drupal_set_message(t('The transaction "@action_name" could not be removed.', array(
+            '@action_name' => $action_name
+        )), 'error');
       }
       else {
-        drupal_set_message('The transaction "' . $action_name . '" has been removed.');
+        drupal_set_message(t('The transaction "@action_name" has been removed.', array(
+            '@action_name' => $action_name
+        )));
       }
     }
   }

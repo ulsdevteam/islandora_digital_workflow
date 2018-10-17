@@ -171,9 +171,9 @@ function islandora_digital_workflow_add_items_form(array $form, array &$form_sta
       foreach ($file_header as $header) {
         $machine_header = str_replace(" ", "_", strtolower(trim($header)));
         if ($machine_header && !(array_key_exists($machine_header, $csv_header_mappings))) {
-          drupal_set_message('CSV column "' . $header . '" not recognized.  Batch ' .
+          drupal_set_message(t('CSV column "@header" not recognized.  Batch ' .
               'may not be able to ingest or process.  Please replace the attached ' .
-              'CSV file.', 'error');
+              'CSV file.', array('@header' => $header)), 'error');
         }
       }
       @unlink($tmp_uploaded_csv_file);
@@ -507,7 +507,6 @@ function islandora_digital_workflow_batch_items_form(array $form, array &$form_s
 function islandora_digital_workflow_batch_items_form_submit(array $form, array &$form_state) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
   $selected_identifiers = array_filter($form_state['values']['items']);
-  drupal_set_message("<pre>".print_r($selected_identifiers, true)."</pre>");
   $using__batch_id = $form_state['values']['using__batch_id'];
   $add_action_id = $form_state['values']['add_batch_action'];
   $problem_notes = $form_state['values']['problem_notes'];
@@ -522,7 +521,7 @@ function islandora_digital_workflow_batch_items_form_submit(array $form, array &
     drupal_goto('islandora/islandora_digital_workflow/delete_batch_item/ids_by_session');
   }
   if ($remove_action_id == '' && $add_action_id == '') {
-    drupal_set_message('No transactions were added or removed');
+    drupal_set_message(t('No transactions were added or removed'), 'info');
   }
   else {
     $could_not_be_processed = array();

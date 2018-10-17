@@ -16,7 +16,7 @@ function islandora_digital_workflow_lookup() {
   }
   else {
     $refer_url = $_SERVER['HTTP_REFERER'];
-    drupal_set_message('The lookup search term can not be blank. You have been redirected to the page from which you came.', 'warning');
+    drupal_set_message(t('The lookup search term can not be blank. You have been redirected to the page from which you came.'), 'warning');
     drupal_goto($refer_url);
   }
 }
@@ -96,7 +96,7 @@ function islandora_digital_workflow_lookup_form_submitted($searchterm = '') {
     $searchterm);
   }
   else {
-    drupal_set_message('"' . $searchterm . '" ' . t('could not be located.'));
+    drupal_set_message(t('"@searchterm" could not be located.', array('@searchterm' => $searchterm)), 'info');
     drupal_goto('islandora/islandora_digital_workflow/');
   }
 }

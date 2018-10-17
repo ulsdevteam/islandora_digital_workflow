@@ -46,7 +46,8 @@ function islandora_digital_workflow_delete_batch_form(array $form, array &$form_
     $batch_path = islandora_digital_workflow_batch_path($batch_record);
   }
   else {
-    drupal_set_message('That is strange.  The batch record by that name does not exist and can not be deleted.');
+    drupal_set_message(t('The batch record "@batch_name" does not exist and can not be deleted.',
+            array('@batch_name' => $batch_name)));
     drupal_goto('islandora/islandora_digital_workflow/');
   }
 
@@ -115,7 +116,7 @@ function islandora_digital_workflow_delete_batch_form_submit(array $form, array 
       drupal_goto('islandora/islandora_digital_workflow');
       break;
     case 'edit-cancel':
-      drupal_set_message('Create Batch has been cancelled.');
+      drupal_set_message(t('Create Batch has been cancelled.'), 'info');
       drupal_goto('islandora/islandora_digital_workflow/edit_batch/' . $batch_record['batch_id']);
       break;
   }

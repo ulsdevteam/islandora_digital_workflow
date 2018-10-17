@@ -121,7 +121,7 @@ function islandora_digital_workflow_delete_transactions_form_submit(array $form,
   if ($form_state['triggering_element']['#value'] == t('Delete this transaction')) {
     module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
     if (islandora_digital_workflow_delete_batch_transaction($transaction_id)) {
-      drupal_set_message('Transaction has been deleted.');
+      drupal_set_message(t('Transaction has been deleted.'), 'info');
       drupal_goto($goto);
     }
   }

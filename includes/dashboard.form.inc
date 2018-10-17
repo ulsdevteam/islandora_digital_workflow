@@ -236,17 +236,17 @@ function islandora_digital_workflow_get_tasks_tables() {
     }
 
     if (count($bad_delivery_folder_names) > 0) {
-      drupal_set_message('At least one folder name in the configured Delivery path "' .
+      drupal_set_message(t('At least one folder name in the configured Delivery path "' .
           $delivery_root . '" did not match a known batch name and should be ' .
           'inspected manually to determine whether or not the files are needed.  ' .
-          'These folder names were: <ul><li>' .
+          'These folder names were: ') . '<ul><li>' .
           implode("</li><li>", $bad_delivery_folder_names) . '</ul><br>', 'warning');
     }
     if (count($bad_problem_folder_names) > 0) {
-      drupal_set_message('At least one folder name in the configured Problems path "' .
+      drupal_set_message(t('At least one folder name in the configured Problems path "' .
           $problems_root . '" did not match a known batch name and should be ' .
           'inspected manually to determine whether or not the files are needed.  ' .
-          'These folder names were: <ul><li>' .
+          'These folder names were: ') . '<ul><li>' .
           implode("</li><li>", $bad_problem_folder_names) . '</ul><br>', 'warning');
     }
   }

@@ -136,7 +136,7 @@ function islandora_digital_workflow_actual_process_form_submit($form, &$form_sta
   $btn_id = $form_state['triggering_element']['#id'];
   $mode = $form_state['values']['mode'];
   if ($mode == '0' || $mode == '1' || $mode == '2' || $mode == '3') {
-    drupal_set_message('Invalid <b>Processing mode</b> selection.');
+    drupal_set_message(t('Invalid <b>Processing mode</b> selection.'), 'error');
     return;
   }
 
@@ -151,12 +151,12 @@ function islandora_digital_workflow_actual_process_form_submit($form, &$form_sta
         $markup = $fn($identifiers_array);
       }
       else {
-        drupal_set_message('That processing mode function "' . $fn . '" does not exist.', 'warning');
+        drupal_set_message(t('That processing mode function "@fn" does not exist.', array('@fn' => $fn)), 'warning');
       }
       break;
 
     default:
-      drupal_set_message('Triggering element "' . $btn_id . '" is not supported.');
+      drupal_set_message(t('Triggering element "@btn_id" is not supported.', array('@btn_id' => $btn_id)), 'warning');
       break;
   }
   if ($markup) {
@@ -305,7 +305,7 @@ function islandora_digital_workflow_gen_OCR_for_identifiers($identifiers) {
       exec($drush_command, $output, $return_var);
 
       if (($return_var == -1 || $return_var == 255 || $return_var == 1)) {
-        drupal_set_message('There was an error calling the drush command : ' . $drush_command);
+        drupal_set_message(t('There was an error calling the drush command : ') . $drush_command, 'error');
       }
       $markup .= "<hr>drush command return = " . $return_var . "<br>drush command output = " . print_r($output, true) . "</pre>";
     }
@@ -344,7 +344,7 @@ function islandora_digital_workflow_gen_notimelimit_OCR_for_identifiers($identif
       exec($drush_command, $output, $return_var);
 
       if (($return_var == -1 || $return_var == 255 || $return_var == 1)) {
-        drupal_set_message('There was an error calling the drush command : ' . $drush_command);
+        drupal_set_message(t('There was an error calling the drush command : ') . $drush_command, 'error');
       }
       $markup .= "<hr>drush command return = " . $return_var . "<br>drush command output = " . print_r($output, true) . "</pre>";
     }

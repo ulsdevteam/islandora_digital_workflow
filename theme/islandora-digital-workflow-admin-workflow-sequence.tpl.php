@@ -34,6 +34,7 @@
         <ul>
         <?php foreach ($sequence_models as $model): ?>
           <p><b><?php print l('Edit ' . $model . t(' Actions'), 'admin/islandora/islandora_digital_workflow/workflow_sequences/' . $workflow_sequence_id . '|' . $model, $link_button_class); ?>:</b></p>
+        <?php if ((array_key_exists($model, $markup_batch_actions) && count($markup_batch_actions[$model]) > 0) || (array_key_exists($model, $markup_item_actions) && count($markup_item_actions[$model]) > 0)): ?>
           <ul>
           <?php if (array_key_exists($model, $markup_batch_actions) && count($markup_batch_actions[$model]) > 0): ?>
             <li class="no_indent">Batch actions
@@ -44,6 +45,7 @@
               <ul class="corner_bordered item_action_box"><?php print implode("\n" , $markup_item_actions[$model]); ?></ul></li>
           <?php endif; ?>
           </ul>
+        <?php endif; ?>
         <?php endforeach; ?>
           <?php if ($sequence_last_modified): ?>
           <li><div class="admin_links disabled_text">Sequence last modified: <b><?php print (($sequence_last_modified == '0000-00-00 00:00:00') ? '(not set)' : $sequence_last_modified); ?></b></div></li>
@@ -51,6 +53,7 @@
         </ul>
       <?php else: ?>
         <p><?php print l(t('Edit Actions'), 'admin/islandora/islandora_digital_workflow/workflow_sequences/' . $workflow_sequence_id, $link_button_class); ?></p>
+        <?php if ((count($markup_batch_actions) > 0) || (count($markup_item_actions) > 0)): ?>
         <ul>
         <?php if (count($markup_batch_actions) > 0): ?>
           <li class="no_indent">Batch actions
@@ -64,6 +67,7 @@
           <li><div class="admin_links disabled_text">Sequence last modified: <b><?php print (($sequence_last_modified == '0000-00-00 00:00:00') ? '(not set)' : $sequence_last_modified); ?></b></div></li>
           <?php endif; ?>
         </ul>
+        <?php endif; ?>
       <?php endif; ?>
     </div>
   </div>

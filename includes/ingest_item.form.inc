@@ -103,7 +103,7 @@ function islandora_digital_workflow_ingest_item_submit(array $form, array &$form
     case 'edit-cancel':
       drupal_set_message(t('Ingest Item has been cancelled for @batch_identifier.', array(
           '@batch_identifier' => $batch_item_object->identifier,
-      )), 'status');
+      )), 'info');
       break;
   }
   // For the redirect, load the batch record in order to get the node's nid value.

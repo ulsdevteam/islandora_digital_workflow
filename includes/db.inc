@@ -896,16 +896,16 @@ function islandora_digital_workflow_update_batch_item_record($batch_item_id, $up
     // if the underlying file needs to be renamed.
     if ($update_values['filename'] <> $original_values->filename) {
       if (file_exists($update_values['filename'])) {
-        drupal_set_message('A file already existed with the updated filename, so nothing needed to be renamed.', 'status');
+        drupal_set_message(t('A file already existed with the updated filename, so nothing needed to be renamed.'), 'info');
       }
       if (file_exists($original_values->filename)) {
         $renamed_file = rename($original_values->filename, $update_values['filename']);
         if ($renamed_file) {
-          drupal_set_message('The underlying file has been renamed to match the value that was supplied.', 'status');
+          drupal_set_message(t('The underlying file has been renamed to match the value that was supplied.'), 'status');
         }
         else {
-          drupal_set_message('There was a problem renaming the underlying file from "' .
-              $original_values->filename . '" to "' . $update_values['filename'] . '".  It could be a file permissions issue.', 'error');
+          drupal_set_message(t('There was a problem renaming the underlying file from "') .
+              $original_values->filename . '" to "' . $update_values['filename'] . t('".  It could be a file permissions issue.'), 'error');
         }
       }
     }
@@ -921,8 +921,8 @@ function islandora_digital_workflow_update_batch_item_record($batch_item_id, $up
       $bytes_written = ($calculated_marc_filename) ?
           file_put_contents($calculated_marc_filename, $update_values['marc']) : 0;
       if ($bytes_written <> strlen($update_values['marc'])) {
-        drupal_set_message('There was a problem saving the updated MARC value to the file system at "' .
-          $calculated_marc_filename . '".  It may be a file permissions issue.', 'error');
+        drupal_set_message(t('There was a problem saving the updated MARC value to the file system at "') .
+          $calculated_marc_filename . t('".  It may be a file permissions issue.'), 'error');
       }
       islandora_digital_workflow_insert_transactions_record(IDW_ACTION_ADD_MARC_RECORD, NULL, $batch_item_id);
     }
@@ -937,8 +937,8 @@ function islandora_digital_workflow_update_batch_item_record($batch_item_id, $up
       $bytes_written = ($calculated_mods_filename) ?
           file_put_contents($calculated_mods_filename, $update_values['mods']) : 0;
       if ($bytes_written <> strlen($update_values['mods'])) {
-        drupal_set_message('There was a problem saving the updated MODS value to the file system at "' .
-          $calculated_mods_filename . '".  It may be a file permissions issue.', 'error');
+        drupal_set_message(t('There was a problem saving the updated MODS value to the file system at "') .
+          $calculated_mods_filename . t('".  It may be a file permissions issue.'), 'error');
       }
       islandora_digital_workflow_insert_transactions_record(IDW_ACTION_ADD_MODS_RECORD, NULL, $batch_item_id);
     }
@@ -1277,7 +1277,6 @@ function islandora_digital_workflow_insert_batch_item($fields) {
  */
 function islandora_digital_workflow_insert_transactions_record($action_id, $batch_id = NULL, $batch_item_id = NULL, $alternative_uid = NULL, $problem_notes = '') {
   global $user;
-  drupal_set_message('insert_transaction: ' . $action_id . ' on ' . $batch_item_id);
   if (!is_null($batch_id) || !is_null($batch_item_id)) {
     $transaction_id = db_insert('islandora_digital_workflow_transactions')
         ->fields(array(
