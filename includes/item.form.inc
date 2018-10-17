@@ -150,12 +150,13 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
   $is_paged_content = islandora_digital_workflow_is_paged_object($item->islandora_model) || $is_paged_content;
 
   if ($is_paged_content) {
-    $found_files = islandora_digital_workflow_scandir_paged_content_files($batch_path . '/' . $pid);
+    $found_files = islandora_digital_workflow_scandir_paged_content_files($batch_path . '/' . $item->identifier);
   }
   else {
     $file_records = islandora_digital_workflow_get_batch_files_by_nid($batch_record['nid']);
-    $found_files = islandora_digital_workflow_scan_files($batch_path . '/' . $pid, $file_records);
+    $found_files = islandora_digital_workflow_scan_files($batch_path . '/' . $item->identifier, $file_records);
   }
+
   $item_record_transactions = islandora_digital_workflow_get_batch_item_transactions($batch_item_id, $node->nid, $batch_record['batch_id']);
 
   $ingested = FALSE;
@@ -213,6 +214,8 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
               ' <span class="small_right_float"><i>(overrides batch value of "' . $batch_record['islandora_model'] . '")</i></span><br>': '');
 
   islandora_digital_workflow_merge_transactions_with_item_actions($item_record_transactions, $required_batch_actions, $node->nid);
+  $namespace = islandora_digital_workflow_get_ingest_namespace($batch_record);
+  $pid = $namespace . $item->identifier;
   $islandora_object = islandora_object_load($pid);
   if (is_object($islandora_object)) {
     $link_att = array('attributes' => array('target' => '_blank'));

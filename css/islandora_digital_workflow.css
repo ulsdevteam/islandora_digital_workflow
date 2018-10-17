@@ -196,8 +196,8 @@ span.transaction_action_reserved_action_spacer {
 .dashboard-report, #islandora-digital-workflow-batch-defaults {
     border-radius: 8px;
     padding: 10px;
-    border: 2px solid #bbb;
-    box-shadow: 3px 3px 3px #ddd;
+    border: 2px solid #BBB;
+    box-shadow: 3px 3px 3px #DDD;
     margin-bottom: 10px;
 }
 
@@ -209,12 +209,12 @@ span.transaction_action_reserved_action_spacer {
 .dashboard-report div pre {
     background-color: white;
     padding: 4px;
-    border: 1px solid #ddd;
+    border: 1px solid #DDD;
 }
 
 div.info {
   background-image: url("../images/message-24-info.png");
-  border-color: #bbb;
+  border-color: #BBB;
 }
 
 div.info, .info {
@@ -222,7 +222,7 @@ div.info, .info {
 }
 
 div.info, table tr.info {
-  background-color: #F4F4F4;
+  background-color: #F8F8F8;
 }
 
 div.info p.info {
@@ -305,7 +305,7 @@ div.info p.info {
 }
 
 .disabled_text, div.form-disabled label {
-    color: #aaa;
+    color: #AAA;
 }
 
 div.form-disabled label.enabled_text {
@@ -364,8 +364,8 @@ div.form-disabled label.enabled_text {
 }
 
 .process_set {
-    background-color: #f5f5f5;
-    border: 2px solid #ddd;    
+    background-color: #F5F5F5;
+    border: 2px solid #DDD;
     border-radius: 8px;
     text-align: center;
     margin: 4px 0;
@@ -390,7 +390,7 @@ div.form-disabled label.enabled_text {
 }
 
 .text-report {
-    border: 2px solid #ccc;
+    border: 2px solid #CCC;
     border-radius: 4px;
     padding: 16px;
     background-color: white;
@@ -402,7 +402,7 @@ div.form-disabled label.enabled_text {
 }
 
 .text-report a {
-    color: #02b;
+    color: #02B;
 }
 
 .report, .report_table table {
@@ -432,7 +432,7 @@ div.form-disabled label.enabled_text {
 .report_table fieldset {
     border-radius: 6px;
     margin: 4px;
-    border: 1px solid #aaa;
+    border: 1px solid #AAA;
     box-shadow: 1px 1px 3px #888;
 }
 
@@ -457,7 +457,7 @@ table.report tr {
 }
 
 table.report tr.oddrow td textarea, table.report tr.oddrow, .report_table fieldset.oddrow, .report_table table tr.oddrow {
-    background-color: #f2f2f2;
+    background-color: #F2F2F2;
 }
 
 .report_table_wrapper {
@@ -477,24 +477,24 @@ table.report tr.oddrow td textarea, table.report tr.oddrow, .report_table fields
     
 }
 .batch_action, .batch_action_box {
-    border-right: 8px solid #e8ae60 !important;
+    border-right: 8px solid #E8AE60 !important;
 }
 .item_action, .item_action_box {
-    border-right: 8px solid #6c65bb !important;
+    border-right: 8px solid #6C65BB !important;
 }
 
 tr.batch_action, div.batch_action {
-    background-color: #efe5d7 !important;
+    background-color: #EFE5D7 !important;
     border-right: none !important;
     background-position: 27px 0 !important;
 }
 tr.item_action, div.item_action {
-    background-color: #dddce7 !important;
+    background-color: #DDDCE7 !important;
     background-position: 27px 0 !important;
 }
 
 div.batch_action, div.item_action {
-    border: 1px solid #aaa !important;
+    border: 1px solid #AAA !important;
 }
 tr.batch_action, tr.item_action {
     border: none !important;
@@ -515,12 +515,13 @@ tr.batch_action, tr.item_action {
 #lookup_item_form {
     display: block;
     float: right;
+    font-size: 0.8em;
     border-radius: 6px;
     padding: 8px;
-    margin: 4px;
-    border: 1px solid #aaa;
+    margin: -20px 0px 4px 0px;
+    border: 1px solid #AAA;
     box-shadow: 1px 1px 3px #888;
-    background-color:#fafafa;
+    background-color:#F8F8F8;
 }
 
 /* ---- for the lookup results display ---- */
@@ -547,7 +548,7 @@ a .highlighted {
 }
 
 .lookup_result_square {
-    border: 1px solid #ccc;
+    border: 1px solid #CCC;
     margin-bottom: 0;
     padding-bottom: 0;
 }
@@ -555,7 +556,7 @@ a .highlighted {
 .lookup_result {
     border-radius: 8px;
     box-shadow: 1px 1px 3px #888;
-    border: 2px solid #bbb;
+    border: 2px solid #BBB;
 }
 
 table .lookup_result {
@@ -565,13 +566,13 @@ table .lookup_result {
 
 tr.spaceUnder>td {
   padding-bottom: 2px;
-  border-top: 2px solid #bbb;
+  border-top: 2px solid #BBB;
 }
 .lookup_result.evenrow {
     background-color: white;
 }
 .lookup_result.oddrow {
-    background-color:#f6f6f6;
+    background-color:#F6F6F6;
 }
 .lookup_result div h2 {
     margin-top: 0;
@@ -611,19 +612,19 @@ tr.spaceUnder>td {
 }
 
 .lookup_result fieldset {
-    background-color: #fafafa;
-    border: 1px solid #aaa;
+    background-color: #F8F8F8;
+    border: 1px solid #AAA;
     border-radius: 8px;
 }
 
 .corner_bordered {
     border-radius: 8px;
-    border: 1px solid #bbb;
-    box-shadow: 1px 1px 4px #aaa;    
+    border: 1px solid #BBB;
+    box-shadow: 1px 1px 4px #AAA;
 }
 
 .problem_result {
-    background-color: #fafafa;
+    background-color: #F8F8F8;
     margin: 20px;
 }
 
@@ -655,7 +656,7 @@ li.no_indent {
 
 /* ---- for inline_form fieldsets to display form-item divs inline ---- */
 .inline_form {
-    border: 3px solid #ddd;
+    border: 3px solid #DDD;
 }
 
 .inline_form .fieldset-wrapper .form-item {
@@ -688,7 +689,7 @@ li.no_indent {
     float: right;
     width: 50%;
     display: inline-block;
-    background-color: #f2f2f2;
+    background-color: #F2F2F2;
 }
 
 .display_none {
@@ -724,7 +725,7 @@ li.no_indent {
 
 .batch_stages-links .list_header, .batch_priorities-links .list_header, .batch_content_types-links .list_header {
     margin-bottom: 12px;
-    font-size: 1.0em;
+    font-size: 1.2em;
 }
 
 /* ---- some themes do not have a graphic for this class ---- */
@@ -746,17 +747,19 @@ ul.action-links a {
 ul.report-links, ul.utility-links, ul.admin-links, .batches-links {
     border-radius: 5px;
     margin: 10px;
-    border: 1px solid #ddd;
-    box-shadow: 2px 2px 2px #ccc;
+    border: 1px solid #DDD;
+    box-shadow: 2px 2px 2px #CCC;
     
 }
 .batches-links {
-    background-color: #fbfbfb;
-    box-shadow: 2px 2px 2px #aaa;
+    background-color: #F8F8F8;
+    box-shadow: 2px 2px 2px #AAA;
 }
 
 ul.report-links li, ul.utility-links li, ul.admin-links li {
-    background-color: #f8f8f8;
+    background-color: #F8F8F8;
+    padding-left: 4px;
+    border-left: 4px solid #EEE;
 }
 
 ul.report-links {
@@ -798,13 +801,13 @@ td.slide-cross {
 
 .link_button {
   text-decoration: none;
-  background-color: #e1e1e1;
+  background-color: E1E1E1;
   color: #333;
   padding: 2px 6px 2px 6px;
-  border-top: 1px solid #aaa;
+  border-top: 1px solid #AAA;
   border-right: 1px solid #666;
   border-bottom: 1px solid #666;
-  border-left: 1px solid #aaa;
+  border-left: 1px solid #AAA;
 }
 
 .link_button:hover {

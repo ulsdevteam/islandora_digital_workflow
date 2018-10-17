@@ -2,7 +2,7 @@
 
 /**
  * @file
- * islandora-digital-workflow-markup.tpl display template.
+ * islandora-digital-workflow-debug-record.tpl display template.
  *
  * Variables available:
  * - $debug_record array()
