@@ -97,15 +97,19 @@ function islandora_digital_workflow_set_node_stage($nid, $state_name = '', $stag
     if ($stage_tid) {
       // Check also that this stage tid is not already on the node
       $stage_already_exists = FALSE;
-      foreach ($node->field_stage[$node->language] as $tid_arr) {
-        $stage_already_exists |= ($tid_arr['tid'] == $stage_tid);
+      if (array_key_exists($node->language, $node->field_stage)) {
+        foreach ($node->field_stage[$node->language] as $tid_arr) {
+          $stage_already_exists |= ($tid_arr['tid'] == $stage_tid);
+        }
       }
       if (!$stage_already_exists) {
         $node->field_stage[$node->language][] = array('tid' => $stage_tid);
         node_save($node);
+        return TRUE;
       }
     }
   }
+  return FALSE;
 }
 
 /**

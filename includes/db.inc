@@ -540,9 +540,10 @@ function islandora_digital_workflow_check_trigger_stage_change($transaction_id =
     (($batch_item_record) ? ' for the item @batch_item_identifier' . $batch_item_record->identifier : '') .
     (($batch_record) ? ' on the batch "@batch_name"' : '');
   if ($action_record['is_batch_action'] == 1 || $action_record['is_triggered_by_single_item']) {
-    islandora_digital_workflow_set_node_stage($batch_record['nid'], '', $action_record['stage_taxonomy_tid']);
-    drupal_set_message(t($affects . ' which triggers the "@stage stage" for ' .
-        $message_string, $message_args));
+    if (islandora_digital_workflow_set_node_stage($batch_record['nid'], '', $action_record['stage_taxonomy_tid'])) {
+      drupal_set_message(t($affects . ' which triggers the "@stage stage" for ' .
+          $message_string, $message_args));
+    }
   }
   else {
     // the load the $items with the $batch_record->nid value
@@ -553,9 +554,10 @@ function islandora_digital_workflow_check_trigger_stage_change($transaction_id =
       $all_items_have_action &= (!(array_search($transaction_values['action_id'], $transaction_action_ids) === FALSE));
     }
     if ($all_items_have_action) {
-      islandora_digital_workflow_set_node_stage($batch_record['nid'], '', $action_record['stage_taxonomy_tid']);
-      drupal_set_message(t($affects . ' which triggers the "@stage stage" for ' .
-          $message_string, $message_args));
+      if (islandora_digital_workflow_set_node_stage($batch_record['nid'], '', $action_record['stage_taxonomy_tid'])) {
+        drupal_set_message(t($affects . ' which triggers the "@stage stage" for ' .
+            $message_string, $message_args));
+      }
     }
     // else, the Stage does not get set here because all items did not have that action.
   }
