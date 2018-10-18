@@ -515,7 +515,7 @@ function islandora_digital_workflow_batch_items_form_submit(array $form, array &
     $batch_item_ids = array();
     foreach ($selected_identifiers as $identifier) {
       $batch_item_id = islandora_digital_workflow_get_batch_item_id_by_identifier($identifier, $using__batch_id, TRUE);
-      $batch_item_ids[] = $batch_item['batch_item_id'];
+      $batch_item_ids[] = $batch_item_id;
     }
     $_SESSION['ids_by_session'] = $batch_item_ids;
     drupal_goto('islandora/islandora_digital_workflow/delete_batch_item/ids_by_session');

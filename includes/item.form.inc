@@ -20,18 +20,6 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/lookup.form');
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
 
-  $breadcrumb = array(
-    l(t('Home'), '<front>'),
-    l(t('Islandora what Workflow'), 'islandora/islandora_digital_workflow'),
-  );
-  if ($node) {
-    $breadcrumb[] = l($node->title, 'node/' . $node->nid);
-  }
-  if ($batch_item_id) {
-    $breadcrumb[] = l(t('Batch Items'), 'node/' . $node->nid . '/items');
-  }
-  drupal_set_breadcrumb($breadcrumb);
-
   $lookup_form_markup = theme('islandora_digital_workflow_lookup', array('searchterm' => ''));
 
   $batch_name = $node->title;

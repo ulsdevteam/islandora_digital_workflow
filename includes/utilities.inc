@@ -363,8 +363,13 @@ function islandora_digital_workflow_sync_batch_item_record($batch_record, $csv_f
   $existing_batch_identifiers = islandora_digital_workflow_get_existing_identifiers($batch_record['batch_id']);
   // Each MODS is inserted into the item record - this will insert the record:
   $batch_item_id = (array_search($csv_file_source['identifier'], $existing_batch_identifiers) === FALSE) ?
-    $batch_item_id = islandora_digital_workflow_insert_batch_item($fields) :
+    islandora_digital_workflow_insert_batch_item($fields) :
     array_search($csv_file_source['identifier'], $existing_batch_identifiers);
+
+  $item_is_paged = islandora_digital_workflow_item_is_paged_content($batch_item_id, $batch_record);
+  if ($item_is_paged) {
+    unset($fields['filename']);
+  }
   // Only update the transaction records for this identifier.
   if (!is_null($batch_item_id) && array_key_exists($csv_file_source['identifier'], $batch_item_identifiers_to_transaction_ids)) {
     foreach ($batch_item_identifiers_to_transaction_ids[$csv_file_source['identifier']] as $timestamp_transaction_id) {
@@ -2153,12 +2158,12 @@ function islandora_digital_workflow_move_batch_item_file($batch_item_id, $destin
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
   //  load the batch_item record for this batch_item_id to get the filename
   $item_record_results = islandora_digital_workflow_get_batch_item_record($batch_item_id);
-  $batch_item_record = array_pop($item_record_results);
+  $batch_item_obj = array_pop($item_record_results);
   //  load the batch related to this batch_item_id to get the batch name (path under the root)
-  $batch_record = islandora_digital_workflow_get_batch_record_by_batch_id($batch_item_record->batch_id);
+  $batch_record = islandora_digital_workflow_get_batch_record_by_batch_id($batch_item_obj->batch_id);
 
-  $path_parts = pathinfo($batch_item_record->filename);
-  $path_split = explode("/", $batch_item_record->filename);
+  $path_parts = pathinfo($batch_item_obj->filename);
+  $path_split = explode("/", $batch_item_obj->filename);
   $item_name = $path_split[count($path_split) - 2];
   $source_root = $path_parts['dirname'];
 
@@ -2180,10 +2185,10 @@ function islandora_digital_workflow_move_batch_item_file($batch_item_id, $destin
       mkdir($item_path);
     }
 
-    @list($junk, $short_item_filename) = explode("/" . $batch_record['batch_name'] . "/", $batch_item_record->filename);
+    @list($junk, $short_item_filename) = explode("/" . $batch_record['batch_name'] . "/", $batch_item_obj->filename);
     // Append the info on which item is selected in the notes.
     $problem_notes .= (($problem_notes) ? "\n\n----------------------\n" : "").
-        "Item title:    " . $batch_item_record->title . "\n" .
+        "Item title:    " . $batch_item_obj->title . "\n" .
         "Item filename: " . $short_item_filename . "\n" .
         "Batch name:    " . $batch_record['batch_name'] . "\n";
     file_put_contents($item_path . '/problem_notes.txt', $problem_notes);
@@ -2731,3 +2736,25 @@ function islandora_digital_workflow_filename_sanitize($filename, $extension = ''
   return $dirname . $sanitized;
 }
 
+/**
+ * Returns whether or not the item is paged-content.
+ *
+ * @param integer $batch_item_id
+ *   The islandora_digital_workflow_batch_items.batch_item_id value
+ * @param array $batch_record
+ *   A islandora_digital_workflow_batch record as an array.
+ * @return boolean
+ *   Whether or not the item is paged-content.
+ */
+function islandora_digital_workflow_item_is_paged_content($batch_item_id, $batch_record) {
+  $item_record_results = islandora_digital_workflow_get_batch_item_record($batch_item_id);
+  $batch_item_obj = array_pop($item_record_results);
+  if (is_object($batch_item_obj)) {
+    return islandora_digital_workflow_is_paged_object($batch_item_obj->islandora_model);
+  }
+  if ($batch_record['islandora_model']) {
+    return islandora_digital_workflow_is_paged_object($batch_record['islandora_model']);
+  }
+
+  return FALSE;
+}

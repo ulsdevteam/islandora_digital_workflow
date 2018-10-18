@@ -141,7 +141,9 @@ function islandora_digital_workflow_admin_form() {
       'ingest_ignore_filenames' => array(
         '#type' => 'textarea',
         '#title' => t('Ignore Specific Filenames'),
-        '#default_value' => variable_get('islandora_digital_workflow_ingest_ignore_filenames', 'ignored_filename_*
+        '#default_value' => variable_get('islandora_digital_workflow_ingest_ignore_filenames'),
+        '#attributes' => array(
+            'placeholder' => 'ignored_filename_*
 *_ignored_filenames
 *_ignored_filenames_*
 ??_ignored_filenames'),

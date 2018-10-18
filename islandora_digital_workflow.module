@@ -190,7 +190,7 @@ function islandora_digital_workflow_menu() {
       'file' => 'includes/delete_batch.form.inc',
     ),
     'islandora/islandora_digital_workflow/delete_batch_item/%' => array(
-      'title' => t('Islandora Digital Workflow - Delete Batch Item'),
+      'title' => t('Islandora Digital Workflow - Delete Batch Items'),
       'type' => MENU_NORMAL_ITEM,
       'page callback' => array('islandora_digital_workflow_delete_batch_items'),
       'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_DELETE_ITEMS),

@@ -209,11 +209,11 @@ function islandora_digital_workflow_make_drush_prepare_statement($batch_item_obj
 
   $ingest_namespace = islandora_digital_workflow_get_ingest_namespace($batch_record);
   $ingest_namespace_nocolon = rtrim($ingest_namespace, ':');
-  // from the batch record:
-  // for the --parent parameter use the collection mappings
-  // for the -- use the site_id mapping based on config for islandora_digital_workflow_use_isMemberOfSite.
+  // From the batch record:
+  // For the --parent parameter use the collection mappings
+  // For the -- use the site_id mapping based on config for islandora_digital_workflow_use_isMemberOfSite.
 
-  // for the --assign_pid value, use the items' identifier value prefixed by
+  // For the --assign_pid value, use the items' identifier value prefixed by
   //   config variable_get('islandora_digital_workflow_ingest_namespace', 'islandora')
   //   ELSE islandora_pid value
   $param_and_vals = array();
@@ -223,13 +223,14 @@ function islandora_digital_workflow_make_drush_prepare_statement($batch_item_obj
   if (variable_get('islandora_digital_workflow_assign_PIDs', 0)) {
     $param_and_vals[] = 'assign_pid=' . $ingest_namespace . $batch_item_object->identifier;
   }
-  // relationship parameter as "isMemberOfSite" object
+  // Relationship parameter as "isMemberOfSite" object
   if (variable_get('islandora_digital_workflow_use_isMemberOfSite', 0) && $batch_record['mapto_site_id_values']) {
     $param_and_vals[] = 'relationship=' . $batch_record['mapto_site_id_values'];
     $param_and_vals[] = 'relationship_pred=isMemberOfSite';
     $param_and_vals[] = 'relationship_namespace=http://digital.library.pitt.edu/ontology/relations#';
   }
-  // parent parameter as mapto_site_id_values value
+  // Parent parameter as mapto_site_id_values value.  If this is not set, the
+  // object will be related to the top-level collection islandora:root.
   if ($batch_record['mapto_collections']) {
     $param_and_vals[] = 'parent=' . $batch_record['mapto_collections'];
   }

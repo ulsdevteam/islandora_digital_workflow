@@ -504,7 +504,6 @@ function islandora_digital_workflow_check_trigger_stage_change($transaction_id =
   if (!(is_null($transaction_id) && is_array($transaction_values))) {
     $transaction_values = islandora_digital_workflow_get_batch_transaction($transaction_id);
   }
-
   $transaction_values = (array) $transaction_values;
   // Given the transaction record, we can see what the action_id is and look that 
   // up to see whether or not it should trigger a "Stage" change - then to look
@@ -882,7 +881,7 @@ function islandora_digital_workflow_update_batch_item_record($batch_item_id, $up
         'title' => $update_values['title'],
         'identifier' => $update_values['identifier'],
         'filename' => $update_values['filename'],
-        'assigned_pid' => $update_values['assigned_pid'],
+        'assigned_pid' => (array_key_exists('assigned_pid', $update_values) ? $update_values['assigned_pid'] : ''),
         'islandora_model' => $update_values['islandora_model'],
         'type_of_resource' => $update_values['type_of_resource'],
         'mods' => $update_values['mods'],
@@ -1717,4 +1716,36 @@ function islandora_digital_workflow_get_debug_record($id_value, $id_fieldname, $
   else {
     return NULL;
   }
+}
+
+/**
+ * This will delete a batch_item record related to a given $batch_item_id.
+ *
+ * @param integer $batch_item_id
+ *   batch_item_id representing a islandora_digital_workflow_batch_items record.
+ * @return array
+ *   The number of records that have been updated (expect 1 or 0).
+ */
+function islandora_digital_workflow_delete_batch_item($batch_item_id) {
+  // SQL statement to delete the islandora_digital_workflow_problem_items records
+  // because they are related to islandora_digital_workflow_transactions records.
+  $sql = "DELETE FROM islandora_digital_workflow_problem_items WHERE transaction_id " .
+         "IN (SELECT transaction_id FROM islandora_digital_workflow_transactions " .
+         " WHERE batch_item_id = " . $batch_item_id . ")";
+  db_query($sql);
+
+  db_delete('islandora_digital_workflow_transactions')
+    ->condition('batch_item_id', $batch_item_id)
+    ->execute();
+  db_delete('islandora_digital_workflow_process_set_items')
+    ->condition('batch_item_id', $batch_item_id)
+    ->execute();
+  db_delete('islandora_digital_workflow_drush_log')
+    ->condition('batch_item_id', $batch_item_id)
+    ->execute();
+
+  // Finally the batch_items records can be deleted.
+  return db_delete('islandora_digital_workflow_batch_items')
+    ->condition('batch_item_id', $batch_item_id)
+    ->execute();
 }

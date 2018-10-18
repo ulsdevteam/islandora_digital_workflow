@@ -92,8 +92,11 @@
             <input id="edit-filename" name="filename" value="<?php print $item->master_filename_basename; ?>">
             <?php endif; ?>
             <label for="edit-assigned-pid">Assign Fedora PID: </label>
-            <input id="edit-assigned-pid" name="assigned_pid" value="<?php print $item->assigned_pid; ?>"
-               placeholder="<?php print (($batch_record['ingest_namespace']) ? $batch_record['ingest_namespace'] : variable_get('islandora_digital_workflow_ingest_namespace', 'islandora'));?>:">
+            <?php if (variable_get('islandora_digital_workflow_assign_PIDs', 0) == 1): ?>
+            <input id="edit-assigned-pid" name="assigned_pid" value="<?php print (($item->assigned_pid) ? $item->assigned_pid : $pid); ?>">
+            <?php else: ?>
+            <input id="edit-assigned-pid" class="disabled_text" disabled readonly="readonly" name="disabled_assigned_pid" value="The option to assign PID values is disabled in the module configuration.">
+            <?php endif; ?>
             <label for="edit-type-of-resource">Type of resource: </label>
             <?php print $resource_select_box; ?>
             <label for="edit-islandora-model">Islandora model: </label>
@@ -102,7 +105,7 @@
             <textarea rows=5 class="<?php
             print (user_access(ISLANDORA_DIGITAL_WORKFLOW_EDIT_ITEM_META) ? '': 'disabled_text '); ?>short-text-area" id="edit-mods" name="mods"<?php
             print (user_access(ISLANDORA_DIGITAL_WORKFLOW_EDIT_ITEM_META) ? '': ' readonly="readonly"'); ?>><?php print $item->mods; ?></textarea>
-            <em>NOTE:</em> The MODS is generated from the CSV upload and editing this here may not be the right thing to do.
+            <span class="small_font disabled_text"><em>NOTE:</em> The MODS is generated from the CSV upload and editing this here may not be the right thing to do.</span>
             <?php if ($is_paged_content) : ?>
             <div>
                 <label for="edit-marc-file">MARC record:</label><br>
