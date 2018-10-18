@@ -84,6 +84,8 @@ function islandora_digital_workflow_uninstall() {
   variable_del('islandora_digital_workflow_ingest_prepared_path');
   variable_del('islandora_digital_workflow_hosts_for_ingest');
   variable_del('islandora_digital_workflow_use_isMemberOfSite');
+  variable_del('islandora_digital_workflow_delete_delivery_files');
+  variable_del('islandora_digital_workflow_handle_islandora_hook');
   variable_del('islandora_digital_workflow_ingest_delivery_path');
   variable_del('islandora_digital_workflow_ingest_problems_path');
   variable_del('node_submitted_workflow_batch');

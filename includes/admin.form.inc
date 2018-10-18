@@ -172,7 +172,7 @@ function islandora_digital_workflow_admin_form() {
 
     'extra_options' => array(
       '#type' => 'fieldset',
-      '#title' => t('Extra batch properties & options'),
+      '#title' => t('Extra options'),
       '#collapsible' => TRUE,
       '#collapsed' => FALSE,
       'batch_isMemberOfSite_property' => array(
@@ -188,6 +188,31 @@ function islandora_digital_workflow_admin_form() {
             '"object to site" relationships as well as that the instances of the various ' .
             'islandora_*_batch modules in order to handle the "sites" parameter.</em>',
           '#default_value' => variable_get('islandora_digital_workflow_use_isMemberOfSite', 0),
+        ),
+      ),
+      'delete_delivery_when_scanned_property' => array(
+        '#type' => 'item',
+        '#title' => t('Delete files after scan copies made'),
+        'delete_delivery_when_scanned' => array(
+          '#type' => 'checkbox',
+          '#title' => 'Delete delivery file after scan copy is made?',
+          '#description' => 'When this is checked, the code will try to clean up ' .
+            'the delivery folders as the items are marked as "scanned".  Additionally, ' .
+            'when the final item is marked as "scanned", the containing folder will ' .
+            'also be deleted.  <em>NOTE: This feature requires the file permissions ' .
+            'to allow write from the web server.</em>',
+          '#default_value' => variable_get('islandora_digital_workflow_delete_delivery_files', 0),
+        ),
+      ),
+      'islandora_hook' => array(
+        '#type' => 'item',
+        '#title' => t('Handle the Islandora Ingested hooks'),
+        'handle_islandora_hook' => array(
+          '#type' => 'checkbox',
+          '#title' => 'Handle the Islandora Object Ingested and Datastream Ingeseted hooks?',
+          '#description' => 'When this is checked, the code will try to add a ' .
+            'transaction for that batch item.',
+          '#default_value' => variable_get('islandora_digital_workflow_handle_islandora_hook', 0),
         ),
       ),
     ),
@@ -227,6 +252,8 @@ function islandora_digital_workflow_admin_form_submit(array $form, array &$form_
       variable_set('islandora_digital_workflow_ingest_ignore_filenames', $form_state['values']['ingest_ignore_filenames']);
       variable_set('islandora_digital_workflow_hosts_for_ingest', $form_state['values']['batch_hosts']);
       variable_set('islandora_digital_workflow_use_isMemberOfSite', $form_state['values']['batch_use_isMemberOfSite']);
+      variable_set('islandora_digital_workflow_delete_delivery_files', $form_state['values']['delete_delivery_when_scanned']);
+      variable_set('islandora_digital_workflow_handle_islandora_hook', $form_state['values']['handle_islandora_hook']);
       drupal_set_message('[' . date('H:i:s') . '] The settings have been saved.');
       // drupal_goto('admin/islandora/islandora_digital_workflow');
       break;
@@ -241,6 +268,8 @@ function islandora_digital_workflow_admin_form_submit(array $form, array &$form_
       variable_del('islandora_digital_workflow_ingest_ignore_filenames');
       variable_del('islandora_digital_workflow_hosts_for_ingest');
       variable_del('islandora_digital_workflow_use_isMemberOfSite');
+      variable_del('islandora_digital_workflow_delete_delivery_files');
+      variable_del('islandora_digital_workflow_handle_islandora_hook');
       drupal_set_message('[' . date('H:i:s') . '] The settings have been reset.');
       break;
   }
