@@ -1271,6 +1271,14 @@ function islandora_digital_workflow_insert_batch_item($fields) {
 /**
  * Inserts an action transaction for a batch_item record by identifier.
  *
+ * This code needs to handle several special actions as well.
+ *   1. For any actions that are configured to trigger a stage change, it
+ * will call islandora_digital_workflow_check_trigger_stage_change.
+ *   2. When the action is a "Problem", this will need to set the problem record
+ * by calling islandora_digital_workflow_set_problem_record.
+ *   3. When the action is "Scanned" (IDW_ACTION_SCAN), the code needs to copy and
+ * possibly delete the delivery file.
+ *
  * @param type $action_id
  *   id value correponding to the action_id to insert.
  * @param integer $batch_id
@@ -1281,6 +1289,8 @@ function islandora_digital_workflow_insert_batch_item($fields) {
  *   when provided, this will override the current-logged-in user's uid value.
  */
 function islandora_digital_workflow_insert_transactions_record($action_id, $batch_id = NULL, $batch_item_id = NULL, $alternative_uid = NULL, $problem_notes = '') {
+  // Just in case the calling code does not include the utilities.inc, do it again.
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
   global $user;
   if (!is_null($batch_id) || !is_null($batch_item_id)) {
     $transaction_id = db_insert('islandora_digital_workflow_transactions')
@@ -1300,6 +1310,8 @@ function islandora_digital_workflow_insert_transactions_record($action_id, $batc
   
     if ($action_id == IDW_ACTION_PROBLEM) {
       islandora_digital_workflow_set_problem_record($transaction_id, ($alternative_uid) ? $alternative_uid : $user->uid, $problem_notes);
+    } elseif ($action_id == IDW_ACTION_SCAN && !is_null($batch_item_id)) {
+      islandora_digital_workflow_copy_delivery_file($batch_item_id);
     }
     return $transaction_id;
   }

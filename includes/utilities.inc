@@ -570,23 +570,27 @@ function islandora_digital_workflow_get_sites_options() {
  * Note about the folder permissions:
  *   The folder must be writable by apache as well as by other admin members of our department.
  *
- * @param array $batch_values
+ * @param array $batch_record
  *   Array of values from the islandora_digital_workflow_batch table that represents
  * a single batch.
+ * @param boolean $is_delivery
+ *   Optional, default FALSE.  When set, the path is based on the path configured
+ * as "Incoming Delivery Directory" islandora_digital_workflow_ingest_delivery_path
+ * else "Ingest Working Directory" islandora_digital_workflow_ingest_prepared_path.
  * @return string
  *   The batch_path for the given batch_values record.
  */
-function islandora_digital_workflow_batch_path($batch_values) {
-  if (is_object($batch_values)) {
-    $batch_values = (array) $batch_values;
+function islandora_digital_workflow_batch_path($batch_record, $is_delivery = FALSE) {
+  if (is_object($batch_record)) {
+    $batch_record = (array) $batch_record;
   }
-  if (!is_array($batch_values) || !array_key_exists('batch_name', $batch_values)) {
+  if (!is_array($batch_record) || !array_key_exists('batch_name', $batch_record)) {
     drupal_set_message(t('The batch path could not be determined.  Either the values are missing or ' .
             'there is no value for the batch "Name" (batch_name field) yet.'), 'warning');
     return '';
   }
-  $ingest_path = $batch_values['batch_host'];
-  if (!$batch_values['batch_host'] || $ingest_path == 'ftp' || (ltrim($ingest_path, 'ftp:') <> $ingest_path)) {
+  $ingest_path = ($is_delivery) ? variable_get('islandora_digital_workflow_ingest_delivery_path', '') : $batch_record['batch_host'];
+  if (!$batch_record['batch_host'] || $ingest_path == 'ftp' || (ltrim($ingest_path, 'ftp:') <> $ingest_path)) {
     $ingest_path = variable_get('islandora_digital_workflow_ingest_prepared_path', file_directory_temp());
   } elseif (strstr($ingest_path, ":")) {
     @list($ingest_host, $ingest_path) = explode(":", $ingest_path);
@@ -596,7 +600,7 @@ function islandora_digital_workflow_batch_path($batch_values) {
         t(' configuration would need to be updated to point to the mounted location.'),
         'error');
   }
-  $batch_path = rtrim($ingest_path, '/') . '/' . $batch_values['batch_name'];
+  $batch_path = rtrim($ingest_path, '/') . '/' . $batch_record['batch_name'];
   $batch_path = islandora_digital_workflow_filename_sanitize($batch_path);
   if (!file_exists($batch_path)) {
     $call = mkdir($batch_path);
@@ -1206,11 +1210,10 @@ function islandora_digital_workflow_prepare_csv2mods($input_filename, $batch_rec
   $st = " style='background-color:#F2F2F2;border:1px solid #222'";  $toggle = false;  $row_counter = 1;
 
   $csv_header_xpath_mappings = islandora_digital_workflow_get_csv_header_xpath_mappings();
-  $mods_created = $files_copied = $bytes_written = 0;
+  $mods_created = $auto_number = 0;
 
   $ingest_namespace = islandora_digital_workflow_get_ingest_namespace($batch_record);
   $identifiers_and_filepaths = array();
-  $auto_number = 0;
   // Loop through each row creating a <row> node with the correct data
   while (($row = fgetcsv($inputFile)) !== FALSE) {
     // $row = array_map("utf8_encode", $row);
@@ -1255,6 +1258,7 @@ function islandora_digital_workflow_prepare_csv2mods($input_filename, $batch_rec
             }
           }
           elseif (($header == 'file_name' || $header == 'filename') && array_key_exists($i, $row)) {
+            // For ISLANDORA-214, this will need to be different for some paged-content.
             $row_file_name = $batch_path . '/' . $row_mods_id . '/' . $row[$i];
             $outputFilename = str_replace(array('.tiff', '.tif'), '.xml', $row[$i]);
           }
@@ -1277,15 +1281,6 @@ function islandora_digital_workflow_prepare_csv2mods($input_filename, $batch_rec
         }
       }
       $headers[$i] = $header;
-    }
-
-    // MOVE the file into the row's working directory
-    if ($row_file_name) {
-      if (file_exists($row_file_name)) {
-        $santized_filename = islandora_digital_workflow_filename_sanitize($row_mods_id . '/' . $row_file_name);
-        drupal_move_uploaded_file($row_file_name, $batch_path . '/' . $santized_filename);
-        $files_copied++;
-      }
     }
 
     // Create a new dom document with pretty formatting
@@ -1366,7 +1361,7 @@ function islandora_digital_workflow_prepare_csv2mods($input_filename, $batch_rec
 
     if ($keep_created_MODS_files) {
       $handle = fopen($batch_path . '/' . $row_mods_id . '/' . $outputFilename, "w");
-      $bytes_written += fwrite($handle, $strxml);
+      $bytes_written = fwrite($handle, $strxml);
       fclose($handle);
     }
     $filename = ($keep_created_MODS_files) ? islandora_digital_workflow_XMLtoMODS($batch_path . '/' . $row_mods_id . '/' . $outputFilename, $batch_record['batch_id'], $ingest_namespace . $row_mods_id) : "";
@@ -1380,7 +1375,6 @@ function islandora_digital_workflow_prepare_csv2mods($input_filename, $batch_rec
         'mods_filename' => $filename);
     $row_counter++;
   }
-  // echo "<p>" . number_format($files_copied) . " files copied to incoming directory <b>" . $batch_path . "</b></p>";
   // echo "<p>" . number_format($mods_created) . " MODS files created.</p>";
 
   if ($temp_csv_filename <> '' && file_exists($temp_csv_filename)) {
@@ -2757,4 +2751,92 @@ function islandora_digital_workflow_item_is_paged_content($batch_item_id, $batch
   }
 
   return FALSE;
+}
+
+function islandora_digital_workflow_copy_delivery_file($batch_item_id) {
+  $item_record_results = islandora_digital_workflow_get_batch_item_record($batch_item_id);
+  $batch_item_obj = array_pop($item_record_results);
+  if (!is_object($batch_item_obj)) {
+    drupal_set_message(t('There was a problem accessing the batch_item record for ' .
+        '@batch_item_id.', array(
+            '@batch_item_id' => $batch_item_id,
+            ))
+        );
+    return FALSE;
+  }
+  $sanitized_delivery_filename = islandora_digital_workflow_get_item_delivery_filename($batch_item_obj);
+  $working_filename = $batch_item_obj->filename;
+
+  $copied = copy($sanitized_delivery_filename, $working_filename);
+
+  if ($copied) {
+    if (variable_get('islandora_digital_workflow_delete_delivery_files', 0)) {
+      drupal_set_message('Delete files after scan copies made set');
+      $deleted = @unlink($sanitized_delivery_filename);
+      if (!$deleted) {
+        drupal_set_message(t('The file @master_filename_basename was copied to ' .
+            '@working_filename, but the original file "@sanitized_delivery_filename" ' .
+            'could not be deleted.  Check file permissions on the server location ' .
+            'for the source path.', array(
+                '@sanitized_delivery_filename' => $sanitized_delivery_filename,
+                '@master_filename_basename' => $batch_item_obj->master_filename_basename,
+                '@working_filename' => $working_filename
+            )));
+      }
+      // Additionally, when islandora_digital_workflow_delete_delivery_files is set,
+      // if the item is the last item in the batch to be copied, then ALSO try to delete
+      // the delivery folder itself.
+
+
+
+    }
+    else {
+      drupal_set_message('Delete files after scan copies made NOT set');
+    }
+  }
+  else {
+    drupal_set_message(t('The file @master_filename_basename could not be copied ' .
+        'to @working_filename.  Check file permissions on the server location for ' .
+        'the destination path.', array(
+            '@master_filename_basename' => $batch_item_obj->master_filename_basename,
+            '@working_filename' => $working_filename
+        )));
+  }
+}
+
+function islandora_digital_workflow_get_item_delivery_filename($batch_item, $batch_record = NULL) {
+  // Only load the batch_record if the calling code passed batch_item as the object's
+  // batch_item_id value.
+  if (!is_object($batch_item)) {
+    // The value must be the batch_item_id integer value.  Load the object as $batch_item.
+    $item_record_results = islandora_digital_workflow_get_batch_item_record($batch_item);
+    $batch_item = array_pop($item_record_results);
+    if (!is_object($batch_item)) {
+      drupal_set_message(t('There was a problem accessing the batch_item record for ' .
+          '@batch_item_id.', array(
+              '@batch_item_id' => $batch_item,
+              ))
+          );
+      return FALSE;
+    }
+  }
+  // Look up this batch_item's batch so that the full path to the files can be
+  // determined.
+  // Only load the batch_record if the calling code has not passed the batch_record array.
+  $batch_record = !(is_null($batch_record)) ? $batch_record : islandora_digital_workflow_get_batch_record_by_batch_id($batch_item->batch_id);
+  // The great thing is that this function call will CREATE the directory
+  // if it doesn't exist.
+  $batch_path = islandora_digital_workflow_batch_path($batch_record, TRUE);
+
+  // Need to change to "Incoming Delivery Directory" and get the object's file --
+  // and copy the item's file into the "Ingest Working Directory" location.
+  // If the configuration is set to islandora_digital_workflow_delete_delivery_files
+  // the code should try to delete the item.
+  $target_filename = $batch_item->filename;
+  $pathinfo = pathinfo($target_filename);
+  $basename = (array_key_exists('basename', $pathinfo) ? (($pathinfo['basename'] <> '.') ? $pathinfo['basename'] : '') : '');
+  $item_path = $batch_path . '/' . $batch_item->identifier;
+  $delivery_filename = $item_path . '/' . $basename;
+  $sanitized_delivery_filename = islandora_digital_workflow_filename_sanitize($delivery_filename);
+  return $sanitized_delivery_filename;
 }
