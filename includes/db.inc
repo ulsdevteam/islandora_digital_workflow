@@ -1534,29 +1534,32 @@ function islandora_digital_workflow_get_free_action_id() {
  *   HTML markup from the item updating.
  */
 function islandora_digital_workflow_update_item_file_data($batch_record, $item_data) {
-   foreach ($item_data as $item_identifier => $identifer_data) {
-     $total_file_size = 0;
-     $files = array();
-     foreach ($identifer_data as $item_file) {
-       $total_file_size += $item_file['size'];
-       $files[] = $item_file['file'];
-     }
-     $total_file_count = count($identifer_data);
-     $set_fields = array(
-         'file_count' => $total_file_count, 
-         'file_size' => $total_file_size);
-     db_update('islandora_digital_workflow_batch_items')
-       ->condition('identifier', $item_identifier)
-       ->fields($set_fields)
-       ->execute();
-      $markup_arr[] = '<b><span style="color:#888">' . $batch_record->batch_name . '/</span>' . $item_identifier . '</b><br>';
-      $markup_arr[] = '<pre class="small_lt_text">';
-      $markup_arr[] = "       <b>Size</b>: " . $total_file_size . " bytes\n";
-      $markup_arr[] = "      <b>Count</b>: " . $total_file_count . "\n";
-      $markup_arr[] = "      <b>Files</b>: " . implode(", ", ($files));
-      $markup_arr[] = "</pre>";
+  $batch_record = (array) $batch_record;
+  foreach ($item_data as $item_pid => $identifer_data) {
+    @list($item_namespace, $item_identifier) = explode(":", $item_pid);
+    $total_file_size = 0;
+    $files = array();
+    foreach ($identifer_data as $item_file) {
+      $total_file_size += $item_file['size'];
+      $files[] = $item_file['file'];
     }
-   return implode("\n", $markup_arr);
+    $total_file_count = count($identifer_data);
+    $set_fields = array(
+        'file_count' => $total_file_count,
+        'file_size' => $total_file_size);
+    db_update('islandora_digital_workflow_batch_items')
+      ->condition('batch_id', $batch_record['batch_id'])
+      ->condition('identifier', $item_identifier)
+      ->fields($set_fields)
+      ->execute();
+    $markup_arr[] = '<b><span style="color:#888">' . $batch_record['batch_name'] . '/</span>' . $item_identifier . '</b><br>';
+    $markup_arr[] = '<pre class="small_lt_text">';
+    $markup_arr[] = "       <b>Size</b>: " . $total_file_size . " bytes\n";
+    $markup_arr[] = "      <b>Count</b>: " . $total_file_count . "\n";
+    $markup_arr[] = "      <b>Files</b>: " . implode(", ", ($files));
+    $markup_arr[] = "</pre>";
+  }
+  return implode("\n", $markup_arr);
 }
 
 /**

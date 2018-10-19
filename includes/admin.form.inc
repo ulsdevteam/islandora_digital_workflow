@@ -209,9 +209,10 @@ function islandora_digital_workflow_admin_form() {
         '#title' => t('Handle the Islandora Ingested hooks'),
         'handle_islandora_hook' => array(
           '#type' => 'checkbox',
-          '#title' => 'Handle the Islandora Object Ingested and Datastream Ingeseted hooks?',
+          '#title' => 'Handle the Islandora Object Ingested and Datastream Ingested hooks?',
           '#description' => 'When this is checked, the code will try to add a ' .
-            'transaction for that batch item.',
+            'transaction for that batch item for "Ingest item into repository" or ' .
+            '"System made derivatives".',
           '#default_value' => variable_get('islandora_digital_workflow_handle_islandora_hook', 0),
         ),
       ),

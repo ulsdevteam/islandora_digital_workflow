@@ -78,32 +78,24 @@ function islandora_digital_workflow_recalculate_files() {
   
   $batch_name = arg(4);
 
-  $markup_arr = $markup_bottom_arr = array();
-  $markup_arr[] = '<p>Click on batches to recalculate the items / files size.</p>';
+  $output_contents = $output_footer = array();
+  $output_contents[] = '<p>Click on batches to recalculate the items / files size.</p>';
 
   $batch_records = islandora_digital_workflow_get_all_batch_records();
+  if ($batch_name == '') {
+    $output_contents[] = '<b>' . l(t('Recalculate for ALL batches'),
+      'islandora/islandora_digital_workflow/utilities/recalculate_files/*') . '</b><br>';
+  }
   foreach ($batch_records as $batch_record) {
     if ($batch_name == $batch_record->batch_name || $batch_name == '' || $batch_name == '*') {
-      $batch_path = islandora_digital_workflow_batch_path($batch_record);
-      $batch_folders = islandora_digital_workflow_find_folders_files($batch_path);
-      $item_data = array();
-      if (count($batch_folders) > 0) {
-        if ($batch_name == '') {
-          $markup_arr[] = '<b>' . l(t('Recalculate for ALL batches'),
-            'islandora/islandora_digital_workflow/utilities/recalculate_files/*') . '</b><br>';
-          $markup_arr[] = l(t('Recalculate for "' .  $batch_record->batch_name . '"'),
-            'islandora/islandora_digital_workflow/utilities/recalculate_files/' . $batch_record->batch_name) . '<br>';
-        }
-        else {
-          $markup_arr[] = '<p>Processing batch "' . $batch_record->batch_name . '"</p>';
-          foreach ($batch_folders as $item_identifier => $found_folders_files) {
-            foreach ($found_folders_files['filesize_date_files_raw'] as $filesize_date_files_raw) {
-              $record_identifier = $batch_record->ingest_namespace . ":" . $item_identifier;
-              $item_data[$record_identifier][] = $filesize_date_files_raw;
-            }
-          }
-          $markup_bottom_arr[] = islandora_digital_workflow_update_item_file_data($batch_record, $item_data);
-        }
+      // This function will do the actual calculations per batch -- and put any
+      // relevant output for the utilities form into the two $output_* parameter 
+      // values.
+      if ($batch_name == '') {
+        $output_contents[] = l(t('Recalculate for "' .  $batch_record->batch_name . '"'),
+          'islandora/islandora_digital_workflow/utilities/recalculate_files/' . $batch_record->batch_name) . '<br>';
+      } else {
+        islandora_digital_workflow_recalc_batch_files($batch_record, $output_contents, $output_footer);
       }
     }
     if ($batch_name == $batch_record->batch_name || $batch_name == '*') {
@@ -113,11 +105,11 @@ function islandora_digital_workflow_recalculate_files() {
     }
   }
 
-  $markup_bottom_arr[] = '<hr>' . t('Return to ') . l('Islandora Digital Workflow - Utilities', 'islandora/islandora_digital_workflow/utilities');
+  $output_contents[] = '<hr>' . t('Return to ') . l('Islandora Digital Workflow - Utilities', 'islandora/islandora_digital_workflow/utilities');
   $return_form = array(
       'file_size_recalc' => array(
           '#type' => 'item',
-          '#markup' => implode("\n", $markup_arr) . implode("\n", $markup_bottom_arr),
+          '#markup' => implode("\n", $markup_arr) . implode("\n", $output_contents),
       )
   );
   return $return_form;

@@ -2770,6 +2770,10 @@ function islandora_digital_workflow_copy_delivery_file($batch_item_id) {
   $copied = copy($sanitized_delivery_filename, $working_filename);
 
   if ($copied) {
+    // Load the batch record for this item so that the sizes can be recalculated.
+    $batch_record = islandora_digital_workflow_get_batch_record_by_batch_id($batch_item_obj->batch_id);
+    islandora_digital_workflow_recalc_batch_files($batch_record);
+
     if (variable_get('islandora_digital_workflow_delete_delivery_files', 0)) {
       drupal_set_message('Delete files after scan copies made set');
       $deleted = @unlink($sanitized_delivery_filename);
@@ -2839,4 +2843,22 @@ function islandora_digital_workflow_get_item_delivery_filename($batch_item, $bat
   $delivery_filename = $item_path . '/' . $basename;
   $sanitized_delivery_filename = islandora_digital_workflow_filename_sanitize($delivery_filename);
   return $sanitized_delivery_filename;
+}
+
+function islandora_digital_workflow_recalc_batch_files($batch_record, &$output_contents = array(), &$output_footer = array()) {
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
+  $batch_record = (array) $batch_record;
+  $batch_path = islandora_digital_workflow_batch_path($batch_record);
+  $batch_folders = islandora_digital_workflow_find_folders_files($batch_path);
+  $item_data = array();
+  if (count($batch_folders) > 0) {
+    $output_contents[] = '<p>Processing batch "' . $batch_record['batch_name'] . '"</p>';
+    foreach ($batch_folders as $item_identifier => $found_folders_files) {
+      foreach ($found_folders_files['filesize_date_files_raw'] as $filesize_date_files_raw) {
+        $record_identifier = $batch_record['ingest_namespace'] . ":" . $item_identifier;
+        $item_data[$record_identifier][] = $filesize_date_files_raw;
+      }
+    }
+    $output_footer[] = islandora_digital_workflow_update_item_file_data($batch_record, $item_data);
+  }
 }

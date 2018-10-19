@@ -1134,6 +1134,7 @@ function islandora_digital_workflow_actions_edit_form(array $form, array &$form_
       '#default_value' => $action_id,
   );
 
+  $action_name = ((array_key_exists('action_name', $action_record)) ? $action_record['action_name'] : '');
   $form['name_desc_wrapper'] = array(
       '#type' => 'fieldset',
       'name' => array(
@@ -1141,7 +1142,7 @@ function islandora_digital_workflow_actions_edit_form(array $form, array &$form_
           '#title' => 'Action name',
           '#description' => 'Machine name is used internally do generate HTML ' .
               'and CSS classes for these action transactions.',
-          '#default_value' => ((array_key_exists('action_name', $action_record)) ? $action_record['action_name'] : ''),
+          '#default_value' => $action_name,
       ),
       'description' => array(
           '#type' => 'textfield',
@@ -1195,6 +1196,16 @@ function islandora_digital_workflow_actions_edit_form(array $form, array &$form_
           '#default_value' => (isset($action_record['is_triggered_by_single_item']) ? $action_record['is_triggered_by_single_item']+0 : 0),
       ),
   );
+
+  // Disable the action name edit box if this action is one of the special system
+  // actions - and display a message.
+  $system_action_names = array('ingest', 'system-made-derivatives', 'problem', 'all-ingest');
+  if (!(array_search($action_name, $system_action_names) === FALSE)) {
+    $form['name_desc_wrapper']['#attributes'] = $read_only_att;
+    $form['name_desc_wrapper']['name']['#description'] = '<em>' .
+        'This action is a system action and cannot be renamed.</em>  ' .
+        $form['name_desc_wrapper']['name']['#description'];
+  }
 
   // Disable this selection if the action_id is already assigned.
   if ($action_id) {
