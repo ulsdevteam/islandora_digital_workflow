@@ -150,24 +150,6 @@ function islandora_digital_workflow_admin_form() {
         '#description' => t('List filenames or wildcard filenames (supports *, ? characters) <b>ONE per line</b> that the ingest process should ignore when preparing the files that exist in the batch folder for ingest.
                              <p>When the files are managed in various environments, there are sometimes extra files left behind that are not intended as part of the ingest process (for example color calibration files such as "Target.tif", or hidden files or folders that might still cause a problem for the ingest).</p>'),
       ),
-      'batch_hosts' => array(
-        '#type' => 'textarea',
-        '#title' => t('Available Host Aliases for Batch ingest'),
-        '#default_value' => variable_get('islandora_digital_workflow_hosts_for_ingest', ''),
-        '#description' => t('Server locations for prepared ingest batch files. Eacho of these should likely be configured to a location that has plenty of hard space.
-                             <p>If the ingestable files are located on a different server, configure an alias
-                             that can direct the batch to use that server.</p>
-                             <ul>
-                               <li>For any batch that does not specify which host alias to use, this "Ingest Working Directory" above would be used.</li>
-                               <li>Values should each be entered on separate lines in a "name=value" format.  Username, password values are optional.  For example:
-                                 <ul>
-                                   <li>The value (part after the "=" character) should not be longer than 255 characters.</li>
-                                   <li><code>ALIAS=username:password@machine_name:/path</code></li>
-                                   <li><code>ALIAS=machine_name:/path</code></li>
-                                 </ul>
-                               </li>
-                             </ul>'),
-      ),
     ),
 
     'extra_options' => array(
@@ -251,7 +233,6 @@ function islandora_digital_workflow_admin_form_submit(array $form, array &$form_
       variable_set('islandora_digital_workflow_ingest_prepared_path', $form_state['values']['ingest_prepared_path']);
       variable_set('islandora_digital_workflow_ingest_problems_path', $form_state['values']['ingest_problems_path']);
       variable_set('islandora_digital_workflow_ingest_ignore_filenames', $form_state['values']['ingest_ignore_filenames']);
-      variable_set('islandora_digital_workflow_hosts_for_ingest', $form_state['values']['batch_hosts']);
       variable_set('islandora_digital_workflow_use_isMemberOfSite', $form_state['values']['batch_use_isMemberOfSite']);
       variable_set('islandora_digital_workflow_delete_delivery_files', $form_state['values']['delete_delivery_when_scanned']);
       variable_set('islandora_digital_workflow_handle_islandora_hook', $form_state['values']['handle_islandora_hook']);
@@ -267,7 +248,6 @@ function islandora_digital_workflow_admin_form_submit(array $form, array &$form_
       variable_del('islandora_digital_workflow_ingest_prepared_path');
       variable_del('islandora_digital_workflow_ingest_problems_path');
       variable_del('islandora_digital_workflow_ingest_ignore_filenames');
-      variable_del('islandora_digital_workflow_hosts_for_ingest');
       variable_del('islandora_digital_workflow_use_isMemberOfSite');
       variable_del('islandora_digital_workflow_delete_delivery_files');
       variable_del('islandora_digital_workflow_handle_islandora_hook');

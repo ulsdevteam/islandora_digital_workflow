@@ -137,7 +137,7 @@ function islandora_digital_workflow_add_item_form_submit(array $form, array &$fo
 function islandora_digital_workflow_add_items_form(array $form, array &$form_state, $node) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
-  module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy-utilities');
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy_utilities');
 
   $batch_name = $node->title;
   $results = islandora_digital_workflow_find_batch_records_by_name($batch_name);

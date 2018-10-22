@@ -65,7 +65,7 @@ function islandora_digital_workflow_sync_node_batch_record_info($node, $form_sta
     // This maps any of the node CCK fields to the ['values']['fieldname'] that 
     // an islandora_digital_workflow_batch record would have as if this was being 
     // passed via the Create Batch / Edit Batch form.
-    module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy-utilities');
+    module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy_utilities');
     $form_state = array('values' => array(
       // batch_name is a Unique key, but should not allow the node editor to
       // change that value...
@@ -87,7 +87,7 @@ function islandora_digital_workflow_sync_node_batch_record_info($node, $form_sta
  *   The name of the state value like "New", "Problem"
  */
 function islandora_digital_workflow_set_node_stage($nid, $state_name = '', $stage_tid = FALSE) {
-  module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy-utilities');
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy_utilities');
   $node = node_load($nid);
   if (is_object($node)) {
     $stages_vocab = taxonomy_vocabulary_machine_name_load(IDW_STAGE_TAXONOMY_MACHINE_NAME);
@@ -144,7 +144,7 @@ function islandora_digital_workflow_load_batch_record_for_node($node, $form_stat
  */
 function islandora_digital_workflow_make_or_update_node($form_state, $csv_array, $node = NULL) {
   global $user;
-  module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy-utilities');
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy_utilities');
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
 
   if (is_null($node)) {
@@ -237,4 +237,31 @@ function islandora_digital_workflow_get_count_of_nodes_by_tid($field_name = '', 
   $first_row = array_pop($results);
   $count = is_object($first_row) ? $first_row->count : 0;
   return $count;
+}
+
+/**
+ * Helper function to delete the workflow_batch nodes and any related
+ * islandora_digital_workflow_batch records.
+ *
+ * @return boolean
+ *   Whether or not there was any problem deleting the nodes that are
+ * "workflow_batch" type.
+ */
+function islandora_digital_workflow_delete_workflow_batch_nodes() {
+  $nids = db_select('node', 'n')
+      ->fields('n', array('nid'))
+      ->fields('n', array('type'))
+      ->condition('n.type', 'workflow_batch')
+      ->execute()
+      ->fetchCol(); // returns an indexed array
+
+  $delete_success = TRUE;
+  foreach ($nids as $nid) {
+    $batch_record = islandora_digital_workflow_get_batch_record_by_nid($nid);
+    if (is_array($batch_record)) {
+      islandora_digital_workflow_delete_batch_record($batch_record['batch_id']);
+    }
+    $delete_success &= node_delete($nid);
+  }
+  return $delete_success;
 }

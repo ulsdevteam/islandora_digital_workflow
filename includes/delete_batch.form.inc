@@ -55,6 +55,10 @@ function islandora_digital_workflow_delete_batch_form(array $form, array &$form_
       '#type' => 'hidden',
       '#default_value' => $batch_name
   );
+  $form['nid'] = array(
+      '#type' => 'hidden',
+      '#default_value' => $batch_record['nid'],
+  );
   $form['warning'] = array(
       '#type' => 'item',
       '#markup' => '<div class="big_font bad">' . 
@@ -103,7 +107,7 @@ function islandora_digital_workflow_delete_batch_form(array $form, array &$form_
  */
 function islandora_digital_workflow_delete_batch_form_submit(array $form, array &$form_state) {
   $id = $form_state['triggering_element']['#id'];
-  module_load_include('inc', 'islandora_digital_workflow', 'includes/node-utilities');
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/node_utilities');
   $batch_record = islandora_digital_workflow_get_batch_record_by_name($form_state['values']['batch_name']);
 
   switch ($id) {
@@ -113,6 +117,10 @@ function islandora_digital_workflow_delete_batch_form_submit(array $form, array 
       $items = islandora_digital_workflow_get_batch_items_by_nid($batch_record['nid']);
       foreach ($items as $batch_item_obj) {
         islandora_digital_workflow_delete_batch_item($batch_item_obj->batch_item_id);
+      }
+      islandora_digital_workflow_delete_batch_record($batch_record['batch_id']);
+      if ($batch_record['nid']) {
+        $delete_node = node_delete($batch_record['nid']);
       }
       $current_time = date('H:i:s');
       drupal_set_message(t('[@date] Batch deleted', array(
@@ -126,3 +134,4 @@ function islandora_digital_workflow_delete_batch_form_submit(array $form, array 
       break;
   }
 }
+

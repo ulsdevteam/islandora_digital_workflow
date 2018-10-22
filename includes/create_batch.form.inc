@@ -52,23 +52,12 @@ function islandora_digital_workflow_create_batch() {
  */
 function islandora_digital_workflow_create_empty_batch_form(array $form, array &$form_state) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
-  module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy-utilities');
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy_utilities');
 
   $accessible_models = islandora_digital_workflow_get_accessible_cmodels();
   $configured = TRUE;
-  // Check whether or not the required configuration settings are provided.
-  $batch_hosts = islandora_digital_workflow_get_batch_host_values();
-  // 1. Check that the "Available Host Aliases for Batch ingest" is set
-  if (count($batch_hosts) < 1) {
-    drupal_set_message(t('<b>Available Host Aliases for Batch ingest</b> is ' .
-        'not configured.  Please contact an administrator to ask them to ' .
-        'configure at least one "') . 
-        l('Available Host Aliases for Batch ingest', '/admin/islandora/islandora_digital_workflow') .
-        t(" before creating any workflow batches."), 'error');
-    $configured = FALSE;
-  }
 
-  // 2. Check that at least one model is configured
+  // 1. Check that at least one model is configured
   if (count($accessible_models) < 2) {
     drupal_set_message(t('There are no <b>Supported Models</b> models configured ' . 
         'for creating batches or your user does not have permission to any models.  ' .
@@ -229,7 +218,7 @@ function islandora_digital_workflow_create_empty_batch_form(array $form, array &
  */
 function islandora_digital_workflow_create_empty_batch_form_submit(array $form, array &$form_state) {
   $id = $form_state['triggering_element']['#id'];
-  module_load_include('inc', 'islandora_digital_workflow', 'includes/node-utilities');
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/node_utilities');
   switch ($id) {
     case 'edit-submit':
       $batch_record = islandora_digital_workflow_create_stub_batch_record($form_state);
@@ -264,7 +253,7 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
   module_load_include('inc', 'islandora_digital_workflow', 'includes/access_permissions');
-  module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy-utilities');
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy_utilities');
   drupal_add_js('misc/collapse.js');
 
   $readable_models = islandora_digital_workflow_get_reduced_readable_cmodels();
@@ -315,8 +304,6 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
   $sequences = islandora_digital_workflow_get_workflow_sequences_for_model($model_name);
   $file_not_allowed_for_model_names = array('islandora:findingAidCModel', 'islandora:newspaperCModel', 'islandora:newspaperIssueCModel');
   $paged_content_model_names = islandora_digital_workflow_retrieve_applicable_paged_content_cmodels();
-  $current_batch_host_selection = ($batch_record && isset($batch_record['batch_host'])) ? $batch_record['batch_host'] : '';
-  $batch_hosts = islandora_digital_workflow_get_batch_host_values();
 
   $file_rows = $file_header = array();
   $tmp_uploaded_csv_file = drupal_realpath(drupal_tempnam('temporary://', 'batch_objects.csv'));
@@ -615,14 +602,7 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
         '#description' => t('Specify language to use for processing OCR.'),
       );
   }
-  $form['ingest_options_frame']['batch_host'] = array(
-      '#type' => 'select',
-      '#title' => t('Ingest files from host'),
-      '#required' => true,
-      '#options' => $batch_hosts,
-      '#default_value' => $current_batch_host_selection,
-      '#description' => t('Specify the location of the files that relate to the uploaded spreadsheet.'),
-    );
+
   $form['ingest_options_frame']['ingest_namespace'] = array(
       'ingest_namespace' => array(
         '#type' => 'textfield',
@@ -810,7 +790,7 @@ function islandora_digital_workflow_create_batch_form_validate(&$elements, &$for
 function islandora_digital_workflow_create_batch_form_submit(array $form, array &$form_state) {
   $id = $form_state['triggering_element']['#id'];
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
-  module_load_include('inc', 'islandora_digital_workflow', 'includes/node-utilities');
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/node_utilities');
   switch ($id) {
     case 'edit-submit':
       if (isset($_FILES['files']) && isset($_FILES["files"]["tmp_name"]['file'])) {

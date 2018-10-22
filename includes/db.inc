@@ -281,7 +281,7 @@ function islandora_digital_workflow_search_batch_csv_by_identifier($identifier) 
  *   Either returns an array of batch record objects or NULL if it cannot be found.
  */
 function islandora_digital_workflow_find_batch_records_no_details() {
-  module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy-utilities');
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy_utilities');
   $query = db_select('islandora_digital_workflow_batch', 'b')
       ->fields('b')
       ->condition('b.ingest_namespace', NULL);
@@ -309,7 +309,7 @@ function islandora_digital_workflow_find_batch_records_no_details() {
  * related to the same batch's islandora_digital_workflow_batch_items table.
  */
 function islandora_digital_workflow_find_batch_items_count_mismatch() {
-  module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy-utilities');
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy_utilities');
   // Since this needs to use a subquery, the SQL is MUCH easier to write out
   $sql = 'SELECT jbi.items_count, b.object_count, b.*, t.weight, t.name as `priority` ' .
          'FROM islandora_digital_workflow_batch b ' .
@@ -338,7 +338,7 @@ function islandora_digital_workflow_find_batch_items_count_mismatch() {
  *   Array of stdObject rows.
  */
 function islandora_digital_workflow_find_batch_records_no_items() {
-  module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy-utilities');
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy_utilities');
   $query = db_select('islandora_digital_workflow_batch', 'b')
       ->fields('b');
   $query->addJoin('LEFT OUTER', 'islandora_digital_workflow_batch_items', 'bi', 'b.batch_id = bi.batch_id');
@@ -371,7 +371,7 @@ function islandora_digital_workflow_find_batch_records_no_items() {
  *   Array of stdObject rows.
  */
 function islandora_digital_workflow_find_batch_records_is_batch_request() {
-  module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy-utilities');
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy_utilities');
   $query = db_select('islandora_digital_workflow_batch', 'b')
       ->fields('b')
       ->condition('b.is_batch_request', 1);
@@ -513,7 +513,7 @@ function islandora_digital_workflow_update_batch_transaction($transaction_id, $a
  *   No return value.  `return` call only used to exit the procedure.
  */
 function islandora_digital_workflow_check_trigger_stage_change($transaction_id = NULL, $transaction_values = NULL) {
-  module_load_include('inc', 'islandora_digital_workflow', 'includes/node-utilities');
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/node_utilities');
   if (!(is_null($transaction_id) && is_array($transaction_values))) {
     $transaction_values = islandora_digital_workflow_get_batch_transaction($transaction_id);
   }
@@ -1859,10 +1859,11 @@ function islandora_digital_workflow_delete_batch_item($batch_item_id) {
  * @return boolean
  *   Success on deleting a batch with given $batch_id value.
  */
-function islandora_digital_workflow_delete_batch($batch_id) {
+function islandora_digital_workflow_delete_batch_record($batch_id) {
   if ($batch_id) {
     return db_delete('islandora_digital_workflow_batch')
       ->condition('batch_id', $batch_id)
       ->execute();
   }
 }
+

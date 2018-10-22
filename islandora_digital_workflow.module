@@ -788,7 +788,7 @@ function islandora_digital_workflow_islandora_datastream_ingested(AbstractObject
 function islandora_digital_workflow_node_update($node) {
   global $system_creating_nodes;
   if (!$system_creating_nodes) {
-    module_load_include('inc', 'islandora_digital_workflow', 'includes/node-utilities');
+    module_load_include('inc', 'islandora_digital_workflow', 'includes/node_utilities');
     islandora_digital_workflow_sync_node_batch_record_info($node, array(), '', FALSE);
   }
 }

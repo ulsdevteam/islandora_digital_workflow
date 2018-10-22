@@ -1105,7 +1105,7 @@ function islandora_digital_workflow_actions_form(array $form, array &$form_state
 function islandora_digital_workflow_actions_edit_form(array $form, array &$form_state, $action_id) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
-  module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy-utilities');
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy_utilities');
   $action_record = islandora_digital_workflow_get_action($action_id);
   $sequences_using_action = islandora_digital_workflow_sequences_using_action($action_id);
   if ($action_id) {

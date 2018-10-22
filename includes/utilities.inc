@@ -149,9 +149,6 @@ function islandora_digital_workflow_create_batch_record_by_form($form_state, $no
     if (array_key_exists('default_depositor', $form_state['values'])) {
       $field_values['default_depositor'] = $form_state['values']['default_depositor'];
     }
-    if (array_key_exists('batch_host', $form_state['values'])) {
-      $field_values['batch_host'] = $form_state['values']['batch_host'];
-    }
     if (array_key_exists('default_genre', $form_state['values'])) {
       $field_values['default_genre'] = $form_state['values']['default_genre'];
     }
@@ -256,31 +253,6 @@ function islandora_digital_workflow_convert_smart_quotes($string) {
             '"',
             '-'),
       $string);
-}
-
-/**
- * Gets the batch_host values from the module configuration.
- *
- * This function will fetch the config value for "Available Host Aliases for Batch ingest"
- * and split the alias_and_value value at the "=" character and then add items to the return
- * associative array with the actual host value as the array keys and the alias is the value.
- *
- * @return array
- *   batch host values as an array where the key is the actual file path and the
- * value is the friendly alias name that has been configured.
- */
-function islandora_digital_workflow_get_batch_host_values() {
-  $arr = explode("\r\n", trim(variable_get('islandora_digital_workflow_hosts_for_ingest')));
-  $return_array = array();
-
-  foreach ($arr as $alias_and_value) {
-    @list($alias, $value) = explode("=", $alias_and_value, 2);
-    $alias = trim($alias);
-    if ($alias && $value) {
-      $return_array[$value] = $alias;
-    }
-  }
-  return $return_array;
 }
 
 /**
@@ -589,8 +561,8 @@ function islandora_digital_workflow_batch_path($batch_record, $is_delivery = FAL
             'there is no value for the batch "Name" (batch_name field) yet.'), 'warning');
     return '';
   }
-  $ingest_path = ($is_delivery) ? variable_get('islandora_digital_workflow_ingest_delivery_path', '') : $batch_record['batch_host'];
-  if (!$batch_record['batch_host'] || $ingest_path == 'ftp' || (ltrim($ingest_path, 'ftp:') <> $ingest_path)) {
+  $ingest_path = ($is_delivery) ? variable_get('islandora_digital_workflow_ingest_delivery_path', file_directory_temp()) : file_directory_temp();
+  if ($ingest_path == 'ftp' || (ltrim($ingest_path, 'ftp:') <> $ingest_path)) {
     $ingest_path = variable_get('islandora_digital_workflow_ingest_prepared_path', file_directory_temp());
   } elseif (strstr($ingest_path, ":")) {
     @list($ingest_host, $ingest_path) = explode(":", $ingest_path);
@@ -710,7 +682,7 @@ function islandora_digital_workflow_get_reduced_cmodels() {
  */
 function islandora_digital_workflow_get_accessible_cmodels() {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/access_permissions');
-  module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy-utilities');
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy_utilities');
   $readable_models = islandora_digital_workflow_get_reduced_readable_cmodels();
 
   $configured_supported_models = variable_get('islandora_digital_workflow_islandora_models', array());

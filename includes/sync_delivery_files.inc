@@ -97,7 +97,7 @@ function islandora_digital_workflow_sync_delivery_files_form_submit(array $form,
   $batch_delivery_folders = islandora_digital_workflow_find_folders_files($source_root);
   $batch_record = islandora_digital_workflow_get_batch_record_by_name($batch_name);
 
-  $destination_path = $batch_record['batch_host'] . '/' . $batch_name;
+  $destination_path = rtrim(variable_get('islandora_digital_workflow_ingest_prepared_path', file_directory_temp()), '/')  . '/' . $batch_name;
   $source_path = $source_root . '/' . $batch_name;
   foreach ($batch_delivery_folders as $found_delivery_item_name => $info) {
     if ($found_delivery_item_name <> $batch_name) {

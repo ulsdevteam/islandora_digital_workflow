@@ -46,8 +46,8 @@ function islandora_digital_workflow_dashboard() {
  *   An array to the links to Drupal views.
  */
 function islandora_digital_workflow_get_dashboard_links() {
-  module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy-utilities');
-  module_load_include('inc', 'islandora_digital_workflow', 'includes/node-utilities');
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy_utilities');
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/node_utilities');
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
   
   // first link is "All" stages
@@ -214,7 +214,6 @@ function islandora_digital_workflow_get_tasks_tables() {
       ));
     }
 
-    // $batch_host_folders = islandora_digital_workflow_batch_path
     // batches or items that have been moved into the "problems" folder
     $problems_root = variable_get('islandora_digital_workflow_ingest_problems_path', '');
     $problems_folders = islandora_digital_workflow_find_folders_files($problems_root);

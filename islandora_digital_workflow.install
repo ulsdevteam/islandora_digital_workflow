@@ -82,7 +82,6 @@ function islandora_digital_workflow_uninstall() {
   variable_del('islandora_digital_workflow_rules_one');
   variable_del('islandora_digital_workflow_ingest_namespace');
   variable_del('islandora_digital_workflow_ingest_prepared_path');
-  variable_del('islandora_digital_workflow_hosts_for_ingest');
   variable_del('islandora_digital_workflow_use_isMemberOfSite');
   variable_del('islandora_digital_workflow_delete_delivery_files');
   variable_del('islandora_digital_workflow_handle_islandora_hook');
@@ -104,6 +103,10 @@ function islandora_digital_workflow_uninstall() {
   foreach ($instances as $instance_name => $instance) {
     field_delete_instance($instance);
   }
+
+  // Delete the nodes that might have been created that are "workflow_batch" type.
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/node_utilities');
+  islandora_digital_workflow_delete_workflow_batch_nodes();
 }
 
 /**
@@ -272,12 +275,6 @@ function islandora_digital_workflow_schema() {
         'description' => 'The CSV file that was uploaded',
         'type' => 'text',
         'size' => 'big',
-        'not null' => FALSE,
-      ),
-      'batch_host' => array(
-        'description' => 'The host for the files related to the batch',
-        'type' => 'varchar',
-        'length' => 255,
         'not null' => FALSE,
       ),
       'ingest_namespace' => array(
@@ -809,7 +806,7 @@ function islandora_digital_workflow_add_workflow_content_type_taxonomy_terms() {
 function islandora_digital_workflow_add_workflow_batch_priority_taxonomy_terms() {
   global $regular_priority_term;
 
-  module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy-utilities');
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy_utilities');
   $vocab = taxonomy_vocabulary_machine_name_load(IDW_BATCH_PRIORITY_TAXONOMY_MACHINE_NAME);
 
   $term = (object) array(
@@ -863,7 +860,7 @@ function islandora_digital_workflow_add_workflow_stage_taxonomy_terms() {
   global $problem_tid;
   global $new_stage_term;
 
-  module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy-utilities');
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy_utilities');
   $vocab = taxonomy_vocabulary_machine_name_load(IDW_STAGE_TAXONOMY_MACHINE_NAME);
 
   $term = (object) array(
