@@ -274,6 +274,13 @@ div.info p.info {
     clear: left;
 }
 
+.batch-description label {
+    margin-bottom: 4px;
+    float: left;
+    clear: left;
+    width: 16%;
+}
+
 .required_action, .optional_action {
     padding-left: 4px;
     line-height: 25px;

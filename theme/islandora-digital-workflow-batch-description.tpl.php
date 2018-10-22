@@ -12,8 +12,8 @@
  */
 ?>
 <?php if ($batch_record && array_key_exists('nid', $batch_record) && $batch_record['nid']): ?>
-<div class="lookup_result disabled_text batch-description">
-    <b>Batch:</b> <a href="/node/<?php print $batch_record['nid']; ?>/batch"><?php print $batch_record['batch_name']; ?></a><br>
-    <b>Batch description:</b> <?php print $batch_record['batch_description']; ?>
+<div class="lookup_result batch-description">
+    <label>Batch name:</label> <a href="/node/<?php print $batch_record['nid']; ?>/batch"><?php print $batch_record['batch_name']; ?></a><br >
+    <label>Batch description:</label> <?php print $batch_record['batch_description']; ?>
 </div>
 <?php endif; ?>
