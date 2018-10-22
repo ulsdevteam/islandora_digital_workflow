@@ -53,3 +53,30 @@ function islandora_digital_workflow_add_filesize_date_to_files($file_root, $file
   }
   return $filesize_date_files;
 }
+
+/**
+ * Helper function to clean up directories and indiscriminately purge any files
+ * that were in the folder (function recursively calls itself).
+ *
+ * @param string $dir
+ *   Directory (or file) to delete.
+ * @return boolean
+ *   whether or not the referenced $dir was deleted.
+ */
+function islandora_digital_workflow_deleteDirectory($dir) {
+  if (!file_exists($dir)) {
+    return true;
+  }
+  if (!is_dir($dir)) {
+    return @unlink($dir);
+  }
+  foreach (scandir($dir) as $item) {
+    if ($item == '.' || $item == '..') {
+      continue;
+    }
+    if (!islandora_digital_workflow_deleteDirectory($dir . DIRECTORY_SEPARATOR . $item)) {
+      return false;
+    }
+  }
+  return rmdir($dir);
+}

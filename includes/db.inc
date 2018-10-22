@@ -1808,6 +1808,26 @@ function islandora_digital_workflow_get_debug_record($id_value, $id_fieldname, $
  *   The number of records that have been updated (expect 1 or 0).
  */
 function islandora_digital_workflow_delete_batch_item($batch_item_id) {
+  // First, get the current item record if it exists and try to purge the files
+  // that it was using.
+  $batch_item_record_arr = islandora_digital_workflow_get_batch_item_record($batch_item_id);
+  if (is_array($batch_item_record_arr)) {
+    $batch_item_record_obj = array_pop($batch_item_record_arr);
+    if ($batch_item_record_obj->filename) {
+      @unlink($batch_item_record_obj->filename);
+
+      $pathinfo = pathinfo($batch_item_record_obj->filename);
+      // ONLY do this if the path is an "item subfolder" and not higher - such as
+      // one of the configured "Incoming Delivery Directory" or "Ingest Working
+      // Directory" paths (would be very bad).
+      if (array_key_exists('dirname', $pathinfo) && strstr($pathinfo['dirname'], $batch_item_record_obj->identifier) ) {
+        module_load_include('inc', 'islandora_digital_workflow', 'includes/file_utilities');
+        $deleted = islandora_digital_workflow_deleteDirectory($pathinfo['dirname']);
+      }
+    }
+    drupal_set_message('delete file "' . $batch_item_record_obj->filename . '"', 'error');
+  }
+
   // SQL statement to delete the islandora_digital_workflow_problem_items records
   // because they are related to islandora_digital_workflow_transactions records.
   $sql = "DELETE FROM islandora_digital_workflow_problem_items WHERE transaction_id " .
@@ -1829,4 +1849,20 @@ function islandora_digital_workflow_delete_batch_item($batch_item_id) {
   return db_delete('islandora_digital_workflow_batch_items')
     ->condition('batch_item_id', $batch_item_id)
     ->execute();
+}
+
+/**
+ * Will delete the  islandora_digital_workflow_batch record with matching
+ * $batch_id value.
+ *
+ * @param integer $batch_id
+ * @return boolean
+ *   Success on deleting a batch with given $batch_id value.
+ */
+function islandora_digital_workflow_delete_batch($batch_id) {
+  if ($batch_id) {
+    return db_delete('islandora_digital_workflow_batch')
+      ->condition('batch_id', $batch_id)
+      ->execute();
+  }
 }

@@ -233,7 +233,6 @@ function islandora_digital_workflow_create_empty_batch_form_submit(array $form, 
   switch ($id) {
     case 'edit-submit':
       $batch_record = islandora_digital_workflow_create_stub_batch_record($form_state);
-      // Only two possible button text values -- edit or save.
       $current_time = date('H:i:s');
       drupal_set_message(t('[@date] Created new batch: ', array(
           '@date' => $current_time,
@@ -820,7 +819,6 @@ function islandora_digital_workflow_create_batch_form_submit(array $form, array 
       $csv_filename = (isset($_SESSION['uploaded_csv_filename']) ? $_SESSION['uploaded_csv_filename'] : '');
       $create_new = ($form_state['clicked_button']['#value'] === SAVE_BUTTON_TEXT);
       $batch_record = islandora_digital_workflow_sync_node_batch_record_info(NULL, $form_state, $csv_filename);
-      // Only two possible button text values -- edit or save.
       $current_time = date('H:i:s');
       $edit_batch_link = l($batch_record['batch_name'], 'islandora/islandora_digital_workflow/edit_batch/' . $batch_record['batch_name']);
       if ($create_new) {

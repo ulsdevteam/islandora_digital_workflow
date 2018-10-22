@@ -123,7 +123,6 @@ function islandora_digital_workflow_delete_batch_items_form_submit(array $form, 
   $batch_record = islandora_digital_workflow_get_batch_record_by_name($form_state['values']['batch_name']);
   switch ($id) {
     case 'edit-delete':
-      // Only two possible button text values -- edit or save.
       $batch_item_ids = unserialize($form_state['values']['batch_item_ids']);
       foreach ($batch_item_ids as $batch_item_id) {
         islandora_digital_workflow_delete_batch_item($batch_item_id);

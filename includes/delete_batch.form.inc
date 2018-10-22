@@ -108,7 +108,12 @@ function islandora_digital_workflow_delete_batch_form_submit(array $form, array 
 
   switch ($id) {
     case 'edit-delete':
-      // Only two possible button text values -- edit or save.
+      $batch_name = $form_state['values']['batch_name'];
+      $batch_record = islandora_digital_workflow_get_batch_record_by_name($batch_name);
+      $items = islandora_digital_workflow_get_batch_items_by_nid($batch_record['nid']);
+      foreach ($items as $batch_item_obj) {
+        islandora_digital_workflow_delete_batch_item($batch_item_obj->batch_item_id);
+      }
       $current_time = date('H:i:s');
       drupal_set_message(t('[@date] Batch deleted', array(
           '@date' => $current_time,
