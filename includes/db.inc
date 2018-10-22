@@ -1314,6 +1314,9 @@ function islandora_digital_workflow_insert_batch_item($fields) {
  *   when provided, this will override the current-logged-in user's uid value.
  */
 function islandora_digital_workflow_insert_transactions_record($action_id, $batch_id = NULL, $batch_item_id = NULL, $alternative_uid = NULL, $problem_notes = '') {
+  if (variable_get('islandora_digital_workflow_handle_islandora_hook', 0) < 1) {
+    return;
+  }
   // Just in case the calling code does not include the utilities.inc, do it again.
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
   global $user;
