@@ -2586,6 +2586,16 @@ function islandora_digital_workflow_get_default_type_of_resource_options($includ
   return $retarray;
 }
 
+/**
+ * This will purge a specific datastream from an object or all of its children.
+ *
+ * @param type $identifiers
+ *   Array of identifiers to affect.
+ * @param string $dsid
+ *   The datastream identifier such as OCR, OBJ, MODS, etc.
+ * @return string
+ *   HTML markup of the purge results.
+ */
 function islandora_digital_workflow_purge_ds_for_identifiers($identifiers, $dsid) {
   module_load_include('inc', 'islandora_paged_content', 'includes/utilities');
 
@@ -2753,6 +2763,19 @@ function islandora_digital_workflow_item_is_paged_content($batch_item_id, $batch
   return FALSE;
 }
 
+/**
+ * This will copy the file for the given $batch_item_id item to the working
+ * directory for the batch.
+ *
+ * The path to the delivery files is looked up using the item's batch record
+ * and the item record.  Additionally, this code will check the configuration
+ * and optionally clean up (delete) the delivery files.
+ *
+ * @param integer $batch_item_id
+ *   $batch_item_id value matching an individual batch item.
+ * @return boolean
+ *   Whether or not there was a successful file copy operation.
+ */
 function islandora_digital_workflow_copy_delivery_file($batch_item_id) {
   $item_record_results = islandora_digital_workflow_get_batch_item_record($batch_item_id);
   $batch_item_obj = array_pop($item_record_results);
@@ -2808,6 +2831,15 @@ function islandora_digital_workflow_copy_delivery_file($batch_item_id) {
   }
 }
 
+/**
+ * This will try to return the true path to the item's master file.
+ *
+ * @param ingeger|stdClass $batch_item
+ *   This is the item for which to get the delivery filename.
+ * @param mixed $batch_record
+ *   Used to get the path to the batch's host path.
+ * @return boolean
+ */
 function islandora_digital_workflow_get_item_delivery_filename($batch_item, $batch_record = NULL) {
   // Only load the batch_record if the calling code passed batch_item as the object's
   // batch_item_id value.
@@ -2845,6 +2877,15 @@ function islandora_digital_workflow_get_item_delivery_filename($batch_item, $bat
   return $sanitized_delivery_filename;
 }
 
+/**
+ *
+ * @param array|stdClass $batch_record
+ *   The batch's islandora_digital_workflow_batch record.
+ * @param string $output_contents
+ *   HTML markup for the recalculating of the batch/es.
+ * @param type $output_footer
+ *   HTML markup for process form for this processing mode.
+ */
 function islandora_digital_workflow_recalc_batch_files($batch_record, &$output_contents = array(), &$output_footer = array()) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
   $batch_record = (array) $batch_record;

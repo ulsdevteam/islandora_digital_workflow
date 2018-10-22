@@ -73,6 +73,12 @@ function islandora_digital_workflow_actual_process_form($form, &$form_state) {
     '3' => 'Info / Cleanup',
       'check_ingested' => 'Check ingested',
   );
+  // Some processing modes can only be used if the dependant module is installed.
+  // It is easier to remove them here than to insert them at a specific order.
+  if (!module_exists('upitt_workflow')) {
+    unset($mode_options['gen_notimelimit_OCR']);
+  }
+
   $form = array(
       'identifiers' => array(
           '#type' => 'textarea',
@@ -255,9 +261,15 @@ function islandora_digital_workflow_process_mode__blah(&$identifiers_array) {
 }
 
 /**
+ * This will take the passed values from any processing set reference and
+ * pass them along to the "Process Identifiers" form as if the identifiers and
+ * processing mode were already pre-selected.  The user would still have to
+ * click the [Submit] button.
  *
- * @param type $process_set_id
- * @return type
+ * @param integer $process_set_id
+ *   The pointer to a specific "process set"
+ * @return array
+ *   The Drupal form definition.
  */
 function islandora_digital_workflow_process_set($process_set_id) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
@@ -274,7 +286,16 @@ function islandora_digital_workflow_process_set($process_set_id) {
   return drupal_render($process_form);
 }
 
-
+/**
+ * This will process OCR for the objects supplied as identifiers.
+ *
+ * @global object $user
+ *   Drupal user object
+ * @param array $identifiers
+ *   Array of identifiers to affect.
+ * @return string
+ *   HTML markup for process form for this processing mode.
+ */
 function islandora_digital_workflow_gen_OCR_for_identifiers($identifiers) {
   $markup = islandora_digital_workflow_purge_ds_for_identifiers($identifiers, 'OCR');
   global $user;
@@ -314,6 +335,19 @@ function islandora_digital_workflow_gen_OCR_for_identifiers($identifiers) {
   return $markup;
 }
 
+/**
+ * This will process OCR for the objects supplied as identifiers, but this
+ * calls a slightly specialized OCR generation process that is only supported
+ * with the ulsdevteam upitt_workflow module - using the drush command
+ * `upitt_workflow_generate_notimelimit_ocr_datastreams`.
+ *
+ * @global object $user
+ *   Drupal user object
+ * @param array $identifiers
+ *   Array of identifiers to affect.
+ * @return string
+ *   HTML markup for process form for this processing mode.
+ */
 function islandora_digital_workflow_gen_notimelimit_OCR_for_identifiers($identifiers) {
   $markup = islandora_digital_workflow_purge_ds_for_identifiers($identifiers, 'OCR');
   global $user;

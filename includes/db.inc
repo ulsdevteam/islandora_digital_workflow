@@ -499,6 +499,19 @@ function islandora_digital_workflow_update_batch_transaction($transaction_id, $a
   }
 }
 
+/**
+ *
+ * (see: islandora_digital_workflow_insert_transactions_record)
+ *
+ * @param integer $transaction_id
+ *   The transaction_id of the transaction that was just added (see:
+ * islandora_digital_workflow_insert_transactions_record).
+ * @param type $transaction_values
+ *   The relevant transaction values in an array of action_id, batch_id,
+ * batch_item_id.
+ * @return type
+ *   No return value.  `return` call only used to exit the procedure.
+ */
 function islandora_digital_workflow_check_trigger_stage_change($transaction_id = NULL, $transaction_values = NULL) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/node-utilities');
   if (!(is_null($transaction_id) && is_array($transaction_values))) {
@@ -631,6 +644,18 @@ function islandora_digital_workflow_get_batch_transactions_by_nid($nid) {
   return $rows;
 }
 
+/**
+ * This will run a SQL query to find the most recent timestamp value for a
+ * transaction that happened on a batch or batch_item.
+ *
+ * @param integer $batch_item_id
+ *   $batch_item_id value.
+ * @param string $batch_id
+ *   The `batch_id` value for a batch record.
+ * @return \stdClass
+ *   A single transaction for the batch_item or batch that has properties for
+ * how_long_ago and max_timestamp.
+ */
 function islandora_digital_workflow_get_max_timestamp_for_batch_item_transactions($batch_item_id, $batch_id) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
 
@@ -1620,7 +1645,15 @@ function islandora_digital_workflow_unset_problems_records($batch_id) {
   db_query($sql);
 }
 
-
+/**
+ * This will run a query to find the batch_item_id values for a given set of
+ * identifiers.
+ *
+ * @param type $identifiers
+ *   Array of identifiers for which to return the batch_item_id values.
+ * @return type
+ *   Array of batch_item_id values.
+ */
 function islandora_digital_workflow_get_batch_item_ids($identifiers) {
   $query = db_select('islandora_digital_workflow_batch_items', 'bi')
       ->fields('bi', array('batch_item_id'))
@@ -1634,7 +1667,21 @@ function islandora_digital_workflow_get_batch_item_ids($identifiers) {
   return $return_array;
 }
 
-
+/**
+ * Helper function to make a "processing set" that holds the mode of operation
+ * and the batch_item_id values (see includes/utilities.inc function
+ * `islandora_digital_workflow_make_process_set_records`).
+ *
+ * @param string $mode
+ *   The select box value for the intended processing mode corresponding to the
+ * "Process Identifiers" form (includes/process.form.inc).
+ * @param array $item_ids
+ *   An array of batch_item_id values that correspond to the identifiers needed
+ * for affecting items with the selected mode.
+ * @return integer
+ *   The identifier value of the created `islandora_digital_workflow_process_set`
+ * record.
+ */
 function islandora_digital_workflow_make_process_set_records($mode, $item_ids) {
   if (count($item_ids) > 0) {
     $process_set_id = db_insert('islandora_digital_workflow_process_set')
@@ -1671,7 +1718,21 @@ function islandora_digital_workflow_make_process_set_records($mode, $item_ids) {
   }
 }
 
-function islandora_digital_workflow_get_process_set_records($process_set_id, &$mode, &$items) {
+/**
+ * This will run a query to find and return the item_ids affected by a given
+ * $process_set_id value.
+ *
+ * @param ingeger $process_set_id
+ *   The identifier value of an `islandora_digital_workflow_process_set` record.
+ * This variable is passed by reference.
+ * @param type $mode
+ *   The select box value for the intended processing mode corresponding to the
+ * "Process Identifiers" form (includes/process.form.inc).  This variable is passed
+ * by reference.
+ * @param array $item_identifiers
+ *   Array of batch_item_id values.
+ */
+function islandora_digital_workflow_get_process_set_records($process_set_id, &$mode, &$item_identifiers) {
   $query = db_select('islandora_digital_workflow_process_set', 'p')
       ->fields('p', array('set_mode'))
       ->condition('p.process_set_id', $process_set_id)
@@ -1681,7 +1742,7 @@ function islandora_digital_workflow_get_process_set_records($process_set_id, &$m
   $row = $results->fetchAssoc();
   $mode = $row['set_mode'];
 
-  $items = array();
+  $item_identifiers = array();
   $query = db_select('islandora_digital_workflow_batch_items', 'bi');
   $query->join('islandora_digital_workflow_process_set_items', 'pi', 'pi.batch_item_id = bi.batch_item_id');
   $query->fields('bi', array('identifier'));
@@ -1690,7 +1751,7 @@ function islandora_digital_workflow_get_process_set_records($process_set_id, &$m
   $rows = $results->fetchAll();
   $return_array = array();
   foreach ($rows as $row) {
-    $items[] = $row->identifier;
+    $item_identifiers[] = $row->identifier;
   }
 }
 
