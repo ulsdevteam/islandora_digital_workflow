@@ -80,3 +80,62 @@ function islandora_digital_workflow_deleteDirectory($dir) {
   }
   return rmdir($dir);
 }
+
+/**
+ * This copies the delivery files for paged content and resequences the files
+ * according to their alphabetical sorting of source filenames.
+ *
+ * Depending on the configuration, this may delete the file after it is copied.
+ *
+ * @param array $item_files
+ *   Array of filenames that will be copied / moved.
+ * @param string $item_folder
+ *   The configured "Incoming Delivery Directory" for the item.
+ * @param string $item_working_folder
+ *   The configured "Ingest Working Directory" for the item.
+ * @return boolean
+ */
+function islandora_digital_workflow_copy_resequence_files($item_files, $item_folder, $item_working_folder) {
+  $sorted_index = array();
+  $copied = FALSE;
+  $i = 1;
+  foreach ($item_files as $filename => $item_file_arr) {
+    $item_full_filename = $item_folder . '/' . $filename;
+    $file_pathinfo = pathinfo($item_full_filename);
+    $sequence_value = str_pad($i, 4, "0", STR_PAD_LEFT);
+    $sorted_index[$sequence_value] = array(
+        'from' => $item_full_filename,
+        'to' => $filename
+    );
+    $i++;
+  }
+  if (!file_exists($item_working_folder)) {
+    mkdir($item_working_folder);
+  }
+  ksort($sorted_index);
+  foreach ($sorted_index as $sequence_value => $item_file_arr) {
+    $file_filename = $sorted_index[$sequence_value]['to'];
+    $file_pathinfo = pathinfo($file_filename);
+    $extension = (array_key_exists('extension', $file_pathinfo)) ? $file_pathinfo['extension'] : '';
+    $sorted_index[$sequence_value] = array(
+        'from' => $sorted_index[$sequence_value]['from'],
+        'to' => $item_working_folder . '/' . $sequence_value . '/OBJ.' . $extension,
+    );
+    $item_sequence_folder = $item_working_folder . '/' . $sequence_value;
+    if (!file_exists($item_sequence_folder)) {
+      mkdir($item_sequence_folder);
+    }
+    $copied = copy($sorted_index[$sequence_value]['from'],  $item_sequence_folder . '/OBJ.' . $extension);
+    if ($copied && (variable_get('islandora_digital_workflow_delete_delivery_files', 0))) {
+      @unlink($sorted_index[$sequence_value]['from']);
+    }
+  }
+  // If all of the files are now moved, remove the folder too.
+  if ($copied && (variable_get('islandora_digital_workflow_delete_delivery_files', 0))) {
+    $delivery_files_remaining = islandora_digital_workflow_file_scandir($item_folder);
+    if (count($delivery_files_remaining) < 1) {
+      islandora_digital_workflow_deleteDirectory($item_folder);
+    }
+  }
+  return TRUE;
+}

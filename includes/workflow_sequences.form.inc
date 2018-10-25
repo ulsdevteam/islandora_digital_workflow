@@ -156,13 +156,14 @@ function islandora_digital_workflow_workflow_sequence_delete(array $form, array 
             'action / Islandora model relationships?</span>',
       );
   $form['confirm'] = array(
-          '#type' => 'submit',
-          '#value' => t('Confirm DELETE'),
-      );
+      '#type' => 'submit',
+      '#value' => t('Confirm DELETE'),
+  );
   $form['cancel'] = array(
-          '#type' => 'submit',
-          '#value' => t('Cancel'),
-      );
+      '#type' => 'submit',
+      '#prefix' => '&nbsp; ',
+      '#value' => t('Cancel'),
+  );
 
   drupal_set_title(t('Islandora Digital Workflow - Delete Workflow Sequence'), CHECK_PLAIN);
   $breadcrumb = array(
@@ -1367,6 +1368,7 @@ function islandora_digital_workflow_actions_delete_form(array $form, array &$for
       ),
       'cancel' => array(
           '#type' => 'submit',
+          '#prefix' => '&nbsp; ',
           '#value' => t('Cancel'),
       ),
   );

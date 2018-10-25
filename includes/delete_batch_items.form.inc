@@ -104,6 +104,7 @@ function islandora_digital_workflow_delete_batch_items_form(array $form, array &
     );
   $form['cancel'] = array(
       '#type' => 'submit',
+      '#prefix' => '&nbsp; ',
       '#value' => t('Cancel'),
     );
   return $form;

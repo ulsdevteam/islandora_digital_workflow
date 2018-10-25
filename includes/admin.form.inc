@@ -206,6 +206,7 @@ function islandora_digital_workflow_admin_form() {
     ),
     'reset' => array(
       '#type' => 'submit',
+      '#prefix' => '&nbsp; ',
       '#value' => t('Reset'),
     ),
   );

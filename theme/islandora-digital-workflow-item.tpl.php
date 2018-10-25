@@ -120,7 +120,7 @@
       <input type="submit" value="Update Batch Item">
       <?php endif; ?>
       <?php if (user_access(ISLANDORA_DIGITAL_WORKFLOW_DELETE_ITEMS)) : ?>
-      <input type="submit" name="deletebatchitem" class="bad" value="Delete Batch Item">
+       &nbsp; <input type="submit" name="deletebatchitem" class="bad" value="Delete Batch Item">
       <?php endif; ?>
       </form>
   </div>
@@ -140,7 +140,7 @@
           <?php
           $toggle = !$toggle;
           ?>
-          <tr class="<?php print ($toggle) ? 'evenrow' : 'oddrow'; ?> <?php print ($transaction_record->action_id > 999) ? 'batch_action' : 'item_action'; ?>"
+          <tr class="<?php print ($toggle) ? 'evenrow' : 'oddrow'; ?> <?php print (isset($transaction_record->is_batch_action) && $transaction_record->is_batch_action) ? 'batch_action' : 'item_action'; ?>"
               <?php if (isset($transaction_record->problem_notes)) : ?>
                 <?php print ' title="' . $transaction_record->problem_notes . '"'; ?>
               <?php endif; ?>>

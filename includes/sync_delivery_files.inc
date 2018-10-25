@@ -97,50 +97,30 @@ function islandora_digital_workflow_sync_delivery_files_form_submit(array $form,
   $batch_delivery_folders = islandora_digital_workflow_find_folders_files($source_root);
   $batch_record = islandora_digital_workflow_get_batch_record_by_name($batch_name);
 
-  $destination_path = rtrim(variable_get('islandora_digital_workflow_ingest_prepared_path', file_directory_temp()), '/')  . '/' . $batch_name;
   $source_path = $source_root . '/' . $batch_name;
   foreach ($batch_delivery_folders as $found_delivery_item_name => $info) {
     if ($found_delivery_item_name <> $batch_name) {
       unset($batch_delivery_folders[$found_delivery_item_name]);
     }
   }
+
   $success_moving = FALSE;
   if (array_key_exists($batch_name, $batch_delivery_folders)) {
     if (array_key_exists('files', $batch_delivery_folders[$batch_name])) {
       $files = $batch_delivery_folders[$batch_name]['files'];
-      foreach ($files as $file) {
-        $from_file = $source_path . '/' . $file;
-        $to_file = $destination_path . '/' . $file;
-        $from_exists = (file_exists($from_file) ? ' TRUE' : ' FALSE');
-        $to_exists = (file_exists($to_file) ? ' TRUE' : ' FALSE');
-        if (file_exists($from_file)) {
-          if (strstr($from_file, 'problem_notes.txt')) {
-            $command = 'rm -f ' . $from_file;
-          }
-          else {
-            $command = 'mv ' . $from_file . ' ' . $to_file;
-          }
-          $output = $return_var = array();
-          exec($command, $output, $return_var);
-          $success_moving |= (count($output) < 1);
-        }
+      // Need to find the batch_item_id value for each of the folders found
+      // in the given batch folder.
+      $items = islandora_digital_workflow_get_batch_items_by_nid($batch_record['nid']);
+      $fn_copied = TRUE;
+      foreach ($items as $item_obj) {
+        $fn_copied &= islandora_digital_workflow_copy_delivery_file($item_obj->batch_item_id, TRUE);
+      }
+      if ($fn_copied) {
+        drupal_set_message('TRUE islandora_digital_workflow_copy_delivery_file');
+      } else {
+        drupal_set_message('FALSE islandora_digital_workflow_copy_delivery_file');
       }
       if ($success_moving) {
-        // Done moving the files, but their sub-folders still exist and need to \
-        // be removed.
-        foreach ($files as $file) {
-          $from_file = $source_path . '/' . $file;
-          $file_pathinfo = pathinfo($from_file);
-          $from_file_dirname = $file_pathinfo['dirname'];
-          if (($source_path <> $from_file_dirname) && file_exists($from_file_dirname)) {
-            rmdir($from_file_dirname);
-          }
-        }
-        if (file_exists($source_path)) {
-          // Done moving subfolders, now we can remove that empty folder from
-          // the delivery root.
-          rmdir($source_path);
-        }
         // Update the "problem_resolved_timestamp" value for the related
         // problem state record of the item.
         islandora_digital_workflow_unset_problems_records($batch_record['batch_id']);

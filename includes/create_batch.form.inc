@@ -203,6 +203,7 @@ function islandora_digital_workflow_create_empty_batch_form(array $form, array &
     );
   $form['cancel'] = array(
       '#type' => 'submit',
+      '#prefix' => '&nbsp; ',
       '#value' => t('Cancel'),
     );
   return $form;
@@ -652,6 +653,7 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
   if (user_access(ISLANDORA_DIGITAL_WORKFLOW_DELETE_ITEMS)) {
     $form['deletebatch'] = array(
         '#type' => 'submit',
+        '#prefix' => '&nbsp; ',
         '#value' => t('Delete Batch'),
         '#attributes' => array('class' => array(
           'bad'
@@ -661,6 +663,7 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
 
   $form['cancel'] = array(
       '#type' => 'submit',
+      '#prefix' => '&nbsp; ',
       '#value' => t('Cancel'),
     );
   return $form;
@@ -881,6 +884,7 @@ function islandora_digital_workflow_sync_batch_items_confirmation(array $form, a
     ),
     'cancel' => array(
       '#type' => 'submit',
+      '#prefix' => '&nbsp; ',
       '#value' => t('Cancel'),
     ),
   );

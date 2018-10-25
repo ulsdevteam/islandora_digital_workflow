@@ -121,6 +121,7 @@ function islandora_digital_workflow_add_transactions_form(array $form, array &$f
   );
   $form['cancel'] = array(
       '#type' => 'submit',
+      '#prefix' => '&nbsp; ',
       '#value' => t('Cancel'),
   );
 

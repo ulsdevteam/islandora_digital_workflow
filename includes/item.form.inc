@@ -70,10 +70,10 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
     $original_values = array_pop($item_record_results);
     $is_paged_content = islandora_digital_workflow_is_paged_object($original_values->islandora_model) || $is_paged_content;
     if ($is_paged_content) {
+      @list($namespace, $item_identifier) = explode(":", $original_values->identifier);
       if (isset($_FILES['marc_file']) && isset($_FILES['marc_file']['tmp_name']) && $_FILES['marc_file']['tmp_name']) {
         $marc = file_get_contents($_FILES['marc_file']['tmp_name']);
         $_POST['marc'] = $marc;
-        @list($namespace, $item_identifier) = explode(":", $original_values->identifier);
         // Since the identifier could contain a character that is not legal for all
         // file systems, call islandora_digital_workflow_filename_sanitize() on
         // the intended filename so that it uses the santize process and still
@@ -94,15 +94,17 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
     $records_updated = islandora_digital_workflow_update_batch_item_record($batch_item_id, $_POST, $original_values);
     if ($records_updated) {
       $mods_file_changed = (trim($original_values->mods) <> trim($_POST['mods']));
-
       $marc_file_changed = ($is_paged_content && (trim($original_values->marc) <> trim($_POST['marc'])));
-      // Enter the appropriate actions if these changed:
+      $item_working_folder = $batch_path . '/' . $_POST['identifier'];
+      if (!file_exists($item_working_folder)) {
+        mkdir($item_working_folder);
+      }
       if ($mods_file_changed || $marc_file_changed) {
         if ($mods_file_changed) {
-          islandora_digital_workflow_insert_transactions_record(IDW_ACTION_ADD_MODS_RECORD, NULL, $batch_item_id);
+          file_put_contents($item_working_folder . '/--METADATA--.xml', $_POST['mods']);
         }
         if ($marc_file_changed) {
-          islandora_digital_workflow_insert_transactions_record(IDW_ACTION_ADD_MARC_RECORD, NULL, $batch_item_id);
+          file_put_contents($item_working_folder . '/' . $_POST['identifier'] . '.marcxml.xml', $_POST['marc']);
         }
       }
       drupal_set_message(t('This batch object record has been updated <br>' .
@@ -112,8 +114,8 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
           (($_POST['identifier'] <> $original_values->identifier) ?
           '<b>Previous Identifier:</b>"@o_identifier"<br>' .
           '<b>Updated Identifier:</b> "<span class="@identifier_class">@u_identifier</span>"<br>' : '') .
-          (($mods_file_changed) ? '<b>MODS file changed:</b><i>changes not displayed here</i>' : '') .
-          (($marc_file_changed) ? '<b>MARC file changed:</b><i>changes not displayed here</i>' : '') .
+          (($mods_file_changed) ? '<b>MODS file changed:</b><i>changes not displayed here</i><br>' : '') .
+          (($marc_file_changed) ? '<b>MARC file changed:</b><i>changes not displayed here</i><br>' : '') .
           (($is_paged_content) ?
           '<b>Previous Filename:</b> "@o_filename"<br>' .
           '<b>Updated Filename:</b> "<span class="@filename_class">@u_filename</span>"' : ''), array(

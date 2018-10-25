@@ -561,7 +561,8 @@ function islandora_digital_workflow_batch_path($batch_record, $is_delivery = FAL
             'there is no value for the batch "Name" (batch_name field) yet.'), 'warning');
     return '';
   }
-  $ingest_path = ($is_delivery) ? variable_get('islandora_digital_workflow_ingest_delivery_path', file_directory_temp()) : file_directory_temp();
+  $ingest_path = ($is_delivery) ? variable_get('islandora_digital_workflow_ingest_delivery_path', file_directory_temp()) :
+    variable_get('islandora_digital_workflow_ingest_prepared_path', file_directory_temp());
   if ($ingest_path == 'ftp' || (ltrim($ingest_path, 'ftp:') <> $ingest_path)) {
     $ingest_path = variable_get('islandora_digital_workflow_ingest_prepared_path', file_directory_temp());
   } elseif (strstr($ingest_path, ":")) {
@@ -572,8 +573,10 @@ function islandora_digital_workflow_batch_path($batch_record, $is_delivery = FAL
         t(' configuration would need to be updated to point to the mounted location.'),
         'error');
   }
+
   $batch_path = rtrim($ingest_path, '/') . '/' . $batch_record['batch_name'];
   $batch_path = islandora_digital_workflow_filename_sanitize($batch_path);
+
   if (!file_exists($batch_path)) {
     $call = mkdir($batch_path);
     if (!$call) {
@@ -2722,13 +2725,13 @@ function islandora_digital_workflow_filename_sanitize($filename, $extension = ''
  * @return boolean
  *   Whether or not the item is paged-content.
  */
-function islandora_digital_workflow_item_is_paged_content($batch_item_id, $batch_record) {
+function islandora_digital_workflow_item_is_paged_content($batch_item_id, $batch_record = array()) {
   $item_record_results = islandora_digital_workflow_get_batch_item_record($batch_item_id);
   $batch_item_obj = array_pop($item_record_results);
   if (is_object($batch_item_obj)) {
     return islandora_digital_workflow_is_paged_object($batch_item_obj->islandora_model);
   }
-  if ($batch_record['islandora_model']) {
+  if (array_key_exists('islandora_model', $batch_record)) {
     return islandora_digital_workflow_is_paged_object($batch_record['islandora_model']);
   }
 
@@ -2745,12 +2748,17 @@ function islandora_digital_workflow_item_is_paged_content($batch_item_id, $batch
  *
  * @param integer $batch_item_id
  *   $batch_item_id value matching an individual batch item.
+ * @param boolean $is_problems_location
+ *   (Optional) This defaults to FALSE, so most of the code calls this to copy
+ * from the delivery folder...
  * @return boolean
  *   Whether or not there was a successful file copy operation.
  */
-function islandora_digital_workflow_copy_delivery_file($batch_item_id) {
+function islandora_digital_workflow_copy_delivery_file($batch_item_id, $is_problems_location = FALSE) {
   $item_record_results = islandora_digital_workflow_get_batch_item_record($batch_item_id);
   $batch_item_obj = array_pop($item_record_results);
+  $item_is_paged = islandora_digital_workflow_item_is_paged_content($batch_item_id);
+
   if (!is_object($batch_item_obj)) {
     drupal_set_message(t('There was a problem accessing the batch_item record for ' .
         '@batch_item_id.', array(
@@ -2761,8 +2769,19 @@ function islandora_digital_workflow_copy_delivery_file($batch_item_id) {
   }
   $sanitized_delivery_filename = islandora_digital_workflow_get_item_delivery_filename($batch_item_obj);
   $working_filename = $batch_item_obj->filename;
+  if ($item_is_paged) {
+    module_load_include('inc', 'islandora_digital_workflow', 'includes/file_utilities');
 
-  $copied = copy($sanitized_delivery_filename, $working_filename);
+    $batch_record = islandora_digital_workflow_get_batch_record_by_batch_id($batch_item_obj->batch_id);
+    $item_working_folder = islandora_digital_workflow_batch_path($batch_record, FALSE) . '/' . $batch_item_obj->identifier;
+    // Scan the source folder - and copy over all page resources
+    $item_folder = islandora_digital_workflow_get_item_delivery_filename($batch_item_obj);
+    $item_files = islandora_digital_workflow_scan_files($item_folder);
+    $copied = islandora_digital_workflow_copy_resequence_files($item_files, $item_folder, $item_working_folder);
+  }
+  else {
+    $copied = copy($sanitized_delivery_filename, $working_filename);
+  }
 
   if ($copied) {
     // Load the batch record for this item so that the sizes can be recalculated.
@@ -2801,6 +2820,7 @@ function islandora_digital_workflow_copy_delivery_file($batch_item_id) {
             '@working_filename' => $working_filename
         )));
   }
+  return $copied;
 }
 
 /**
@@ -2850,6 +2870,9 @@ function islandora_digital_workflow_get_item_delivery_filename($batch_item, $bat
 }
 
 /**
+ * This helper routine will call the code to recalculate each of the provided 
+ * batches.  The $output_* variables are passed by reference are are updated
+ * within the code below.
  *
  * @param array|stdClass $batch_record
  *   The batch's islandora_digital_workflow_batch record.

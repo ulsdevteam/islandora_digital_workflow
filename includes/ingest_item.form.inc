@@ -68,6 +68,7 @@ function islandora_digital_workflow_ingest_item(array $form, array &$form_state,
     ),
     'cancel' => array(
       '#type' => 'submit',
+      '#prefix' => '&nbsp; ',
       '#value' => t('Cancel'),
     ),
     'batch_item_id' => array(

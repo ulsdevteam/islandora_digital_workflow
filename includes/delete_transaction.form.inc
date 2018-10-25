@@ -89,6 +89,7 @@ function islandora_digital_workflow_delete_transactions_form(array $form, array 
   );
   $form['cancel'] = array(
       '#type' => 'submit',
+      '#prefix' => ' &nbsp;',
       '#value' => t('Cancel'),
   );
 
