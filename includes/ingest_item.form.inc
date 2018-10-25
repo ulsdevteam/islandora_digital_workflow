@@ -203,9 +203,8 @@ function islandora_digital_workflow_make_drush_prepare_statement($batch_item_obj
 
   $content_model = (isset($batch_item_object->islandora_model) ?
       $batch_item_object->islandora_model : $batch_record['islandora_model']);
-  $batch_item_path = $batch_item_object->filename;
-  $path_info = pathinfo($batch_item_path);
-  $filepath = $path_info['dirname'];
+  $raw_item_path = islandora_digital_workflow_batch_path($batch_record) . '/' . $batch_item_object->identifier;
+  $filepath = islandora_digital_workflow_filename_sanitize($raw_item_path);
   $batch_preprocessor = islandora_digital_workflow_get_preprocessor($content_model);
 
   $ingest_namespace = islandora_digital_workflow_get_ingest_namespace($batch_record);
@@ -236,7 +235,7 @@ function islandora_digital_workflow_make_drush_prepare_statement($batch_item_obj
     $param_and_vals[] = 'parent=' . $batch_record['mapto_collections'];
   }
   $param_and_vals[] = 'target=' . $filepath;
-  return $drush_command_prefix . implode(" --", $param_and_vals);
+  return $drush_command_prefix . ' ' . $batch_preprocessor . ' --' . implode(" --", $param_and_vals);
 }
 
 /**
@@ -250,19 +249,17 @@ function islandora_digital_workflow_make_drush_prepare_statement($batch_item_obj
  * correponding "batch_ingest" module for that content model.
  */
 function islandora_digital_workflow_get_preprocessor($fedora_model) {
-  // could load all models from a mysql table?
-  
   // perhaps want to use this function call  islandora_digital_workflow_model_ingest_module_info
   $mapping = array(
-      'islandora:sp_basic_image' => 'islandora_newspaper_batch_preprocess',
-      'islandora:sp_large_image_cmodel' => 'islandora_newspaper_batch_preprocess',
+      'islandora:sp_basic_image' => 'islandora_batch_preprocess',
+      'islandora:sp_large_image_cmodel' => 'islandora_batch_preprocess',
       'islandora:findingAidCModel' => 'islandora_newspaper_batch_preprocess',
-      'islandora:bookCModel' => 'islandora_newspaper_batch_preprocess',
-      'islandora:manuscriptCModel' => 'islandora_newspaper_batch_preprocess',
+      'islandora:bookCModel' => 'islandora_book_batch_preprocess',
+      'islandora:manuscriptCModel' => 'islandora_manuscript_batch_preprocess',
       'islandora:newspaperCModel ' => 'islandora_newspaper_batch_preprocess',
       'islandora:newspaperIssueCModel' => 'islandora_newspaper_batch_preprocess',
       'islandora:sp_web_archive' => 'islandora_newspaper_batch_preprocess',
   );
-  return ((!array_search($fedora_model, $mapping) === FALSE) ? $mapping[$fedora_model] :
+  return (array_key_exists($fedora_model, $mapping) ? $mapping[$fedora_model] :
     '');
 }

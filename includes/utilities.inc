@@ -1682,7 +1682,8 @@ function islandora_digital_workflow_scandir_paged_content_files($scan_path) {
   foreach ($files as $folder => $folder_files) {
     if (is_array($folder_files)) {
       foreach ($folder_files as $file) {
-        $ret_arr[$folder . '/' . $file] = islandora_digital_workflow_get_filesize_class($scan_path, $folder, $file, TRUE);
+        $pop_file = (is_array($file)) ? array_pop($file): $file;
+        $ret_arr[$folder . '/' . $pop_file] = islandora_digital_workflow_get_filesize_class($scan_path, $folder, $pop_file, TRUE);
       }
     }
     else {
@@ -1709,7 +1710,8 @@ function islandora_digital_workflow_scandir_paged_content_files($scan_path) {
  *   The returned array has a 'filesize' (string) and a 'class' (string) value.
  */
 function islandora_digital_workflow_get_filesize_class($scan_path, $folder, $file, $tif_must_be_numeric = FALSE) {
-  $relative_file_path = (($folder) ? $folder . '/' : '') . $file;
+  $pop_file = (is_array($file)) ? array_pop($file): $file;
+  $relative_file_path = (($folder) ? $folder . '/' : '') . $pop_file;
   $full_file_path = $scan_path . '/' . $relative_file_path;
   if (file_exists($full_file_path)) {
     $size = filesize($full_file_path);
