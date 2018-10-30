@@ -105,7 +105,7 @@ function islandora_digital_workflow_uninstall() {
   }
 
   // Delete the nodes that might have been created that are "workflow_batch" type.
-  module_load_include('inc', 'islandora_digital_workflow', 'includes/node_utilities');
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
   islandora_digital_workflow_delete_workflow_batch_nodes();
 }
 

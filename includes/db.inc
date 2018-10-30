@@ -1864,3 +1864,29 @@ function islandora_digital_workflow_delete_batch_record($batch_id) {
   }
 }
 
+/**
+ * Helper function to delete the workflow_batch nodes and any related
+ * islandora_digital_workflow_batch records.
+ *
+ * @return boolean
+ *   Whether or not there was any problem deleting the nodes that are
+ * "workflow_batch" type.
+ */
+function islandora_digital_workflow_delete_workflow_batch_nodes() {
+  $nids = db_select('node', 'n')
+      ->fields('n', array('nid'))
+      ->fields('n', array('type'))
+      ->condition('n.type', 'workflow_batch')
+      ->execute()
+      ->fetchCol(); // returns an indexed array
+
+  $delete_success = TRUE;
+  foreach ($nids as $nid) {
+    $batch_record = islandora_digital_workflow_get_batch_record_by_nid($nid);
+    if (is_array($batch_record)) {
+      islandora_digital_workflow_delete_batch_record($batch_record['batch_id']);
+    }
+    $delete_success &= node_delete($nid);
+  }
+  return $delete_success;
+}

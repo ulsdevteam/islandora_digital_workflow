@@ -1590,6 +1590,7 @@ function islandora_digital_workflow_find_folders_files($root) {
       foreach ($files as $filekey => $file) {
         if (is_array($file)) {
           foreach ($file as $cfile) {
+            $cfile = (is_array($cfile)) ? array_pop($cfile): $cfile;
             $onelevel_filepaths[] = $filekey . '/' . $cfile;
           }
         }
