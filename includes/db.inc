@@ -848,7 +848,33 @@ ORDER BY bi.batch_item_id ASC, bt.`timestamp` DESC');
 
     $rows[$index]->transactions = $transactions;
   }
+  islandora_digital_workflow_calculate_ready_for($rows, $nid);
   return $rows;
+}
+
+function islandora_digital_workflow_calculate_ready_for(&$rows, $nid) {
+  // Need to load the batch_record in order to see which sequence is being used
+  // so that the required actions for that sequence can be compared against
+  // each items' current transaction_action_ids.
+  $batch_record = islandora_digital_workflow_get_batch_record_by_nid($nid);
+  $actions = islandora_digital_workflow_get_batch_items_actions($batch_record['workflow_sequence_id']);
+  foreach ($rows as $index => $row) {
+    $items_action_ids = explode(",", $row->transaction_action_ids);
+    $next = '';
+    $next_action_id = -1;
+    foreach ($actions as $action_id => $action_description) {
+      if ($action_id && !$next && (array_search($action_id, $items_action_ids) === FALSE)) {
+        $next = $action_description;
+        $next_action_id = $action_id;
+      }
+    }
+
+    $next_action = islandora_digital_workflow_get_action($next_action_id);
+    $rows[$index]->ready_for = '<a title="' . $next_action['action_description'] .
+        '" href="/node/' . $nid . '/add_transaction/' . $row->batch_item_id .
+        '/' . $next_action_id . '"><div class="add_20">&nbsp;</div></a><div class="' .
+        islandora_digital_workflow_glyph_class($next_action['action_name']) . '">&nbsp;</div>';
+  }
 }
 
 /**
