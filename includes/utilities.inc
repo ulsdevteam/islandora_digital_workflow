@@ -2342,12 +2342,11 @@ function islandora_digital_workflow_path_needs_js($path) {
  */
 function islandora_digital_workflow_convert_to_filename($string) {
   // Replace spaces with underscores and makes the string lowercase
-  $string = str_replace (array(" ", "-", ")", "(", "[", "]", "{", "}", "?", "!"), "_", $string);
+  $string = str_replace (array(" ", ")", "(", "[", "]", "{", "}", "?", "!"), "_", $string);
   $string = str_replace ("..", ".", $string);
-  $string = strtolower ($string);
 
   // Match any character that is not in our whitelist
-  preg_match_all ("/[^0-9^a-z^_^.]/", $string, $matches);
+  preg_match_all ("/[^\-^0-9^a-z^A-Z^_^.]/", $string, $matches);
 
   // Loop through the matches with foreach
   foreach ($matches[0] as $value) {
