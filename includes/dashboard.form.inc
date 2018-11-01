@@ -119,15 +119,23 @@ function islandora_digital_workflow_get_dashboard_links() {
   return $links;  
 }
 
+/**
+ * This simply returns the "action_links" for the dashboard page.
+ *
+ * @return array
+ *   Each item is a rendered link.
+ */
 function islandora_digital_workflow_get_dashboard_action_links() {
   $links = array();
 
+  // First link should be to the "Create Batch" form.
+  if (user_access(ISLANDORA_DIGITAL_WORKFLOW_CREATE_NEW_BATCH)) {
+    $links[] = l('Create Batch', '/islandora/islandora_digital_workflow/create_batch');
+  }
+  // Add a link if the user has permission to create collections.
   if (user_access('create child collection')) {
     $top_level_collection_uri = rtrim(variable_get('islandora_digital_workflow_top_level_collection', '/islandora/object/islandora:root'), "/");
     $links[] = l('Create Collection', $top_level_collection_uri . '/manage/overview/ingest');
-  }
-  if (user_access(ISLANDORA_DIGITAL_WORKFLOW_CREATE_NEW_BATCH)) {
-    $links[] = l('Create Batch', '/islandora/islandora_digital_workflow/create_batch');
   }
   return $links;
 }

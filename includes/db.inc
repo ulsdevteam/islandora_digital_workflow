@@ -852,6 +852,18 @@ ORDER BY bi.batch_item_id ASC, bt.`timestamp` DESC');
   return $rows;
 }
 
+/**
+ * Returns the "Ready For" step for the items.
+ *
+ * This will inspect the rows of item objects and look up that item's batch to get
+ * that batch's "workflow sequence" and it will compare the required steps against
+ * the completed steps for that item.  The first uncompleted step is returned.
+ *
+ * @param array $rows
+ *   The rows of items objects.  VARIABLE parameter passed by reference.
+ * @param integer $nid
+ *   Needed to look up the batch record.
+ */
 function islandora_digital_workflow_calculate_ready_for(&$rows, $nid) {
   // Need to load the batch_record in order to see which sequence is being used
   // so that the required actions for that sequence can be compared against

@@ -2506,7 +2506,7 @@ function islandora_digital_workflow_set_status_for_pid($ingested_object, $action
   // Look up the batch_items record for this identifier -- and add a transaction
   // to set the provided $action_id value.
   $batch_item_id = islandora_digital_workflow_get_batch_item_id_by_identifier($identifier);
-  if (!islandora_digital_workflow_insert_transactions_record($action_id, NULL, $batch_item_id, NULL, '')) {
+  if (($batch_item_id) && !islandora_digital_workflow_insert_transactions_record($action_id, NULL, $batch_item_id, NULL, '')) {
     $variables = array('@ingested_pid' => $ingested_object->id, '@action_id' => $action_id);
     watchdog('islandora_digital_workflow', 'The system was not able to add a ' .
         'transaction [@action_id.] for a recently ingested object with PID ' .

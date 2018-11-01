@@ -33,7 +33,7 @@
               <ul>
               <li><b>Description:</b> <?php print $batch_record->batch_description; ?></li>
               <li><b>Priority:</b> <?php print $batch_record->priority; ?></li>
-              <?php if (isset($batch_record->object_count) && isset($batch_record->items_count) && $batch_record->object_count): ?>
+              <?php if (isset($batch_record->object_count) && isset($batch_record->items_count)): ?>
               <li><b>Actual items count:</b> <span class="bad"><?php print $batch_record->object_count; ?></span></li>
               <li><b>Intended count:</b> <span class="bad"><?php print $batch_record->items_count; ?></span></li>
               <?php endif; ?>

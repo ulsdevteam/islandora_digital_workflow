@@ -11,7 +11,7 @@
 ?>
 <?php if (count($tasks_tables) > 0): ?>
 <div class="dashboard-tasks">
-    <h3>The issues with the following batches need to be resolved:</h3>
+    <h3>The following batches need attention:</h3>
     <?php foreach ($tasks_tables as $task_table): ?>
     <div class="dashboard-task">
       <?php print $task_table; ?>
