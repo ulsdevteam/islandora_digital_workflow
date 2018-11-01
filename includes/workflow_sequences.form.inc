@@ -139,8 +139,6 @@ function islandora_digital_workflow_workflow_sequence_delete(array $form, array 
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
 
-  $workflow_sequence_actions = islandora_digital_workflow_get_workflow_sequence_actions();
-  $workflow_model_sequences = islandora_digital_workflow_get_workflow_model_sequences();
   $workflow_sequences = islandora_digital_workflow_get_workflow_sequences();
   $sequence_title = $workflow_sequences[$workflow_sequence_id]['name'];
   $form = array();
@@ -1010,7 +1008,17 @@ function islandora_digital_workflow_actions_form(array $form, array &$form_state
   );
   $markup_item_actions = $markup_batch_actions = array();
   foreach ($rows as $action_id => $action_record_array) {
-    $trigger_stage = (isset($action_record_array['term_name']) ? $action_record_array['term_name']: '');
+    $trigger_add_stage = (isset($action_record_array['add_term_name']) ?
+            '<span title="' . (($action_record_array['is_triggered_by_single_item']) ? 'T' : 'Not t') . 'riggered by a single item">' .
+            $action_record_array['add_term_name'] .
+            (($action_record_array['is_triggered_by_single_item']) ? ' / 1' : ' / all') .
+             '</span>' : '');
+    $trigger_remove_stage = (isset($action_record_array['rm_term_name']) ?
+            '<span title="' . (($action_record_array['is_triggered_by_single_item_rm']) ? 'T' : 'Not t') . 'riggered by a single item">' .
+            $action_record_array['rm_term_name'] .
+            (($action_record_array['is_triggered_by_single_item_rm']) ? ' / 1' : ' / all') .
+             '</span>' : '');
+
     $sequence_ids_using_action = islandora_digital_workflow_using_action($workflow_sequence_actions, $action_id);
     $glyph_class = islandora_digital_workflow_glyph_class($action_record_array['action_name']);
     $markup = '<tr class="' . $glyph_class . '"><td><b>Action name:</b><br>' . $action_record_array['action_name'] .
@@ -1027,7 +1035,8 @@ function islandora_digital_workflow_actions_form(array $form, array &$form_state
             ),
             $action_record_array['action_description'],
             '<small class="disabled_text">' . $glyph_class . '</small>',
-            $trigger_stage,
+            $trigger_add_stage,
+            $trigger_remove_stage,
         ),
         'class' => array(),
     );
@@ -1044,7 +1053,8 @@ function islandora_digital_workflow_actions_form(array $form, array &$form_state
             '<a href="/admin/islandora/islandora_digital_workflow/workflow_sequence_actions/add" title="Add"><div class="add_20">&nbsp;</div></a></div>'),
           '&nbsp;',
           '<small class="disabled_text">transaction_action_unconfigured_reserved_action</small>',
-          ''
+          '',
+          '',
       ),
   );
   $markup_item_actions[] = array(
@@ -1054,11 +1064,12 @@ function islandora_digital_workflow_actions_form(array $form, array &$form_state
             '<a href="/admin/islandora/islandora_digital_workflow/workflow_sequence_actions/add" title="Add"><div class="add_20">&nbsp;</div></a></div>'),
           '&nbsp;',
           '<small class="disabled_text">transaction_action_unconfigured_reserved_action</small>',
-          ''
+          '',
+          '',
       ),
   );
 
-  $header = array('Name', 'Description', 'CSS class name', 'Stage');
+  $header = array('Name', 'Description', 'CSS class name', 'Add Stage', 'Remove Stage');
   foreach ($markup_item_actions as $action_id => $markup) {
     $form['reserved_actions']['item_actions'] = array(
         '#type' => 'item',
@@ -1175,14 +1186,14 @@ function islandora_digital_workflow_actions_edit_form(array $form, array &$form_
   }
   $form['batch_action_trigger'] = array(
       '#type' => 'fieldset',
-      '#title' => t('Trigger (optional)'),
+      '#title' => t('Triggers (optional)'),
       'stage_taxonomy_tid' => array(
           '#type' => 'select',
           '#default_value' => (isset($action_record['stage_taxonomy_tid']) ? $action_record['stage_taxonomy_tid'] : 0),
-          '#title' => 'Triggers workflow "Stage" for related batch?',
+          '#title' => 'Triggers ADDITION of a workflow "Stage" for related batch?',
           '#options' => $terms_options,
           '#attributes' => array(
-            'onchange' => 'stage_selection(this)',
+            'onchange' => 'stage_selection(this, "is-triggered-by-single-item")',
           ),
       ),
       'is_triggered_by_single_item' => array(
@@ -1195,6 +1206,26 @@ function islandora_digital_workflow_actions_edit_form(array $form, array &$form_
             'an "item action" is available for items in batches that use a ' .
             'sequence have this action configured.',
           '#default_value' => (isset($action_record['is_triggered_by_single_item']) ? $action_record['is_triggered_by_single_item']+0 : 0),
+      ),
+      'stage_taxonomy_tid_rm' => array(
+          '#type' => 'select',
+          '#default_value' => (isset($action_record['stage_taxonomy_tid_rm']) ? $action_record['stage_taxonomy_tid_rm'] : 0),
+          '#title' => 'Triggers REMOVAL of a workflow "Stage" for related batch?',
+          '#options' => $terms_options,
+          '#attributes' => array(
+            'onchange' => 'stage_selection(this, "is-triggered-by-single-item-rm")',
+          ),
+      ),
+      'is_triggered_by_single_item_rm' => array(
+          '#type' => 'checkbox',
+          '#title' => 'Triggered by a single item?',
+          '#description' => ($action_is_batch_action) ?
+            'Not applicable for batch-level transactions' :
+            'If this is for a "Batch Item" action, can this be triggered by a ' .
+            'single batch_item (or must all be required) at a batch level, else ' .
+            'an "item action" is available for items in batches that use a ' .
+            'sequence have this action configured.',
+          '#default_value' => (isset($action_record['is_triggered_by_single_item_rm']) ? $action_record['is_triggered_by_single_item_rm']+0 : 0),
       ),
   );
 
@@ -1278,6 +1309,8 @@ function islandora_digital_workflow_actions_edit_form_submit(array $form, array 
       'is_batch_action' => is_null($form_state['input']['is_batch_action']) ? $form_state['values']['is_batch_action'] : $form_state['input']['is_batch_action'],
       'stage_taxonomy_tid' => is_null($form_state['input']['stage_taxonomy_tid']) ? $form_state['values']['stage_taxonomy_tid'] : $form_state['input']['stage_taxonomy_tid'],
       'is_triggered_by_single_item' => is_null($form_state['input']['is_triggered_by_single_item']) ? $form_state['values']['is_triggered_by_single_item'] : $form_state['input']['is_triggered_by_single_item'],
+      'stage_taxonomy_tid_rm' => is_null($form_state['input']['stage_taxonomy_tid_rm']) ? $form_state['values']['stage_taxonomy_tid_rm'] : $form_state['input']['stage_taxonomy_tid_rm'],
+      'is_triggered_by_single_item_rm' => is_null($form_state['input']['is_triggered_by_single_item_rm']) ? $form_state['values']['is_triggered_by_single_item_rm'] : $form_state['input']['is_triggered_by_single_item_rm'],
   );
   $action_id = $form_state['input']['action_id'];
   if ($action_id) {

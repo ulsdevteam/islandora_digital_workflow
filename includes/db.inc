@@ -535,7 +535,8 @@ function islandora_digital_workflow_check_trigger_stage_change($transaction_id =
     $batch_record = islandora_digital_workflow_get_batch_record_by_batch_id($transaction_values['batch_id']);
   }
 
-  if (!isset($action_record['stage_taxonomy_tid']) || is_null($action_record['term_name'])) {
+  if ((!isset($action_record['stage_taxonomy_tid']) || is_null($action_record['add_term_name'])) &&
+    (!isset($action_record['stage_taxonomy_tid_rm']) || is_null($action_record['remove_term_name']))) {
     return;
   }
 
@@ -544,7 +545,8 @@ function islandora_digital_workflow_check_trigger_stage_change($transaction_id =
       'All Items in the batch have "@action_description"');
   $message_args = array(
       '@action_description' => $action_record['action_description'],
-      '@stage' => $action_record['term_name'],
+      '@stage' => $action_record['add_term_name'],
+      '@rm_stage' => $action_record['remove_term_name'],
       '@batch_item_identifier' => (($batch_item_record &&
         is_object($batch_item_record->identifier)) ?
           $batch_item_record->identifier : ''),
@@ -559,7 +561,7 @@ function islandora_digital_workflow_check_trigger_stage_change($transaction_id =
     }
   }
   else {
-    // the load the $items with the $batch_record->nid value
+    // Load $items with the $batch_record->nid value
     $items = islandora_digital_workflow_get_batch_items_by_nid($batch_record['nid']);
     $all_items_have_action = TRUE;
     foreach ($items as $item_obj) {
@@ -572,7 +574,27 @@ function islandora_digital_workflow_check_trigger_stage_change($transaction_id =
             $message_string, $message_args));
       }
     }
-    // else, the Stage does not get set here because all items did not have that action.
+  }
+  if ($action_record['is_batch_action'] == 1 || $action_record['is_triggered_by_single_item_rm']) {
+    if (islandora_digital_workflow_set_node_stage($batch_record['nid'], '', $action_record['stage_taxonomy_tid_rm'], TRUE)) {
+      drupal_set_message(t($affects . ' which triggers the "@rm_stage stage" for ' .
+          $message_string, $message_args));
+    }
+  }
+  else {
+    // Load $items with the $batch_record->nid value
+    $items = islandora_digital_workflow_get_batch_items_by_nid($batch_record['nid']);
+    $all_items_have_action = TRUE;
+    foreach ($items as $item_obj) {
+      $transaction_action_ids = explode(',', $item_obj->transaction_action_ids);
+      $all_items_have_action &= (!(array_search($transaction_values['action_id'], $transaction_action_ids) === FALSE));
+    }
+    if ($all_items_have_action) {
+      if (islandora_digital_workflow_set_node_stage($batch_record['nid'], '', $action_record['stage_taxonomy_tid_rm'], TRUE)) {
+        drupal_set_message(t($affects . ' which triggers the "@stage stage" for ' .
+            $message_string, $message_args));
+      }
+    }
   }
 }
 
@@ -1154,8 +1176,12 @@ function islandora_digital_workflow_get_workflow_sequences() {
  *   the set of options for possible workflow actions.
  */
 function islandora_digital_workflow_get_item_action_options($display_reserved_actions = TRUE) {
-  $query = db_query('SELECT a.*, td.name as `term_name` FROM islandora_digital_workflow_actions a ' .
-          'LEFT OUTER JOIN taxonomy_term_data td ON td.tid = stage_taxonomy_tid ' .
+  // This has to LEFT OUTER JOIN to the taxonomy_term_data table TWICE so that
+  // it can get the term name for the "Add Stage" as well as for the "Remove Stage".
+  $query = db_query('SELECT a.*, td_add.name as `add_term_name`, td_rm.name as `rm_term_name` ' .
+          'FROM islandora_digital_workflow_actions a ' .
+          'LEFT OUTER JOIN taxonomy_term_data td_add ON td_add.tid = stage_taxonomy_tid ' .
+          'LEFT OUTER JOIN taxonomy_term_data td_rm ON td_rm.tid = stage_taxonomy_tid_rm ' .
           'WHERE a.is_batch_action = 0' .
       (!$display_reserved_actions ? ' AND a.description NOT LIKE \'Reserved %\'' : '') );
   $rows = $query->fetchAll();
@@ -1181,8 +1207,10 @@ function islandora_digital_workflow_get_item_action_options($display_reserved_ac
  *   the set of options for possible workflow actions.
  */
 function islandora_digital_workflow_get_batch_action_options($display_reserved_actions = TRUE) {
-  $query = db_query('SELECT a.*, td.name as `term_name` FROM islandora_digital_workflow_actions a ' .
-          'LEFT OUTER JOIN taxonomy_term_data td ON td.tid = a.stage_taxonomy_tid ' .
+  $query = db_query('SELECT a.*, td_add.name as `add_term_name`, td_rm.name as `rm_term_name` ' .
+          'FROM islandora_digital_workflow_actions a ' .
+          'LEFT OUTER JOIN taxonomy_term_data td_add ON td_add.tid = a.stage_taxonomy_tid ' .
+          'LEFT OUTER JOIN taxonomy_term_data td_rm ON td_rm.tid = a.stage_taxonomy_tid_rm ' .
           'WHERE a.is_batch_action = 1' .
       (!$display_reserved_actions ? ' AND a.description NOT LIKE \'Reserved %\'' : '') );
   $rows = $query->fetchAll();
@@ -1223,7 +1251,7 @@ function islandora_digital_workflow_get_workflow_sequence_actions() {
   $query->addField('s', 'is_mixed', 'is_mixed');
   $query->addField('s', 'description', 'sequence_description');
   $query->addJoin('LEFT', 'taxonomy_term_data', 'td', 'a.stage_taxonomy_tid = td.tid');
-  $query->addField('td', 'name', 'term_name');
+  $query->addField('td', 'name', 'add_term_name');
 
   $results = $query->execute();
   $rows = $results->fetchAll();
@@ -1490,8 +1518,11 @@ function islandora_digital_workflow_get_action($action_id) {
   $query->addField('wa', 'description', 'action_description');
 
   $query->condition('wa.action_id', $action_id);
-  $query->addJoin('LEFT', 'taxonomy_term_data', 'td', 'wa.stage_taxonomy_tid = td.tid');
-  $query->fields('td');
+  $query->addJoin('LEFT', 'taxonomy_term_data', 'td_add', 'wa.stage_taxonomy_tid = td_add.tid');
+  $query->fields('td_add');
+  $query->addField('td_add', 'name', 'add_term_name');
+  $query->addJoin('LEFT', 'taxonomy_term_data', 'td_rm', 'wa.stage_taxonomy_tid_rm = td_rm.tid');
+  $query->addField('td_rm', 'name', 'rm_term_name');
   $results = $query->execute();
   $rows = $results->fetchAll();
   $return = array();
@@ -1505,7 +1536,10 @@ function islandora_digital_workflow_get_action($action_id) {
         'is_batch_action' => $row->is_batch_action,
         'is_triggered_by_single_item' => $row->is_triggered_by_single_item,
         'stage_taxonomy_tid' => $row->stage_taxonomy_tid,
-        'term_name' => $row->name,
+        'is_triggered_by_single_item_rm' => $row->is_triggered_by_single_item_rm,
+        'stage_taxonomy_tid_rm' => $row->stage_taxonomy_tid_rm,
+        'add_term_name' => $row->add_term_name,
+        'rm_term_name' => $row->rm_term_name,
         'class_name' => islandora_digital_workflow_glyph_class($row->action_name),
     );
   }

@@ -38,7 +38,7 @@ function islandora_digital_workflow_create_stub_batch_record($form_state) {
         'batch_name' => $batch_name,
         'batch_description' => $form_state['values']['batch_description'],
         'default_type_of_resource' => $form_state['values']['default_type_of_resource'],
-        'islandora_model' =>  islandora_digital_workflow_get_name_of_tid($form_state['values']['cmodel_select']),
+        'islandora_model' => islandora_digital_workflow_get_name_of_tid($form_state['values']['cmodel_select']),
         'is_batch_active' => 0,
         'is_batch_request' => $form_state['values']['is_batch_request'],
         'batch_requestor' => $form_state['values']['batch_requestor'],
@@ -2430,6 +2430,7 @@ function islandora_digital_workflow_static_glyph_filenames() {
   return array(
       'add-marc-record' => 'images/add-marc-record_20.png',
       'add-mods-record' => 'images/add-mods-record_20.png',
+      'problem' => 'images/problem_20.png',
       'check-in-physical-item' => 'images/check-in-physical-item_20.png',
       'check-item-against-physical-object' => 'images/check-item-against-physical-object_20.png',
       'check-out-physical-item' => 'images/check-out-physical-item_20.png',

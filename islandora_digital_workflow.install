@@ -26,7 +26,11 @@ function islandora_digital_workflow_install() {
   islandora_digital_workflow_check_and_deploy_forena_reports();
 }
 
-
+/**
+ * Procedure to only add the taxonomy vocabularies and actually calls
+ * islandora_digital_workflow_add_workflow_*_taxonomy_terms functions to
+ * insert the individual terms.
+ */
 function islandora_digital_workflow_add_taxonomy_data() {
   global $priority_vocab;
   global $stage_vocab;
@@ -174,7 +178,7 @@ function islandora_digital_workflow_schema() {
         'not null' => TRUE,
       ),
       'stage_taxonomy_tid' => array(
-        'description' => 'The taxonomy term tid value for the related Stage',
+        'description' => 'The optional taxonomy term tid value to set the related Stage',
         'type' => 'int',
         'size' => 'medium',
         'unsigned' => TRUE,
@@ -182,6 +186,21 @@ function islandora_digital_workflow_schema() {
       ),
       'is_triggered_by_single_item' => array(
         'description' => 'If this is for a "Batch Item" action, trigger by a single batch_item?',
+        'type' => 'int',
+        'size' => 'tiny',
+        'default' => 0,
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'stage_taxonomy_tid_rm' => array(
+        'description' => 'The optional taxonomy term tid value to REMOVE the related Stage',
+        'type' => 'int',
+        'size' => 'medium',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+      'is_triggered_by_single_item_rm' => array(
+        'description' => 'If this is for a "Batch Item" action, trigger REMOVAL by a single batch_item?',
         'type' => 'int',
         'size' => 'tiny',
         'default' => 0,

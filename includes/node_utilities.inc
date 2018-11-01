@@ -83,29 +83,52 @@ function islandora_digital_workflow_sync_node_batch_record_info($node, $form_sta
  *
  * @param integer $nid
  *   nid value for a Drupal node object.
- * @param string $state_name
+ * @param string $stage_name
  *   The name of the state value like "New", "Problem"
+ *
  */
-function islandora_digital_workflow_set_node_stage($nid, $state_name = '', $stage_tid = FALSE) {
+function islandora_digital_workflow_set_node_stage($nid, $stage_name = '', $stage_tid = FALSE, $is_removal = FALSE) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy_utilities');
   $node = node_load($nid);
   if (is_object($node)) {
     $stages_vocab = taxonomy_vocabulary_machine_name_load(IDW_STAGE_TAXONOMY_MACHINE_NAME);
     if (!$stage_tid) {
-      $stage_tid = islandora_digital_workflow_get_tid_by_name($state_name, $stages_vocab);
+      $stage_tid = islandora_digital_workflow_get_tid_by_name($stage_name, $stages_vocab);
     }
     if ($stage_tid) {
-      // Check also that this stage tid is not already on the node
-      $stage_already_exists = FALSE;
-      if (array_key_exists($node->language, $node->field_stage)) {
-        foreach ($node->field_stage[$node->language] as $tid_arr) {
-          $stage_already_exists |= ($tid_arr['tid'] == $stage_tid);
+      if ($is_removal) {
+        drupal_set_message('For node (' . $nid . '), REMOVE the stage behind $stage_tid = ' . $stage_tid);
+        if (array_key_exists($node->language, $node->field_stage)) {
+          $original_stages = $node->field_stage[$node->language];
+          $node->field_stage[$node->language] = array();
+          $removal = FALSE;
+          foreach ($original_stages as $stage) {
+            if ($stage['tid'] <> $stage_tid) {
+              $node->field_stage[$node->language][] = array('tid' => $stage['tid']);
+            }
+            else {
+              $removal = TRUE;
+            }
+          }
+          if ($removal) {
+            node_save($node);
+          }
+          return TRUE;
         }
       }
-      if (!$stage_already_exists) {
-        $node->field_stage[$node->language][] = array('tid' => $stage_tid);
-        node_save($node);
-        return TRUE;
+      else {
+        // Check also that this stage tid is not already on the node
+        $stage_already_exists = FALSE;
+        if (array_key_exists($node->language, $node->field_stage)) {
+          foreach ($node->field_stage[$node->language] as $tid_arr) {
+            $stage_already_exists |= ($tid_arr['tid'] == $stage_tid);
+          }
+        }
+        if (!$stage_already_exists) {
+          $node->field_stage[$node->language][] = array('tid' => $stage_tid);
+          node_save($node);
+          return TRUE;
+        }
       }
     }
   }
