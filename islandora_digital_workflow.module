@@ -771,7 +771,7 @@ function islandora_digital_workflow_islandora_datastream_ingested(AbstractObject
     $pid = $object->id;
     @list($ns, $identifier) = explode(":", $pid, 2);
     $batch_item_arr = islandora_digital_workflow_get_batch_item_ids_by_assigned_pid($pid);
-    foreach ($batch_item_ids as $batch_item_id) {
+    foreach ($batch_item_arr as $batch_item_id) {
       islandora_digital_workflow_insert_transactions_record(IDW_ACTION_SYSTEM_MADE_DERIVATIVES, NULL, $batch_item_id);
     }
   }

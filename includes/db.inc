@@ -1319,7 +1319,7 @@ function islandora_digital_workflow_get_batch_item_id_by_identifier($identifier,
 }
 
 /**
- * This will return the batch_item_id values of recorsd that have a given
+ * This will return the batch_item_id values of records that have a given
  * `assigned_pid` value.
  *
  * @param string $assigned_pid
@@ -1333,9 +1333,16 @@ function islandora_digital_workflow_get_batch_item_id_by_identifier($identifier,
  * of a record.
  */
 function islandora_digital_workflow_get_batch_item_ids_by_assigned_pid($assigned_pid) {
+  // Take the $assigned_pid value and strip off the namespace to get the identifier.
+  if (strstr($assigned_pid, ":")) {
+    @list($namespace, $identifier) = explode(":", $assigned_pid);
+  }
+  else {
+    $identifier = $assigned_pid;
+  }
   $query = db_select('islandora_digital_workflow_batch_items', 'bi')
     ->fields('bi', array('batch_item_id'))
-    ->condition('assigned_pid', $assigned_pid);
+    ->condition('identifier', $identifier);
   $results = $query->execute();
   $rows = $results->fetchAll();
   $batch_item_ids = array();
