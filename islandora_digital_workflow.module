@@ -151,6 +151,7 @@ function islandora_digital_workflow_menu() {
       'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW),
       'file' => 'includes/dashboard.form.inc',
     ),
+    // the "standard Workflow user" (usually ISLANDORA_DIGITAL_WORKFLOW) menu handlers:
     // Lookup form
     'islandora/islandora_digital_workflow/lookup' => array(
       'page callback' => array('islandora_digital_workflow_lookup'),
@@ -195,6 +196,14 @@ function islandora_digital_workflow_menu() {
       'page callback' => array('islandora_digital_workflow_delete_batch_items'),
       'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_DELETE_ITEMS),
       'file' => 'includes/delete_batch_items.form.inc',
+    ),
+    // A handler to serve up a download of CSV templates
+    'islandora/islandora_digital_workflow/csv_template/%' => array(
+      'type' => MENU_NORMAL_ITEM,
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('islandora_digital_workflow_csv_template_download', 3),
+      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW),
+      'file' => 'includes/file_utilities.inc',
     ),
     // Node enhancement functions
     'node/%node/batch' => array(

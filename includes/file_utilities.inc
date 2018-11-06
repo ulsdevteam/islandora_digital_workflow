@@ -139,3 +139,31 @@ function islandora_digital_workflow_copy_resequence_files($item_files, $item_fol
   }
   return TRUE;
 }
+
+/**
+ * Simple handler that will spit out a download of either the minimal CSV template
+ * or a more extended version that could be used to create item MODS.
+ *
+ * @param array $form
+ *   The Drupal form definition.
+ * @param array $form_state
+ *   The Drupal form state.
+ * @param string $verb
+ *   Either "extended" or "minimal"
+ */
+function islandora_digital_workflow_csv_template_download(array $form, array &$form_state, $verb) {
+  if(isset($verb)){
+    header("Content-type: text/csv");
+    header("Content-Disposition: attachment; filename=CSV_template_" . 
+        (($verb == 'minimal') ? 'minimal' : 'extended')  . ".csv");
+    if ($verb == 'minimal') {
+      print 'title,identifier
+';
+    }
+    else {
+      print 'title,creator,subject,description,normalized_date,normalized_date_qualifier,identifier,copyright_status,publication_status,rights_holder,type_of_resource,genre,format,filename,source_collection_id,source_collection,address,batch,subject_location,source_id,depositor
+';
+    }
+    die;
+  }
+} 
