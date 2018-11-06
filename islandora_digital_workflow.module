@@ -21,11 +21,11 @@ define('IDW_ACTION_SYSTEM_MADE_DERIVATIVES', 7);
 define('IDW_ACTION_ADD_MARC_RECORD', 8);
 define('IDW_ACTION_PROBLEM', 9);
 define('IDW_ACTION_ADD_MODS_RECORD', 10);
-define('IDW_ACTION_ALL_CHECK_IN', 1001);
-define('IDW_ACTION_ALL_SCAN', 1002);
-define('IDW_ACTION_ALL_SYSTEM_INGEST', 1003);
-define('IDW_ACTION_ALL_CHECK_OUT', 1004);
-define('IDW_ACTION_ALL_CHECK_PHYSICAL_ITEMS', 1005);
+define('IDW_BATCH_ACTION_CHECK_IN', 1001);
+define('IDW_BATCH_ACTION_SCAN', 1002);
+define('IDW_BATCH_ACTION_SYSTEM_INGEST', 1003);
+define('IDW_BATCH_ACTION_CHECK_OUT', 1004);
+define('IDW_BATCH_ACTION_CHECK_PHYSICAL_ITEMS', 1005);
 
 // Permissions -- NOTE: there are additional permission constants defined in
 // islandora_digital_workflow_permission that use the naming convention of
