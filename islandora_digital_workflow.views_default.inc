@@ -47,7 +47,6 @@ function islandora_digital_workflow_views_default_views() {
     'field_pid_count' => 'field_pid_count',
     'php_2' => 'php_2',
     'field_content_type' => 'field_content_type',
-    'field_stage' => 'field_stage',
   );
   $handler->display->display_options['style_options']['default'] = '-1';
   $handler->display->display_options['style_options']['info'] = array(
@@ -97,13 +96,6 @@ function islandora_digital_workflow_views_default_views() {
       'empty_column' => 0,
     ),
     'field_content_type' => array(
-      'sortable' => 1,
-      'default_sort_order' => 'asc',
-      'align' => '',
-      'separator' => '',
-      'empty_column' => 0,
-    ),
-    'field_stage' => array(
       'sortable' => 1,
       'default_sort_order' => 'asc',
       'align' => '',
@@ -172,29 +164,11 @@ function islandora_digital_workflow_views_default_views() {
   </div>';
   $handler->display->display_options['fields']['php_2']['use_php_click_sortable'] = '0';
   $handler->display->display_options['fields']['php_2']['php_click_sortable'] = '';
-  /* Field: Content: Stage */
-  $handler->display->display_options['fields']['field_stage']['id'] = 'field_stage';
-  $handler->display->display_options['fields']['field_stage']['table'] = 'field_data_field_stage';
-  $handler->display->display_options['fields']['field_stage']['field'] = 'field_stage';
-  $handler->display->display_options['fields']['field_stage']['alter']['alter_text'] = TRUE;
-  $handler->display->display_options['fields']['field_stage']['alter']['text'] = '<div class=\'stage_[field_stage]\'>[field_stage]</div>';
-  $handler->display->display_options['fields']['field_stage']['element_label_colon'] = FALSE;
-  $handler->display->display_options['fields']['field_stage']['element_default_classes'] = FALSE;
-  $handler->display->display_options['fields']['field_stage']['type'] = 'taxonomy_term_reference_plain';
   /* Sort criterion: Content: Post date */
   $handler->display->display_options['sorts']['created']['id'] = 'created';
   $handler->display->display_options['sorts']['created']['table'] = 'node';
   $handler->display->display_options['sorts']['created']['field'] = 'created';
   $handler->display->display_options['sorts']['created']['order'] = 'DESC';
-  /* Contextual filter: Content: Stage (field_stage) */
-  $handler->display->display_options['arguments']['field_stage_tid']['id'] = 'field_stage_tid';
-  $handler->display->display_options['arguments']['field_stage_tid']['table'] = 'field_data_field_stage';
-  $handler->display->display_options['arguments']['field_stage_tid']['field'] = 'field_stage_tid';
-  $handler->display->display_options['arguments']['field_stage_tid']['exception']['title_enable'] = TRUE;
-  $handler->display->display_options['arguments']['field_stage_tid']['default_argument_type'] = 'fixed';
-  $handler->display->display_options['arguments']['field_stage_tid']['summary']['number_of_records'] = '0';
-  $handler->display->display_options['arguments']['field_stage_tid']['summary']['format'] = 'default_summary';
-  $handler->display->display_options['arguments']['field_stage_tid']['summary_options']['items_per_page'] = '25';
   /* Filter criterion: Content: Published */
   $handler->display->display_options['filters']['status']['id'] = 'status';
   $handler->display->display_options['filters']['status']['table'] = 'node';

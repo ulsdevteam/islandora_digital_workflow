@@ -1890,14 +1890,15 @@ function islandora_digital_workflow_delete_batch_item($batch_item_id) {
     $batch_item_record_obj = array_pop($batch_item_record_arr);
     if ($batch_item_record_obj->filename) {
       @unlink($batch_item_record_obj->filename);
-
-      $pathinfo = pathinfo($batch_item_record_obj->filename);
-      // ONLY do this if the path is an "item subfolder" and not higher - such as
-      // one of the configured "Incoming Delivery Directory" or "Ingest Working
-      // Directory" paths (would be very bad).
-      if (array_key_exists('dirname', $pathinfo) && strstr($pathinfo['dirname'], $batch_item_record_obj->identifier) ) {
-        module_load_include('inc', 'islandora_digital_workflow', 'includes/file_utilities');
-        $deleted = islandora_digital_workflow_deleteDirectory($pathinfo['dirname']);
+      if (variable_get('islandora_digital_workflow_delete_delivery_files', 0)) {
+        $pathinfo = pathinfo($batch_item_record_obj->filename);
+        // ONLY do this if the path is an "item subfolder" and not higher - such as
+        // one of the configured "Incoming Delivery Directory" or "Ingest Working
+        // Directory" paths (would be very bad).
+        if (array_key_exists('dirname', $pathinfo) && strstr($pathinfo['dirname'], $batch_item_record_obj->identifier) ) {
+          module_load_include('inc', 'islandora_digital_workflow', 'includes/file_utilities');
+          $deleted = islandora_digital_workflow_deleteDirectory($pathinfo['dirname']);
+        }
       }
     }
     drupal_set_message('delete file "' . $batch_item_record_obj->filename . '"', 'error');

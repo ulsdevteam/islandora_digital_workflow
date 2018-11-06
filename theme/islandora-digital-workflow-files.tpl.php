@@ -40,7 +40,7 @@
         <tr>
             <th>Title</th>
             <th>Identifier</th>
-            <th>Master Filename</th>
+            <?php if ($is_paged_content): ?><th>Master Filename</th><?php endif; ?>
             <th>Size</th>
         </tr>
       <?php foreach ($item_file_records as $item) { ?>
@@ -49,7 +49,9 @@
               (($item->class <> '') ?  ' ' . $item->class : '') ; ?>">
               <td><?php print $item->title; ?></td>
               <td><a href="/node/<?php print $node->nid; ?>/item/<?php print $item->batch_item_id; ?>"><?php print $item->identifier; ?></a></td>
-              <td><?php print $item->master_filename_basename; ?></td>
+              <?php if ($is_paged_content): ?>
+                <td><?php print $item->master_filename_basename; ?></td>
+              <?php endif; ?>
               <td><?php print $item->filesize; ?></td>
           </tr>
       <?php } ?>
@@ -66,8 +68,7 @@
         <?php $otoggle = !$otoggle; ?>
         <?php $toggle = FALSE; ?>
 
-        <?php @list($ns, $pid) = explode(":", $item->identifier); ?>
-<fieldset  class="<?php print (($otoggle) ? 'evenrow' : 'oddrow'); ?>" id="<?php print $pid; ?>">
+<fieldset  class="<?php print (($otoggle) ? 'evenrow' : 'oddrow'); ?>" id="<?php print $item->identifier; ?>">
     <legend>
       <span class="fieldset-legend">
           <a href="/node/<?php print $node->nid; ?>/item/<?php print $item->batch_item_id; ?>"><?php print $item->identifier; ?></a></span>
@@ -83,7 +84,7 @@
           <th class="numeric">Size</th>
         </tr>
         <?php foreach ($found_files as $filename => $file_info) { ?>
-          <?php if (strstr($filename, $pid) <> '') : ?>
+          <?php if (strstr($filename, $item->identifier) <> '') : ?>
             <?php $toggle = !$toggle; ?>
         <tr class="<?php print (($toggle) ? 'evenrow' : 'oddrow') .
             (($file_info['class'] <> '') ? ' ' . $file_info['class'] : ''); ?>">

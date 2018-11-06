@@ -174,9 +174,9 @@
     <hr>
     <?php print $workflow_sequence_text; ?>
 
-    <?php if (count($found_files) > 0) : ?>
+    <?php if ((count($found_files) > 0) || count($found_delivery_files) > 0) : ?>
     <?php $toggle = FALSE; ?>
-    <h3>Files</h3>
+    <h3>Working Files</h3>
       <table>
         <tr>
           <th>Filename</th>
@@ -185,6 +185,23 @@
         <?php foreach ($found_files as $filename => $file_info) { ?>
             <?php $toggle = !$toggle; ?>
         <tr class="<?php print (($toggle) ? 'evenrow' : 'oddrow') .
+            (($file_info['class'] <> '') ? ' ' . $file_info['class'] : ''); ?>">
+          <td><?php print $filename; ?></td>
+          <td class="numeric"><?php print number_format($file_info['filesize']); ?></td>
+        </tr>
+        <?php } ?>
+      </table>
+    <h3>Delivery Files</h3>
+      <table>
+        <tr>
+          <th>Filename</th>
+          <th class="numeric">Size</th>
+        </tr>
+        <?php foreach ($found_delivery_files as $filename => $file_info) { ?>
+            <?php $toggle = !$toggle; ?>
+        <tr <?php if (strstr($file_info['class'], 'bad_sequence')) {
+          print 'title="Filename sequence bad and will be renamed when brought into the working files location" ';
+        } ?>class="<?php print (($toggle) ? 'evenrow' : 'oddrow') .
             (($file_info['class'] <> '') ? ' ' . $file_info['class'] : ''); ?>">
           <td><?php print $filename; ?></td>
           <td class="numeric"><?php print number_format($file_info['filesize']); ?></td>

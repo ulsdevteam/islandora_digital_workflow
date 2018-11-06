@@ -95,7 +95,7 @@ function islandora_digital_workflow_deleteDirectory($dir) {
  *   The configured "Ingest Working Directory" for the item.
  * @return boolean
  */
-function islandora_digital_workflow_copy_resequence_files($item_files, $item_folder, $item_working_folder) {
+function islandora_digital_workflow_copy_resequence_files($item_files, $item_folder, $item_working_folder, $batch_name = '') {
   $sorted_index = array();
   $copied = FALSE;
   $i = 1;
@@ -135,6 +135,10 @@ function islandora_digital_workflow_copy_resequence_files($item_files, $item_fol
     $delivery_files_remaining = islandora_digital_workflow_file_scandir($item_folder);
     if (count($delivery_files_remaining) < 1) {
       islandora_digital_workflow_deleteDirectory($item_folder);
+    }
+    $item_folder_pathinfo = pathinfo($item_folder);
+    if (array_key_exists('dirname', $item_folder_pathinfo) && strstr($item_folder_pathinfo['dirname'], $batch_name) ) {
+      dpm('XXXXX resume work here');
     }
   }
   return TRUE;

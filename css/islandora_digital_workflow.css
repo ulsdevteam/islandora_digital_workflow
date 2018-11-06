@@ -337,6 +337,16 @@ div.form-disabled label.enabled_text {
     color: red;
 }
 
+.bad_sequence {
+    color: red;
+}
+.evenrow.bad_sequence {
+    background-color: #ff5 !important;
+}
+.oddrow.bad_sequence {
+    background-color: #ee6 !important;
+}
+
 .big_font {
     font-size: 1.4em;
 }

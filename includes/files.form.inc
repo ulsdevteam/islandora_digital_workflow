@@ -39,16 +39,23 @@ function islandora_digital_workflow_files($node) {
   // but not found with "bad" class.
   $is_paged_content = islandora_digital_workflow_is_paged_object($batch_record['islandora_model']);
   if ($is_paged_content) {
-    $found_files = islandora_digital_workflow_scandir_paged_content_files($batch_path);
+    $working_files = islandora_digital_workflow_scan_files($batch_path, $file_records);
+    $batch_delivery_path = islandora_digital_workflow_batch_path($batch_record, true);
+    $delivery_files = islandora_digital_workflow_scan_files($batch_delivery_path, $file_records);
+
+    $found_files = array_merge($working_files, $delivery_files);
+    foreach ($file_records as $index => $file_item) {
+      $file_records[$index]->class = '';
+      $file_records[$index]->filename = 'foo?';
+    }
   }
   else {
-    $found_files = islandora_digital_workflow_scan_files($batch_path, $file_records);
-  }
-
-  // Loop through the $file_records and see which ones are missing from the file system
-  foreach ($file_records as $index => $file_item) {
-    $relative_folder_file = str_replace($batch_path . '/', '', $file_item->filename);
-    $file_records[$index]->class = (array_key_exists($relative_folder_file, $found_files) ? '' : 'bad');
+    $found_files = islandora_digital_workflow_scandir_paged_content_files($batch_path);
+    // Loop through the $file_records and see which ones are missing from the file system
+    foreach ($file_records as $index => $file_item) {
+      $relative_folder_file = str_replace($batch_path . '/', '', $file_item->filename);
+      $file_records[$index]->class = (array_key_exists($relative_folder_file, $found_files) ? '' : 'bad');
+    }
   }
 
   return $lookup_form_markup . $batch_description_markup .
@@ -58,6 +65,7 @@ function islandora_digital_workflow_files($node) {
         'batch_record' => $batch_record,
         'batch_path' => $batch_path,
         'node' => $node,
+        'is_paged_content' => $is_paged_content,
         'item_file_records' => $file_records,
         'found_files' => $found_files));
 }

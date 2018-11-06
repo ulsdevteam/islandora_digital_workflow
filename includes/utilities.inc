@@ -1035,15 +1035,16 @@ function islandora_digital_workflow_models_table() {
     }
     if (!$this_model_module_info['exists']) {
       $configured_models[$cmodel]['#default_value'] = 0;
-      drupal_set_message(t('The module is not installed that can ingest @model objects, ' .
-          ' so they can not be managed using the workflow until that module is installed (', array(
+      drupal_set_message(t('The module is not installed that can ingest batches of @model ' .
+          'objects, so they can not be managed using the workflow until that module ' .
+          'is installed', array(
               '@model' => $model
           )) .
-          $this_model_module_info['git_link'] . ', ' . $this_model_module_info['uls_git_link'] .
-          ').');
+          ((($this_model_module_info['git_link'] <> '') && ($this_model_module_info['uls_git_link'] <> '')) ?
+          ' (' . $this_model_module_info['git_link'] . ', ' . $this_model_module_info['uls_git_link'] . ')': '') .
+          '.');
       $configured_models[$cmodel]['#disabled'] = TRUE;
       $configured_models[$cmodel]['#attributes'] = array('readonly' => 'readonly', 'disabled' => 'disabled');
-
     }
     $return_form_elements[str_replace(" ", "+", $model)] = $configured_models[$cmodel];
   }
@@ -1102,12 +1103,16 @@ function islandora_digital_workflow_model_ingest_module_info($model) {
       $git_link = 'https://github.com/Islandora/islandora_book_batch.git';
       $uls_git_link = 'https://github.com/ulsdevteam/islandora_book_batch.git';
       break;
+    default:
+      $git_link = '';
+      $uls_git_link = '';
+      break;
   }
   $link_options = array('attributes'=>array(
       'title' => 'Drupal module source code',
       'target' => '_blank'));
-  $retval['git_link'] = l($retval['module_name'], $git_link, $link_options);
-  $retval['uls_git_link'] = l($retval['module_name'], $uls_git_link, $link_options);
+  $retval['git_link'] = ($git_link) ? l($retval['module_name'], $git_link, $link_options) : '';
+  $retval['uls_git_link'] = ($uls_git_link) ? l($retval['module_name'], $uls_git_link, $link_options) : '';
 
   $retval['exists'] = module_exists($retval['module_name']);
   $prev_dir = getcwd();
@@ -1167,6 +1172,7 @@ function islandora_digital_workflow_prepare_csv2mods($input_filename, $batch_rec
   }
 
   $batch_path = islandora_digital_workflow_batch_path($batch_record);
+  $batch_delivery_path = islandora_digital_workflow_batch_path($batch_record, true);
 
   ini_set('auto_detect_line_endings', true);
   $outputFilename   = 'MODS.xml';
@@ -1186,6 +1192,7 @@ function islandora_digital_workflow_prepare_csv2mods($input_filename, $batch_rec
 
   $csv_header_xpath_mappings = islandora_digital_workflow_get_csv_header_xpath_mappings();
   $mods_created = $auto_number = 0;
+  $nonexistant_delivery_item_paths = array();
 
   $ingest_namespace = islandora_digital_workflow_get_ingest_namespace($batch_record);
   $identifiers_and_filepaths = array();
@@ -1229,6 +1236,13 @@ function islandora_digital_workflow_prepare_csv2mods($input_filename, $batch_rec
               $mods_directory_path = $batch_path . '/' . $row_mods_id;
               if (!file_exists($mods_directory_path)) {
                 mkdir($mods_directory_path);
+              }
+              $item_delivery_path = $batch_delivery_path . '/' . $row_mods_id;
+              if (!file_exists($item_delivery_path)) {
+                mkdir($item_delivery_path);
+                if (!file_exists($item_delivery_path)) {
+                  $nonexistant_delivery_item_paths[] = $item_delivery_path;
+                }
               }
             }
           }
@@ -1354,6 +1368,12 @@ function islandora_digital_workflow_prepare_csv2mods($input_filename, $batch_rec
 
   if ($temp_csv_filename <> '' && file_exists($temp_csv_filename)) {
     unlink($temp_csv_filename);
+  }
+
+  if (count($nonexistant_delivery_item_paths) > 0) {
+    drupal_set_message(t('There was a problem creating the item delivery subfolders.') .
+        '<ul><li>' . implode('</li><li>' , $nonexistant_delivery_item_paths) . '</li></ul>',
+        'error');
   }
   return $identifiers_and_filepaths;
 }
@@ -1556,14 +1576,15 @@ function islandora_digital_workflow_scan_files($scan_path, $expected_file_record
   module_load_include('inc', 'islandora_digital_workflow', 'includes/file_utilities');
   $files = islandora_digital_workflow_file_scandir($scan_path, '', TRUE);
   $ret_arr = array();
+  $sequence = 1;
   foreach ($files as $folder => $folder_files) {
     if (is_array($folder_files)) {
       foreach ($folder_files as $file) {
-        $ret_arr[$folder . '/' . $file] = islandora_digital_workflow_get_filesize_class($scan_path, $folder, $file, FALSE);
+        $ret_arr[$folder . '/' . $file] = islandora_digital_workflow_get_filesize_class($scan_path, $folder, $file, FALSE, $sequence);
       }
     }
     else {
-      $ret_arr[$folder_files] = islandora_digital_workflow_get_filesize_class($scan_path, '', $folder_files, FALSE);
+      $ret_arr[$folder_files] = islandora_digital_workflow_get_filesize_class($scan_path, '', $folder_files, FALSE, $sequence);
     }
   }
   ksort($ret_arr);
@@ -1680,15 +1701,16 @@ function islandora_digital_workflow_scandir_paged_content_files($scan_path) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/file_utilities');
   $files = islandora_digital_workflow_file_scandir($scan_path, '', TRUE);
   $ret_arr = array();
+  $sequence = 1;
   foreach ($files as $folder => $folder_files) {
     if (is_array($folder_files)) {
       foreach ($folder_files as $file) {
         $pop_file = (is_array($file)) ? array_pop($file): $file;
-        $ret_arr[$folder . '/' . $pop_file] = islandora_digital_workflow_get_filesize_class($scan_path, $folder, $pop_file, TRUE);
+        $ret_arr[$folder . '/' . $pop_file] = islandora_digital_workflow_get_filesize_class($scan_path, $folder, $pop_file, TRUE, $sequence);
       }
     }
     else {
-      $ret_arr[$folder_files] = islandora_digital_workflow_get_filesize_class($scan_path, '', $folder_files, TRUE);
+      $ret_arr[$folder_files] = islandora_digital_workflow_get_filesize_class($scan_path, '', $folder_files, TRUE, $sequence);
     }
   }
   ksort($ret_arr);
@@ -1710,7 +1732,7 @@ function islandora_digital_workflow_scandir_paged_content_files($scan_path) {
  * @return array
  *   The returned array has a 'filesize' (string) and a 'class' (string) value.
  */
-function islandora_digital_workflow_get_filesize_class($scan_path, $folder, $file, $tif_must_be_numeric = FALSE) {
+function islandora_digital_workflow_get_filesize_class($scan_path, $folder, $file, $tif_must_be_numeric = FALSE, &$seq = 1) {
   $pop_file = (is_array($file)) ? array_pop($file): $file;
   $relative_file_path = (($folder) ? $folder . '/' : '') . $pop_file;
   $full_file_path = $scan_path . '/' . $relative_file_path;
@@ -1725,6 +1747,11 @@ function islandora_digital_workflow_get_filesize_class($scan_path, $folder, $fil
         if (!($ext == 'tif' && is_numeric($filename))) {
           $class = 'bad';
         }
+        $file_sequence = (integer) ($filename + 0);
+        if ($file_sequence <> $seq) {
+          $class .= ' bad_sequence';
+        }
+        $seq++; // = $file_sequence + 1;
       }
     }
     else {
@@ -2298,14 +2325,17 @@ function islandora_digital_workflow_deploy_files_to_forena_install($from, $to) {
 function islandora_digital_workflow_is_paged_object($object_or_string) {
   $paged_content_models = islandora_digital_workflow_retrieve_applicable_paged_content_cmodels();
   if (is_object($object_or_string)) {
-    return (is_object($object_or_string)) ? array_intersect($paged_content_models, $object_or_string->models) : FALSE;
+    $is = FALSE;
+    foreach ($object_or_string->models as $model) {
+      $is |= (!array_search($model, $paged_content_models) === FALSE);
+    }
+    return $is;
   }
   elseif (is_null($object_or_string)) {
     return FALSE;
   }
   else {
-    $array = array($object_or_string);
-    return array_intersect($paged_content_models, $array);
+    return (!array_search($object_or_string, $paged_content_models) === FALSE);
   }
 }
 
@@ -2771,7 +2801,6 @@ function islandora_digital_workflow_copy_delivery_file($batch_item_id, $is_probl
     return FALSE;
   }
   $sanitized_delivery_filename = islandora_digital_workflow_get_item_delivery_filename($batch_item_obj);
-  $working_filename = $batch_item_obj->filename;
   if ($item_is_paged) {
     module_load_include('inc', 'islandora_digital_workflow', 'includes/file_utilities');
 
@@ -2780,10 +2809,16 @@ function islandora_digital_workflow_copy_delivery_file($batch_item_id, $is_probl
     // Scan the source folder - and copy over all page resources
     $item_folder = islandora_digital_workflow_get_item_delivery_filename($batch_item_obj);
     $item_files = islandora_digital_workflow_scan_files($item_folder);
-    $copied = islandora_digital_workflow_copy_resequence_files($item_files, $item_folder, $item_working_folder);
+    $copied = islandora_digital_workflow_copy_resequence_files($item_files, $item_folder, $item_working_folder, $batch_record['batch_name']);
+    $whatwas_copied_message = 'files were';
+    $copied_to_location = 'the item subfolder under the batch\'s working directory';
   }
   else {
+    $working_filename = $batch_item_obj->filename;
+    $item_working_folder = $working_filename;
     $copied = copy($sanitized_delivery_filename, $working_filename);
+    $whatwas_copied_message = 'file ' . $batch_item_obj->master_filename_basename . ' was';
+    $copied_to_location = $working_filename;
   }
 
   if ($copied) {
@@ -2792,16 +2827,15 @@ function islandora_digital_workflow_copy_delivery_file($batch_item_id, $is_probl
     islandora_digital_workflow_recalc_batch_files($batch_record);
 
     if (variable_get('islandora_digital_workflow_delete_delivery_files', 0)) {
-      drupal_set_message('Delete files after scan copies made set');
       $deleted = @unlink($sanitized_delivery_filename);
       if (!$deleted) {
-        drupal_set_message(t('The file @master_filename_basename was copied to ' .
-            '@working_filename, but the original file "@sanitized_delivery_filename" ' .
+        drupal_set_message(t('The @whatwas_copied_message copied to ' .
+            '@copied_to_location, but the original file "@sanitized_delivery_filename" ' .
             'could not be deleted.  Check file permissions on the server location ' .
             'for the source path.', array(
                 '@sanitized_delivery_filename' => $sanitized_delivery_filename,
-                '@master_filename_basename' => $batch_item_obj->master_filename_basename,
-                '@working_filename' => $working_filename
+                '@whatwas_copied_message' => $whatwas_copied_message,
+                '@copied_to_location' => $copied_to_location
             )));
       }
       // Additionally, when islandora_digital_workflow_delete_delivery_files is set,
@@ -2811,14 +2845,11 @@ function islandora_digital_workflow_copy_delivery_file($batch_item_id, $is_probl
 
 
     }
-    else {
-      drupal_set_message('Delete files after scan copies made NOT set');
-    }
   }
   else {
-    drupal_set_message(t('The file @master_filename_basename could not be copied ' .
-        'to @working_filename.  Check file permissions on the server location for ' .
-        'the destination path.', array(
+    drupal_set_message(t('There was a problem copying the scanned file/s for this item ' . 
+        'from the delivery folder to the working folder.  Check file permissions on the ' .
+        'server location for the destination path.', array(
             '@master_filename_basename' => $batch_item_obj->master_filename_basename,
             '@working_filename' => $working_filename
         )));
