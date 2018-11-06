@@ -677,6 +677,10 @@ li.no_indent {
     float: left;
 }
 
+.form-item-namespace {
+    width: 16% !important;
+}
+
 .inline_form .fieldset-wrapper .form-type-file {
     width: 100% !important;
     max-width: none;

@@ -71,11 +71,18 @@ function islandora_digital_workflow_add_item_form(array $form, array &$form_stat
       '#collapsible' => TRUE,
       '#collapsed' => TRUE,
       '#attributes' => array('class' => array('inline_form')),
+      'namespace' => array(
+        '#type' => 'textfield',
+        '#title' => t('Ingest Namespace'),
+        '#default_value' => $namespace,
+        '#size' => 8,
+        '#attributes' => array('readonly' => 'readonly', 'disabled' => 'disabled'),
+      ),
       'identifier' => array(
         '#type' => 'textfield',
         '#title' => t('Identifier'),
         '#required' => true,
-        '#default_value' => $namespace,
+        '#default_value' => '',
       ),
       'title' => array(
         '#type' => 'textfield',
@@ -107,6 +114,7 @@ function islandora_digital_workflow_add_item_form(array $form, array &$form_stat
 function islandora_digital_workflow_add_item_form_submit(array $form, array &$form_state) {
   $batch_id = $form_state['values']['batch_id'];
   $identifier = $form_state['values']['identifier'];
+  $namespace = $form_state['values']['namespace'];
   $title = $form_state['values']['title'];
   $mods = '<?xml version="1.0" encoding="UTF-8"?>';
   $marc = '<?xml version="1.0" encoding="UTF-8"?>';
@@ -118,6 +126,10 @@ function islandora_digital_workflow_add_item_form_submit(array $form, array &$fo
       'mods' => $mods,
       'marc' => $marc,
   );
+  if (variable_get('islandora_digital_workflow_assign_PIDs', 0)) {
+    $fields['assigned_pid'] = rtrim($namespace, ':') . ':' . $identifier;
+  }
+
   // Each MODS is inserted into the item record - this will insert the record:
   $batch_item_id = islandora_digital_workflow_insert_batch_item($fields);
 }
@@ -196,7 +208,8 @@ function islandora_digital_workflow_add_items_form(array $form, array &$form_sta
               '<strong>@ext.</strong>', array('@size' => $upload_size, '@ext' => $extensions[0])) .
                 (($batch_record && isset($batch_record_arr['file']) && ($batch_record_arr['file'] <> '')) ?
                     '<br>Upload file will be stored: <em>' . str_replace($batch_path, '', $batch_record_arr['file']) . '</em>' :
-                    ''),
+                    '') . ' | ' . l('Download CSV template (minimal)', 'islandora/islandora_digital_workflow/csv_template/minimal') .
+                    ' | ' . l('Download CSV template (full)', 'islandora/islandora_digital_workflow/csv_template/extended'),
           '#upload_location' => 'temporary://',
           '#upload_validators' => array(
             'file_validate_extensions' => $extensions,

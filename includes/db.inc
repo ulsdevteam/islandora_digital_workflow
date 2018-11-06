@@ -536,17 +536,16 @@ function islandora_digital_workflow_check_trigger_stage_change($transaction_id =
   }
 
   if ((!isset($action_record['stage_taxonomy_tid']) || is_null($action_record['add_term_name'])) &&
-    (!isset($action_record['stage_taxonomy_tid_rm']) || is_null($action_record['remove_term_name']))) {
+    (!isset($action_record['stage_taxonomy_tid_rm']) || is_null($action_record['rm_term_name']))) {
     return;
   }
-
-  $affects = ($action_record['is_triggered_by_single_item'] ?
+  $affects = (($action_record['is_batch_action'] || $action_record['is_triggered_by_single_item']) ?
       '"@action_description" has been added' :
       'All Items in the batch have "@action_description"');
   $message_args = array(
       '@action_description' => $action_record['action_description'],
       '@stage' => $action_record['add_term_name'],
-      '@rm_stage' => $action_record['remove_term_name'],
+      '@rm_stage' => $action_record['rm_term_name'],
       '@batch_item_identifier' => (($batch_item_record &&
         is_object($batch_item_record->identifier)) ?
           $batch_item_record->identifier : ''),
