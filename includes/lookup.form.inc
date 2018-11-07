@@ -47,16 +47,24 @@ function islandora_digital_workflow_lookup_form_submitted($searchterm = '') {
   $found_batch_records = array();
   $found_total = 0;
   $records = islandora_digital_workflow_find_batch_records_by_name($searchterm);
-  $found_batch_records['batch name'] = $records;
+  if (count($records) > 0) {
+    $found_batch_records['batch name'] = $records;
+  }
   $found_total += ((is_array($records)) ? count($records) : 0);
   $records = islandora_digital_workflow_find_batch_records_by_description($searchterm);
-  $found_batch_records['batch description'] = $records;
+  if (count($records) > 0) {
+    $found_batch_records['batch description'] = $records;
+  }
   $found_total += ((is_array($records)) ? count($records) : 0);
   $records = islandora_digital_workflow_get_batch_record_by_items_identifier($searchterm);
-  $found_batch_records['batch item identifier'] = $records;
+  if (count($records) > 0) {
+    $found_batch_records['batch item identifier'] = $records;
+  }
   $found_total += ((is_array($records)) ? count($records) : 0);
   $records = islandora_digital_workflow_search_batch_csv_by_identifier($searchterm);
-  $found_batch_records['uploaded CSV file'] = $records;
+  if (count($records) > 0) {
+    $found_batch_records['uploaded CSV file'] = $records;
+  }
   $found_total += ((is_array($records)) ? count($records) : 0);
 
   if ($found_total == 1) {
