@@ -45,9 +45,6 @@
           </div>
       </div>
       <?php } ?>
-      <?php if (!$action_link): ?>
-      <em>Mouse-over any of the "problem_notes.txt" to see what needs to be done to resolve each problem.</em><hr>
-      <?php endif; ?>
       <?php if ($root): ?><span class="small_lt_text">Folders and files located under: <em><?php print $root; ?></em></span><?php endif; ?>
     </div>
 </div>

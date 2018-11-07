@@ -238,7 +238,9 @@ function islandora_digital_workflow_get_tasks_tables() {
           'before the item or the batch can be ingested.  To clear a problem, place ' .
           'the repaired files in the <b>Incoming Delivery Directory</b> location;  ' .
           'these files can then be imported back into the system which will resolve ' .
-          'the specific item\'s problem record.</p>Please resolve the folders listed below:',
+          'the specific item\'s problem record.</p><p><em>Mouse-over any of the ' .
+          '"problem_notes.txt" to see what needs to be done to resolve each ' .
+          'problem.</em><br>Please resolve the folders listed below:</p>',
       ));
     }
 
