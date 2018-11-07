@@ -981,7 +981,7 @@ function islandora_digital_workflow_update_batch_item_record($batch_item_id, $up
     // if the underlying file needs to be renamed.
     if ($update_values['filename'] <> $original_values->filename) {
       if (file_exists($update_values['filename'])) {
-        drupal_set_message(t('A file already existed with the updated filename, so nothing needed to be renamed.'), 'info');
+        drupal_set_message(t('A file already existed with the updated filename, so nothing needed to be renamed.'), 'message_info');
       }
       if (file_exists($original_values->filename)) {
         $renamed_file = rename($original_values->filename, $update_values['filename']);

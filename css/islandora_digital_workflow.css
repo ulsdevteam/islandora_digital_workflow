@@ -212,24 +212,24 @@ span.transaction_action_reserved_action_spacer {
     border: 1px solid #DDD;
 }
 
-div.info {
+div.message_info {
   background-image: url("../images/message-24-info.png");
   border-color: #BBB;
 }
 
-div.info, .info {
+div.message_info, .message_info {
   color: #444;
 }
 
-div.info, table tr.info {
+div.message_info, table tr.message_info {
   background-color: #F8F8F8;
 }
 
-div.info h3 {
+div.message_info h3 {
     margin-top: 0 !important;
 }
 
-div.info p.info {
+div.message_info p.message_info {
   color: #333;
 }
 

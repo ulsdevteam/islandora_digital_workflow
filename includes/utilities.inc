@@ -2246,7 +2246,7 @@ function islandora_digital_workflow_check_and_deploy_forena_reports() {
           'from: "@from".', array(
               '@to' => $to,
               '@from' => $from,
-          )), 'info');
+          )), 'message_info');
     }
     // Only deploy the SQL files if they do not exist
     if (count($sql_files) < 1) {
@@ -2257,7 +2257,7 @@ function islandora_digital_workflow_check_and_deploy_forena_reports() {
           'from: "@from".', array(
               '@to' => $to,
               '@from' => $from,
-          )), 'info');
+          )), 'message_info');
     }
   }
   else {

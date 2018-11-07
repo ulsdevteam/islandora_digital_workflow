@@ -53,7 +53,7 @@ function islandora_digital_workflow_create_batch() {
 function islandora_digital_workflow_create_empty_batch_form(array $form, array &$form_state) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
   module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy_utilities');
-
+dpm($form_state);
   $accessible_models = islandora_digital_workflow_get_accessible_cmodels();
   $configured = TRUE;
 
@@ -144,7 +144,6 @@ function islandora_digital_workflow_create_empty_batch_form(array $form, array &
       'batch_description' => array(
         '#type' => 'textarea',
         '#title' => t('Batch description'),
-        '#required' => true,
         '#description' => t('Description of the items in this batch.'),
         '#default_value' => '',
       ),
@@ -220,6 +219,7 @@ function islandora_digital_workflow_create_empty_batch_form(array $form, array &
 function islandora_digital_workflow_create_empty_batch_form_submit(array $form, array &$form_state) {
   $id = $form_state['triggering_element']['#id'];
   module_load_include('inc', 'islandora_digital_workflow', 'includes/node_utilities');
+  dpm($id);
   switch ($id) {
     case 'edit-submit':
       $batch_record = islandora_digital_workflow_create_stub_batch_record($form_state);
@@ -231,7 +231,7 @@ function islandora_digital_workflow_create_empty_batch_form_submit(array $form, 
       drupal_goto('islandora/islandora_digital_workflow/edit_batch/' . $batch_record['batch_name']);
       break;
     case 'edit-cancel':
-      drupal_set_message(t('Create Batch has been cancelled.'), 'info');
+      drupal_set_message(t('Create Batch has been cancelled.'), 'message_info');
       drupal_goto('islandora/islandora_digital_workflow/');
       break;
   }
@@ -286,7 +286,7 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
   }
   else {
     if (arg(2) === 'edit_batch') {
-      drupal_set_message($batch_name . t(' did not exist -- redirected to Create Batch page.'), 'info');
+      drupal_set_message($batch_name . t(' did not exist -- redirected to Create Batch page.'), 'message_info');
       drupal_goto('/islandora/islandora_digital_workflow/create_batch');
     }
     $batch_name = '';
@@ -829,7 +829,7 @@ function islandora_digital_workflow_create_batch_form_submit(array $form, array 
       drupal_goto('islandora/islandora_digital_workflow/delete_batch/' . $batch_record['batch_name']);
       break;
     case 'edit-cancel':
-      drupal_set_message(t('Create Batch has been cancelled.'), 'info');
+      drupal_set_message(t('Create Batch has been cancelled.'), 'message_info');
       drupal_goto('islandora/islandora_digital_workflow/');
       break;
   }

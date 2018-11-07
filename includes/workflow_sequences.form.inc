@@ -188,7 +188,7 @@ function islandora_digital_workflow_workflow_sequence_delete(array $form, array 
 function islandora_digital_workflow_workflow_sequence_delete_submit(array $form, array &$form_state) {
   // If cancel is clicked, redirect to the workflow_sequences page
   if ($form_state['triggering_element']['#value'] == 'Cancel') {
-    drupal_set_message(t('Delete was cancelled for workflow sequence.'), 'info');
+    drupal_set_message(t('Delete was cancelled for workflow sequence.'), 'message_info');
   }
   else {
     $workflow_sequence_id = $form_state['values']['workflow_sequence_id'];
@@ -239,13 +239,13 @@ function islandora_digital_workflow_workflow_sequence_delete_submit(array $form,
     }
 
     if ($deleted_models_count) {
-      drupal_set_message(t('Related model associations for the deleted sequence were also removed.'), 'info');
+      drupal_set_message(t('Related model associations for the deleted sequence were also removed.'), 'message_info');
     }
     if ($deleted_actions_count) {
-      drupal_set_message(t('Related actions for the deleted sequence were also removed'), 'info');
+      drupal_set_message(t('Related actions for the deleted sequence were also removed'), 'message_info');
     }
 
-    drupal_set_message(t('Deleted workflow sequence.'), 'info');
+    drupal_set_message(t('Deleted workflow sequence.'), 'message_info');
   }
   drupal_goto('admin/islandora/islandora_digital_workflow/workflow_sequences');
 }
@@ -926,7 +926,7 @@ function islandora_digital_workflow_workflow_sequence_models_form_submit($form, 
         ))) {
         drupal_set_message(t('Model "@add_model" added to this sequence.', array(
             '@add_model' => $add_model
-        )), 'info');
+        )), 'message_info');
       }
       else {
         drupal_set_message(t('There was a problem adding model "@add_model" to this sequence.', array(
@@ -960,7 +960,7 @@ function islandora_digital_workflow_workflow_sequence_models_form_submit($form, 
         ))) {
         drupal_set_message(t('The references to the model "@remove_model" have been removed for this mixed models workflow sequence.', array(
             '@remove_model' => $remove_model
-        )), 'info');
+        )), 'message_info');
       }
     }
   }
@@ -1321,7 +1321,7 @@ function islandora_digital_workflow_actions_edit_form_submit(array $form, array 
     drupal_set_message(t('@rows_updated rows updated.' .
         (($rows_updated < 1) ? '  <i>(When no changes are made, the action record is not updated)</i>' : ''), array(
             '@rows_updated' => $rows_updated
-        )), 'info');
+        )), 'message_info');
   }
   else {
     $fields['action_id'] = islandora_digital_workflow_get_free_action_id();
@@ -1430,14 +1430,14 @@ function islandora_digital_workflow_actions_delete_form_submit(array $form, arra
     if ($form_state['triggering_element']['#value'] == 'Cancel') {
       drupal_set_message(t('Delete was cancelled for action "@action_description".', array(
           '@action_description' => $action_record['action_description']
-      )), 'info');
+      )), 'message_info');
       drupal_goto('admin/islandora/islandora_digital_workflow/workflow_sequence_actions');
     }
     else {
       module_load_include('inc', 'islandora_digital_workflow', 'includes/islandora_digital_workflow_css');
       drupal_set_message(t('Action "@action_description" deleted.', array(
           '@action_description' => $action_record['action_description']
-      )), 'info');
+      )), 'message_info');
       $rows_deleted = db_delete('islandora_digital_workflow_actions')
           ->condition('action_id', $form_state['values']['action_id'])
           ->execute();

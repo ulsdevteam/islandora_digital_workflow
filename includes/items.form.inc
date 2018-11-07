@@ -534,7 +534,7 @@ function islandora_digital_workflow_batch_items_form_submit(array $form, array &
     drupal_goto('islandora/islandora_digital_workflow/delete_batch_item/ids_by_session');
   }
   if ($remove_action_id == '' && $add_action_id == '') {
-    drupal_set_message(t('No transactions were added or removed'), 'info');
+    drupal_set_message(t('No transactions were added or removed'), 'message_info');
   }
   else {
     $could_not_be_processed = array();

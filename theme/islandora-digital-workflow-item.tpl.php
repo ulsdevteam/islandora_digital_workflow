@@ -50,7 +50,7 @@
 
   <?php if ($max_timestamp_and_how_long_ago->max_timestamp && 
       ($workflow_sequences[$batch_record['workflow_sequence_id']]['max_timestamp'] > $max_timestamp_and_how_long_ago->max_timestamp)): ?>
-  <div class="dashboard-report messages info">
+  <div class="dashboard-report messages message_info">
     <h3>Workflow Sequence updated</h3>
       <p>Workflow Sequence has been updated AFTER action/s on this Item.
       The sequence was modified <?php print $workflow_sequences[$batch_record['workflow_sequence_id']]['how_long_ago']; ?> on
@@ -62,12 +62,12 @@
   <?php endif; ?>
 
   <?php if ($ingested_links): ?>
-  <div class="messages info">
+  <div class="messages message_info">
     <h3>Object has been ingested</h3>
       <?php print $ingested_links; ?>
   </div>
   <?php elseif ($can_ingest): ?>
-  <div class="messages info">
+  <div class="messages message_info">
     <div class="good"><p>All requirements are completed.
         <b>Ingest this item into Islandora now: <a href="/islandora/islandora_digital_workflow/ingest_item/<?php print urlencode($item->batch_item_id); ?>"><?php print $item->identifier; ?></a></b>
     </div>

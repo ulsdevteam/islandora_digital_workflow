@@ -135,7 +135,7 @@ function islandora_digital_workflow_delete_batch_items_form_submit(array $form, 
       drupal_goto('node/' . $batch_record['nid'] . '/items');
       break;
     case 'edit-cancel':
-      drupal_set_message(t('Create Batch has been cancelled.'), 'info');
+      drupal_set_message(t('Create Batch has been cancelled.'), 'message_info');
       drupal_goto('islandora/islandora_digital_workflow/edit_batch/' . $batch_record['batch_id']);
       break;
   }

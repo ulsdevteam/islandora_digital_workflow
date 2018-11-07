@@ -96,7 +96,7 @@ function islandora_digital_workflow_lookup_form_submitted($searchterm = '') {
     $searchterm);
   }
   else {
-    drupal_set_message(t('"@searchterm" could not be located.', array('@searchterm' => $searchterm)), 'info');
+    drupal_set_message(t('"@searchterm" could not be located.', array('@searchterm' => $searchterm)), 'message_info');
     drupal_goto('islandora/islandora_digital_workflow/');
   }
 }
