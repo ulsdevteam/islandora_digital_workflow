@@ -53,7 +53,6 @@ function islandora_digital_workflow_create_batch() {
 function islandora_digital_workflow_create_empty_batch_form(array $form, array &$form_state) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
   module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy_utilities');
-dpm($form_state);
   $accessible_models = islandora_digital_workflow_get_accessible_cmodels();
   $configured = TRUE;
 
@@ -219,7 +218,6 @@ dpm($form_state);
 function islandora_digital_workflow_create_empty_batch_form_submit(array $form, array &$form_state) {
   $id = $form_state['triggering_element']['#id'];
   module_load_include('inc', 'islandora_digital_workflow', 'includes/node_utilities');
-  dpm($id);
   switch ($id) {
     case 'edit-submit':
       $batch_record = islandora_digital_workflow_create_stub_batch_record($form_state);

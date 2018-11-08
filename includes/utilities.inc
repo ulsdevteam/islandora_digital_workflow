@@ -2801,6 +2801,7 @@ function islandora_digital_workflow_copy_delivery_file($batch_item_id, $is_probl
     return FALSE;
   }
   $sanitized_delivery_filename = islandora_digital_workflow_get_item_delivery_filename($batch_item_obj);
+  $existed = FALSE;
   if ($item_is_paged) {
     module_load_include('inc', 'islandora_digital_workflow', 'includes/file_utilities');
 
@@ -2816,45 +2817,47 @@ function islandora_digital_workflow_copy_delivery_file($batch_item_id, $is_probl
   else {
     $working_filename = $batch_item_obj->filename;
     $item_working_folder = $working_filename;
-    $copied = copy($sanitized_delivery_filename, $working_filename);
+    $exists = (file_exists($sanitized_delivery_filename));
+    $copied = ($exists) ? copy($sanitized_delivery_filename, $working_filename) : FALSE;
     $whatwas_copied_message = 'file ' . $batch_item_obj->master_filename_basename . ' was';
     $copied_to_location = $working_filename;
   }
 
-  if ($copied) {
-    // Load the batch record for this item so that the sizes can be recalculated.
-    $batch_record = islandora_digital_workflow_get_batch_record_by_batch_id($batch_item_obj->batch_id);
-    islandora_digital_workflow_recalc_batch_files($batch_record);
+  // but only display or try to delete the delivery folder if the file existed.
+  if ($existed) {
+    if ($copied) {
+      // Load the batch record for this item so that the sizes can be recalculated.
+      $batch_record = islandora_digital_workflow_get_batch_record_by_batch_id($batch_item_obj->batch_id);
+      islandora_digital_workflow_recalc_batch_files($batch_record);
+      if (variable_get('islandora_digital_workflow_delete_delivery_files', 0)) {
+        @unlink($sanitized_delivery_filename);
+        $deleted = !(file_exists($sanitized_delivery_filename));
+        if (!$deleted) {
+          drupal_set_message(t('The @whatwas_copied_message copied to ' .
+              '@copied_to_location, but the original file "@sanitized_delivery_filename" ' .
+              'could not be deleted.  Check file permissions on the server location ' .
+              'for the source path.', array(
+                  '@sanitized_delivery_filename' => $sanitized_delivery_filename,
+                  '@whatwas_copied_message' => $whatwas_copied_message,
+                  '@copied_to_location' => $copied_to_location
+              )));
+        }
+        // Additionally, when islandora_digital_workflow_delete_delivery_files is set,
+        // if the item is the last item in the batch to be copied, then ALSO try to delete
+        // the delivery folder itself.
 
-    if (variable_get('islandora_digital_workflow_delete_delivery_files', 0)) {
-      $deleted = @unlink($sanitized_delivery_filename);
-      if (!$deleted) {
-        drupal_set_message(t('The @whatwas_copied_message copied to ' .
-            '@copied_to_location, but the original file "@sanitized_delivery_filename" ' .
-            'could not be deleted.  Check file permissions on the server location ' .
-            'for the source path.', array(
-                '@sanitized_delivery_filename' => $sanitized_delivery_filename,
-                '@whatwas_copied_message' => $whatwas_copied_message,
-                '@copied_to_location' => $copied_to_location
-            )));
       }
-      // Additionally, when islandora_digital_workflow_delete_delivery_files is set,
-      // if the item is the last item in the batch to be copied, then ALSO try to delete
-      // the delivery folder itself.
-
-
-
+    }
+    else {
+      drupal_set_message(t('There was a problem copying the scanned file/s for this item ' . 
+          'from the delivery folder to the working folder.  Check file permissions on the ' .
+          'server location for the destination path.', array(
+              '@master_filename_basename' => $batch_item_obj->master_filename_basename,
+              '@working_filename' => $working_filename
+          )));
     }
   }
-  else {
-    drupal_set_message(t('There was a problem copying the scanned file/s for this item ' . 
-        'from the delivery folder to the working folder.  Check file permissions on the ' .
-        'server location for the destination path.', array(
-            '@master_filename_basename' => $batch_item_obj->master_filename_basename,
-            '@working_filename' => $working_filename
-        )));
-  }
-  return $copied;
+  return (!($existed) || $copied);
 }
 
 /**

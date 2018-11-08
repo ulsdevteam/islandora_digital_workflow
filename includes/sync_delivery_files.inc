@@ -104,21 +104,15 @@ function islandora_digital_workflow_sync_delivery_files_form_submit(array $form,
     }
   }
 
-  $success_moving = FALSE;
   if (array_key_exists($batch_name, $batch_delivery_folders)) {
     if (array_key_exists('files', $batch_delivery_folders[$batch_name])) {
       $files = $batch_delivery_folders[$batch_name]['files'];
       // Need to find the batch_item_id value for each of the folders found
       // in the given batch folder.
       $items = islandora_digital_workflow_get_batch_items_by_nid($batch_record['nid']);
-      $fn_copied = TRUE;
+      $success_moving = TRUE;
       foreach ($items as $item_obj) {
-        $fn_copied &= islandora_digital_workflow_copy_delivery_file($item_obj->batch_item_id, TRUE);
-      }
-      if ($fn_copied) {
-        drupal_set_message('TRUE islandora_digital_workflow_copy_delivery_file');
-      } else {
-        drupal_set_message('FALSE islandora_digital_workflow_copy_delivery_file');
+        $success_moving &= islandora_digital_workflow_copy_delivery_file($item_obj->batch_item_id, TRUE);
       }
       if ($success_moving) {
         // Update the "problem_resolved_timestamp" value for the related
@@ -133,5 +127,4 @@ function islandora_digital_workflow_sync_delivery_files_form_submit(array $form,
         '@batch_name' => $batch_name
     )), 'warning');
   }
-  drupal_set_message(t('Form submitted'));
 }
