@@ -16,22 +16,32 @@ and open the template in the editor.
     line-height: 1em;
 }
 
-.transaction_action_check_in, 
-.transaction_action_all_check_in {
+.transaction_action_check_in {
     background: url("../images/check-in-physical-item_20.png") 0px 0px no-repeat !important;
 }
 
-.transaction_action_scan, .transaction_action_all_scan {
+.transaction_action_scan {
     background: url("../images/scan-the-item_20.png") 0px 0px no-repeat !important;
 }
 
-.transaction_action_ingest, 
-.transaction_action_all_ingest {
+.transaction_action_ingest {
     background: url("../images/ingest-item-into-repository_20.png") 0px 0px no-repeat !important;
 }
 
-.transaction_action_add_mods_record {
-    background: url("../images/add-mods-record_20.png") 0px 0px no-repeat !important;
+.transaction_action_mods_record_updated {
+    background: url("../images/mods-record-updated_20.png") 0px 0px no-repeat !important;
+}
+
+.transaction_action_metadata_completed {
+    background: url("../images/metadata-completed_20.png") 0px 0px no-repeat !important;
+}
+
+.transaction_action_metadata_passed_qc {
+    background: url("../images/metadata-passed-qc_20.png") 0px 0px no-repeat !important;
+}
+
+.transaction_action_metadata_failed_qc {
+    background: url("../images/metadata-failed-qc_20.png") 0px 0px no-repeat !important;
 }
 
 .transaction_action_add_marc_record {
@@ -46,18 +56,20 @@ and open the template in the editor.
     background: url("../images/system-made-derivatives_20.png") 0px 0px no-repeat !important;
 }
 
-.transaction_action_check_out, 
-.transaction_action_all_check_out {
+.transaction_action_check_out {
     background: url("../images/check-out-physical-item_20.png") 0px 0px no-repeat !important;
 }
 
-.transaction_action_check_physical_items, 
-.transaction_action_all_check_physical_items {
+.transaction_action_check_physical_items {
     background: url("../images/check-item-against-physical-object_20.png") 0px 0px no-repeat !important;
 }
 
 .transaction_action_rescan {
     background: url("../images/rescanned-the-item_20.png") 0px 0px no-repeat !important;
+}
+
+.transaction_action_inactive {
+    background: url("../images/make-batch-inactive_20.png") 0px 0px no-repeat !important;
 }
 
 .transaction_action_reserved_action_1, .transaction_action_reserved_action_2, 
@@ -92,14 +104,13 @@ div.transaction_action_system_made_derivatives,
 div.transaction_action_check_physical_items,
 
 div.transaction_action_spacer,
-div.transaction_action_all_ingest,
-div.transaction_action_all_check_in,
-div.transaction_action_all_scan,
-div.transaction_action_add_mods_record,
+div.transaction_action_inactive,
+div.transaction_action_mods_record_updated,
 div.transaction_action_add_marc_record,
+div.transaction_action_metadata_completed,
+div.transaction_action_metadata_passed_qc, 
+div.transaction_action_metadata_failed_qc, 
 div.transaction_action_problem,
-div.transaction_action_all_check_out,
-div.transaction_action_all_check_physical_items,
 div.transaction_action_unconfigured_reserved_action {
     width: 20px;
     height: 20px;
@@ -175,11 +186,7 @@ span.transaction_action_reserved_action_spacer {
     width: 96%;
 }
 
-#edit-add-batch-action option[value="1"] { background:url(../images/check-in-physical-item_20.png) no-repeat;}
-#edit-add-batch-action option[value="2"] { background:url(../images/scan-the-item_20.png) no-repeat;}
-#edit-add-batch-action option[value="3"] { background:url(../images/ingest-item-into-repository_20.png) no-repeat;}
-#edit-add-batch-action option[value="4"] { background:url(../images/check-out-physical-item_20.png) no-repeat;}
-#edit-add-batch-action option[value="5"] { background:url(../images/rescanned-the-item_20.png) no-repeat;}
+#edit-add-batch-action option[value="1"] { background:url(../images/make-batch-inactive_20.png) no-repeat;}
 
 #edit-mode option[value="0"], #edit-mode option[value="1"], #edit-mode option[value="2"], #edit-mode option[value="3"] {
   font-weight: bold;

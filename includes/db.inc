@@ -1025,7 +1025,7 @@ function islandora_digital_workflow_update_batch_item_record($batch_item_id, $up
         drupal_set_message(t('There was a problem saving the updated MODS value to the file system at "') .
           $calculated_mods_filename . t('".  It may be a file permissions issue.'), 'error');
       }
-      islandora_digital_workflow_insert_transactions_record(IDW_ACTION_ADD_MODS_RECORD, NULL, $batch_item_id);
+      islandora_digital_workflow_insert_transactions_record(IDW_ACTION_MODS_RECORD_UPDATED, NULL, $batch_item_id);
     }
   }
   return $results;

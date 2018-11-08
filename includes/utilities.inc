@@ -1430,7 +1430,7 @@ function islandora_digital_workflow_XMLtoMODS($xml_filename, $batch_id, $identif
   $xml_filename = islandora_digital_workflow_filename_sanitize($xml_filename);
   $bytes_written = file_put_contents($xml_filename, $MODS);
   if ($batch_item_id && $bytes_written) {
-    islandora_digital_workflow_insert_transactions_record(IDW_ACTION_ADD_MODS_RECORD, NULL, $batch_item_id);
+    islandora_digital_workflow_insert_transactions_record(IDW_ACTION_MODS_RECORD_UPDATED, NULL, $batch_item_id);
   }
   return ($bytes_written) ? $xml_filename : '';
 }
@@ -2459,8 +2459,11 @@ function islandora_digital_workflow_create_review_collections($collection_pids) 
 function islandora_digital_workflow_static_glyph_filenames() {
   return array(
       'add-marc-record' => 'images/add-marc-record_20.png',
-      'add-mods-record' => 'images/add-mods-record_20.png',
+      'mods-record-updated' => 'images/mods-record-updated_20.png',
       'problem' => 'images/problem_20.png',
+      'metadata-completed' => 'images/metadata-completed_20.png',
+      'metadata-passed-qc' => 'images/metadata-passed-qc_20.png',
+      'metadata-failed-qc' => 'images/metadata-failed-qc_20.png',
       'check-in-physical-item' => 'images/check-in-physical-item_20.png',
       'check-item-against-physical-object' => 'images/check-item-against-physical-object_20.png',
       'check-out-physical-item' => 'images/check-out-physical-item_20.png',
@@ -2469,6 +2472,7 @@ function islandora_digital_workflow_static_glyph_filenames() {
       'scan-the-item' => 'images/scan-the-item_20.png',
       'system-made-derivatives' => 'images/system-made-derivatives_20.png',
       'unconfigured-reserved-action' => 'images/unconfigured-reserved-action_20.png',
+      'make-batch-inactive' => 'images/make-batch-inactive_20.png',
       'custom-glyph-01' => 'images/custom-glyph-01_20.png',
       'custom-glyph-02' => 'images/custom-glyph-02_20.png',
       'custom-glyph-03' => 'images/custom-glyph-03_20.png',
@@ -2489,7 +2493,7 @@ function islandora_digital_workflow_static_glyph_filenames() {
       'custom-glyph-18' => 'images/custom-glyph-18_20.png',
       'custom-glyph-19' => 'images/custom-glyph-19_20.png',
       'custom-glyph-20' => 'images/custom-glyph-20_20.png',
-      'custom-glyph-21' => 'images/custom-glyph-21_20.png',
+      'custom-glyph-21' => 'imagesz/custom-glyph-21_20.png',
       );
 }
 
