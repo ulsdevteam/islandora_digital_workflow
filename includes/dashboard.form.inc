@@ -153,20 +153,7 @@ function islandora_digital_workflow_get_tasks_tables() {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
 
   $tables = array();
-  // runs a query to get any batches that have been created, but the details
-  // have not been entered.
-  if (user_access(ISLANDORA_DIGITAL_WORKFLOW_CREATE_NEW_BATCH)) {
-    $batch_records_no_details = islandora_digital_workflow_find_batch_records_no_details();
-    if (count($batch_records_no_details)) {
-      $tables[] = theme('islandora_digital_workflow_batch_records_table', array(
-        'batch_records' => $batch_records_no_details,
-        'table_title' => 'Batch records with no details',
-        'table_description' => 'Please complete or delete the following batch records:',
-      ));
-    }
-  }
-
-  // View batches that have no items yet
+  // Runs a query to get any batches that have no items yet.
   if (user_access(ISLANDORA_DIGITAL_WORKFLOW_UPDATE_ITEMS)) {
     $batch_records_no_items = islandora_digital_workflow_find_batch_records_no_items();
     if (count($batch_records_no_items)) {

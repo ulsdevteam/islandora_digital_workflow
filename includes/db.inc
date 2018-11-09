@@ -270,36 +270,6 @@ function islandora_digital_workflow_search_batch_csv_by_identifier($identifier) 
 }
 
 /**
- * This returns an array of batch record objects that have no value set for
- * `ingest_namespace`.
- *
- * These records represent "stub records" and only exist if the user has not completed
- * the second page of a new batch to provide all of the details.  Stub records are
- * created with only the name, the model type, and a description value.
- *
- * @return array
- *   Either returns an array of batch record objects or NULL if it cannot be found.
- */
-function islandora_digital_workflow_find_batch_records_no_details() {
-  module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy_utilities');
-  $query = db_select('islandora_digital_workflow_batch', 'b')
-      ->fields('b')
-      ->condition('b.ingest_namespace', NULL);
-  $query->addJoin('LEFT OUTER', 'taxonomy_term_data', 't', 'b.batch_priority_tid = t.tid');
-  $query->addField('t', 'weight');
-  $query->addField('t', 'name', 'priority');
-  $query->orderBy('weight');
-  $results = $query->execute();
-  $rows = $results->fetchAll();
-  $batch_records = array();
-  foreach ($rows as $row) {
-    $row->priority = islandora_digital_workflow_get_name_of_tid($row->batch_priority_tid);
-    $batch_records[$row->batch_id] = $row;
-  }
-  return $batch_records;
-}
-
-/**
  * Returns all batches that have a different number for object_count than the
  * actual number of items in the islandora_digital_workflow_batch_items table.
  *
