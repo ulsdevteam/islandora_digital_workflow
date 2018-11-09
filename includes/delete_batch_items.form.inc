@@ -70,14 +70,18 @@ function islandora_digital_workflow_delete_batch_items_form(array $form, array &
       ));
 
   $existing_batch_identifiers = islandora_digital_workflow_get_existing_identifiers($batch_record['batch_id']);
-  $batch_item_identiers = array();
+  $batch_item_identifiers = array();
   foreach ($batch_item_ids as $id) {
-    $batch_item_identiers[] = $existing_batch_identifiers[$id];
+    $batch_item_identifiers[] = $existing_batch_identifiers[$id];
   }
 
   $form['batch_item_ids'] = array(
       '#type' => 'hidden',
       '#default_value' => serialize($batch_item_ids),
+  );
+  $form['batch_item_identifiers'] = array(
+      '#type' => 'hidden',
+      '#default_value' => serialize($batch_item_identifiers),
   );
   $form['warning'] = array(
       '#type' => 'item',
@@ -87,7 +91,7 @@ function islandora_digital_workflow_delete_batch_items_form(array $form, array &
       '</div>',
       '#suffix' => $batch_description_markup . theme('islandora_digital_workflow_rounded_box', array(
         'title' => '<span class="bad">Identifiers to be deleted:</span>',
-        'contents' => '<ul><li>' . implode("</li><li>", $batch_item_identiers) . '</li></ul>',
+        'contents' => '<ul><li>' . implode("</li><li>", $batch_item_identifiers) . '</li></ul>',
       )),
     );
   $form['batch_name'] = array(
@@ -113,12 +117,17 @@ function islandora_digital_workflow_delete_batch_items_form(array $form, array &
 /**
  * Function that sets the Drupal variables with user's input.
  *
+ * @global boolean $system_creating_nodes
+ *   whether or not the system is updating / creating the node or if the user is
+ *
+ * saving the node through drupal core.
  * @param array $form
  *   The Drupal form definition.
  * @param array $form_state
  *   The Drupal form state.
  */
 function islandora_digital_workflow_delete_batch_items_form_submit(array $form, array &$form_state) {
+  global $system_creating_nodes;
   $id = $form_state['triggering_element']['#id'];
   module_load_include('inc', 'islandora_digital_workflow', 'includes/node_utilities');
   $batch_record = islandora_digital_workflow_get_batch_record_by_name($form_state['values']['batch_name']);
@@ -128,8 +137,17 @@ function islandora_digital_workflow_delete_batch_items_form_submit(array $form, 
       foreach ($batch_item_ids as $batch_item_id) {
         islandora_digital_workflow_delete_batch_item($batch_item_id);
       }
+      // Update the batch's uploaded_csv_file field value -- the islandora_digital_workflow_merge_uploaded_csv_files
+      // function will update the batch's object_count value as well.
+      $delete_batch_item_identifiers = unserialize($form_state['values']['batch_item_identifiers']);
+      $new_csv_filename = drupal_realpath(drupal_tempnam('temporary://', 'batch_objects.csv'));
+      $bytes_written = file_put_contents($new_csv_filename, $batch_record['uploaded_csv_file']);
+      $node = ($batch_record['nid']) ? node_load($batch_record['nid']) : NULL;
+      $system_creating_nodes = TRUE;
+      islandora_digital_workflow_merge_uploaded_csv_files($batch_record, $node, $new_csv_filename, $delete_batch_item_identifiers);
+
       $current_time = date('H:i:s');
-      drupal_set_message(t('[@date] Batch items deleted', array(
+      drupal_set_message(t('[@date] Selected batch items have been deleted.', array(
           '@date' => $current_time,
         )));
       drupal_goto('node/' . $batch_record['nid'] . '/items');

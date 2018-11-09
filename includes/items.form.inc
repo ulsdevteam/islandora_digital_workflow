@@ -302,6 +302,7 @@ function islandora_digital_workflow_add_items_form_submit(array $form, array &$f
         file_put_contents($csv_filename, $new_uploaded_csv_file);
       }
       $node = node_load($batch_record['nid']);
+      // The merge CSV call will actually create batch_items records.
       islandora_digital_workflow_merge_uploaded_csv_files($batch_record, $node, $csv_filename);
       $temp_csv_filename = drupal_realpath(drupal_tempnam('temporary://', 'batch_objects.csv'));
       if ($bytes_written = file_put_contents($temp_csv_filename, $batch_record['uploaded_csv_file'])) {

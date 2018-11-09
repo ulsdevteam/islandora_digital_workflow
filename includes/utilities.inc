@@ -299,6 +299,8 @@ function islandora_digital_workflow_sync_node_to_items($batch_record, $node, $cs
  * Helper function to sync the islandora_digital_workflow_batch_items based on
  * the rows of the uploaded CSV file.
  *
+ * @global object $user
+ *   Drupal user object.
  * @param array $batch_record
  *   The batch record as an array.
  * @param string $csv_filename
@@ -975,7 +977,7 @@ function islandora_digital_workflow_get_csv_values_for_fieldname($fieldname, $cs
   // and the column specified by $fieldname exists.
   if (isset($csv_array['header']) && (!array_search('identifier', $csv_array['header']) === FALSE) &&
       (!array_search($fieldname, $csv_array['header']) === FALSE) &&
-      is_array($csv_array['rows']) && count($csv_array['rows']) > 1) {
+      is_array($csv_array['rows']) && count($csv_array['rows']) > 0) {
     $index_of_fieldname = array_search($fieldname, $csv_array['header']);
     foreach ($csv_array['rows'] as $row_array) {
       $ret_array[$fieldname][] = isset($row_array[$index_of_fieldname]) ? $row_array[$index_of_fieldname] : '';
@@ -1154,6 +1156,7 @@ function islandora_digital_workflow_model_ingest_module_info($model) {
  *  'mods_filename' - the filename where the MODS has been saved.
  */
 function islandora_digital_workflow_prepare_csv2mods($input_filename, $batch_record, $keep_created_MODS_files = FALSE) {
+  $input_filename = drupal_realpath($input_filename);
   if (!$input_filename) {
     // Look to see if the batch_record has a uploaded_csv_file
     if ($batch_record['uploaded_csv_file']) {
@@ -1815,6 +1818,9 @@ function islandora_digital_workflow_validate_csv_file_upload() {
 /**
  * To merge a new CSV upload with that of an existing batch record.
  *
+ * When a value of identifiers is supplied by $delete_identifiers, these
+ * identifiers should not be included in the final merged CSV file.
+ *
  * @todo create $merged_csv_file by using fputcsv calls like this:
  *         fputcsv($output, array('id','name','description'));
  *         foreach($prod as $product) {
@@ -1827,8 +1833,12 @@ function islandora_digital_workflow_validate_csv_file_upload() {
  *   Drupal node object.
  * @param string $new_csv_filename
  *   The filename that points to the CSV file.
+ * @param array $delete_identifiers
+ *   OPTIONAL - an array of identifer values that should be removed from the
+ * final CSV file.
  */
-function islandora_digital_workflow_merge_uploaded_csv_files(&$batch_record, $node, $new_csv_filename) {
+function islandora_digital_workflow_merge_uploaded_csv_files(&$batch_record, $node,
+    $new_csv_filename, $delete_identifiers = array()) {
   $csv_array = islandora_digital_workflow_csv_file_as_array($new_csv_filename, TRUE);
   $merged_csv_file = '';
   $merged_rows = array();
@@ -1857,12 +1867,17 @@ function islandora_digital_workflow_merge_uploaded_csv_files(&$batch_record, $no
       if ($old_header_str == $new_header_str) {
         $merged_csv_file = $old_header_str . "\n";
         foreach ($old_rows as $old_row) {
-          $merged_csv_file .= islandora_digital_workflow_array_to_csv($old_row);
-          // $merged_csv_file .= implode(",", $old_row) . "\n";
+          if (array_search($old_row['identifier'], $delete_identifiers) === FALSE) {
+            $merged_csv_file .= islandora_digital_workflow_array_to_csv($old_row);
+            $delete_identifiers[] = $old_row['identifier'];
+            $merged_rows[] = $old_row;
+          }
         }
         foreach ($new_rows as $new_row) {
-          $merged_csv_file .= islandora_digital_workflow_array_to_csv($new_row);
-          // $merged_csv_file .= implode(",", $new_row) . "\n";
+          if (array_search($new_row['identifier'], $delete_identifiers) === FALSE) {
+            $merged_csv_file .= islandora_digital_workflow_array_to_csv($new_row);
+            $merged_rows[] = $new_row;
+          }
         }
       }
       else {
@@ -1881,13 +1896,18 @@ function islandora_digital_workflow_merge_uploaded_csv_files(&$batch_record, $no
         $work_old_rows = $old_rows;
         $work_new_rows = $new_rows;
         foreach ($work_old_rows as $row_index => $row_array) {
-          foreach ($old_header as $header_index => $fieldname) {
-            $merged_rows[$fieldname][] = array_key_exists($fieldname, $row_array) ? $row_array[$fieldname] : '';
+          if (array_search($row_array['identifier'], $delete_identifiers) === FALSE) {
+            foreach ($old_header as $header_index => $fieldname) {
+              $merged_rows[$fieldname][] = array_key_exists($fieldname, $row_array) ? $row_array[$fieldname] : '';
+            }
+            $delete_identifiers[] = $row_array['identifier'];
           }
         }
         foreach ($work_new_rows as $row_index => $row_array) {
-          foreach ($new_header as $header_index => $fieldname) {
-            $merged_rows[$fieldname][] = array_key_exists($fieldname, $row_array) ? $row_array[$fieldname] : '';
+          if (array_search($row_array['identifier'], $delete_identifiers) === FALSE) {
+            foreach ($new_header as $header_index => $fieldname) {
+              $merged_rows[$fieldname][] = array_key_exists($fieldname, $row_array) ? $row_array[$fieldname] : '';
+            }
           }
         }
 
