@@ -2165,6 +2165,8 @@ function islandora_digital_workflow_using_action($workflow_sequence_actions, $ac
  * This will move the file/s related to any given batch item to the destination
  * location.
  *
+ * @global object $user
+ *   Drupal user object.
  * @param integer $batch_item_id
  *   The batch_item_id identifier that needs to have its file moved.
  * @param string $destination_root
@@ -2174,6 +2176,7 @@ function islandora_digital_workflow_using_action($workflow_sequence_actions, $ac
  * ONLY applies when setting the action to the problem state IDW_ACTION_PROBLEM.
  */
 function islandora_digital_workflow_move_batch_item_file($batch_item_id, $destination_root, $problem_notes = '') {
+  global $user;
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
   //  load the batch_item record for this batch_item_id to get the filename
   $item_record_results = islandora_digital_workflow_get_batch_item_record($batch_item_id);
@@ -2207,6 +2210,7 @@ function islandora_digital_workflow_move_batch_item_file($batch_item_id, $destin
     @list($junk, $short_item_filename) = explode("/" . $batch_record['batch_name'] . "/", $batch_item_obj->filename);
     // Append the info on which item is selected in the notes.
     $problem_notes .= (($problem_notes) ? "\n\n----------------------\n" : "").
+        "User:          " . $user->name . "\n" .
         "Item title:    " . $batch_item_obj->title . "\n" .
         "Item filename: " . $short_item_filename . "\n" .
         "Batch name:    " . $batch_record['batch_name'] . "\n";
