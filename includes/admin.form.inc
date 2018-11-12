@@ -183,7 +183,7 @@ function islandora_digital_workflow_admin_form() {
             'when the final item is marked as "scanned", the containing folder will ' .
             'also be deleted.  <em>NOTE: This feature requires the file permissions ' .
             'to allow write from the web server.</em>',
-          '#default_value' => variable_get('islandora_digital_workflow_delete_delivery_files', 0),
+          '#default_value' => variable_get('islandora_digital_workflow_delete_delivery_files_INTENDED_VAL', 0),
         ),
       ),
       'islandora_hook' => array(
@@ -214,6 +214,80 @@ function islandora_digital_workflow_admin_form() {
 }
 
 /**
+ * Validates the form input.
+ *
+ * Checks the server path locations for several locations and either displays
+ * a warning message or causes a failure if they are found to not be writable
+ * by this web server.
+ *
+ * @param array $elements
+ *   Drupal elements representation as an array.
+ * @param array $form_state
+ *   Drupal form_state representation as passed to the validate function.
+ * @param string $form_id
+ *   The form_id that is being validated -- optional.
+ */
+function islandora_digital_workflow_admin_form_validate(&$elements, &$form_state, $form_id = NULL) {
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
+  // Check the Delivery folder" path:
+  //   1. Can the server read from there?
+  //   2. Can the server write there?  (this matters when the variable 
+  //     islandora_digital_workflow_delete_delivery_files) is set.
+  $delivery_path = $form_state['values']['ingest_delivery_path'];
+  $delivery_RW = islandora_digital_workflow_test_RW($delivery_path, FALSE);
+  // Because the deletion of files (after copied) and folder cleanup is optional,
+  // this can be a simple warning.
+  if (!$delivery_RW['read']) {
+    form_set_error('ingest_delivery_path', t('The Incoming Delivery Directory ' .
+        '"@delivery_path" is either not a directory or it does not exist.',
+        array('@delivery_path' => $delivery_path)));
+  }
+  elseif (!$delivery_RW['write']) {
+    form_set_error('ingest_delivery_path', t('The Incoming Delivery Directory ' .
+        '"@delivery_path" is either not a directory or it does not exist.',
+        array('@delivery_path' => $delivery_path)));
+  }
+
+  // Check the "Working folder":
+  //   1. Can the server read from there?
+  //   2. Can the server write there?
+
+  $ingest_prepared_path = $form_state['values']['ingest_prepared_path'];
+  $ingest_prepared_RW = islandora_digital_workflow_test_RW($ingest_prepared_path, TRUE);
+  if (!$ingest_prepared_RW['read']) {
+    form_set_error('ingest_ingest_prepared_path', t('The Ingest Working Directory ' .
+        '"@ingest_prepared_path" is either not a directory or it does not exist.',
+        array('@ingest_prepared_path' => $ingest_prepared_path)));
+  }
+  elseif (!$ingest_prepared_RW['write']) {
+    // Because the system will need to be able to write to the Working folder,
+    // this causes validation failure - and display an error message.
+    form_set_error('ingest_ingest_prepared_path', t('The Ingest Working Directory ' .
+        '"@ingest_prepared_path" is either not a directory or it does not exist.',
+        array('@ingest_prepared_path' => $ingest_prepared_path)));
+  }
+
+  // Check the "Problems folder" path:
+  //   1. Can the server read from there?
+  //   2. Can the server write there?
+
+  $ingest_problems_path = $form_state['values']['ingest_problems_path'];
+  $ingest_problems_RW = islandora_digital_workflow_test_RW($ingest_problems_path, TRUE);
+  if (!$ingest_problems_RW['read']) {
+    form_set_error('ingest_problems_path', t('The Ingest Working Directory ' .
+        '"@ingest_problems_path" is either not a directory or it does not exist.',
+        array('@ingest_problems_path' => $ingest_problems_path)));
+  }
+  elseif (!$ingest_problems_RW['write']) {
+    // Because the system will need to be able to write to the Working folder,
+    // this causes validation failure - and display an error message.
+    form_set_error('ingest_ingest_prepared_path', t('The Problems Directory ' .
+        '"@ingest_problems_path" is either not a directory or it does not exist.',
+        array('@ingest_problems_path' => $ingest_problems_path)));
+  }
+}
+
+/**
  * To store the Drupal variables based on user's input.
  *
  * @param array $form
@@ -235,7 +309,13 @@ function islandora_digital_workflow_admin_form_submit(array $form, array &$form_
       variable_set('islandora_digital_workflow_ingest_problems_path', $form_state['values']['ingest_problems_path']);
       variable_set('islandora_digital_workflow_ingest_ignore_filenames', $form_state['values']['ingest_ignore_filenames']);
       variable_set('islandora_digital_workflow_use_isMemberOfSite', $form_state['values']['batch_use_isMemberOfSite']);
-      variable_set('islandora_digital_workflow_delete_delivery_files', $form_state['values']['delete_delivery_when_scanned']);
+      // Depending on the file permissions, the folders may not be able to be deleted,
+      // so override this flag setting here if that's the case.
+      $delivery_path = $form_state['values']['ingest_delivery_path'];
+      $delivery_RW = islandora_digital_workflow_test_RW($delivery_path, FALSE);
+      $use_value = $delivery_RW['write'] ? $form_state['values']['delete_delivery_when_scanned'] : 0;
+      variable_set('islandora_digital_workflow_delete_delivery_files', $use_value);
+      variable_set('islandora_digital_workflow_delete_delivery_files_INTENDED_VAL', $form_state['values']['delete_delivery_when_scanned']);
       variable_set('islandora_digital_workflow_handle_islandora_hook', $form_state['values']['handle_islandora_hook']);
       drupal_set_message('[' . date('H:i:s') . '] The settings have been saved.');
       // drupal_goto('admin/islandora/islandora_digital_workflow');
@@ -251,6 +331,7 @@ function islandora_digital_workflow_admin_form_submit(array $form, array &$form_
       variable_del('islandora_digital_workflow_ingest_ignore_filenames');
       variable_del('islandora_digital_workflow_use_isMemberOfSite');
       variable_del('islandora_digital_workflow_delete_delivery_files');
+      variable_del('islandora_digital_workflow_delete_delivery_files_INTENDED_VAL');
       variable_del('islandora_digital_workflow_handle_islandora_hook');
       drupal_set_message('[' . date('H:i:s') . '] The settings have been reset.');
       break;

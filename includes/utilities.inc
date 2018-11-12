@@ -2963,3 +2963,37 @@ function islandora_digital_workflow_recalc_batch_files($batch_record, &$output_c
     $output_footer[] = islandora_digital_workflow_update_item_file_data($batch_record, $item_data);
   }
 }
+
+/**
+ * This will test a path and return whether or not the web server can READ and
+ * WRITE (RW) to that location.
+ *
+ * @param string $path
+ *   The path to check read/write..
+ * @param boolean $require_write
+ *   Whether or not the test of the path will require the ability to write to the
+ * location by the web server.
+ * @return array
+ *   The returned array should always contain two keys, "read" and "write" with 
+ * each value representing whether or not the web server was able to perform that
+ * action on that path.
+ */
+function islandora_digital_workflow_test_RW($path, $require_write) {
+  $ret = array('read' => FALSE, 'write' => FALSE);
+  if ((file_exists($path) && is_dir($path))) {
+    $ret['read'] = TRUE;
+    // folder exists, but is it writeable?
+    $test_file = $path . '/testfile';
+    file_put_contents($test_file, $test_file);
+    if (file_exists($test_file)) {
+      unlink($test_file);
+      $ret['write'] = TRUE;
+    }
+  }
+  if (!$ret['write']) {
+    drupal_set_message(t('The web server was not able to write to the folder ' .
+        '"@path".  Check the permissions.',
+        array('@path' => $path)), ($require_write ? 'error' : 'warning'));
+  }
+  return $ret;
+}
