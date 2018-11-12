@@ -253,8 +253,7 @@ function islandora_digital_workflow_get_count_of_nodes_by_tid($field_name = '', 
   $sql = "SELECT count(*) as `count` FROM {node} n " .
       "INNER JOIN {" . $join_table . "} s ON n.nid=s.entity_id " .
       "WHERE (n.type = 'workflow_batch') AND (n.status = 1)" .
-      ($tid ? " AND s." . $field_name . "_tid = " . $tid : "") .
-      " AND s.delta = 0";
+      ($tid ? " AND s." . $field_name . "_tid = " . $tid : "");
   $result = db_query($sql);
   $results = $result->fetchAll();
   $first_row = array_pop($results);
