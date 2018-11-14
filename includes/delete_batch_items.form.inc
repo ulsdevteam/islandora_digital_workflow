@@ -137,14 +137,14 @@ function islandora_digital_workflow_delete_batch_items_form_submit(array $form, 
       foreach ($batch_item_ids as $batch_item_id) {
         islandora_digital_workflow_delete_batch_item($batch_item_id);
       }
-      // Update the batch's uploaded_csv_file field value -- the islandora_digital_workflow_merge_uploaded_csv_files
+      // Update the batch's uploaded_batch_items_file field value -- the islandora_digital_workflow_merge_uploaded_csv_files
       // function will update the batch's object_count value as well.
       $delete_batch_item_identifiers = unserialize($form_state['values']['batch_item_identifiers']);
-      $new_csv_filename = drupal_realpath(drupal_tempnam('temporary://', 'batch_objects.csv'));
-      $bytes_written = file_put_contents($new_csv_filename, $batch_record['uploaded_csv_file']);
+      $new_batch_items_filename = drupal_realpath(drupal_tempnam('temporary://', 'batch_objects.csv'));
+      $bytes_written = file_put_contents($new_batch_items_filename, $batch_record['uploaded_batch_items_file']);
       $node = ($batch_record['nid']) ? node_load($batch_record['nid']) : NULL;
       $system_creating_nodes = TRUE;
-      islandora_digital_workflow_merge_uploaded_csv_files($batch_record, $node, $new_csv_filename, $delete_batch_item_identifiers);
+      islandora_digital_workflow_merge_uploaded_csv_files($batch_record, $node, $new_batch_items_filename, $delete_batch_item_identifiers);
 
       $current_time = date('H:i:s');
       drupal_set_message(t('[@date] Selected batch items have been deleted.', array(

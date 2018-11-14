@@ -246,11 +246,11 @@ function islandora_digital_workflow_get_batch_record_by_items_identifier($identi
 }
 
 /**
- * Returns all batch records that have a partial match for the `uploaded_csv_file` field
+ * Returns all batch records that have a partial match for the `uploaded_batch_items_file` field
  * in the islandora_digital_workflow_batch table.
  *
  * @param string $identifier
- *   The value of the islandora_digital_workflow_batch.`uploaded_csv_file` field.
+ *   The value of the islandora_digital_workflow_batch.`uploaded_batch_items_file` field.
  * @return mixed
  *   Either returns an array of batch record objects or NULL if it cannot be found.
  */
@@ -258,7 +258,7 @@ function islandora_digital_workflow_search_batch_csv_by_identifier($identifier) 
   if ($identifier) {
     $query = db_select('islandora_digital_workflow_batch', 'b');
     $query->fields('b')
-        ->condition('b.uploaded_csv_file', '%' . db_like($identifier) . '%', 'LIKE')
+        ->condition('b.uploaded_batch_items_file', '%' . db_like($identifier) . '%', 'LIKE')
         ->groupBy('b.batch_name');
     $results = $query->execute();
     $rows = $results->fetchAll();

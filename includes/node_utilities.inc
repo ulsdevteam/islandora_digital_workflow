@@ -17,23 +17,23 @@
  * @param object $node
  *   Standard drupal node object.
  */
-function islandora_digital_workflow_sync_node_batch_record_info($node, $form_state, $csv_filename = '', $update_node = TRUE) {
+function islandora_digital_workflow_sync_node_batch_record_info($node, $form_state, $batch_items_filename = '', $update_node = TRUE) {
   global $system_creating_nodes;
   $system_creating_nodes = TRUE;
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
 
-  if (!$csv_filename && (isset($_SESSION['uploaded_csv_filename']))) {
-    $csv_filename = $_SESSION['uploaded_csv_filename'];
+  if (!$batch_items_filename && (isset($_SESSION['uploaded_batch_items_filename']))) {
+    $batch_items_filename = $_SESSION['uploaded_batch_items_filename'];
   }
   $batch_name = (is_object($node)) ? $node->title :
       $form_state['values']['batch_name'];
   $batch_record = islandora_digital_workflow_get_batch_record_by_name($batch_name);
   $node = (is_object($node)) ? $node : (($batch_record['nid'] > 0) ? node_load($batch_record['nid']) : NULL);
-  if ($csv_filename) {
+  if ($batch_items_filename) {
     // parse the csv file to get the identifiers and set pass these values
     // along to be added to the node->field_identifiers value
-    $csv_array = islandora_digital_workflow_csv_file_as_array($csv_filename);
+    $csv_array = islandora_digital_workflow_csv_file_as_array($batch_items_filename);
   }
   else {
     $csv_array = array();
@@ -41,7 +41,7 @@ function islandora_digital_workflow_sync_node_batch_record_info($node, $form_sta
   if ($update_node) {
     $node = islandora_digital_workflow_make_or_update_node($form_state, $csv_array, $node);
 
-    $batch_record = islandora_digital_workflow_create_batch_record_by_form($form_state, $node, $csv_filename);
+    $batch_record = islandora_digital_workflow_create_batch_record_by_form($form_state, $node, $batch_items_filename);
     // Load the batch record related to the node's title value which should
     // be synced with the batch record's batch_name field.
     $node = (is_object($node)) ? $node : (($batch_record['nid'] > 0) ? node_load($batch_record['nid']) : NULL);
@@ -53,12 +53,12 @@ function islandora_digital_workflow_sync_node_batch_record_info($node, $form_sta
       $node->field_batch_defaults[$node->language][0]['format'] = 'full_html';
       field_attach_update('node', $node);
     }
-    if (isset($_SESSION['uploaded_csv_filename'])) {
-      @unlink($_SESSION['uploaded_csv_filename']);
-      unset($_SESSION['uploaded_csv_filename']);
+    if (isset($_SESSION['uploaded_batch_items_filename'])) {
+      @unlink($_SESSION['uploaded_batch_items_filename']);
+      unset($_SESSION['uploaded_batch_items_filename']);
     }
-    if (file_exists($csv_filename)) {
-      @unlink($csv_filename);
+    if (file_exists($batch_items_filename)) {
+      @unlink($batch_items_filename);
     }
   }
   else {
@@ -73,7 +73,7 @@ function islandora_digital_workflow_sync_node_batch_record_info($node, $form_sta
       'islandora_model' => islandora_digital_workflow_get_name_of_tid($node->field_islandora_model[$node->language][0]['tid']),
       'batch_priority_tid' => $node->field_priority[$node->language][0]['tid'],
     ));
-    $batch_record = islandora_digital_workflow_create_batch_record_by_form($form_state, $node, $csv_filename);
+    $batch_record = islandora_digital_workflow_create_batch_record_by_form($form_state, $node, $batch_items_filename);
   }
   return $batch_record;
 }

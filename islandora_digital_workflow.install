@@ -290,8 +290,8 @@ function islandora_digital_workflow_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-      'uploaded_csv_file' => array(
-        'description' => 'The CSV file that was uploaded',
+      'uploaded_batch_items_file' => array(
+        'description' => 'The batch items file that was uploaded',
         'type' => 'text',
         'size' => 'big',
         'not null' => FALSE,

@@ -78,7 +78,7 @@ function islandora_digital_workflow_create_stub_batch_record($form_state) {
  *   Drupal representation of form_state as an array.
  * @param object $node
  *   Drupal node object.
- * @param string $csv_filename
+ * @param string $batch_items_filename
  *   The filename that points to the CSV file.
  * @param integer $alternative_uid
  *   when provided, this will override the current-logged-in user's uid value.
@@ -86,7 +86,7 @@ function islandora_digital_workflow_create_stub_batch_record($form_state) {
  *   Either redurns the batch record OR NULL if there is not enough info to
  * create the record
  */
-function islandora_digital_workflow_create_batch_record_by_form($form_state, $node, $csv_filename, $alternative_uid = NULL) {
+function islandora_digital_workflow_create_batch_record_by_form($form_state, $node, $batch_items_filename, $alternative_uid = NULL) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
 
   global $user;
@@ -95,7 +95,7 @@ function islandora_digital_workflow_create_batch_record_by_form($form_state, $no
     $batch_name = $form_state['values']['batch_name'];
     $batch_record = islandora_digital_workflow_get_batch_record_by_name($batch_name);
 
-    $uploaded_csv_file = ($csv_filename) ? file_get_contents(drupal_realpath($csv_filename)) : FALSE;
+    $uploaded_batch_items_file = ($batch_items_filename) ? file_get_contents(drupal_realpath($batch_items_filename)) : FALSE;
     $batch_request_date = ((array_key_exists('is_batch_request', $form_state['values'])) && ($form_state['values']['is_batch_request'] == 1) ?
         strtotime($form_state['values']['batch_request_due_date']['year'] . '/' .
           $form_state['values']['batch_request_due_date']['month'] . '/' .
@@ -201,13 +201,13 @@ function islandora_digital_workflow_create_batch_record_by_form($form_state, $no
 
     // Only update the uploaded CSV file if the file was passed in.  In other words
     // updating a batch record should not wipe out the previous value for
-    // uploaded_csv_file.
-    if ($csv_filename) {
+    // uploaded_batch_items_file.
+    if ($batch_items_filename) {
        // replace Microsoft Word version of single  and double quotations marks (“ ” ‘ ’) with  regular quotes (' and ")
-      $field_values['uploaded_csv_file'] = islandora_digital_workflow_convert_smart_quotes($uploaded_csv_file);
+      $field_values['uploaded_batch_items_file'] = islandora_digital_workflow_convert_smart_quotes($uploaded_batch_items_file);
 /*
-      $field_values['uploaded_csv_file'] = mb_check_encoding($field_values['uploaded_csv_file'], 'UTF-8') ?
-          $field_values['uploaded_csv_file'] : utf8_encode($field_values['uploaded_csv_file']);
+      $field_values['uploaded_batch_items_file'] = mb_check_encoding($field_values['uploaded_batch_items_file'], 'UTF-8') ?
+          $field_values['uploaded_batch_items_file'] : utf8_encode($field_values['uploaded_batch_items_file']);
  */
     }
     db_query("SET NAMES utf8");
@@ -223,7 +223,7 @@ function islandora_digital_workflow_create_batch_record_by_form($form_state, $no
       ->execute();
     }
     $updated_batch_record = islandora_digital_workflow_get_batch_record_by_name($batch_name);
-    islandora_digital_workflow_sync_node_to_items($updated_batch_record, $node, $csv_filename, TRUE, $alternative_uid);
+    islandora_digital_workflow_sync_node_to_items($updated_batch_record, $node, $batch_items_filename, TRUE, $alternative_uid);
     return $updated_batch_record;
   }
   else {
@@ -263,18 +263,18 @@ function islandora_digital_workflow_convert_smart_quotes($string) {
  *   The batch record as an array.
  * @param object $node
  *   Drupal node object.
- * @param string $csv_filename
+ * @param string $batch_items_filename
  *   The filename that points to the CSV file.
  * @param boolean $empty_items_table
  *   Whether or not to clear the items table when synching the node to items.
  * @param integer $alternative_uid
  *   when provided, this will override the current-logged-in user's uid value.
 */
-function islandora_digital_workflow_sync_node_to_items($batch_record, $node, $csv_filename, $empty_items_table = FALSE, $alternative_uid = NULL) {
+function islandora_digital_workflow_sync_node_to_items($batch_record, $node, $batch_items_filename, $empty_items_table = FALSE, $alternative_uid = NULL) {
   if (is_array($batch_record)) {
     // Set a variable for this for readibility on the subsequent function call.
-    $keep_created_MODS_files = ($csv_filename <> '');
-    $csv_file_sources = islandora_digital_workflow_prepare_csv2mods($csv_filename, $batch_record, $keep_created_MODS_files);
+    $keep_created_MODS_files = ($batch_items_filename <> '');
+    $csv_file_sources = islandora_digital_workflow_prepare_csv2mods($batch_items_filename, $batch_record, $keep_created_MODS_files);
     if ($csv_file_sources && count($csv_file_sources) > 0) {
       $batch_item_identifiers_to_transaction_ids = ($empty_items_table) ?
           islandora_digital_workflow_get_batch_item_ids_to_transaction_ids($batch_record['batch_id']) :
@@ -303,7 +303,7 @@ function islandora_digital_workflow_sync_node_to_items($batch_record, $node, $cs
  *   Drupal user object.
  * @param array $batch_record
  *   The batch record as an array.
- * @param string $csv_filename
+ * @param string $batch_items_filename
  *   The filename that points to the CSV file.
  * @param array $batch_item_identifiers_to_transaction_ids
  *   an associative array where key is old batch_item->identifier value and the
@@ -773,14 +773,14 @@ function islandora_digital_workflow_get_reduced_readable_cmodels() {
 /**
  * Performs validation on a CSV file to see that it can be used with a batch.
  *
- * @param string $csv_filename
+ * @param string $batch_items_filename
  *   Filename pointing to the CSV file.
  * @return boolean
  *   Whether or not the CSV file is valid for a batch.
  */
-function islandora_digital_workflow_validate_csv($csv_filename) {
+function islandora_digital_workflow_validate_csv($batch_items_filename) {
   $validation_success = TRUE;
-  $csv_file_arr = islandora_digital_workflow_csv_file_as_array($csv_filename);
+  $csv_file_arr = islandora_digital_workflow_csv_file_as_array($batch_items_filename);
   $file_header = (isset($csv_file_arr['header']) ? $csv_file_arr['header'] : array());
   $file_rows = (isset($csv_file_arr['rows']) ? $csv_file_arr['rows'] : array());
 
@@ -1158,17 +1158,17 @@ function islandora_digital_workflow_model_ingest_module_info($model) {
 function islandora_digital_workflow_prepare_csv2mods($input_filename, $batch_record, $keep_created_MODS_files = FALSE) {
   $input_filename = drupal_realpath($input_filename);
   if (!$input_filename) {
-    // Look to see if the batch_record has a uploaded_csv_file
-    if ($batch_record['uploaded_csv_file']) {
-      $temp_csv_filename = drupal_realpath(drupal_tempnam('temporary://', 'batch_objects.csv'));
-      if ($bytes_written = file_put_contents($temp_csv_filename, $batch_record['uploaded_csv_file'])) {
-        $input_filename = $temp_csv_filename;
+    // Look to see if the batch_record has a uploaded_batch_items_file
+    if ($batch_record['uploaded_batch_items_file']) {
+      $temp_batch_items_filename = drupal_realpath(drupal_tempnam('temporary://', 'batch_objects.csv'));
+      if ($bytes_written = file_put_contents($temp_batch_items_filename, $batch_record['uploaded_batch_items_file'])) {
+        $input_filename = $temp_batch_items_filename;
         $keep_created_MODS_files = TRUE;
       }
     }
   }
   else {
-    $temp_csv_filename = '';
+    $temp_batch_items_filename = '';
   }
   if (!$input_filename) {
     return array();
@@ -1369,8 +1369,8 @@ function islandora_digital_workflow_prepare_csv2mods($input_filename, $batch_rec
   }
   // echo "<p>" . number_format($mods_created) . " MODS files created.</p>";
 
-  if ($temp_csv_filename <> '' && file_exists($temp_csv_filename)) {
-    unlink($temp_csv_filename);
+  if ($temp_batch_items_filename <> '' && file_exists($temp_batch_items_filename)) {
+    unlink($temp_batch_items_filename);
   }
 
   if (count($nonexistant_delivery_item_paths) > 0) {
@@ -1781,7 +1781,7 @@ function islandora_digital_workflow_retrieve_applicable_paged_content_cmodels() 
 }
 
 /**
- * Helper function to validate the uploaded_csv_file.
+ * Helper function to validate the uploaded_batch_items_file.
  *
  * This operates on the current $_FILES -- so it can only be called on form post
  * and potentially sets a $_SESSION variable for use in the submit function,
@@ -1789,17 +1789,17 @@ function islandora_digital_workflow_retrieve_applicable_paged_content_cmodels() 
  *
  * @return boolean
  */
-function islandora_digital_workflow_validate_csv_file_upload() {
+function islandora_digital_workflow_validate_batch_items_file_upload() {
   $valid_upload = FALSE;
 
   if (isset($_FILES['files']) && isset($_FILES["files"]["tmp_name"]['file'])) {
     $dest = drupal_tempnam('temporary://', 'batch_objects.csv');
     if ($_FILES['files']['error']['file'] == UPLOAD_ERR_OK) {
-      $tmp_name = (file_exists($_FILES["files"]["tmp_name"]['file'])) ? $_FILES["files"]["tmp_name"]['file'] : $_SESSION['uploaded_csv_filename'];
+      $tmp_name = (file_exists($_FILES["files"]["tmp_name"]['file'])) ? $_FILES["files"]["tmp_name"]['file'] : $_SESSION['uploaded_batch_items_filename'];
       if (copy($tmp_name, $dest)) {
         $valid_upload = islandora_digital_workflow_validate_csv($dest);
         if (file_exists($_FILES["files"]["tmp_name"]['file'])) {
-          $_SESSION['uploaded_csv_filename'] = $dest;
+          $_SESSION['uploaded_batch_items_filename'] = $dest;
         }
       }
       else {
@@ -1811,7 +1811,7 @@ function islandora_digital_workflow_validate_csv_file_upload() {
     }
   }
   // Do not delete the temp file - it is used later via the
-  // $_SESSION['upload_csv_filename'] variable.
+  // $_SESSION['upload_batch_items_filename'] variable.
   return $valid_upload;
 }
 
@@ -1831,15 +1831,15 @@ function islandora_digital_workflow_validate_csv_file_upload() {
  *   The batch record as an array.
  * @param object $node
  *   Drupal node object.
- * @param string $new_csv_filename
+ * @param string $new_batch_items_filename
  *   The filename that points to the CSV file.
  * @param array $delete_identifiers
  *   OPTIONAL - an array of identifer values that should be removed from the
  * final CSV file.
  */
 function islandora_digital_workflow_merge_uploaded_csv_files(&$batch_record, $node,
-    $new_csv_filename, $delete_identifiers = array()) {
-  $csv_array = islandora_digital_workflow_csv_file_as_array($new_csv_filename, TRUE);
+    $new_batch_items_filename, $delete_identifiers = array()) {
+  $csv_array = islandora_digital_workflow_csv_file_as_array($new_batch_items_filename, TRUE);
   $merged_csv_file = '';
   $merged_rows = array();
   if (is_array($csv_array)) {
@@ -1849,18 +1849,18 @@ function islandora_digital_workflow_merge_uploaded_csv_files(&$batch_record, $no
     $new_rows = (isset($csv_array['rows']) ? $csv_array['rows'] : array());
 
     $old_header = $old_rows = array();
-    if ($batch_record['uploaded_csv_file']) {
-      $temp_csv_filename = drupal_realpath(drupal_tempnam('temporary://', 'batch_objects.csv'));
-      if ($bytes_written = file_put_contents($temp_csv_filename, $batch_record['uploaded_csv_file'])) {
-        $arr = islandora_digital_workflow_csv_file_as_array($temp_csv_filename, TRUE);
+    if ($batch_record['uploaded_batch_items_file']) {
+      $temp_batch_items_filename = drupal_realpath(drupal_tempnam('temporary://', 'batch_objects.csv'));
+      if ($bytes_written = file_put_contents($temp_batch_items_filename, $batch_record['uploaded_batch_items_file'])) {
+        $arr = islandora_digital_workflow_csv_file_as_array($temp_batch_items_filename, TRUE);
         $old_header = (isset($arr['header']) ? $arr['header'] : array());
         $old_rows = (isset($arr['rows']) ? $arr['rows'] : array());
-        unlink($temp_csv_filename);
+        unlink($temp_batch_items_filename);
       }
     }
 
     // Check the rows from this CSV are in the same order as the rows defined
-    // from first row of the batch record's uploaded_csv_file.
+    // from first row of the batch record's uploaded_batch_items_file.
     if ((count($new_rows) > 1)) { //  && (count($old_rows) > 1)) {
       $old_header_str = implode(",", $old_header);
       $new_header_str = implode(",", $new_header);
@@ -1911,7 +1911,7 @@ function islandora_digital_workflow_merge_uploaded_csv_files(&$batch_record, $no
           }
         }
 
-        // Now, make the merged uploaded_csv_file from the merged_rows array
+        // Now, make the merged uploaded_batch_items_file from the merged_rows array
         $merged_csv_file = implode(',', $merged_header) . "\n";
         // This nested loop will make an array that contains the field values
         // from both sources - in the order of fields specified by the merge
@@ -1937,21 +1937,21 @@ function islandora_digital_workflow_merge_uploaded_csv_files(&$batch_record, $no
     }
   }
   if ($merged_csv_file) {
-    $temp_csv_filename = drupal_realpath(drupal_tempnam('temporary://', 'merged_csv.csv'));
-    if ($bytes_written = file_put_contents($temp_csv_filename, $merged_csv_file)) {
-      $csv_array = islandora_digital_workflow_csv_file_as_array($temp_csv_filename, TRUE);
-      if (array_key_exists('uploaded_csv_filename', $_SESSION) && file_exists($_SESSION['uploaded_csv_filename'])) {
-        // This usage of _SESSION['uploaded_csv_filename can get tricky, but
+    $temp_batch_items_filename = drupal_realpath(drupal_tempnam('temporary://', 'merged_csv.csv'));
+    if ($bytes_written = file_put_contents($temp_batch_items_filename, $merged_csv_file)) {
+      $csv_array = islandora_digital_workflow_csv_file_as_array($temp_batch_items_filename, TRUE);
+      if (array_key_exists('uploaded_batch_items_filename', $_SESSION) && file_exists($_SESSION['uploaded_batch_items_filename'])) {
+        // This usage of _SESSION['uploaded_batch_items_filename'] can get tricky, but
         // must set this value here because the referencing code calls another
         // function that uses this value to work with the batch's csv file.
-        file_put_contents($_SESSION['uploaded_csv_filename'], $merged_csv_file);
+        file_put_contents($_SESSION['uploaded_batch_items_filename'], $merged_csv_file);
       }
-      unlink($temp_csv_filename);
+      unlink($temp_batch_items_filename);
     }
 
-    $batch_record['uploaded_csv_file'] = $merged_csv_file;
+    $batch_record['uploaded_batch_items_file'] = $merged_csv_file;
     $new_value = theme('islandora_digital_workflow_batch_defaults', array('islandora_digital_workflow_batch' => $batch_record));
-    $field_values = array('uploaded_csv_file' => $merged_csv_file, 'object_count' => count($merged_rows));
+    $field_values = array('uploaded_batch_items_file' => $merged_csv_file, 'object_count' => count($merged_rows));
     islandora_digital_workflow_update_batch($batch_record['batch_id'], $field_values);
 
     $node->field_batch_defaults[LANGUAGE_NONE][0]['value'] = $new_value;
