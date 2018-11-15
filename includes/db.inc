@@ -1379,7 +1379,11 @@ function islandora_digital_workflow_insert_transactions_record($action_id, $batc
       islandora_digital_workflow_set_problem_record($transaction_id, ($alternative_uid) ? $alternative_uid : $user->uid, $problem_notes);
     } elseif ($action_id == IDW_ACTION_SCAN && !is_null($batch_item_id)) {
       islandora_digital_workflow_copy_delivery_file($batch_item_id);
+    } elseif ($action_id == IDW_ACTION_ADD_MARC_RECORD) {
+      // Transform the object's MARC to MODS - or try to at least
+      islandora_digital_workflow_create_MODS_from_MARC($batch_item_id);
     }
+
     return $transaction_id;
   }
 }

@@ -1356,7 +1356,9 @@ function islandora_digital_workflow_prepare_csv2mods($input_filename, $batch_rec
       $bytes_written = fwrite($handle, $strxml);
       fclose($handle);
     }
-    $filename = ($keep_created_MODS_files) ? islandora_digital_workflow_XMLtoMODS($batch_path . '/' . $row_mods_id . '/' . $outputFilename, $batch_record['batch_id'], $ingest_namespace . $row_mods_id) : "";
+    $filename = ($keep_created_MODS_files) ?
+      islandora_digital_workflow_sheet_XMLtoMODS($batch_path . '/' . $row_mods_id . '/' .
+        $outputFilename, $batch_record['batch_id'], $ingest_namespace . $row_mods_id) : "";
     $mods_created += ($keep_created_MODS_files) ? ($filename <> '') : 1;
     // echo "<p>created MODS from spreadsheet for <b>" . $row_mods_id . "</b></p>";
 
@@ -1408,20 +1410,20 @@ function islandora_digital_workflow_fix_if_csv_date_approximate($headers, &$row)
  * This same effect could be achieved using a template system because xslt is
  * relatively slow.  For now, the xslt transform method is used.
  *
- * @param string $xml_filename
+ * @param string $sheet_xml_filename
  *   Filename that points to the CSV "sheet" xml file.  NOTE:  This file will be
  * updated if the transform can run.
  * @return string
  *   the filename for the new MODS file.
  */
-function islandora_digital_workflow_XMLtoMODS($xml_filename, $batch_id, $identifier) {
+function islandora_digital_workflow_sheet_XMLtoMODS($sheet_xml_filename, $batch_id, $identifier) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
   
   $batch_item_id = islandora_digital_workflow_get_batch_item_id_by_identifier($identifier, $batch_id);
 
   $xsl = str_replace("/includes", "", dirname(__FILE__).'/transforms/sheet2mods.xsl');
 
-  $xml_file = islandora_digital_workflow_convert_smart_quotes(file_get_contents($xml_filename));
+  $xml_file = islandora_digital_workflow_convert_smart_quotes(file_get_contents($sheet_xml_filename));
   $MODS = ($xml_file) ? islandora_digital_workflow_runXslTransform(
             array(
               'xsl' => $xsl,
@@ -1430,12 +1432,12 @@ function islandora_digital_workflow_XMLtoMODS($xml_filename, $batch_id, $identif
           ) : '';
 
   // This file must be deleted in the process function that called this.
-  $xml_filename = islandora_digital_workflow_filename_sanitize($xml_filename);
-  $bytes_written = file_put_contents($xml_filename, $MODS);
+  $sheet_xml_filename = islandora_digital_workflow_filename_sanitize($sheet_xml_filename);
+  $bytes_written = file_put_contents($sheet_xml_filename, $MODS);
   if ($batch_item_id && $bytes_written) {
     islandora_digital_workflow_insert_transactions_record(IDW_ACTION_MODS_RECORD_UPDATED, NULL, $batch_item_id);
   }
-  return ($bytes_written) ? $xml_filename : '';
+  return ($bytes_written) ? $sheet_xml_filename : '';
 }
 
 /**
@@ -2996,4 +2998,33 @@ function islandora_digital_workflow_test_RW($path, $require_write) {
         array('@path' => $path)), ($require_write ? 'error' : 'warning'));
   }
   return $ret;
+}
+
+function islandora_digital_workflow_create_MODS_from_MARC($batch_item_id) {
+  // try to use the islandora_marcxml module's xsl -- else, fallback to the file
+  // that is stored in the islandora_digital_workflow/transforms folder.
+  if (module_exists('islandora_marcxml')) {
+    $marc2mods_transform = drupal_realpath(drupal_get_path('module', 'islandora_marcxml')) .
+        '/xsl/MARC21slim2MODS3-5.xsl';
+  } else {
+    $marc2mods_transform = dirname(drupal_get_path('module', 'islandora_digital_workflow')) .
+        '/transforms/MARC21slim2MODS3-5.xsl';
+  }
+  echo "<h3>" . '"MARC to MODS" TRANSFORM FILENAME: ' . $marc2mods_transform . "</h3>";
+
+  // load the batch_item
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
+  $batch_item_obj = islandora_digital_workflow_get_batch_item($batch_item_id);
+  echo '<pre>' . print_r($batch_item_obj, true) . '</pre>';
+  $marc = trim($batch_item_obj->marc);
+  if (!$marc) {
+    drupal_set_message(t('This batch item (batch_item_id = @batch_item_id) does not have a MARC record.',
+            array('@batch_item_id' => $batch_item_id)), 'status');
+  }
+  echo "<hr><h3>MARC</h3><pre sylte='color:green'>" . htmlspecialchars($marc) . "</pre>";
+
+  // Now, transform that object's MARC and save the updated MODS - along with
+  // adding the transaction for IDW_ACTION_MODS_RECORD_UPDATED
+
+  return;
 }
