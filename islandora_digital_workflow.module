@@ -56,7 +56,7 @@ function islandora_digital_workflow_menu() {
     'admin/islandora/islandora_digital_workflow' => array(
       'title' => t('Islandora Digital Workflow'),
       'description' => 'Settings for the Islandora Digital Workflow module.',
-      'type' => MENU_LOCAL_TASK,
+      'type' => MENU_CALLBACK,
       'page callback' => 'drupal_get_form',
       'page arguments' => array('islandora_digital_workflow_admin_form'),
       'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_MANAGE),

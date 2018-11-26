@@ -18,12 +18,12 @@ Before implementing any workflow tool, the capabilities of that tool should be m
 	- Delete batches
 	- Hide completed batches
 - **Identify progress on batch**
-	- Stage in process		
-		- In DRL for scanning		
-		- Check-in complete		
-		- Scanning complete		
-		- QC/Structural metadata complete (as appropriate)		
-		- Ingest complete		
+	- Stage in process
+		- In DRL for scanning
+		- Check-in complete
+		- Scanning complete
+		- QC/Structural metadata complete (as appropriate)
+		- Ingest complete
 		- Check out of DRL
 - **Test and/or assign identifiers**
 	- Old system tested to make sure that an object or batch with matching id didn’t exist
@@ -47,21 +47,25 @@ Before implementing any workflow tool, the capabilities of that tool should be m
 - **Other Metadata? Do we want to continue tracking the following in this system?**
 	 - Property Owner
 	 - Priority information
-	 - All metadata related to requests		
+	 - All metadata related to requests
 		- Requests not going online? Should they be part of this workflow or not?
 
 ## Installation
-The Islandora Digital Workflow module relies on some other modules in order to be able to run.  
+The Islandora Digital Workflow module relies on some other modules in order to be able to run.
 **Required modules:**
+ - [Islandora](https://github.com/Islandora/islandora) The Islandora core module.
+ - [Islandora Solr Search](https://github.com/Islandora/islandora_solr_search.git) - Searches an Islandora Solr index.
+ - [Islandora MARC Utility](https://github.com/ulsdevteam/islandora_marc_utility.git) - MARC utilities for parsing MARC mrc or MARCXML (collection) files.
  - [Forena](https://git.drupal.org/project/forena.git) | [ulsdevteam "Forena"](https://github.com/ulsdevteam/forena.git) *The ulsdevteam feature branch of Forena reports adds a Description value to the reports.  If the ulsdevteam branch of this module is installed or if the code is eventually merged into Forena, the descriptions of reports would be displayed -- else, only their Titles can be displayed.*
  - [Rules](https://git.drupal.org/project/rules.git)
  - Taxonomy (Drupal core module must be enabled)
  - [Views](https://git.drupal.org/project/views.git)
  - see **Islandora Batch Ingest Modules** section below as well in order to be able to prepare batches for Drupal ingest via drush commands.
 
+
  **Optional modules:**
  - [Islandora METS Editor](https://github.com/ulsdevteam/islandora_mets_editor.git) To provide a way to create, edit, manage METS files in Islandora.
- - [Islandora CSV to MODS](https://github.com/ulsdevteam/islandora_csv_to_mods.git) Islandora utility to create MODS from CSV upload and potentially update the related Islandora objects.
+ - [Islandora MARC XML](https://github.com/Islandora/islandora_marcxml) An Islandora module which performs transformations between MODS and MARCXML.  When present, the configuration will add the transforms to the "MARC to MODS Transform" selection choices.
 
 **Islandora Batch Ingest Modules** 
 In order to batch ingest Islandora models, they each require a specific module to be installed.  Additionally, the ability to assign PID value for objects as they ingest as well as to add the "isMemberOfSite" relationship would require the ulsdevteam instance of each module.  The configuration page provides links to download and install each of the required modules.  These are:

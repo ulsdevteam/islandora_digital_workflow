@@ -105,7 +105,7 @@
             <textarea rows=5 class="<?php
             print (user_access(ISLANDORA_DIGITAL_WORKFLOW_EDIT_ITEM_META) ? '': 'disabled_text '); ?>short-text-area" id="edit-mods" name="mods"<?php
             print (user_access(ISLANDORA_DIGITAL_WORKFLOW_EDIT_ITEM_META) ? '': ' readonly="readonly"'); ?>><?php print $item->mods; ?></textarea>
-            <span class="small_font disabled_text"><em>NOTE:</em> The MODS is generated from the CSV upload and editing this here may not be the right thing to do.</span>
+            <span class="small_font disabled_text"><em>NOTE:</em> Editing the MODS here may not be the right thing to do depending on the source of the metadata.</span>
             <?php if ($is_paged_content) : ?>
             <div>
                 <label for="edit-marc-file">MARC record:</label><br>

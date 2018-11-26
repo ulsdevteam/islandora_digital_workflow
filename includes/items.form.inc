@@ -150,6 +150,7 @@ function islandora_digital_workflow_add_items_form(array $form, array &$form_sta
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
   module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy_utilities');
+  module_load_include('inc', 'islandora_marc_utility', 'includes/upload_mrc.form');
 
   $batch_name = $node->title;
   $results = islandora_digital_workflow_find_batch_records_by_name($batch_name);
@@ -173,21 +174,39 @@ function islandora_digital_workflow_add_items_form(array $form, array &$form_sta
   if ((array_search($model_name, $file_not_allowed_for_model_names) === FALSE)) {
     // Prepare a couple variables for use with file upload options:
     $file_rows = $file_header = array();
-    $tmp_uploaded_batch_items_file = drupal_realpath(drupal_tempnam('temporary://', 'batch_objects.csv'));
+    $tmp_uploaded_batch_items_file = drupal_realpath(drupal_tempnam('temporary://', 'batch_items'));
     $temp_csv_file = ($batch_record_arr['uploaded_batch_items_file']) ? file_put_contents($tmp_uploaded_batch_items_file, $batch_record_arr['uploaded_batch_items_file']) : '';
     if ($temp_csv_file && file_exists($tmp_uploaded_batch_items_file)) {
-      $arr = islandora_digital_workflow_csv_file_as_array($tmp_uploaded_batch_items_file);
-      $file_header = (isset($arr['header']) ? $arr['header'] : array());
-      $file_rows = (isset($arr['rows']) ? $arr['rows'] : array());
-      $csv_header_mappings = islandora_digital_workflow_get_csv_header_xpath_mappings();
-      foreach ($file_header as $header) {
-        $machine_header = str_replace(" ", "_", strtolower(trim($header)));
-        if ($machine_header && !(array_key_exists($machine_header, $csv_header_mappings))) {
-          drupal_set_message(t('CSV column "@header" not recognized.  Batch ' .
-              'may not be able to ingest or process.  Please replace the attached ' .
-              'CSV file.', array('@header' => $header)), 'error');
-        }
+      $mimetype = mime_content_type($tmp_uploaded_batch_items_file);
+      switch ($mimetype) {
+        // 1. MRC "application/marc".
+        case "application/marc":
+          $marc_and_mods_records = islandora_marc_utility_mrc_split($tmp_uploaded_batch_items_file);
+          list($file_header, $file_rows) = islandora_digital_workflow_mrc_results_as_array($marc_and_mods_records);
+          break;
+        // 2. MARCXML "application/xml".
+        case "application/xml":
+          $marc_and_mods_records = islandora_marc_utility_marcxml_split($tmp_uploaded_batch_items_file);
+          list($file_header, $file_rows) = islandora_digital_workflow_mrc_results_as_array($marc_and_mods_records);
+          break;
+
+        default:
+          // 3. CSV "text/plain" -- all other cases -- attempt as CSV "text/plain".
+          $arr = islandora_digital_workflow_csv_file_as_array($tmp_uploaded_batch_items_file);
+          $file_header = (isset($arr['header']) ? $arr['header'] : array());
+          $file_rows = (isset($arr['rows']) ? $arr['rows'] : array());
+          $csv_header_mappings = islandora_digital_workflow_get_csv_header_xpath_mappings();
+          foreach ($file_header as $header) {
+            $machine_header = str_replace(" ", "_", strtolower(trim($header)));
+            if ($machine_header && !(array_key_exists($machine_header, $csv_header_mappings))) {
+              drupal_set_message('CSV ' . t('column "') . $header . t('" not recognized.  Batch ' .
+                  'may not be able to ingest or process.  Please replace the attached ' .
+                  'CSV file.'), 'error');
+            }
+          }
+          break;
       }
+
       @unlink($tmp_uploaded_batch_items_file);
     }
 
@@ -286,8 +305,8 @@ function islandora_digital_workflow_add_items_form_submit(array $form, array &$f
   // uploaded_batch_items_file
   if (isset($_FILES['files']) && isset($_FILES["files"]["tmp_name"]['file'])) {
     $batch_id = $form_state['values']['batch_id'];
-    $upload_success = islandora_digital_workflow_validate_batch_items_file_upload();
     $batch_items_filename = (isset($_SESSION['uploaded_batch_items_filename']) ? $_SESSION['uploaded_batch_items_filename'] : '');
+    $upload_success = islandora_digital_workflow_validate_batch_items_file_upload($batch_items_filename);
 
     if ($batch_items_filename) {
       module_load_include('inc', 'islandora_digital_workflow', 'includes/db');

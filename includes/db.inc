@@ -1379,9 +1379,6 @@ function islandora_digital_workflow_insert_transactions_record($action_id, $batc
       islandora_digital_workflow_set_problem_record($transaction_id, ($alternative_uid) ? $alternative_uid : $user->uid, $problem_notes);
     } elseif ($action_id == IDW_ACTION_SCAN && !is_null($batch_item_id)) {
       islandora_digital_workflow_copy_delivery_file($batch_item_id);
-    } elseif ($action_id == IDW_ACTION_ADD_MARC_RECORD) {
-      // Transform the object's MARC to MODS - or try to at least
-      islandora_digital_workflow_create_MODS_from_MARC($batch_item_id);
     }
 
     return $transaction_id;
@@ -1862,6 +1859,7 @@ function islandora_digital_workflow_delete_batch_item($batch_item_id) {
   $batch_item_record_arr = islandora_digital_workflow_get_batch_item_record($batch_item_id);
   if (is_array($batch_item_record_arr)) {
     $batch_item_record_obj = array_pop($batch_item_record_arr);
+    $item_path = '';
     if ($batch_item_record_obj->filename) {
       @unlink($batch_item_record_obj->filename);
       if (variable_get('islandora_digital_workflow_delete_delivery_files', 0)) {
@@ -1870,12 +1868,20 @@ function islandora_digital_workflow_delete_batch_item($batch_item_id) {
         // one of the configured "Incoming Delivery Directory" or "Ingest Working
         // Directory" paths (would be very bad).
         if (array_key_exists('dirname', $pathinfo) && strstr($pathinfo['dirname'], $batch_item_record_obj->identifier) ) {
-          module_load_include('inc', 'islandora_digital_workflow', 'includes/file_utilities');
-          $deleted = islandora_digital_workflow_deleteDirectory($pathinfo['dirname']);
+          $item_path = $pathinfo['dirname'];
         }
       }
+      drupal_set_message(t('deleted file "' . $batch_item_record_obj->filename . '"'), 'error');
     }
-    drupal_set_message('delete file "' . $batch_item_record_obj->filename . '"', 'error');
+    else {
+      $batch_record = islandora_digital_workflow_get_batch_item_record($batch_item_id);
+      $batch_path = islandora_digital_workflow_batch_path($batch_record);
+      $item_path = $batch_path . '/' . $batch_item_record_obj->identifier;
+    }
+    if ($item_path) {
+      module_load_include('inc', 'islandora_digital_workflow', 'includes/file_utilities');
+      $deleted = islandora_digital_workflow_deleteDirectory($item_path);
+    }
   }
 
   // SQL statement to delete the islandora_digital_workflow_problem_items records

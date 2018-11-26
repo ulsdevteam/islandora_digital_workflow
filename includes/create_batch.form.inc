@@ -253,6 +253,7 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
   module_load_include('inc', 'islandora_digital_workflow', 'includes/access_permissions');
   module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy_utilities');
+  module_load_include('inc', 'islandora_marc_utility', 'includes/upload_mrc.form');
   drupal_add_js('misc/collapse.js');
 
   $readable_models = islandora_digital_workflow_get_reduced_readable_cmodels();
@@ -305,20 +306,38 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
   $paged_content_model_names = islandora_digital_workflow_retrieve_applicable_paged_content_cmodels();
 
   $file_rows = $file_header = array();
-  $tmp_uploaded_batch_items_file = drupal_realpath(drupal_tempnam('temporary://', 'batch_objects.csv'));
+  $tmp_uploaded_batch_items_file = drupal_realpath(drupal_tempnam('temporary://', 'batch_items'));
   $temp_csv_file = ($batch_record['uploaded_batch_items_file']) ? file_put_contents($tmp_uploaded_batch_items_file, $batch_record['uploaded_batch_items_file']) : '';
   if ($temp_csv_file && file_exists($tmp_uploaded_batch_items_file)) {
-    $arr = islandora_digital_workflow_csv_file_as_array($tmp_uploaded_batch_items_file);
-    $file_header = (isset($arr['header']) ? $arr['header'] : array());
-    $file_rows = (isset($arr['rows']) ? $arr['rows'] : array());
-    $csv_header_mappings = islandora_digital_workflow_get_csv_header_xpath_mappings();
-    foreach ($file_header as $header) {
-      $machine_header = str_replace(" ", "_", strtolower(trim($header)));
-      if ($machine_header && !(array_key_exists($machine_header, $csv_header_mappings))) {
-        drupal_set_message('CSV ' . t('column "') . $header . t('" not recognized.  Batch ' .
-            'may not be able to ingest or process.  Please replace the attached ' .
-            'CSV file.'), 'error');
-      }
+    // See what kind of file this is -- CSV, MARC MRC, or MARCXML
+    $mimetype = mime_content_type($tmp_uploaded_batch_items_file);
+    switch ($mimetype) {
+      // 1. MRC "application/marc".
+      case "application/marc":
+        $marc_and_mods_records = islandora_marc_utility_mrc_split($tmp_uploaded_batch_items_file);
+        list($file_header, $file_rows) = islandora_digital_workflow_mrc_results_as_array($marc_and_mods_records);
+        break;
+      // 2. MARCXML "application/xml".
+      case "application/xml":
+        $marc_and_mods_records = islandora_marc_utility_marcxml_split($tmp_uploaded_batch_items_file);
+        list($file_header, $file_rows) = islandora_digital_workflow_mrc_results_as_array($marc_and_mods_records);
+        break;
+
+      default:
+        // 3. CSV "text/plain" -- all other cases -- attempt as CSV "text/plain".
+        $arr = islandora_digital_workflow_csv_file_as_array($tmp_uploaded_batch_items_file);
+        $file_header = (isset($arr['header']) ? $arr['header'] : array());
+        $file_rows = (isset($arr['rows']) ? $arr['rows'] : array());
+        $csv_header_mappings = islandora_digital_workflow_get_csv_header_xpath_mappings();
+        foreach ($file_header as $header) {
+          $machine_header = str_replace(" ", "_", strtolower(trim($header)));
+          if ($machine_header && !(array_key_exists($machine_header, $csv_header_mappings))) {
+            drupal_set_message('CSV ' . t('column "') . $header . t('" not recognized.  Batch ' .
+                'may not be able to ingest or process.  Please replace the attached ' .
+                'CSV file.'), 'error');
+          }
+        }
+        break;
     }
     @unlink($tmp_uploaded_batch_items_file);
   }
@@ -559,7 +578,7 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
     $form['batch_objects_frame']['file'] = array(
         '#type' => 'file',
         '#title' => t('File'),
-        '#description' => t('Select CSV file to upload.<br/>Files must be less than <strong>@size MB.</strong><br/>Allowed file types: <strong>@ext.</strong>', array('@size' => $upload_size, '@ext' => $extensions[0])) .
+        '#description' => t('Select items file to upload.<br/>Files must be less than <strong>@size MB.</strong><br/>Allowed file types: <strong>@ext.</strong>', array('@size' => $upload_size, '@ext' => $extensions[0])) .
           (($batch_record && isset($batch_record['uploaded_batch_items_file']) && ($batch_record['uploaded_batch_items_file'] <> '')) ?
           '<br>Upload file will <em>completely replace any existing items records ' .
           'and any transactions on them.  To add additional CSV files, use the ' .
@@ -934,7 +953,7 @@ function islandora_digital_workflow_sync_items_process_node($node) {
 
   $batch_record = islandora_digital_workflow_get_batch_record_by_nid($node->nid);
 
-  $temp_batch_items_filename = drupal_realpath(drupal_tempnam('temporary://', 'batch_objects.csv'));
+  $temp_batch_items_filename = drupal_realpath(drupal_tempnam('temporary://', 'batch_items'));
   if ($bytes_written = file_put_contents($temp_batch_items_filename, $batch_record['uploaded_batch_items_file'])) {
     $_SESSION['uploaded_batch_items_filename'] = $temp_batch_items_filename;
   }

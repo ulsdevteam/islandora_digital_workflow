@@ -82,11 +82,15 @@ function islandora_digital_workflow_create_stub_batch_record($form_state) {
  *   The filename that points to the CSV file.
  * @param integer $alternative_uid
  *   when provided, this will override the current-logged-in user's uid value.
+ * @param array $marc_and_mods_records
+ *   In some cases, this would be the parsed MRC and contains pointers to the
+ * MARCXML and MODS records.  This is merely passed on to the function
+ * islandora_digital_workflow_sync_node_to_items that will make batch_items.
  * @return mixed
  *   Either redurns the batch record OR NULL if there is not enough info to
  * create the record
  */
-function islandora_digital_workflow_create_batch_record_by_form($form_state, $node, $batch_items_filename, $alternative_uid = NULL) {
+function islandora_digital_workflow_create_batch_record_by_form($form_state, $node, $batch_items_filename, $alternative_uid = NULL, $marc_and_mods_records = array()) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
 
   global $user;
@@ -223,7 +227,7 @@ function islandora_digital_workflow_create_batch_record_by_form($form_state, $no
       ->execute();
     }
     $updated_batch_record = islandora_digital_workflow_get_batch_record_by_name($batch_name);
-    islandora_digital_workflow_sync_node_to_items($updated_batch_record, $node, $batch_items_filename, TRUE, $alternative_uid);
+    islandora_digital_workflow_sync_node_to_items($updated_batch_record, $node, $batch_items_filename, TRUE, $alternative_uid, $marc_and_mods_records);
     return $updated_batch_record;
   }
   else {
@@ -269,13 +273,21 @@ function islandora_digital_workflow_convert_smart_quotes($string) {
  *   Whether or not to clear the items table when synching the node to items.
  * @param integer $alternative_uid
  *   when provided, this will override the current-logged-in user's uid value.
+ * @param array $marc_and_mods_records
+ *   In some cases, this would be the parsed MRC and contains pointers to the
+ * MARCXML and MODS records.
 */
-function islandora_digital_workflow_sync_node_to_items($batch_record, $node, $batch_items_filename, $empty_items_table = FALSE, $alternative_uid = NULL) {
+function islandora_digital_workflow_sync_node_to_items($batch_record, $node, $batch_items_filename, $empty_items_table = FALSE, $alternative_uid = NULL, $marc_and_mods_records = array()) {
   if (is_array($batch_record)) {
     // Set a variable for this for readibility on the subsequent function call.
     $keep_created_MODS_files = ($batch_items_filename <> '');
-    $csv_file_sources = islandora_digital_workflow_prepare_csv2mods($batch_items_filename, $batch_record, $keep_created_MODS_files);
-    if ($csv_file_sources && count($csv_file_sources) > 0) {
+    if (count($marc_and_mods_records) > 0) {
+      $item_file_sources = islandora_digital_workflow_marc_mods_arr_to_item_file_sources($batch_record, $marc_and_mods_records);
+    }
+    else {
+      $item_file_sources = islandora_digital_workflow_prepare_csv2mods($batch_items_filename, $batch_record, $keep_created_MODS_files);
+    }
+    if ($item_file_sources && count($item_file_sources) > 0) {
       $batch_item_identifiers_to_transaction_ids = ($empty_items_table) ?
           islandora_digital_workflow_get_batch_item_ids_to_transaction_ids($batch_record['batch_id']) :
           array();
@@ -288,7 +300,7 @@ function islandora_digital_workflow_sync_node_to_items($batch_record, $node, $ba
               array('@batch_name' => $batch_record['batch_name'])), 'status');
         }
       }
-      foreach ($csv_file_sources as $csv_file_source) {
+      foreach ($item_file_sources as $csv_file_source) {
         islandora_digital_workflow_sync_batch_item_record($batch_record, $csv_file_source, $batch_item_identifiers_to_transaction_ids, $alternative_uid);
       }
     }
@@ -314,13 +326,6 @@ function islandora_digital_workflow_sync_node_to_items($batch_record, $node, $ba
 function islandora_digital_workflow_sync_batch_item_record($batch_record, $csv_file_source, $batch_item_identifiers_to_transaction_ids, $alternative_uid = NULL) {
   global $user;
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
-  if (file_exists($csv_file_source['mods_filename'])) {
-    $mods_content = file_get_contents($csv_file_source['mods_filename']);
-    $mods_content = islandora_digital_workflow_convert_smart_quotes($mods_content);
-  }
-  else {
-    $mods_content = '';
-  }
   $title = islandora_digital_workflow_convert_smart_quotes($csv_file_source['title']);
 
   // take each mods_filename and put this into the item record
@@ -328,10 +333,26 @@ function islandora_digital_workflow_sync_batch_item_record($batch_record, $csv_f
       'batch_id' => $batch_record['batch_id'],
       'identifier' => $csv_file_source['identifier'],
       'title' => $title,
-      'filename' => $csv_file_source['filename'],
-      'mods' => $mods_content,
-      'marc' => '',
-  );
+      'filename' => $csv_file_source['filename']);
+  // Only add the values for mods_content or marc_content if they are present...
+  // making any values persis that were in there before this call.
+  if (file_exists($csv_file_source['mods_filename'])) {
+    $mods_content = file_get_contents($csv_file_source['mods_filename']);
+    $mods_content = islandora_digital_workflow_convert_smart_quotes($mods_content);
+    $fields['mods'] = $mods_content;
+  }
+  else {
+    $mods_content = '';
+  }
+  if (file_exists($csv_file_source['marc_filename'])) {
+    $marc_content = file_get_contents($csv_file_source['marc_filename']);
+    $marc_content = islandora_digital_workflow_convert_smart_quotes($marc_content);
+    $fields['marc'] = $marc_content;
+  }
+  else {
+    $marc_content = '';
+  }
+
   // Get a list of existing batch_item identifiers - only insert the record if
   // one does not exist for this identifier.
   $existing_batch_identifiers = islandora_digital_workflow_get_existing_identifiers($batch_record['batch_id']);
@@ -339,6 +360,16 @@ function islandora_digital_workflow_sync_batch_item_record($batch_record, $csv_f
   $batch_item_id = (array_search($csv_file_source['identifier'], $existing_batch_identifiers) === FALSE) ?
     islandora_digital_workflow_insert_batch_item($fields) :
     array_search($csv_file_source['identifier'], $existing_batch_identifiers);
+
+  // New item...
+  if ($batch_item_id && (array_search($csv_file_source['identifier'], $existing_batch_identifiers) === FALSE)) {
+    if ($marc_content) {
+      islandora_digital_workflow_insert_transactions_record(IDW_ACTION_ADD_MARC_RECORD, NULL, $batch_item_id);      
+    }
+    if ($mods_content) {
+      islandora_digital_workflow_insert_transactions_record(IDW_ACTION_MODS_RECORD_UPDATED, NULL, $batch_item_id);      
+    }
+  }
 
   $item_is_paged = islandora_digital_workflow_item_is_paged_content($batch_item_id, $batch_record);
   if ($item_is_paged) {
@@ -770,6 +801,10 @@ function islandora_digital_workflow_get_reduced_readable_cmodels() {
   return $return_models;
 }
 
+function islandora_digital_workflow_validate_mrc($batch_items_filename) {
+  return TRUE;
+}
+
 /**
  * Performs validation on a CSV file to see that it can be used with a batch.
  *
@@ -962,25 +997,32 @@ function islandora_digital_workflow_make_custom_csv_dates($short_date, $suppress
 }
 
 /**
- * This will return the values for a given field from a CSV array.
+ * This will return the values for a given field from an items array.
  *
  * @param string $fieldname
  *   The name of the field to search for
- * @param array $csv_array
+ * @param array $arr
  *   An array of arrays - where each inner array is a row of CSV data.
  * @return array
  *   The array of values for the given fieldname.
  */
-function islandora_digital_workflow_get_csv_values_for_fieldname($fieldname, $csv_array) {
+function islandora_digital_workflow_get_csv_values_for_fieldname($fieldname, $arr) {
   $ret_array = array();
   // Make sure that there is at least one data row and that at least the identifier
   // and the column specified by $fieldname exists.
-  if (isset($csv_array['header']) && (!array_search('identifier', $csv_array['header']) === FALSE) &&
-      (!array_search($fieldname, $csv_array['header']) === FALSE) &&
-      is_array($csv_array['rows']) && count($csv_array['rows']) > 0) {
-    $index_of_fieldname = array_search($fieldname, $csv_array['header']);
-    foreach ($csv_array['rows'] as $row_array) {
+  if (isset($arr['header']) && (!array_search('identifier', $arr['header']) === FALSE) &&
+      (!array_search($fieldname, $arr['header']) === FALSE) &&
+      is_array($arr['rows']) && count($arr['rows']) > 0) {
+    $index_of_fieldname = array_search($fieldname, $arr['header']);
+    foreach ($arr['rows'] as $row_array) {
       $ret_array[$fieldname][] = isset($row_array[$index_of_fieldname]) ? $row_array[$index_of_fieldname] : '';
+    }
+  }
+  elseif ($fieldname == 'identifier' && isset($arr['header']) &&
+      (!array_search('bib_id', $arr['header']) === FALSE) &&
+      is_array($arr['rows']) && count($arr['rows']) > 0) {
+    foreach ($arr['rows'] as $row_array) {
+      $ret_array['identifier'][] = isset($row_array[0]) ? $row_array[0] : '';
     }
   }
   return $ret_array;
@@ -1456,11 +1498,16 @@ function islandora_digital_workflow_runXslTransform($info) {
 
   $processor = new XSLTProcessor();
   $processor->importStylesheet($xsl);
-/*
+
   if (isset($info['php_functions'])) {
+    // Register php functions limited to those provided in the
+    // $info['php_functions'] value.
     $processor->registerPHPFunctions($info['php_functions']);
+  } elseif (isset($info['php_functions_all']) && $info['php_functions_all']) {
+    // No restriction on the functions that are registered in the xslt processor.
+    $processor->registerPHPFunctions();
   }
-*/
+
   return $processor->transformToXML($input);
 }
 
@@ -1789,18 +1836,49 @@ function islandora_digital_workflow_retrieve_applicable_paged_content_cmodels() 
  * and potentially sets a $_SESSION variable for use in the submit function,
  * see: islandora_digital_workflow_create_batch_form_submit() above.
  *
+ * @param string $override_filename
+ *   OPTIONAL -- when provided, this is the path to the uploaded file -- and the
+ * subsequent code should operate off of this rather than the $_FILES array.
  * @return boolean
  */
-function islandora_digital_workflow_validate_batch_items_file_upload() {
+function islandora_digital_workflow_validate_batch_items_file_upload($override_filename = '') {
   $valid_upload = FALSE;
 
-  if (isset($_FILES['files']) && isset($_FILES["files"]["tmp_name"]['file'])) {
-    $dest = drupal_tempnam('temporary://', 'batch_objects.csv');
-    if ($_FILES['files']['error']['file'] == UPLOAD_ERR_OK) {
-      $tmp_name = (file_exists($_FILES["files"]["tmp_name"]['file'])) ? $_FILES["files"]["tmp_name"]['file'] : $_SESSION['uploaded_batch_items_filename'];
+  $use_filename = (($override_filename) ? $override_filename :
+      (isset($_FILES['files']) && isset($_FILES["files"]["tmp_name"]['file'])) ?
+          $_FILES["files"]["tmp_name"]['file'] : '');
+  if ($use_filename) {
+    $mimetype = mime_content_type($use_filename);
+    // The validation for both types of MARC upload are all done within the
+    // islandora_marc_utility code and it will only return an array for the
+    // MARC records that it was able to parse out of the uploaded file.
+    switch ($mimetype) {
+      // 1. MRC "application/marc".
+      case "application/marc":
+        $dest = drupal_tempnam('temporary://', 'batch_objects.marc');
+        $validation_function = 'islandora_digital_workflow_validate_mrc';
+        break;
+      // 2. MARCXML "application/xml".
+      case "application/xml":
+        $dest = drupal_tempnam('temporary://', 'batch_objects.marcxml');
+        $validation_function = 'islandora_digital_workflow_validate_mrc';
+        break;
+
+      default:
+        // 3. CSV "text/plain" -- all other cases -- attempt as CSV "text/plain".
+        $dest = drupal_tempnam('temporary://', 'batch_objects.csv');
+        $validation_function = 'islandora_digital_workflow_validate_csv';
+        break;
+    }
+
+    if ($override_filename || $_FILES['files']['error']['file'] == UPLOAD_ERR_OK) {
+      $tmp_name = (($override_filename) ? $override_filename : 
+          (file_exists($use_filename)) ?
+              $use_filename :
+              $_SESSION['uploaded_batch_items_filename']);
       if (copy($tmp_name, $dest)) {
-        $valid_upload = islandora_digital_workflow_validate_csv($dest);
-        if (file_exists($_FILES["files"]["tmp_name"]['file'])) {
+        $valid_upload = $validation_function($dest);
+        if (file_exists($use_filename)) {
           $_SESSION['uploaded_batch_items_filename'] = $dest;
         }
       }
@@ -3000,31 +3078,52 @@ function islandora_digital_workflow_test_RW($path, $require_write) {
   return $ret;
 }
 
-function islandora_digital_workflow_create_MODS_from_MARC($batch_item_id) {
-  // try to use the islandora_marcxml module's xsl -- else, fallback to the file
-  // that is stored in the islandora_digital_workflow/transforms folder.
-  if (module_exists('islandora_marcxml')) {
-    $marc2mods_transform = drupal_realpath(drupal_get_path('module', 'islandora_marcxml')) .
-        '/xsl/MARC21slim2MODS3-5.xsl';
-  } else {
-    $marc2mods_transform = dirname(drupal_get_path('module', 'islandora_digital_workflow')) .
-        '/transforms/MARC21slim2MODS3-5.xsl';
+function islandora_digital_workflow_mrc_results_as_array($mrc_results_arr) {
+  $rows = array();
+  foreach ($mrc_results_arr as $idx => $mrc_result_arr) {
+    $rows[] = array($mrc_result_arr['bib_id']);
   }
-  echo "<h3>" . '"MARC to MODS" TRANSFORM FILENAME: ' . $marc2mods_transform . "</h3>";
 
-  // load the batch_item
-  module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
-  $batch_item_obj = islandora_digital_workflow_get_batch_item($batch_item_id);
-  echo '<pre>' . print_r($batch_item_obj, true) . '</pre>';
-  $marc = trim($batch_item_obj->marc);
-  if (!$marc) {
-    drupal_set_message(t('This batch item (batch_item_id = @batch_item_id) does not have a MARC record.',
-            array('@batch_item_id' => $batch_item_id)), 'status');
+  $ret = array(array('bib_id'), $rows);
+  return $ret;
+}
+
+function islandora_digital_workflow_marc_mods_arr_to_item_file_sources($batch_record, $marc_and_mods_records) {
+  $item_file_sources = array();
+  $batch_path = islandora_digital_workflow_batch_path($batch_record);
+
+  foreach ($marc_and_mods_records as $idx => $marc_mods_arr) {
+    $bib_id = $marc_mods_arr['bib_id'];
+    $item_path = $batch_path . '/' . $bib_id;
+    if (!file_exists($item_path)) {
+      $call = mkdir($item_path);
+      if (!$call) {
+        drupal_set_message(t('The item folder "@item_path" could not be created.', array(
+            '@item_path' => $item_path
+        )), 'error');
+      }
+    }
+
+    $mods_filename = $marc_filename = '';
+    // Copy the file from the temp location to the batch working directory.
+    if (file_exists($marc_mods_arr['MODS'])) {
+      $mods_filename = (copy($marc_mods_arr['MODS'], $item_path . '/MODS.xml')) ?
+          $item_path . '/MODS.xml' : '';
+    }
+    // Copy the file from the temp location to the batch working directory.
+    if (file_exists($marc_mods_arr['MARC'])) {
+      $marc_filename = (copy($marc_mods_arr['MARC'], $item_path . '/--METADATA--.xml')) ?
+          $item_path . '/--METADATA--.xml' : '';
+    }
+
+    $remapped_arr = array(
+      'title' => $bib_id,
+      'identifier' => $bib_id,
+      'filename' => '',
+      'mods_filename' => $mods_filename,
+      'marc_filename' => $marc_filename,
+    );
+    $item_file_sources[$idx] = $remapped_arr;
   }
-  echo "<hr><h3>MARC</h3><pre sylte='color:green'>" . htmlspecialchars($marc) . "</pre>";
-
-  // Now, transform that object's MARC and save the updated MODS - along with
-  // adding the transaction for IDW_ACTION_MODS_RECORD_UPDATED
-
-  return;
+  return $item_file_sources;
 }

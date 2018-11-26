@@ -30,18 +30,39 @@ function islandora_digital_workflow_sync_node_batch_record_info($node, $form_sta
       $form_state['values']['batch_name'];
   $batch_record = islandora_digital_workflow_get_batch_record_by_name($batch_name);
   $node = (is_object($node)) ? $node : (($batch_record['nid'] > 0) ? node_load($batch_record['nid']) : NULL);
+  $marc_and_mods_records = array();
   if ($batch_items_filename) {
-    // parse the csv file to get the identifiers and set pass these values
-    // along to be added to the node->field_identifiers value
-    $csv_array = islandora_digital_workflow_csv_file_as_array($batch_items_filename);
+    $mimetype = mime_content_type($batch_items_filename);
+    switch ($mimetype) {
+      // 1. MRC "application/marc".
+      case "application/marc":
+        $marc_and_mods_records = islandora_marc_utility_mrc_split($batch_items_filename);
+        list($file_header, $file_rows) = islandora_digital_workflow_mrc_results_as_array($marc_and_mods_records);
+        $arr = array('header' => $file_header, 'rows' => $file_rows);
+        break;
+      // 2. MARCXML "application/xml".
+      case "application/xml":
+        $marc_and_mods_records = islandora_marc_utility_marcxml_split($batch_items_filename);
+        list($file_header, $file_rows) = islandora_digital_workflow_mrc_results_as_array($marc_and_mods_records);
+        $arr = array('header' => $file_header, 'rows' => $file_rows);
+        break;
+
+      default:
+        // 3. CSV "text/plain" -- all other cases -- attempt as CSV "text/plain".
+        // parse the csv file to get the identifiers and set pass these values
+        // along to be added to the node->field_identifiers value
+        $arr = islandora_digital_workflow_csv_file_as_array($batch_items_filename);
+        break;
+    }
+
   }
   else {
-    $csv_array = array();
+    $arr = array();
   }
   if ($update_node) {
-    $node = islandora_digital_workflow_make_or_update_node($form_state, $csv_array, $node);
+    $node = islandora_digital_workflow_make_or_update_node($form_state, $arr, $node);
 
-    $batch_record = islandora_digital_workflow_create_batch_record_by_form($form_state, $node, $batch_items_filename);
+    $batch_record = islandora_digital_workflow_create_batch_record_by_form($form_state, $node, $batch_items_filename, NULL, $marc_and_mods_records);
     // Load the batch record related to the node's title value which should
     // be synced with the batch record's batch_name field.
     $node = (is_object($node)) ? $node : (($batch_record['nid'] > 0) ? node_load($batch_record['nid']) : NULL);
@@ -73,7 +94,7 @@ function islandora_digital_workflow_sync_node_batch_record_info($node, $form_sta
       'islandora_model' => islandora_digital_workflow_get_name_of_tid($node->field_islandora_model[$node->language][0]['tid']),
       'batch_priority_tid' => $node->field_priority[$node->language][0]['tid'],
     ));
-    $batch_record = islandora_digital_workflow_create_batch_record_by_form($form_state, $node, $batch_items_filename);
+    $batch_record = islandora_digital_workflow_create_batch_record_by_form($form_state, $node, $batch_items_filename, NULL, $marc_and_mods_records);
   }
   return $batch_record;
 }
@@ -152,20 +173,20 @@ function islandora_digital_workflow_load_batch_record_for_node($node, $form_stat
 
 /**
  * This should be able to update an existing node or create a new node and populate
- * the CCK fields with the form_state and csv_array values.
+ * the CCK fields with the $form_state and $arr values.
  *
  * @param array $user
  *   A Drupal user.
  * @param array $form_state
  *   An array representing a Drupal form.
- * @param array $csv_array
- *   An array of CSV values extracted from the CSV uploaded file.
+ * @param array $arr
+ *   An array values extracted from the uploaded items file.
  * @param object $node
  *   Drupal node.
  * @return object
  *   Drupal node.
  */
-function islandora_digital_workflow_make_or_update_node($form_state, $csv_array, $node = NULL) {
+function islandora_digital_workflow_make_or_update_node($form_state, $arr, $node = NULL) {
   global $user;
   module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy_utilities');
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
@@ -223,8 +244,8 @@ function islandora_digital_workflow_make_or_update_node($form_state, $csv_array,
   }
   // Since islandora_digital_workflow_csv_file_as_array returned all headings in
   // lowercase, look for "identifier"
-  $csv_values_arr = islandora_digital_workflow_get_csv_values_for_fieldname('identifier', $csv_array);
-  if (array_key_exists('identifier', $csv_array) && (count($csv_array) > 0)) {
+  $csv_values_arr = islandora_digital_workflow_get_csv_values_for_fieldname('identifier', $arr);
+  if (array_key_exists('identifier', $arr) && (count($arr) > 0)) {
     $node->field_identifiers[$node->language][0]['value'] = implode("\n", $csv_values_arr['identifier']);
   }
   else {
