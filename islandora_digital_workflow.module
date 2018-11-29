@@ -34,6 +34,9 @@ define('IDW_BATCH_ACTION_INACTIVE', 1001);
 define('ISLANDORA_DIGITAL_WORKFLOW', 'digital workflow access');
 define('ISLANDORA_DIGITAL_WORKFLOW_MANAGE', 'digital workflow manage');
 define('ISLANDORA_DIGITAL_WORKFLOW_CREATE_NEW_BATCH', 'digital workflow create batches');
+if (module_exists('islandora_digitization_requests')) {
+  define('ISLANDORA_DIGITAL_WORKFLOW_CREATE_DIGITIZATION_REQUEST', 'digital workflow create digitization request');
+}
 define('ISLANDORA_DIGITAL_WORKFLOW_VIEW_TRANSACTIONS', 'digital workflow view transactions');
 define('ISLANDORA_DIGITAL_WORKFLOW_EDIT_ITEM_META', 'digital workflow edit item meta');
 define('ISLANDORA_DIGITAL_WORKFLOW_DELETE_ITEMS', 'digital workflow delete items');
@@ -52,7 +55,7 @@ define('ISLANDORA_DIGITAL_WORKFLOW_SYNC_DELIVERY', 'digital workflow sync delive
  */
 function islandora_digital_workflow_menu() {
   // the "admin user" (usually ISLANDORA_DIGITAL_WORKFLOW) menu handlers:
-  return array(
+  $menu = array(
     'admin/islandora/islandora_digital_workflow' => array(
       'title' => t('Islandora Digital Workflow'),
       'description' => 'Settings for the Islandora Digital Workflow module.',
@@ -392,6 +395,17 @@ function islandora_digital_workflow_menu() {
       'type' => MENU_CALLBACK,
     ),
   );
+
+  if (module_exists('islandora_digitization_requests')) {
+    $menu['islandora/islandora_digital_workflow/create_digitization_request'] = array(
+      'title' => t('Islandora Digital Workflow - Submit a Digitization Request'),
+      'type' => MENU_NORMAL_ITEM,
+      'page callback' => array('islandora_digital_workflow_create_digitization_request'),
+      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_CREATE_DIGITIZATION_REQUEST),
+      'file' => 'includes/create_digitization_request.form.inc',
+    );
+  }
+  return $menu;
 }
 
 /**
@@ -462,6 +476,13 @@ function islandora_digital_workflow_permission() {
       'description' => t('User can use the "Sync" function to bring the resolved files from Delivery location back to workflow'),
     ),
   );
+  if (module_exists('islandora_digitization_requests')) {
+    $static_permissions[ISLANDORA_DIGITAL_WORKFLOW_CREATE_DIGITIZATION_REQUEST] = array(
+      'title' => t('Create digitization requests.'),
+      'description' => t('User can create a digitization request.'),
+    );
+  }
+
   $model_based_permissions = array();
   $models = islandora_digital_workflow_get_reduced_readable_cmodels();
 

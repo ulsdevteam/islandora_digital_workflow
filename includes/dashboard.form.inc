@@ -132,6 +132,16 @@ function islandora_digital_workflow_get_dashboard_action_links() {
   if (user_access(ISLANDORA_DIGITAL_WORKFLOW_CREATE_NEW_BATCH)) {
     $links[] = l('Create Batch', '/islandora/islandora_digital_workflow/create_batch');
   }
+
+  if (module_exists('islandora_digitization_requests')) {
+    // Look up whether or not there are any "Digitization Request" Webforms.
+    // and create an entry in $links[].
+    if (user_access(ISLANDORA_DIGITAL_WORKFLOW_CREATE_DIGITIZATION_REQUEST)) {
+      // There could be more than one type of "Digitization request" WebForm
+       $links[] = l('Submit a Digitization Request', '/islandora/islandora_digital_workflow/create_digitization_request');
+    }
+  }
+
   // Add a link if the user has permission to create collections.
   if (user_access('create child collection')) {
     $top_level_collection_uri = rtrim(variable_get('islandora_digital_workflow_top_level_collection', '/islandora/object/islandora:root'), "/");
