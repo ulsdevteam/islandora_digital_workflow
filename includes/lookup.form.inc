@@ -44,45 +44,65 @@ function islandora_digital_workflow_lookup_form_submitted($searchterm = '') {
 
   $matched_csv_only = FALSE;
   $reason = '';
-  $found_batch_records = array();
+  $found_records = array();
   $found_total = 0;
   $records = islandora_digital_workflow_find_batch_records_by_name($searchterm);
   if (count($records) > 0) {
-    $found_batch_records['batch name'] = $records;
+    $found_records['batch name'] = $records;
   }
   $found_total += ((is_array($records)) ? count($records) : 0);
   $records = islandora_digital_workflow_find_batch_records_by_description($searchterm);
   if (count($records) > 0) {
-    $found_batch_records['batch description'] = $records;
+    $found_records['batch description'] = $records;
   }
   $found_total += ((is_array($records)) ? count($records) : 0);
   $records = islandora_digital_workflow_get_batch_record_by_items_identifier($searchterm);
   if (count($records) > 0) {
-    $found_batch_records['batch item identifier'] = $records;
+    $found_records['batch item identifier'] = $records;
   }
   $found_total += ((is_array($records)) ? count($records) : 0);
   $records = islandora_digital_workflow_search_batch_csv_by_identifier($searchterm);
   if (count($records) > 0) {
-    $found_batch_records['uploaded CSV file'] = $records;
+    $found_records['uploaded CSV file'] = $records;
   }
   $found_total += ((is_array($records)) ? count($records) : 0);
+  if (module_exists('islandora_digitization_requests')) {
+    $records = islandora_digital_workflow_search_digitization_requests($searchterm);
+    if (count($records) > 0) {
+      $found_records['digitization requests'] = $records;
+    }
+    $found_total += ((is_array($records)) ? count($records) : 0);
+  }
 
   if ($found_total == 1) {
-    foreach ($found_batch_records as $reason => $batch_records) {
+    foreach ($found_records as $reason => $records) {
     }
     // If there is only one result, jump to that page --- else, present the
     // results as a list that can be used to jump to each.
-    if (count($batch_records) < 2) {
-      drupal_set_message(t('Located batch "@batch_name" by an item that matched ' .
-          '"@searchterm" <em>in <b>@reason</b> values</em>', // 'identifier value "@searchterm".',
-          array('@batch_name' => $batch_records[0]->batch_name,
-              '@searchterm' => $searchterm,
-              '@reason' => $reason)));
-      if ($batch_records[0]->nid) {
-        drupal_goto('node/' . $batch_records[0]->nid . '/batch');
+    if (count($records) < 2) {
+      // If this is a batch record, display the message that the redirect happened
+      // due to the match $reason.
+      if ($reason <> 'digitization requests') {
+        drupal_set_message(t('Located batch "@batch_name" by an item that matched ' .
+            '"@searchterm" <em>in <b>@reason</b> values</em>', // 'identifier value "@searchterm".',
+            array('@batch_name' => $records[0]->batch_name,
+                '@searchterm' => $searchterm,
+                '@reason' => $reason)));
+        if ($records[0]->nid) {
+          drupal_goto('node/' . $records[0]->nid . '/batch');
+        }
+        else {
+          drupal_goto('islandora/islandora_digital_workflow/edit_batch/' . $records[0]->batch_name);
+        }
       }
       else {
-        drupal_goto('islandora/islandora_digital_workflow/edit_batch/' . $batch_records[0]->batch_name);
+        // This record must be a digitization request... display a slightly
+        // different message and redirect to the node/171/submission/1 handler
+        // to view it.
+        drupal_set_message(t('Located a digitization request that contained the value ' .
+            '"@searchterm"',
+            array('@searchterm' => $searchterm)));
+        drupal_goto('node/' . $records[0]->nid . '/submission/' . $records[0]->sid);
       }
     }
   }
@@ -90,12 +110,12 @@ function islandora_digital_workflow_lookup_form_submitted($searchterm = '') {
     $markup = theme('islandora_digital_workflow_lookup', array('searchterm' => ''));
     // reorder the found_batch_records so that it removes duplicates and sorts
     // by the number of match reasons.
-    $found_batch_records = islandora_digital_workflow_ungroup_search_records($found_batch_records);
+    $found_records = islandora_digital_workflow_ungroup_search_records($found_records);
     return $markup . islandora_digital_workflow_highlight(
       islandora_digital_workflow_make_content_clean_output_to_highlight(
         theme('islandora_digital_workflow_lookup_results', array(
-          'batch_records' => $found_batch_records,
-          'results_count' => count($found_batch_records),
+          'records' => $found_records,
+          'results_count' => count($found_records),
           'searchterm' => $searchterm,
           'matched_csv_only' => $matched_csv_only,
         )

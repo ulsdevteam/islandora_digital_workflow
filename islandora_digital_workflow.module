@@ -404,7 +404,16 @@ function islandora_digital_workflow_menu() {
       'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_CREATE_DIGITIZATION_REQUEST),
       'file' => 'includes/create_digitization_request.form.inc',
     );
+    $menu['islandora/islandora_digital_workflow/map_digitization_request_to_batch/%/%'] = array(
+      'title' => t('Islandora Digital Workflow - Convert a Digitization Request into a batch.'),
+      'type' => MENU_NORMAL_ITEM,
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('islandora_digital_workflow_convert_digitization_request_to_batch'),
+      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_CREATE_DIGITIZATION_REQUEST),
+      'file' => 'includes/create_digitization_request.form.inc',
+    );
   }
+  dpm($menu);
   return $menu;
 }
 
@@ -561,7 +570,7 @@ function islandora_digital_workflow_theme() {
     'islandora_digital_workflow_lookup_results' => array(
       'template' => 'theme/islandora-digital-workflow-lookup-results',
       'variables' => array(
-        'batch_records' => array(),
+        'records' => array(),
         'results_count' => 0,
         'searchterm' => NULL,
         'reason' => '',
@@ -1022,4 +1031,17 @@ function islandora_digital_workflow_user_view_alter(&$build) {
 function islandora_digital_workflow_user_post_render(&$markup) {
   $dashboard_link = l('Islandora Digital Workflow', 'islandora/islandora_digital_workflow');
   print str_replace('content">','content">' . $dashboard_link, $markup);
+}
+
+function islandora_digital_workflow_page_alter(&$page) {
+  if (array_key_exists('content', $page) && array_key_exists('system_main', $page['content']) &&
+      array_key_exists('#theme', $page['content']['system_main']) && 
+      array_key_exists('#submission_information', $page['content']['system_main']) &&
+      $page['content']['system_main']['#theme'] == 'webform_submission_page') {
+    $nid = arg(1);
+    $sid = arg(3);
+    $page['content']['system_main']['#submission_information'] = '<div class="messages warning">' .
+        l('Convert this Digitization Request into an Islandora Digital Workflow batch.', 'islandora/islandora_digital_workflow/map_digitization_request_to_batch/' . $nid . '/' . $sid) .
+        '</div>' . $page['content']['system_main']['#submission_information'];
+  }
 }

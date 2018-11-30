@@ -150,65 +150,82 @@ function islandora_digital_workflow_admin_form() {
         '#description' => t('List filenames or wildcard filenames (supports *, ? characters) <b>ONE per line</b> that the ingest process should ignore when preparing the files that exist in the batch folder for ingest.
                              <p>When the files are managed in various environments, there are sometimes extra files left behind that are not intended as part of the ingest process (for example color calibration files such as "Target.tif", or hidden files or folders that might still cause a problem for the ingest).</p>'),
       ),
-    ),
+    )
+  );
 
-    'extra_options' => array(
+  // Check to see whether or not the islandora_digitization_requests and webform
+  // module are installed before displaying the options for Digitization Requests.
+  if (module_exists('webform') && module_exists('islandora_digitization_requests')) {
+    module_load_include('inc', 'islandora_digital_workflow', 'includes/create_digitization_request.form');
+    $form['digitization_request_options'] = array(
       '#type' => 'fieldset',
-      '#title' => t('Extra options'),
+      '#title' => t('Digitization Request Mappings and Search Fields'),
+      '#description' => t('When the ') . l('Islandora Digitization Requests', 'admin/islandora/tools/islandora_digitization_requests') .
+          t(' module is installed, it is possible to incorporate these into the ' .
+          'system for search as well as mapping to convert these into ' .
+          'Islandora Digital Workflow batch records.'),
       '#collapsible' => TRUE,
       '#collapsed' => FALSE,
-      'batch_isMemberOfSite_property' => array(
-        '#type' => 'item',
-        '#title' => t('Batch "isMemberOfSite" property'),
-        'batch_use_isMemberOfSite' => array(
-          '#type' => 'checkbox',
-          '#title' => 'Use the isMemberOfSite property?',
-          '#description' => 'When this is checked, batch creation allows selecting ' .
-            '"Sites" and passes the "sites" parameter to the islandora_batch drush ' .
-            'prepare commands.<br /><em>NOTE: This feature requires that each site is ' .
-            'ingested into fedora as pitt:siteCModel where their PID value is used for ' .
-            '"object to site" relationships as well as that the instances of the various ' .
-            'islandora_*_batch modules in order to handle the "sites" parameter.</em>',
-          '#default_value' => variable_get('islandora_digital_workflow_use_isMemberOfSite', 0),
-        ),
-      ),
-      'delete_delivery_when_scanned_property' => array(
-        '#type' => 'item',
-        '#title' => t('Delete files after scan copies made'),
-        'delete_delivery_when_scanned' => array(
-          '#type' => 'checkbox',
-          '#title' => 'Delete delivery file after scan copy is made?',
-          '#description' => 'When this is checked, the code will try to clean up ' .
-            'the delivery folders as the items are marked as "scanned".  Additionally, ' .
-            'when the final item is marked as "scanned", the containing folder will ' .
-            'also be deleted.  <em>NOTE: This feature requires the file permissions ' .
-            'to allow write from the web server.</em>',
-          '#default_value' => variable_get('islandora_digital_workflow_delete_delivery_files_INTENDED_VAL', 0),
-        ),
-      ),
-      'islandora_hook' => array(
-        '#type' => 'item',
-        '#title' => t('Handle the Islandora Ingested hooks'),
-        'handle_islandora_hook' => array(
-          '#type' => 'checkbox',
-          '#title' => 'Handle the Islandora Object Ingested and Datastream Ingested hooks?',
-          '#description' => 'When this is checked, the code will try to add a ' .
-            'transaction for that batch item for "Ingest item into repository" or ' .
-            '"System made derivatives".',
-          '#default_value' => variable_get('islandora_digital_workflow_handle_islandora_hook', 0),
-        ),
-      ),
-    ),
+      'digitization_requests' => islandora_digital_workflow_get_digitization_requests_config_form(),
+    );
+  }
 
-    'submit' => array(
-      '#type' => 'submit',
-      '#value' => t('Save Settings'),
+  $form['extra_options'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Extra options'),
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+    'batch_isMemberOfSite_property' => array(
+      '#type' => 'item',
+      '#title' => t('Batch "isMemberOfSite" property'),
+      'batch_use_isMemberOfSite' => array(
+        '#type' => 'checkbox',
+        '#title' => 'Use the isMemberOfSite property?',
+        '#description' => 'When this is checked, batch creation allows selecting ' .
+          '"Sites" and passes the "sites" parameter to the islandora_batch drush ' .
+          'prepare commands.<br /><em>NOTE: This feature requires that each site is ' .
+          'ingested into fedora as pitt:siteCModel where their PID value is used for ' .
+          '"object to site" relationships as well as that the instances of the various ' .
+          'islandora_*_batch modules in order to handle the "sites" parameter.</em>',
+        '#default_value' => variable_get('islandora_digital_workflow_use_isMemberOfSite', 0),
+      ),
     ),
-    'reset' => array(
-      '#type' => 'submit',
-      '#prefix' => '&nbsp; ',
-      '#value' => t('Reset'),
+    'delete_delivery_when_scanned_property' => array(
+      '#type' => 'item',
+      '#title' => t('Delete files after scan copies made'),
+      'delete_delivery_when_scanned' => array(
+        '#type' => 'checkbox',
+        '#title' => 'Delete delivery file after scan copy is made?',
+        '#description' => 'When this is checked, the code will try to clean up ' .
+          'the delivery folders as the items are marked as "scanned".  Additionally, ' .
+          'when the final item is marked as "scanned", the containing folder will ' .
+          'also be deleted.  <em>NOTE: This feature requires the file permissions ' .
+          'to allow write from the web server.</em>',
+        '#default_value' => variable_get('islandora_digital_workflow_delete_delivery_files_INTENDED_VAL', 0),
+      ),
     ),
+    'islandora_hook' => array(
+      '#type' => 'item',
+      '#title' => t('Handle the Islandora Ingested hooks'),
+      'handle_islandora_hook' => array(
+        '#type' => 'checkbox',
+        '#title' => 'Handle the Islandora Object Ingested and Datastream Ingested hooks?',
+        '#description' => 'When this is checked, the code will try to add a ' .
+          'transaction for that batch item for "Ingest item into repository" or ' .
+          '"System made derivatives".',
+        '#default_value' => variable_get('islandora_digital_workflow_handle_islandora_hook', 0),
+      ),
+    ),
+  );
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save Settings'),
+  );
+  $form['reset'] = array(
+    '#type' => 'submit',
+    '#prefix' => '&nbsp; ',
+    '#value' => t('Reset'),
   );
   return $form;
 }
@@ -317,6 +334,27 @@ function islandora_digital_workflow_admin_form_submit(array $form, array &$form_
       variable_set('islandora_digital_workflow_delete_delivery_files', $use_value);
       variable_set('islandora_digital_workflow_delete_delivery_files_INTENDED_VAL', $form_state['values']['delete_delivery_when_scanned']);
       variable_set('islandora_digital_workflow_handle_islandora_hook', $form_state['values']['handle_islandora_hook']);
+
+      if (module_exists('webform') && module_exists('islandora_digitization_requests')) {
+        module_load_include('inc', 'islandora_digitization_requests', 'includes/db');
+        $webforms = islandora_digitization_requests_get_webforms();
+        $digitization_request_options = array();
+        foreach ($webforms as $nid => $webform_arr) {
+          $id = 'webform_' . $nid . '_is_digitization_request';
+          // $digitization_request_options[$nid]['selected'] = $form_state['values'][$id];
+          $form_components = islandora_digitization_requests_webform_components($nid);
+          foreach ($form_components as $cid => $components_arr) {
+            $digitization_request_options[$nid]['search_fields'][$cid] = $form_state['values']['webform_' . $nid . '_searchfields_' . $cid];
+          }
+
+          // The mapped field depends on whether or not the Islandora Digital
+          // Workflow module is installed.
+          foreach ($form_components as $cid => $components_arr) {
+            $digitization_request_options[$nid]['mapped_fields'][$cid] = $form_state['values']['webform_' . $nid . '_mappings_' . $cid];
+          }
+        }
+        variable_set('islandora_digital_workflow_digitization_requests', $digitization_request_options);
+      }
       drupal_set_message('[' . date('H:i:s') . '] The settings have been saved.');
       // drupal_goto('admin/islandora/islandora_digital_workflow');
       break;

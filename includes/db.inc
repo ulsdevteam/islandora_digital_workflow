@@ -269,6 +269,43 @@ function islandora_digital_workflow_search_batch_csv_by_identifier($identifier) 
   }
 }
 
+function islandora_digital_workflow_search_digitization_requests($searchterm) {
+  if ($searchterm) {
+    // Loop through all of the fields that are configured for each of the
+    // "digitization request" webforms and union the queries together with each
+    // one having a specific value for their configured condition such as:
+    //   wc.form_key IN ('staff_name', 'description')
+    module_load_include('inc', 'islandora_digitization_requests', 'includes/db');
+    module_load_include('inc', 'islandora_digital_workflow', 'includes/create_digitization_request.form');
+    $webforms = islandora_digitization_requests_get_webforms();
+    $digitization_request_webforms = islandora_digitization_requests_get_scan_request_webforms($webforms);
+    $allrows = array();
+    foreach ($digitization_request_webforms as $nid => $webform_title) {
+      $search_fields = islandora_digital_workflow_searchable_fields($nid, TRUE);
+      $components = islandora_digitization_requests_webform_components($nid);
+      $query = db_select('webform_submitted_data', 'wd')
+          ->fields('wd');
+      $query->join('webform_component', 'wc', 'wd.cid = wc.cid');
+      $query->fields('wc', array('form_key'));
+      $query->condition('wc.form_key', $search_fields, 'IN');
+      $query->condition('wd.data', '%' . db_like($searchterm) . '%', 'LIKE');
+  //    $query->groupBy('wc.cid');
+      $results = $query->execute();
+      $rows = $results->fetchAll();
+      foreach ($rows as $idx => $row) {
+        $row->batch_id = 'digitization_request_' . $row->sid;
+        $allrows[] = $row;
+        $rows[$idx]->batch_id = 'digitization_request_' . $row->sid;
+      }
+    }
+
+    return $allrows;
+  }
+  else {
+    return NULL;
+  }
+}
+
 /**
  * Returns all batches that have a different number for object_count than the
  * actual number of items in the islandora_digital_workflow_batch_items table.
