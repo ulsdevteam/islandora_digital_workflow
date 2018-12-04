@@ -269,6 +269,15 @@ function islandora_digital_workflow_search_batch_csv_by_identifier($identifier) 
   }
 }
 
+/**
+ * Dynamic search of the submitted webform data based on configuration.
+ *
+ * @param string $searchterm
+ *   The string value that the user is looking up.
+ * @return array
+ *   An array of webform submitted data that matched a field value for the
+ * $searchterm.
+ */
 function islandora_digital_workflow_search_digitization_requests($searchterm) {
   if ($searchterm) {
     // Loop through all of the fields that are configured for each of the
@@ -287,9 +296,11 @@ function islandora_digital_workflow_search_digitization_requests($searchterm) {
           ->fields('wd');
       $query->join('webform_component', 'wc', 'wd.cid = wc.cid');
       $query->fields('wc', array('form_key'));
+      $query->join('node', 'n', 'n.nid = wc.nid');
+      $query->addField('n', 'title', 'webform_title');
       $query->condition('wc.form_key', $search_fields, 'IN');
       $query->condition('wd.data', '%' . db_like($searchterm) . '%', 'LIKE');
-  //    $query->groupBy('wc.cid');
+      $query->orderBy('wc.nid');
       $results = $query->execute();
       $rows = $results->fetchAll();
       foreach ($rows as $idx => $row) {

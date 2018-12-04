@@ -17,15 +17,22 @@
     <p>Found <?php print $results_count; ?> results<?php
     if ($matched_csv_only) : ?> <i>(found only in uploaded CSV file)</i><?php endif; ?></p>
 
-    <?php $digital_request_breaker_displayed = FALSE; ?>
-    <?php $toggle = FALSE; ?>
+    <?php $digital_request_heading_displayed = FALSE; ?>
+    <?php
+      $toggle = FALSE;
+      $last_webform_title = '';
+    ?>
     <?php foreach ($records as $record) { ?>
-<?php dpm($record); ?>
-
-        <?php if (!$digital_request_breaker_displayed && (!(array_search('digitization requests', $record->reasons) === FALSE))): ?>
+      <?php $is_digitization_request = (!(array_search('digitization requests', $record->reasons) === FALSE)); ?>
+        <?php if (!$digital_request_heading_displayed && (!(array_search('digitization requests', $record->reasons) === FALSE))): ?>
           <h3>Digitization Requests</h3>
-          <?php $digital_request_breaker_displayed = TRUE; ?>
+          <?php $digital_request_heading_displayed = TRUE; ?>
         <?php endif; ?>
+        <?php // sorry for the inline PHP block using a slightly different syntax.
+        if ($is_digitization_request && $last_webform_title <> $record->webform_title) {
+          print "Submission/s to <b>" . $record->webform_title . "</b><br>";
+          $last_webform_title = $record->webform_title;
+        } ?>
 
     <div class="lookup_result <?php print ($toggle) ? 'evenrow' : 'oddrow'; ?>">
         <?php
@@ -37,7 +44,7 @@
         }
         ?>
         <div class="lookup_result_indent">
-        <?php if (!(array_search('digitization requests', $record->reasons) === FALSE)) : ?>
+        <?php if ($is_digitization_request) : ?>
           <b>Request data:</b> <?php print l($record->data, '/node/' . $record->nid . '/submission/' . $record->sid); ?>
         <?php else: ?>
           <?php if (!($record->nid)) : ?>

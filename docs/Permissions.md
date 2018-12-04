@@ -14,6 +14,8 @@ In the main block of links, some of them only appear if the user has permission.
 
 The **Create collection** link displays to users with the Islandora module &quot;Create child collection&quot; permission.
 
+The **Submit a Digitization Request** link is first dependant on the optional modules being installed, but further constrained by the &quot;Create digitization requests&quot; permission.
+
 The **Create batch** link displays to users with &quot;Create new digital workflow batches&quot; permission.
 
 The **Reports** link is only visible to users who have the &quot;Run reports&quot; permission.

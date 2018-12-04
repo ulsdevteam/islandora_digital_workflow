@@ -317,6 +317,10 @@ div.message_info p.message_info {
     font-size: 0.8em;
 }
 
+.larger_font {
+    font-size: larger;
+}
+
 .optional_dsid, .optional_action {
     color: black;
     opacity: 0.45;
@@ -328,6 +332,10 @@ div.message_info p.message_info {
 
 div.form-disabled label.enabled_text {
     color: inherit !important;
+}
+
+.nonbold {
+    font-weight: normal;
 }
 
 .small_lt_text {
@@ -596,12 +604,23 @@ tr.spaceUnder>td {
   padding-bottom: 2px;
   border-top: 2px solid #BBB;
 }
-.lookup_result.evenrow {
+.even_element, .lookup_result.evenrow {
     background-color: white;
 }
-.lookup_result.oddrow {
+.odd_element, .lookup_result.oddrow {
     background-color:#F6F6F6;
 }
+.even_element {
+    box-shadow: 0px 0px 6px #F5F5F5;
+    margin: 0;
+    padding: 4px 0px 6px 0;
+}
+.odd_element {
+    box-shadow: 0px 0px 6px #EDEDED;
+    margin: 0;
+    padding: 4px 0px 6px 0;
+}
+
 .lookup_result div h2 {
     margin-top: 0;
 }
@@ -690,6 +709,15 @@ li.no_indent {
 .inline_form .fieldset-wrapper .form-item {
     width: 32%;
     max-width: 32%;
+    display: inline-block;
+    float: left;
+}
+
+.multi_input_line .form-item {
+    padding-left: 3%;
+    padding-right: 3%;
+    width: 44%;
+    max-width: 40%;
     display: inline-block;
     float: left;
 }
@@ -849,4 +877,8 @@ td.slide-cross {
   border-right: 1px solid #0068B7;
   border-bottom: 1px solid #0068B7;
   border-left: 1px solid #4397D3;
+}
+
+.break_float {
+    clear:both;
 }

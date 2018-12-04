@@ -66,7 +66,7 @@ The Islandora Digital Workflow module relies on some other modules in order to b
  **Optional modules:**
  - [Islandora METS Editor](https://github.com/ulsdevteam/islandora_mets_editor.git) To provide a way to create, edit, manage METS files in Islandora.
  - [Islandora MARC XML](https://github.com/Islandora/islandora_marcxml) An Islandora module which performs transformations between MODS and MARCXML.  When present, the configuration will add the transforms to the "MARC to MODS Transform" selection choices.
- - [Islandora Digitization Requests](https://github.com/ulsdevteam/islandora_digitization_requests.git) A module that allow for the creation of Webforms and the other to allow use of these to handle Digitization Request submissions.
+ - [Islandora Digitization Requests](https://github.com/ulsdevteam/islandora_digitization_requests.git) A module that allow for the creation of Webforms and the other to allow use of these to handle Digitization Request submissions.  For more information on how this works with the Islandora Digital Workflow, please see [DigitizationRequests.md](docs/DigitizationRequests.md).
 
 **Islandora Batch Ingest Modules** 
 In order to batch ingest Islandora models, they each require a specific module to be installed.  Additionally, the ability to assign PID value for objects as they ingest as well as to add the "isMemberOfSite" relationship would require the ulsdevteam instance of each module.  The configuration page provides links to download and install each of the required modules.  These are:

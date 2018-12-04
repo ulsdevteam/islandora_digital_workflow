@@ -5,12 +5,12 @@
  * Module code for Islandora Digital Workflow module.
  */
 
-// Taxonomy Vocabulary
+// Taxonomy Vocabulary.
 define('IDW_STAGE_TAXONOMY_MACHINE_NAME', 'workflow_stage_vocab');
 define('IDW_CONTENT_TYPE_TAXONOMY_MACHINE_NAME', 'workflow_content_type_vocab');
 define('IDW_BATCH_PRIORITY_TAXONOMY_MACHINE_NAME', 'workflow_batch_priority_vocab');
 
-// action constants
+// Action constants.
 define('IDW_ACTION_CHECK_IN', 1);
 define('IDW_ACTION_SCAN', 2);
 define('IDW_ACTION_SYSTEM_INGEST', 3);
@@ -145,7 +145,7 @@ function islandora_digital_workflow_menu() {
       'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_MANAGE_SEQUENCES),
       'file' => 'includes/workflow_sequences.form.inc',
     ),
-    // the "standard Workflow user" (usually ISLANDORA_DIGITAL_WORKFLOW) menu handlers:
+    // the "standard Workflow user" (usually ISLANDORA_DIGITAL_WORKFLOW) menu handlers.
     'islandora/islandora_digital_workflow' => array(
       'title' => t('Islandora Digital Workflow Dashboard'),
       'type' => MENU_NORMAL_ITEM,
@@ -153,8 +153,7 @@ function islandora_digital_workflow_menu() {
       'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW),
       'file' => 'includes/dashboard.form.inc',
     ),
-    // the "standard Workflow user" (usually ISLANDORA_DIGITAL_WORKFLOW) menu handlers:
-    // Lookup form
+    // Lookup form.
     'islandora/islandora_digital_workflow/lookup' => array(
       'page callback' => array('islandora_digital_workflow_lookup'),
       'type' => MENU_SUGGESTED_ITEM,
@@ -199,7 +198,7 @@ function islandora_digital_workflow_menu() {
       'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_DELETE_ITEMS),
       'file' => 'includes/delete_batch_items.form.inc',
     ),
-    // A handler to serve up a download of CSV templates
+    // A handler to serve up a download of CSV templates.
     'islandora/islandora_digital_workflow/csv_template/%' => array(
       'type' => MENU_NORMAL_ITEM,
       'page callback' => 'drupal_get_form',
@@ -207,7 +206,7 @@ function islandora_digital_workflow_menu() {
       'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW),
       'file' => 'includes/file_utilities.inc',
     ),
-    // Node enhancement functions
+    // Node enhancement functions.
     'node/%node/batch' => array(
       'title' => t('Edit Batch Record'),
       'page callback' => 'islandora_digital_workflow_batch',
@@ -309,7 +308,7 @@ function islandora_digital_workflow_menu() {
       'title' => t('Islandora Digital Workflow - Sync Delivery files'),
       'type' => MENU_NORMAL_ITEM,
       'page callback' => 'islandora_digital_workflow_sync_delivery_files',
-      // arguments are handled with arg(3)
+      // arguments are handled with arg(3).
       'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_SYNC_DELIVERY),
       'file' => 'includes/sync_delivery_files.inc',
     ),
@@ -353,23 +352,23 @@ function islandora_digital_workflow_menu() {
       'title' => t('Islandora Digital Workflow - Process Identifiers'),
       'type' => MENU_NORMAL_ITEM,
       'page callback' => array('islandora_digital_workflow_recalculate_files'),
-      // arguments are handled with arg(4)
+      // arguments are handled with arg(4).
       'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_USE_UTILITIES),
       'file' => 'includes/utilities.form.inc',
     ),
-    // Callback to serve up the dynamically generated CSS file
+    // Callback to serve up the dynamically generated CSS file.
     'islandora/islandora_digital_workflow_css.css' => array(
       'type' => MENU_CALLBACK,
       'page callback' => 'islandora_digital_workflow_update_dynamic_css',
       'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW),
       'file' => 'includes/islandora_digital_workflow_css.inc',
     ),
-    // Handler to display a given debug value
+    // Handler to display a given debug value.
     'islandora/islandora_digital_workflow/debug_view/%/%' => array(
       'title' => t('Islandora Digital Workflow - Debug entry viewer'),
       'type' => MENU_NORMAL_ITEM,
       'page callback' => array('islandora_digital_workflow_debug_view'),
-      // arguments are handled with arg(3) and arg(4)
+      // arguments are handled with arg(3) and arg(4).
       'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW),
       'file' => 'includes/item.form.inc',
     ),
@@ -405,7 +404,7 @@ function islandora_digital_workflow_menu() {
       'file' => 'includes/create_digitization_request.form.inc',
     );
     $menu['islandora/islandora_digital_workflow/map_digitization_request_to_batch/%/%'] = array(
-      'title' => t('Islandora Digital Workflow - Convert a Digitization Request into a batch.'),
+      'title' => t('Islandora Digital Workflow - Convert a Digitization Request into a batch?'),
       'type' => MENU_NORMAL_ITEM,
       'page callback' => 'drupal_get_form',
       'page arguments' => array('islandora_digital_workflow_convert_digitization_request_to_batch'),
@@ -413,7 +412,6 @@ function islandora_digital_workflow_menu() {
       'file' => 'includes/create_digitization_request.form.inc',
     );
   }
-  dpm($menu);
   return $menu;
 }
 
@@ -521,6 +519,8 @@ function islandora_digital_workflow_preprocess_html(&$vars) {
     module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
     if (islandora_digital_workflow_path_needs_js($item['path'])) {
       drupal_add_js($path . '/js/digital_workflow.js');
+    } elseif ($item['path'] == 'admin/islandora/islandora_digital_workflow') {
+      drupal_add_js($path . '/js/admin_digital_workflow.js');
     }
     drupal_add_css($path . '/css/islandora_digital_workflow.css');
     $public_files_path = drupal_realpath('public://');
@@ -796,7 +796,7 @@ function islandora_digital_workflow_islandora_datastream_ingested(AbstractObject
     }
   }
   // Loop through the $required_datastreams, assume TRUE - set to FALSE if any
-  // not found in $object_datastreams
+  // not found in $object_datastreams.
   $success = TRUE;
   $required_datastream_index = 0;
   while ($success && $required_datastream_index < count($required_datastreams)) {
@@ -972,10 +972,10 @@ function islandora_digital_workflow_islandora_batch_process_finished($sets) {
       $queued_items = islandora_batch_get_queued_items_for_set($set);
 
       foreach ($queued_items as $ingested_pid) {
-        // ingested_pid = ' . print_r($ingested_pid, true)
+        // ingested_pid = ' . print_r($ingested_pid, true).
         $ingested_object = islandora_object_load($ingested_pid);
         if (is_object($ingested_object)) {
-          // Update the batch status record for the matching batch record for this set's $ingested_pid
+          // Update the batch status record for the matching batch record for this set's $ingested_pid.
           islandora_digital_workflow_set_status_for_pid($ingested_object, IDW_ACTION_SYSTEM_INGEST);
         }
         else {
@@ -988,11 +988,16 @@ function islandora_digital_workflow_islandora_batch_process_finished($sets) {
   } // if (!empty($sets
 }
 
+/**
+ * Implements hook_preprocess_page().
+ *
+ * This code will add a breadcrumb to any node page that is of type `workflow_batch`.
+ */
 function islandora_digital_workflow_preprocess_page(&$vars) {
   if ( arg(0) == 'node' && is_numeric(arg(1)) ) {
     $node = node_load(arg(1));
     if ( $node->type == 'workflow_batch' ) {
-      // islandora/islandora_digital_workflow » {current node title}
+      // islandora/islandora_digital_workflow » {current node title}.
       $title = (arg(2) == 'item' && is_numeric(arg(3))) ?
               l($node->title, 'node/' . arg(1) . '/batch') : $node->title;
       $vars['breadcrumb'] = theme('breadcrumb', array(
@@ -1033,15 +1038,25 @@ function islandora_digital_workflow_user_post_render(&$markup) {
   print str_replace('content">','content">' . $dashboard_link, $markup);
 }
 
+/**
+ * Implements hook_page_alter().
+ *
+ * This code will inject a link to any Webform submission that is .
+ */
 function islandora_digital_workflow_page_alter(&$page) {
   if (array_key_exists('content', $page) && array_key_exists('system_main', $page['content']) &&
       array_key_exists('#theme', $page['content']['system_main']) && 
       array_key_exists('#submission_information', $page['content']['system_main']) &&
       $page['content']['system_main']['#theme'] == 'webform_submission_page') {
+
     $nid = arg(1);
     $sid = arg(3);
-    $page['content']['system_main']['#submission_information'] = '<div class="messages warning">' .
-        l('Convert this Digitization Request into an Islandora Digital Workflow batch.', 'islandora/islandora_digital_workflow/map_digitization_request_to_batch/' . $nid . '/' . $sid) .
-        '</div>' . $page['content']['system_main']['#submission_information'];
+    $webform_digitization_requests = variable_get('islandora_digitization_requests_webform_forms', array());
+    if (!(array_key_exists($nid, $webform_digitization_requests) === FALSE) &&
+        isset($webform_digitization_requests[$nid]) && $webform_digitization_requests[$nid]['selected']) {
+      $page['content']['system_main']['#submission_information'] = '<div class="messages warning">' .
+          l('Convert this Digitization Request into an Islandora Digital Workflow batch.', 'islandora/islandora_digital_workflow/map_digitization_request_to_batch/' . $nid . '/' . $sid) .
+          '</div>' . $page['content']['system_main']['#submission_information'];
+    }
   }
 }

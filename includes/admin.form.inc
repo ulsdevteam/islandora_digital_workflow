@@ -160,10 +160,10 @@ function islandora_digital_workflow_admin_form() {
     $form['digitization_request_options'] = array(
       '#type' => 'fieldset',
       '#title' => t('Digitization Request Mappings and Search Fields'),
-      '#description' => t('When the ') . l('Islandora Digitization Requests', 'admin/islandora/tools/islandora_digitization_requests') .
-          t(' module is installed, it is possible to incorporate these into the ' .
-          'system for search as well as mapping to convert these into ' .
-          'Islandora Digital Workflow batch records.'),
+      '#description' => t('When the Islandora Digitization Requests module ' .
+          'is installed, it is possible to incorporate these into the system ' .
+          'for search as well as mapping to convert these into Islandora ' .
+          'Digital Workflow batch records.'),
       '#collapsible' => TRUE,
       '#collapsed' => FALSE,
       'digitization_requests' => islandora_digital_workflow_get_digitization_requests_config_form(),
@@ -337,6 +337,11 @@ function islandora_digital_workflow_admin_form_submit(array $form, array &$form_
 
       if (module_exists('webform') && module_exists('islandora_digitization_requests')) {
         module_load_include('inc', 'islandora_digitization_requests', 'includes/db');
+        module_load_include('inc', 'islandora_digitization_requests', 'includes/db');
+
+        $mapping_to_fieldnames_for_textfields = islandora_digital_workflow_batch_field_mappings(TRUE, FALSE);
+        $mapping_to_fieldnames_for_intfields = islandora_digital_workflow_batch_field_mappings(FALSE, TRUE);
+        $all_mapping_fieldnames = array_merge($mapping_to_fieldnames_for_intfields, $mapping_to_fieldnames_for_textfields);
         $webforms = islandora_digitization_requests_get_webforms();
         $digitization_request_options = array();
         foreach ($webforms as $nid => $webform_arr) {
@@ -344,13 +349,17 @@ function islandora_digital_workflow_admin_form_submit(array $form, array &$form_
           // $digitization_request_options[$nid]['selected'] = $form_state['values'][$id];
           $form_components = islandora_digitization_requests_webform_components($nid);
           foreach ($form_components as $cid => $components_arr) {
-            $digitization_request_options[$nid]['search_fields'][$cid] = $form_state['values']['webform_' . $nid . '_searchfields_' . $cid];
+            $form_field = 'webform_' . $nid . '_searchfields_' . $cid;
+            $digitization_request_options[$nid]['search_fields'][$cid] = (isset($form_state['values'][$form_field]) ? $form_state['values'][$form_field] : '');
           }
 
           // The mapped field depends on whether or not the Islandora Digital
           // Workflow module is installed.
-          foreach ($form_components as $cid => $components_arr) {
-            $digitization_request_options[$nid]['mapped_fields'][$cid] = $form_state['values']['webform_' . $nid . '_mappings_' . $cid];
+          foreach ($all_mapping_fieldnames as $fieldname => $ignoreme_markup) {
+            $form_field = 'webform_' . $nid . '_mappings_' . $fieldname;
+            $digitization_request_options[$nid]['mapped_fields'][$fieldname] = (isset($form_state['values'][$form_field]) ? $form_state['values'][$form_field] : '');
+            $form_field = 'webform_' . $nid . '_default_' . $fieldname;
+            $digitization_request_options[$nid]['default_values_fields'][$fieldname] = (isset($form_state['values'][$form_field]) ? $form_state['values'][$form_field] : '');
           }
         }
         variable_set('islandora_digital_workflow_digitization_requests', $digitization_request_options);
