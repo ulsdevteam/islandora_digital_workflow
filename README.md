@@ -57,13 +57,13 @@ The Islandora Digital Workflow module relies on some other modules in order to b
  - [Islandora Solr Search](https://github.com/Islandora/islandora_solr_search.git) - Searches an Islandora Solr index.
  - [Islandora MARC Utility](https://github.com/ulsdevteam/islandora_marc_utility.git) - MARC utilities for parsing MARC mrc or MARCXML (collection) files.
  - [Forena](https://git.drupal.org/project/forena.git) | [ulsdevteam "Forena"](https://github.com/ulsdevteam/forena.git) *The ulsdevteam feature branch of Forena reports adds a Description value to the reports.  If the ulsdevteam branch of this module is installed or if the code is eventually merged into Forena, the descriptions of reports would be displayed -- else, only their Titles can be displayed.*
- - [Rules](https://git.drupal.org/project/rules.git)
  - Taxonomy (Drupal core module must be enabled)
  - [Views](https://git.drupal.org/project/views.git)
  - see **Islandora Batch Ingest Modules** section below as well in order to be able to prepare batches for Drupal ingest via drush commands.
 
 
  **Optional modules:**
+ - [Rules](https://git.drupal.org/project/rules.git)
  - [Islandora METS Editor](https://github.com/ulsdevteam/islandora_mets_editor.git) To provide a way to create, edit, manage METS files in Islandora.
  - [Islandora MARC XML](https://github.com/Islandora/islandora_marcxml) An Islandora module which performs transformations between MODS and MARCXML.  When present, the configuration will add the transforms to the "MARC to MODS Transform" selection choices.
  - [Islandora Digitization Requests](https://github.com/ulsdevteam/islandora_digitization_requests.git) A module that allow for the creation of Webforms and the other to allow use of these to handle Digitization Request submissions.  For more information on how this works with the Islandora Digital Workflow, please see [DigitizationRequests.md](docs/DigitizationRequests.md).
@@ -73,7 +73,7 @@ In order to batch ingest Islandora models, they each require a specific module t
  - [Basic Image](https://github.com/Islandora/islandora_batch.git) | [ulsdevteam "Basic Image"](https://github.com/ulsdevteam/islandora_batch.git)
  - [Finding Aid](//) (not developed)
  - [Internet Archive Book](https://github.com/Islandora/islandora_book_batch.git) | [ulsdevteam "Internet Archive Book"](https://github.com/ulsdevteam/islandora_book_batch.git)
- - [Large Image]() [ulsdevteam "Large Image"](https://github.com/ulsdevteam/islandora_batch.git)
+ - [Large Image]() | [ulsdevteam "Large Image"](https://github.com/ulsdevteam/islandora_batch.git)
  - [Manuscript](https://github.com/ulsdevteam/islandora_manuscript_batch.git) *ulsdevteam version is the only instance.*
  - [Newspaper](https://github.com/Islandora/islandora_newspaper_batch.git) | [ulsdevteam "Newspaper"](https://github.com/ulsdevteam/islandora_newspaper_batch.git)
  - [Newspaper Issue](https://github.com/Islandora/islandora_newspaper_batch.git) | [ulsdevteam "Newspaper Issue"](https://github.com/ulsdevteam/islandora_newspaper_batch.git)

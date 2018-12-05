@@ -367,7 +367,6 @@ function islandora_digital_workflow_convert_digitization_request_to_batch(array 
   $results = islandora_digital_workflow_map_submission($nid, $sid);
   $mappings = $results['mappings'];
   $islandora_digital_workflow_batch_fields = $results['islandora_digital_workflow_batch_fields'];
-  
   $confirm_mapping_form = array();
   $confirm_mapping_form['nothing'] = array(
     '#type' => 'item',
@@ -380,7 +379,7 @@ function islandora_digital_workflow_convert_digitization_request_to_batch(array 
         'digitization request that can map to any batch record fields.</b>')
   );
 
-  $confirm_mapping_form['sid'] = array(
+  $confirm_mapping_form['batch_name'] = array(
     '#type' => 'textfield',
     '#title' => 'Batch name',
     '#required' => TRUE,
@@ -513,7 +512,7 @@ function islandora_digital_workflow_map_submission($nid, $sid) {
           t('(unknown webform with nid = @nid)', array('@nid' => $nid)));
       // Set up an array to keep track of submitted data that does not get mapped
       foreach ($components as $cid => $webform_field) {
-        if ($submission_data[$cid]['data']) {
+        if (array_key_exists($cid, $submission_data) && $submission_data[$cid]['data'] && array_key_exists($cid, $unmapped_fields)) {
           $unmapped_fields[$cid] = array(
               'webform_field_label' => strtoupper($webform_field['name']),
               'value' => $submission_data[$cid]['data'],

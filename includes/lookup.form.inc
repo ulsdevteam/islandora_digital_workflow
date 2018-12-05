@@ -165,7 +165,7 @@ function islandora_digital_workflow_ungroup_search_records($found_batch_records)
       if (!(array_key_exists($found_record_obj->batch_id, $raw_records_found))) {
         $raw_records_found[$found_record_obj->batch_id] = $found_record_obj;
       }
-      if (!isset($raw_records_found[$found_record_obj->batch_id]->reasons)) {
+      if (!isset($raw_records_found[$found_record_obj->batch_id]->reasons) || strstr($found_record_obj->batch_id, 'digitization_request_') ) {
         $raw_records_found[$found_record_obj->batch_id]->reasons = array($reason);
       }
       else {
