@@ -243,7 +243,7 @@ function islandora_digital_workflow_schema() {
         'not null' => TRUE,
       ),
       'batch_priority_tid' => array(
-        'description' => 'Drupal taxonomy term tid value',
+        'description' => 'Batch priority (Drupal taxonomy term tid value)',
         'type' => 'int',
         'size' => 'medium',
         'unsigned' => TRUE,

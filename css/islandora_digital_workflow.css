@@ -136,7 +136,7 @@ span.transaction_action_reserved_action_spacer {
     padding-right: 10px;
 }
 
-.action_glyph_previews .padleft {
+.action_glyph_previews .padleft, .left_padded {
     padding-left: 10px;
 }
 
@@ -315,6 +315,7 @@ div.message_info p.message_info {
 
 .small_font {
     font-size: 0.8em;
+    white-space: inherit;
 }
 
 .larger_font {
@@ -346,6 +347,12 @@ div.form-disabled label.enabled_text {
 
 .good {
     color: green;
+}
+
+.idw_fieldname {
+    color: #454A8D;
+    font-style: italic;
+    font-weight: bold;
 }
 
 .bad {
