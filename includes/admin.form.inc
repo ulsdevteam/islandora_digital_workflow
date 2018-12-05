@@ -361,6 +361,7 @@ function islandora_digital_workflow_admin_form_submit(array $form, array &$form_
             $form_field = 'webform_' . $nid . '_default_' . $fieldname;
             $digitization_request_options[$nid]['default_values_fields'][$fieldname] = (isset($form_state['values'][$form_field]) ? $form_state['values'][$form_field] : '');
           }
+          $digitization_request_options[$nid]['message_info_' . $nid] = (isset($form_state['values']['message_info_' . $nid]) ? $form_state['values']['message_info_' . $nid] : '');
         }
         variable_set('islandora_digital_workflow_digitization_requests', $digitization_request_options);
       }

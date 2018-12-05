@@ -889,3 +889,10 @@ td.slide-cross {
 .break_float {
     clear:both;
 }
+
+.indented_ul {
+    list-style-position: outside !important;
+}
+.indented_ul li {
+    text-indent: 0 !important;
+}

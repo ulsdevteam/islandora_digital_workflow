@@ -1007,6 +1007,33 @@ function islandora_digital_workflow_preprocess_page(&$vars) {
           ))
       );
     }
+    elseif ($node->type == 'webform' && module_exists('islandora_digitization_requests') &&
+        user_access(ISLANDORA_DIGITAL_WORKFLOW_CREATE_DIGITIZATION_REQUEST)) {
+      $nid = arg(1);
+
+      // Make sure that this webform is registered as one of the digitization
+      // requests before setting the message on the screen.
+      if (array_key_exists('page', $vars) &&
+        array_key_exists('content', $vars['page']) &&
+        array_key_exists('system_main', $vars['page']['content']) &&
+        array_key_exists('nodes', $vars['page']['content']['system_main']) &&
+        array_key_exists($nid, $vars['page']['content']['system_main']['nodes']) &&
+        array_key_exists('webform', $vars['page']['content']['system_main']['nodes'][$nid])) {
+
+        $webform_options = variable_get('islandora_digital_workflow_digitization_requests', array());
+        $submission_prefix = (array_key_exists($nid, $webform_options) &&
+          array_key_exists('message_info_' . $nid, $webform_options[$nid])) ?
+          $webform_options[$nid]['message_info_' . $nid] : '';
+        if ($submission_prefix) {
+          module_load_include('inc', 'islandora_digitization_requests', 'includes/db');
+          $webforms = islandora_digitization_requests_get_webforms();
+          $digitization_request_webforms = islandora_digitization_requests_get_scan_request_webforms($webforms);
+          if (array_key_exists($nid, $digitization_request_webforms)) {
+            drupal_set_message($submission_prefix, 'message_info');
+          }
+        }
+      }
+    }
   }
 }
 
@@ -1055,7 +1082,8 @@ function islandora_digital_workflow_page_alter(&$page) {
     if (!(array_key_exists($nid, $webform_digitization_requests) === FALSE) &&
         isset($webform_digitization_requests[$nid]) && $webform_digitization_requests[$nid]['selected']) {
       $page['content']['system_main']['#submission_information'] = '<div class="messages warning">' .
-          l('Convert this Digitization Request into an Islandora Digital Workflow batch.', 'islandora/islandora_digital_workflow/map_digitization_request_to_batch/' . $nid . '/' . $sid) .
+          l('Convert this Digitization Request into an Islandora Digital Workflow batch.',
+              'islandora/islandora_digital_workflow/map_digitization_request_to_batch/' . $nid . '/' . $sid) .
           '</div>' . $page['content']['system_main']['#submission_information'];
     }
   }

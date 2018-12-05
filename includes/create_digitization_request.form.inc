@@ -158,6 +158,17 @@ function islandora_digital_workflow_get_digitization_requests_config_form() {
           // The individual form field components are enumerated in the loop below.
         );
       }
+      $form_elements['webform_options']['webform_' . $nid]['webform_' . $nid . '_message_info_wrapper'] = array(
+          '#type' => 'fieldset',
+          '#title' => 'Submission page prefix',
+          '#description' => 'Enter HTML message info that you would like to appear above "' . $webform_arr['title'] . '" submissions.',
+          '#collapsible' => TRUE,
+          '#collapsed' => FALSE,
+          'message_info_' . $nid => array(
+            '#type' => 'textarea',
+            '#default_value' => ((array_key_exists($nid, $webform_options) && array_key_exists('message_info_' . $nid, $webform_options[$nid])) ? $webform_options[$nid]['message_info_' . $nid] : ''),
+          ),
+      );
 
       module_load_include('install', 'islandora_digital_workflow', 'islandora_digital_workflow');
       $form_components = islandora_digitization_requests_webform_components($nid);
@@ -181,6 +192,7 @@ function islandora_digital_workflow_get_digitization_requests_config_form() {
           $map_dr_numeric_options[$cid] = $components_arr['name'];
         }
       }
+
       // Mappings (string fields)
       $form_elements['webform_options']['webform_' . $nid]['webform_' . $nid . '_mappings_wrapper']['stringfields'] = array(
           '#type' => 'fieldset',
@@ -250,7 +262,6 @@ function islandora_digital_workflow_get_digitization_requests_config_form() {
       }
     }
   }
-
   return $form_elements;
 }
 
