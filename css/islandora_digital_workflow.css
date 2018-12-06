@@ -915,12 +915,13 @@ td.slide-cross {
 /* Tooltip text */
 .tooltip .tooltiptext {
     visibility: hidden;
-    background-color: #FFFF76;
-    color: #002288;
+    background-color: white;
+    color: #002268;
     padding: 25px 10px;
     
-    border: 2px solid #772;
+    border: 1px solid #772;
     border-radius: 6px;
+    box-shadow: 3px 3px 6px #777;
 
     /* Position the tooltip text */
     position: absolute;
@@ -941,10 +942,10 @@ td.slide-cross {
     position: absolute;
     top: 100%;
     left: 50%;
-    margin-left: -5px;
-    border-width: 5px;
+    margin-left: -14px;
+    border-width: 14px;
     border-style: solid;
-    border-color: #555 transparent transparent transparent;
+    border-color: black transparent transparent transparent;
 }
 
 /* Show the tooltip text when you mouse over the tooltip container */

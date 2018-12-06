@@ -62,7 +62,8 @@
           <?php } ?>
           <?php endif; ?>
         </div>
-        <span class="small_lt_text">Match found in: <?php print implode(', ', $record->reasons); ?></span>
+        <span class="small_lt_text">Match found in: <?php print implode(', ', $record->reasons); ?>
+          <?php if (isset($record->search_matches) && is_numeric($record->search_matches)) : ?> <i>(matched <?php print $record->search_matches; ?> searchable fields)</i><?php endif; ?></span>
     </div>
     <?php } ?>
 <br style="clear:both" />

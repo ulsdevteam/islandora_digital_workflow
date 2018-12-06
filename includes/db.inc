@@ -272,13 +272,23 @@ function islandora_digital_workflow_search_batch_csv_by_identifier($identifier) 
 /**
  * Dynamic search of the submitted webform data based on configuration.
  *
+ * To preserve any instances of a possible search match, but that wasn't in
+ * one of the searched fields.  This uses the $highlight_hash to temporarily 
+ * replace any instances with a unique string.  This value is passed back in
+ * the results array, but the code that highlights the search result records 
+ * will do a string replace AFTER HIGHLIGHTING to put the original searchterm
+ * value back for each instance of this hash value.
+ *
  * @param string $searchterm
  *   The string value that the user is looking up.
+ * @param string $highlight_hash
+ *   The unique string that will be used to replace a searchterm match in any
+ * non-search field data.
  * @return array
  *   An array of webform submitted data that matched a field value for the
  * $searchterm.
  */
-function islandora_digital_workflow_search_digitization_requests($searchterm) {
+function islandora_digital_workflow_search_digitization_requests($searchterm, $highlight_hash = '') {
   if ($searchterm) {
     // Loop through all of the fields that are configured for each of the
     // "digitization request" webforms and union the queries together with each
@@ -286,7 +296,6 @@ function islandora_digital_workflow_search_digitization_requests($searchterm) {
     //   wc.form_key IN ('staff_name', 'description')
     module_load_include('inc', 'islandora_digitization_requests', 'includes/db');
     module_load_include('inc', 'islandora_digital_workflow', 'includes/create_digitization_request.form');
-    $next_batch_id = islandora_digital_workflow_get_free_batch_id();
     $webforms = islandora_digitization_requests_get_webforms();
     $digitization_request_webforms = islandora_digitization_requests_get_scan_request_webforms($webforms);
     $allrows = array();
@@ -303,19 +312,19 @@ function islandora_digital_workflow_search_digitization_requests($searchterm) {
       $query->fields('wc', array('form_key'));
       $query->join('node', 'n', 'n.nid = wc.nid');
       $query->addField('n', 'title', 'webform_title');
+      $query->condition('wd.nid', $nid);
       $query->condition('wc.form_key', $search_fields, 'IN');
       $query->condition('wd.data', '%' . db_like($searchterm) . '%', 'LIKE');
-      $query->orderBy('wc.nid');
+      $query->orderBy('ws.submitted', 'DESC');
       $results = $query->execute();
       $rows = $results->fetchAll();
       foreach ($rows as $idx => $row) {
-        $submission_tooltip = islandora_digital_workflow_get_submission_tootip($row->sid);
+        $submission_tooltip = islandora_digital_workflow_get_submission_tooltip($row->sid, $searchterm, $search_fields, $highlight_hash);
         $row->submission_tooltip = $submission_tooltip;
-        $row->batch_id = $next_batch_id;
+        $row->batch_id = 'ws_' . $nid . '_' . $row->sid;
         $allrows[] = $row;
         $rows[$idx]->submission_tooltip = $submission_tooltip;
-        $rows[$idx]->batch_id = $next_batch_id;
-        $next_batch_id++;
+        $rows[$idx]->batch_id = $row->batch_id;
       }
     }
 
@@ -326,14 +335,21 @@ function islandora_digital_workflow_search_digitization_requests($searchterm) {
   }
 }
 
-function islandora_digital_workflow_get_submission_tootip($sid) {
+function islandora_digital_workflow_get_submission_tooltip($sid, $searchterm, $search_fields, $highlight_hash) {
   $submission_arr = islandora_digital_requests_get_webform_submission($sid, TRUE);
   $output = array();
+
   foreach ($submission_arr as $cid => $submission_field_arr) {
+    // Protect the data value if this field is not one of the searchable ones
+    $searched_this_field = (!(array_search($submission_field_arr['form_key'], $search_fields) === FALSE));
+    if (!$searched_this_field) {
+      $submission_field_arr['data'] = str_replace($searchterm, $highlight_hash, $submission_field_arr['data']);
+    }
     $data_value = nl2br($submission_field_arr['data']);
     $data_truncated_ellipsis = (strlen($data_value) > 225) ? ' ... ' : '';
-    $output[] = '<b>' . $submission_field_arr['component_name'] . ' </b> = "' .
-         substr($data_value, 0, 225) . $data_truncated_ellipsis . '"';
+    $output[] = ($searched_this_field) ?
+        '<b>' . $submission_field_arr['component_name'] . ' </b> = "' . substr($data_value, 0, 225) . $data_truncated_ellipsis . '"' :
+        '<span class="disabled_text"><b>' . $submission_field_arr['component_name'] . ' </b> = "' . substr($data_value, 0, 225) . $data_truncated_ellipsis . '"</span>';
   }
   return implode("<br>", $output);
 }
@@ -1662,26 +1678,6 @@ function islandora_digital_workflow_get_free_action_id() {
   $rows = $results->fetchAll();
   $rows = array_pop($rows);
   return $rows->next_action_id;
-}
-
-/**
- * This returns the next available "batch_id" value -- for creating new
- * batch records.
- *
- * This is used in a pseudo-batch_id sense, for digitization requests to be
- * displayed in some places of the interface, they need a batch_id value.
- *
- * @return integer
- *   The number to use for the next islandora_digital_workflow_action record.
- */
-function islandora_digital_workflow_get_free_batch_id() {
-  // Run a query to get the maximum value of action_id that is under the range
-  // limit defined by "item_action" vs. "batch_action".
-  $sql = 'SELECT (MAX(batch_id) + 1) as `next_batch_id` FROM islandora_digital_workflow_batch';
-  $results = db_query($sql);
-  $rows = $results->fetchAll();
-  $rows = array_pop($rows);
-  return $rows->next_batch_id;
 }
 
 /**
