@@ -577,7 +577,7 @@ tr.batch_action, tr.item_action {
 }
 
 a .highlighted {
-    background-color: #FFFF22;
+    background-color: #FFFF76;
     color: #0022FF;    
 }
 
@@ -895,4 +895,60 @@ td.slide-cross {
 }
 .indented_ul li {
     text-indent: 0 !important;
+}
+
+.digitization_request_info div {
+    margin-top: 4px;
+}
+
+.digitization_request_info div {
+    padding-right: 8px;
+    float: left;
+}
+
+.tooltip {
+    position: relative;
+    display: inline-block;
+    border-bottom: 1px dotted black; /* If you want dots under the hoverable text */
+}
+
+/* Tooltip text */
+.tooltip .tooltiptext {
+    visibility: hidden;
+    background-color: #FFFF76;
+    color: #002288;
+    padding: 25px 10px;
+    
+    border: 2px solid #772;
+    border-radius: 6px;
+
+    /* Position the tooltip text */
+    position: absolute;
+    z-index: 1;
+    width: 400px;
+    max-width: 800px;    
+    bottom: 125%;
+    left: 50%;
+
+    /* Fade in tooltip */
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+/* Tooltip arrow */
+.tooltip .tooltiptext::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: #555 transparent transparent transparent;
+}
+
+/* Show the tooltip text when you mouse over the tooltip container */
+.tooltip:hover .tooltiptext {
+    visibility: visible;
+    opacity: 1;
 }

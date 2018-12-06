@@ -18,10 +18,8 @@
     if ($matched_csv_only) : ?> <i>(found only in uploaded CSV file)</i><?php endif; ?></p>
 
     <?php $digital_request_heading_displayed = FALSE; ?>
-    <?php
-      $toggle = FALSE;
-      $last_webform_title = '';
-    ?>
+    <?php $toggle = FALSE; ?>
+    <?php $last_webform_title = ''; ?>
     <?php foreach ($records as $record) { ?>
       <?php $is_digitization_request = (!(array_search('digitization requests', $record->reasons) === FALSE)); ?>
         <?php if (!$digital_request_heading_displayed && (!(array_search('digitization requests', $record->reasons) === FALSE))): ?>
@@ -45,7 +43,15 @@
         ?>
         <div class="lookup_result_indent">
         <?php if ($is_digitization_request) : ?>
-          <b>Request data:</b> <?php print l($record->data, '/node/' . $record->nid . '/submission/' . $record->sid); ?>
+          <b>Request data:</b> [<div class="tooltip">QUICKVIEW<span class="tooltiptext"><?php print $record->submission_tooltip; ?></span></div>]
+            <?php print l($record->data, '/node/' . $record->nid . '/submission/' . $record->sid); ?>
+          <div class="digitization_request_info">
+          <?php if ($record->submitted): ?><div>Submitted <?php print date('Y-m-d H:i:s', $record->submitted); ?></div><?php endif; ?>
+          <?php if ($record->uid): ?><div>by user <?php print l($record->user_name, '/user/' . $record->uid, array('attributes'=>array('target' => '_blank'))); ?></div><?php endif; ?>
+          <?php if ($record->remote_addr): ?><div>(IP Address: <span class="idr_ip"><?php print $record->remote_addr; ?></span>)</div><?php endif; ?>
+          </div>
+          <br class="break_float">
+
         <?php else: ?>
           <?php if (!($record->nid)) : ?>
             <h2><?php print l($record->batch_name, '/islandora/islandora_digital_workflow/edit_batch/' . $record->batch_name); ?></h2>

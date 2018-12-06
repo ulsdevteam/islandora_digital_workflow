@@ -2463,7 +2463,8 @@ function islandora_digital_workflow_path_needs_js($path) {
       'node/%node/add_transaction/%/%',
       // admin screen for workflow_sequence_actions/edit/%
       'admin/islandora/islandora_digital_workflow/workflow_sequence_actions/add',
-      'admin/islandora/islandora_digital_workflow/workflow_sequence_actions/edit/%'
+      'admin/islandora/islandora_digital_workflow/workflow_sequence_actions/edit/%',
+      'islandora/islandora_digital_workflow/lookup/%',
   );
   return ($path && !is_array($path)) ? (!(array_search($path, $paths_needing_js) === FALSE))
       : FALSE;

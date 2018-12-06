@@ -73,7 +73,6 @@ function islandora_digital_workflow_lookup_form_submitted($searchterm = '') {
     }
     $found_total += ((is_array($records)) ? count($records) : 0);
   }
-
   if ($found_total == 1) {
     foreach ($found_records as $reason => $records) {
     }

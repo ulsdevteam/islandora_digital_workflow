@@ -519,6 +519,10 @@ function islandora_digital_workflow_preprocess_html(&$vars) {
     module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
     if (islandora_digital_workflow_path_needs_js($item['path'])) {
       drupal_add_js($path . '/js/digital_workflow.js');
+      // Additionally, add the lookup_tooltip.js for the lookup results page.
+      if ($item['path'] == 'islandora/islandora_digital_workflow/lookup/%') {
+        drupal_add_js($path . '/js/lookup_tooltip.js');
+      }
     } elseif ($item['path'] == 'admin/islandora/islandora_digital_workflow') {
       drupal_add_js($path . '/js/admin_digital_workflow.js');
     }

@@ -286,6 +286,7 @@ function islandora_digital_workflow_search_digitization_requests($searchterm) {
     //   wc.form_key IN ('staff_name', 'description')
     module_load_include('inc', 'islandora_digitization_requests', 'includes/db');
     module_load_include('inc', 'islandora_digital_workflow', 'includes/create_digitization_request.form');
+    $next_batch_id = islandora_digital_workflow_get_free_batch_id();
     $webforms = islandora_digitization_requests_get_webforms();
     $digitization_request_webforms = islandora_digitization_requests_get_scan_request_webforms($webforms);
     $allrows = array();
@@ -294,7 +295,11 @@ function islandora_digital_workflow_search_digitization_requests($searchterm) {
       $components = islandora_digitization_requests_webform_components($nid);
       $query = db_select('webform_submitted_data', 'wd')
           ->fields('wd');
-      $query->join('webform_component', 'wc', 'wd.cid = wc.cid');
+      $query->join('webform_submissions', 'ws', 'wd.sid = ws.sid AND wd.nid = ws.nid');
+      $query->fields('ws', array('uid','submitted', 'remote_addr'));
+      $query->addJoin('LEFT OUTER', 'users', NULL, 'ws.uid = users.uid');
+      $query->addField('users', 'name', 'user_name');
+      $query->join('webform_component', 'wc', 'wd.cid = wc.cid AND wd.nid = wc.nid');
       $query->fields('wc', array('form_key'));
       $query->join('node', 'n', 'n.nid = wc.nid');
       $query->addField('n', 'title', 'webform_title');
@@ -304,9 +309,13 @@ function islandora_digital_workflow_search_digitization_requests($searchterm) {
       $results = $query->execute();
       $rows = $results->fetchAll();
       foreach ($rows as $idx => $row) {
-        $row->batch_id = 'digitization_request_' . $row->sid;
+        $submission_tooltip = islandora_digital_workflow_get_submission_tootip($row->sid);
+        $row->submission_tooltip = $submission_tooltip;
+        $row->batch_id = $next_batch_id;
         $allrows[] = $row;
-        $rows[$idx]->batch_id = 'digitization_request_' . $row->sid;
+        $rows[$idx]->submission_tooltip = $submission_tooltip;
+        $rows[$idx]->batch_id = $next_batch_id;
+        $next_batch_id++;
       }
     }
 
@@ -315,6 +324,18 @@ function islandora_digital_workflow_search_digitization_requests($searchterm) {
   else {
     return NULL;
   }
+}
+
+function islandora_digital_workflow_get_submission_tootip($sid) {
+  $submission_arr = islandora_digital_requests_get_webform_submission($sid, TRUE);
+  $output = array();
+  foreach ($submission_arr as $cid => $submission_field_arr) {
+    $data_value = nl2br($submission_field_arr['data']);
+    $data_truncated_ellipsis = (strlen($data_value) > 225) ? ' ... ' : '';
+    $output[] = '<b>' . $submission_field_arr['component_name'] . ' </b> = "' .
+         substr($data_value, 0, 225) . $data_truncated_ellipsis . '"';
+  }
+  return implode("<br>", $output);
 }
 
 /**
@@ -1641,6 +1662,26 @@ function islandora_digital_workflow_get_free_action_id() {
   $rows = $results->fetchAll();
   $rows = array_pop($rows);
   return $rows->next_action_id;
+}
+
+/**
+ * This returns the next available "batch_id" value -- for creating new
+ * batch records.
+ *
+ * This is used in a pseudo-batch_id sense, for digitization requests to be
+ * displayed in some places of the interface, they need a batch_id value.
+ *
+ * @return integer
+ *   The number to use for the next islandora_digital_workflow_action record.
+ */
+function islandora_digital_workflow_get_free_batch_id() {
+  // Run a query to get the maximum value of action_id that is under the range
+  // limit defined by "item_action" vs. "batch_action".
+  $sql = 'SELECT (MAX(batch_id) + 1) as `next_batch_id` FROM islandora_digital_workflow_batch';
+  $results = db_query($sql);
+  $rows = $results->fetchAll();
+  $rows = array_pop($rows);
+  return $rows->next_batch_id;
 }
 
 /**

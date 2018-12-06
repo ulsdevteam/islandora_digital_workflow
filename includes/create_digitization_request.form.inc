@@ -536,7 +536,8 @@ function islandora_digital_workflow_map_submission($nid, $sid) {
           $file_truncated_ellipsis = (strlen($submission_data[$setting]['data']) > 600) ? ' ... ' : '';
           $mappings[] = '<div><b>' . $components[$setting]['name'] . '</b> to ' .
               '<span class="idw_fieldname">islandora_digital_workflow_batch.' . $fieldname . '</span><br>' .
-              '<span class="small_font">' . $submission_data[$setting]['data'] . $file_truncated_ellipsis . '</span></div>';
+              '<span class="small_font">' . substr($submission_data[$setting]['data'], 0, 600) .
+              $file_truncated_ellipsis . '</span></div>';
           $islandora_digital_workflow_batch_fields[$fieldname] = $submission_data[$setting]['data'];
           unset($unmapped_fields[$setting]);
         }
