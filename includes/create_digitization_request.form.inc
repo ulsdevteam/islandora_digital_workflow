@@ -523,7 +523,7 @@ function islandora_digital_workflow_map_submission($nid, $sid) {
           t('(unknown webform with nid = @nid)', array('@nid' => $nid)));
       // Set up an array to keep track of submitted data that does not get mapped
       foreach ($components as $cid => $webform_field) {
-        if (array_key_exists($cid, $submission_data) && $submission_data[$cid]['data'] && array_key_exists($cid, $unmapped_fields)) {
+        if (array_key_exists($cid, $submission_data) && $submission_data[$cid]['data']) {
           $unmapped_fields[$cid] = array(
               'webform_field_label' => strtoupper($webform_field['name']),
               'value' => $submission_data[$cid]['data'],
@@ -533,13 +533,20 @@ function islandora_digital_workflow_map_submission($nid, $sid) {
 
       foreach ($options['mapped_fields'] as $fieldname => $setting) {
         if ($setting) {
-          $file_truncated_ellipsis = (strlen($submission_data[$setting]['data']) > 600) ? ' ... ' : '';
-          $mappings[] = '<div><b>' . $components[$setting]['name'] . '</b> to ' .
-              '<span class="idw_fieldname">islandora_digital_workflow_batch.' . $fieldname . '</span><br>' .
-              '<span class="small_font">' . substr($submission_data[$setting]['data'], 0, 600) .
-              $file_truncated_ellipsis . '</span></div>';
-          $islandora_digital_workflow_batch_fields[$fieldname] = $submission_data[$setting]['data'];
-          unset($unmapped_fields[$setting]);
+          if (array_key_exists($setting, $submission_data)) {
+            $file_truncated_ellipsis = (strlen($submission_data[$setting]['data']) > 600) ? ' ... ' : '';
+            $mappings[] = '<div><b>' . $components[$setting]['name'] . '</b> to ' .
+                '<span class="idw_fieldname">islandora_digital_workflow_batch.' . $fieldname . '</span><br>' .
+                '<span class="small_font">' . substr($submission_data[$setting]['data'], 0, 600) .
+                $file_truncated_ellipsis . '</span></div>';
+            $islandora_digital_workflow_batch_fields[$fieldname] = $submission_data[$setting]['data'];
+            unset($unmapped_fields[$setting]);
+          }
+          else {
+            $mappings[] = '<div><b>' . $components[$setting]['name'] . '</b> could ' .
+                'not be mapped because the submission did not have a value for the ' .
+                'data element ' . $setting . '</div>';
+          }
         }
       }
 
@@ -562,38 +569,41 @@ function islandora_digital_workflow_map_submission($nid, $sid) {
             '<span class="idw_fieldname">islandora_digital_workflow_batch.user</span></div>';
       }
       // Stuff any unmapped submission values into the batch_description field
-      $lines = array();
-      // Add a line to say who and when this was converted to a batch.
-
-      $lines[] = t('Batch created from "@webform" submission by @user at [@time]', array(
-          '@user' => $user->name,
-          '@webform' => $webform_title,
-          '@time' => date('Y-m-d H:i:s'))
-      );
-      $lines[] = '----------------------------------------------------------------------------';
+      $lines = $infolines = array();
 
       // Add all of the info about the unmapped fields.
       if (count($unmapped_fields) > 0) {
-        $lines[] = 'THERE WERE "Digitization Request" SUBMISSION VALUES THAT WERE ' .
-            'NOT MAPPED TO ANY FIELD FOR THE NEW BATCH RECORD.  THEY ARE ALL REPRESENTED BELOW:';
-        $lines[] = '----------------------------------------------------------------------------';
+        $lines[] = '--------------';
+        $lines[] = '"' . strtoupper($webform_title) . '" SUBMISSION VALUES THAT WERE NOT MAPPED TO ANY BATCH RECORD FIELD.  THESE ARE ALL REPRESENTED BELOW:';
+        $lines[] = '';
         
         foreach ($unmapped_fields as $cid => $label_value_arr) {
           $lines[] = $label_value_arr['webform_field_label'] . ' = "' . $label_value_arr['value'] . '"';
         }
-
         $mappings[] = '<div><b>REMAINING UNMAPPED SUBMISSION FIELD VALUES HAVE ALL ' .
             'BEEN ADDED TO THE DESCRIPTION</b><br>' .
             '<span class="idw_fieldname">islandora_digital_workflow_batch.batch_description</span> ' .
             '<hr><pre class="small_font left_padded">' . nl2br(implode("\n", $lines)) . '</pre></div>';
       }
+      // Add a line to say who and when this was converted to a batch.
+      $infolines[] = '--------------';
+      $infolines[] = t('Batch created from "@webform" submission by @user at [@time]', array(
+          '@user' => $user->name,
+          '@webform' => $webform_title,
+          '@time' => date('Y-m-d H:i:s'))
+      );
+      // If there is a description, append the $lines to that, else set the
+      // description to what we have in $lines.
       if (array_key_exists('batch_description', $islandora_digital_workflow_batch_fields) === FALSE) {
-        $islandora_digital_workflow_batch_fields['batch_description'] = implode("\n", $lines);
+        $islandora_digital_workflow_batch_fields['batch_description'] = implode("\n", $lines) . '
+' . implode("\n", $infolines);
       }
       else {
         $islandora_digital_workflow_batch_fields['batch_description'] =
             $islandora_digital_workflow_batch_fields['batch_description'] . '
-' . implode("\n", $lines);
+-----------------------------------------------------------------------------------------------------------------
+' . implode("\n", $lines) . '
+' . implode("\n", $infolines);
       }
     }
   }
