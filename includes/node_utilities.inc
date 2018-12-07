@@ -270,9 +270,10 @@ function islandora_digital_workflow_make_or_update_node($form_state, $arr, $node
  *   The number of nodes that match the given $stage_tid value.
  */
 function islandora_digital_workflow_get_count_of_nodes_by_tid($field_name = '', $tid = 0) {
-  $join_table = ($field_name) ? 'field_data_' . $field_name : 'field_data_field_stage';
+  $join_table = 'field_data_' . $field_name;
   $sql = "SELECT count(*) as `count` FROM {node} n " .
-      "INNER JOIN {" . $join_table . "} s ON n.nid=s.entity_id " .
+      ($field_name ?
+      "INNER JOIN {" . $join_table . "} s ON n.nid=s.entity_id " : "") .
       "WHERE (n.type = 'workflow_batch') AND (n.status = 1)" .
       ($tid ? " AND s." . $field_name . "_tid = " . $tid : "");
   $result = db_query($sql);
