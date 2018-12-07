@@ -29,7 +29,7 @@
             <?php if ($action_link): ?>
             <a href="<?php print $action_link . $folder['item_name']; ?>">Sync "<?php print $folder['item_name']; ?>" back to working directories.</a><hr>
             <?php endif; ?>
-            <b>Batch:</b> "<a href="/content/<?php print $folder['item_name']; ?>"><?php print $folder['item_name']; ?></a>"<br>
+            <b>Batch:</b> "<?php print (isset($folder['nid']) ?  l($folder['item_name'], '/node/' . $folder['nid']): $folder['item_name']); ?>"<br>
             <b>Files:</b> <?php print number_format($folder['files_count']); ?>
             <fieldset class="collapsible collapsed straight-edge" id="<?php print $folder['item_name']; ?>">
                 <legend><span class="fieldset-legend">Show files</span></legend>

@@ -1658,6 +1658,10 @@ function islandora_digital_workflow_find_folders_files($root) {
   if ($root) {
     $folders = islandora_digital_workflow_file_scandir($root, '', TRUE);
     foreach ($folders as $key => $files) {
+      $matching_batch_record = islandora_digital_workflow_get_batch_record_by_name($key);
+      if (is_array($matching_batch_record)) {
+        $return_folders[$key]['nid'] = $matching_batch_record['nid'];
+      }
       $return_folders[$key]['item_name'] = $key;
       $onelevel_filepaths = array();
       foreach ($files as $filekey => $file) {

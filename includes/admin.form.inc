@@ -119,7 +119,10 @@ function islandora_digital_workflow_admin_form() {
       'ingest_delivery_path' => array(
         '#type' => 'textfield',
         '#title' => t('Incoming Delivery Directory'),
-        '#description' => t('The delivery directory is where the files will be after they are scanned.'),
+        '#description' => t('The delivery directory is where the files should be ' .
+              'stored after they are scanned.  They will need to go into the batch ' .
+              'folder for that object and in a subfolder that is named to match the ' .
+               'object identifier.'),
         '#required' => true,
         '#default_value' => variable_get('islandora_digital_workflow_ingest_delivery_path', ''),
       ),
