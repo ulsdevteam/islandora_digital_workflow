@@ -11,14 +11,20 @@
  */
 function islandora_digital_workflow_lookup() {
   $q = isset($_POST['q']) ? trim($_POST['q']) : NULL;
-  if ($q) {
+  $request_uri = isset($_POST['request_uri']) ? trim($_POST['request_uri']) : 'islandora/islandora_digital_workflow';
+  if (strlen($q) < 3) {
+    drupal_set_message(t('The search term must be more than 2 characters. You ' .
+        'have been redirected to the page from which you came.'), 'warning');
+  }
+  elseif ($q) {
+    $_SESSION['request_uri'] = $request_uri;
     drupal_goto('/islandora/islandora_digital_workflow/lookup/' . $q);
   }
   else {
-    $refer_url = $_SERVER['HTTP_REFERER'];
-    drupal_set_message(t('The lookup search term can not be blank. You have been redirected to the page from which you came.'), 'warning');
-    drupal_goto($refer_url);
+    drupal_set_message(t('The lookup search term can not be blank. You have been ' .
+        'redirected to the page from which you came.'), 'warning');
   }
+  drupal_goto($request_uri);
 }
 
 /**
@@ -89,7 +95,7 @@ function islandora_digital_workflow_lookup_form_submitted($searchterm = '') {
       // due to the match $reason.
       if ($reason <> 'digitization requests') {
         drupal_set_message(t('Located batch "@batch_name" by an item that matched ' .
-            '"@searchterm" <em>in <b>@reason</b> values</em>', // 'identifier value "@searchterm".',
+            '"@searchterm" <em>in <b>@reason</b> values</em>',
             array('@batch_name' => $records[0]->batch_name,
                 '@searchterm' => $searchterm,
                 '@reason' => $reason)));
@@ -126,6 +132,9 @@ function islandora_digital_workflow_lookup_form_submitted($searchterm = '') {
       )
     );
 
+    // This part is needed in order to keep fields that are not marked as searchable
+    // from displaying highlight matches since they did not match on that field
+    // according to the configuration.
     $highlighted_markup = islandora_digital_workflow_highlight($found_markup, $searchterm);
     $searched_fields_only_highlighed_markup = str_replace($highlight_hash, $searchterm, $highlighted_markup);
 
@@ -133,8 +142,9 @@ function islandora_digital_workflow_lookup_form_submitted($searchterm = '') {
 
   }
   else {
-    drupal_set_message(t('"@searchterm" could not be located.', array('@searchterm' => $searchterm)), 'message_info');
-    drupal_goto('islandora/islandora_digital_workflow/');
+    drupal_set_message(t('"@searchterm" could not be located.', array('@searchterm' => $searchterm)), 'error');
+    $request_uri = isset($_SESSION['request_uri']) ? trim($_SESSION['request_uri']) : 'islandora/islandora_digital_workflow';
+    drupal_goto($request_uri);
   }
 }
 

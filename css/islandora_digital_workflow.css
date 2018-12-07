@@ -763,9 +763,12 @@ li.no_indent {
     display: none !important;
 }
 
+.right_float, .small_right_float {
+    float: right;
+}
+
 .small_right_float {
     font-size: 0.8em;
-    float: right;
 }
 
 .dashboard-report.action-links, .report-links, .utility-links, .admin-links {
@@ -897,11 +900,9 @@ td.slide-cross {
     text-indent: 0 !important;
 }
 
+/* For lookup results display */
 .digitization_request_info div {
     margin-top: 4px;
-}
-
-.digitization_request_info div {
     padding-right: 8px;
     float: left;
 }
@@ -916,7 +917,7 @@ td.slide-cross {
 .tooltip .tooltiptext {
     visibility: hidden;
     background-color: white;
-    color: #002268;
+    color: #202F58;
     padding: 25px 10px;
     
     border: 1px solid #772;

@@ -19,18 +19,12 @@
 
     <?php $digital_request_heading_displayed = FALSE; ?>
     <?php $toggle = FALSE; ?>
-    <?php $last_webform_title = ''; ?>
     <?php foreach ($records as $record) { ?>
       <?php $is_digitization_request = (!(array_search('digitization requests', $record->reasons) === FALSE)); ?>
         <?php if (!$digital_request_heading_displayed && (!(array_search('digitization requests', $record->reasons) === FALSE))): ?>
           <h3>Digitization Requests</h3>
           <?php $digital_request_heading_displayed = TRUE; ?>
         <?php endif; ?>
-        <?php // sorry for the inline PHP block using a slightly different syntax.
-        if ($is_digitization_request && $last_webform_title <> $record->webform_title) {
-          print "Submission/s to <b>" . $record->webform_title . "</b><br>";
-          $last_webform_title = $record->webform_title;
-        } ?>
 
     <div class="lookup_result <?php print ($toggle) ? 'evenrow' : 'oddrow'; ?>">
         <?php
@@ -62,8 +56,11 @@
           <?php } ?>
           <?php endif; ?>
         </div>
-        <span class="small_lt_text">Match found in: <?php print implode(', ', $record->reasons); ?>
-          <?php if (isset($record->search_matches) && is_numeric($record->search_matches)) : ?> <i>(matched <?php print $record->search_matches; ?> searchable fields)</i><?php endif; ?></span>
+        <span class="small_lt_text">Match found in: 
+          <?php if (isset($record->search_matches) && is_numeric($record->search_matches)) : ?> <i>(matched <?php print $record->search_matches; ?> searchable fields)</i><?php endif; ?>
+          <?php print implode(', ', $record->reasons); ?>
+          <?php if (isset($record->webform_title) && $record->webform_title): ?> <span class="right_float">"<?php print $record->webform_title; ?>"</span><?php endif; ?>
+        </span>
     </div>
     <?php } ?>
 <br style="clear:both" />
