@@ -1033,7 +1033,8 @@ function islandora_digital_workflow_update_batch_item_record($batch_item_id, $up
 
   if ($results) {
     // Compare the filename value to the previous filename value to see
-    // if the underlying file needs to be renamed.
+    // if the underlying file needs to be renamed.  Do this FIRST because the item
+    // folder name can also change when the item is being updated.
     if ($update_values['filename'] <> $original_values->filename) {
       if (file_exists($update_values['filename'])) {
         drupal_set_message(t('A file already existed with the updated filename, so nothing needed to be renamed.'), 'message_info');
@@ -1054,10 +1055,6 @@ function islandora_digital_workflow_update_batch_item_record($batch_item_id, $up
     // and overwrite that file if needed.
     if (array_key_exists('marc', $update_values) && ($update_values['marc'] <> $original_values->marc)) {
       $calculated_marc_filename = islandora_digital_workflow_filename_sanitize($original_values->filename, '.xml');
-/*      $orig_filename_pathinfo = pathinfo($original_values->filename);
-      $calculated_marc_filename = (array_key_exists('extension', $orig_filename_pathinfo)) ?
-          str_replace('.' . $orig_filename_pathinfo['extension'], '.xml', $original_values->filename) :
-          $original_values->filename . '.xml'; */
       $bytes_written = ($calculated_marc_filename) ?
           file_put_contents($calculated_marc_filename, $update_values['marc']) : 0;
       if ($bytes_written <> strlen($update_values['marc'])) {
@@ -1070,10 +1067,6 @@ function islandora_digital_workflow_update_batch_item_record($batch_item_id, $up
     // and overwrite that file if needed.
     if ($update_values['mods'] <> $original_values->mods) {
       $calculated_mods_filename = islandora_digital_workflow_filename_sanitize($original_values->filename, '.xml');
-/*      $orig_filename_pathinfo = pathinfo($original_values->filename);
-      $calculated_mods_filename = (array_key_exists('extension', $orig_filename_pathinfo)) ?
-          str_replace('.' . $orig_filename_pathinfo['extension'], '.xml', $original_values->filename) :
-          $original_values->filename . '.xml'; */
       $bytes_written = ($calculated_mods_filename) ?
           file_put_contents($calculated_mods_filename, $update_values['mods']) : 0;
       if ($bytes_written <> strlen($update_values['mods'])) {
@@ -1081,6 +1074,59 @@ function islandora_digital_workflow_update_batch_item_record($batch_item_id, $up
           $calculated_mods_filename . t('".  It may be a file permissions issue.'), 'error');
       }
       islandora_digital_workflow_insert_transactions_record(IDW_ACTION_MODS_RECORD_UPDATED, NULL, $batch_item_id);
+    }
+
+
+    // Compare the item identifier to see if it has changed... if so, the system
+    // will need to rename those folders (delivery, (and if they exists) problems
+    // and working folder.
+    if ($update_values['identifier'] <> $original_values->identifier) {
+      // Need to get the item's batch record in order to derive the various file paths
+      // for the rename operations.
+      $batch_record = islandora_digital_workflow_get_batch_item_record($batch_item_id);
+      $current_delivery_item_path = islandora_digital_workflow_batch_path($batch_record, 'delivery') .
+            '/' . $original_values->identifier;
+      $current_problems_item_path = islandora_digital_workflow_batch_path($batch_record, 'problems') .
+            '/' . $original_values->identifier;
+      $current_working_item_path = islandora_digital_workflow_batch_path($batch_record, 'working') .
+            '/' . $original_values->identifier;
+
+      $replace_to = '/' . $update_values['identifier'] . '/';
+      $replace_from = '/' . $original_values->identifier . '/';
+      $update_delivery_item_path = str_replace($replace_from, $replace_to, $current_delivery_item_path);
+      $update_problems_item_path = str_replace($replace_from, $replace_to, $current_problems_item_path);
+      $update_working_item_path = str_replace($replace_from, $replace_to, $current_working_item_path);
+      // Only try to rename those item folders that exist
+      if (file_exists($current_delivery_item_path)) {
+        if (!rename($current_delivery_item_path, $update_delivery_item_path) ) {
+          drupal_set_message(t('There was a problem renaming the "delivery folder" ' .
+              'for the current item "@item_ident".  Check file permissions on the ' .
+              'paths:<ul><li>@path</li><li>@to_path</li></ul>.', array(
+                  '@path' => $current_delivery_item_path,
+                  '@to_path' => $update_delivery_item_path,
+                  '@item_ident' => $original_values->identifier)), 'error');
+        }
+      }
+      if (file_exists($current_problems_item_path)) {
+        if (!rename($current_problems_item_path, $update_problems_item_path) ) {
+          drupal_set_message(t('There was a problem renaming the "problems folder" ' .
+              'for the current item "@item_ident".  Check file permissions on the ' .
+              'paths:<ul><li>@path</li><li>@to_path</li></ul>.', array(
+                  '@path' => $current_problems_item_path,
+                  '@to_path' => $update_problems_item_path,
+                  '@item_ident' => $original_values->identifier)), 'error');
+        }
+      }
+      if (file_exists($current_working_item_path)) {
+        if (!rename($current_working_item_path, $update_working_item_path) ) {
+          drupal_set_message(t('There was a problem renaming the "working folder" ' .
+              'for the current item "@item_ident".  Check file permissions on the ' .
+              'paths:<ul><li>@path</li><li>@to_path</li></ul>.', array(
+                  '@path' => $current_working_item_path,
+                  '@to_path' => $update_working_item_path,
+                  '@item_ident' => $original_values->identifier)), 'error');
+        }
+      }
     }
   }
   return $results;

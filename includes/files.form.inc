@@ -40,7 +40,7 @@ function islandora_digital_workflow_files($node) {
   $is_paged_content = islandora_digital_workflow_is_paged_object($batch_record['islandora_model']);
   if ($is_paged_content) {
     $working_files = islandora_digital_workflow_scan_files($batch_path, $file_records);
-    $batch_delivery_path = islandora_digital_workflow_batch_path($batch_record, true);
+    $batch_delivery_path = islandora_digital_workflow_batch_path($batch_record);
     $delivery_files = islandora_digital_workflow_scan_files($batch_delivery_path, $file_records);
 
     $found_files = array_merge($working_files, $delivery_files);

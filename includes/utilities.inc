@@ -578,14 +578,15 @@ function islandora_digital_workflow_get_sites_options() {
  * @param array $batch_record
  *   Array of values from the islandora_digital_workflow_batch table that represents
  * a single batch.
- * @param boolean $is_delivery
- *   Optional, default FALSE.  When set, the path is based on the path configured
- * as "Incoming Delivery Directory" islandora_digital_workflow_ingest_delivery_path
- * else "Ingest Working Directory" islandora_digital_workflow_ingest_prepared_path.
+ * @param string $which_path
+ *   Optional, defaults to "delivery".  The path is based on the path configured:
+ *   - 'delivery' "Incoming Delivery Directory" (islandora_digital_workflow_ingest_delivery_path)
+ *   - 'problems' "Problems Directory" (islandora_digital_workflow_ingest_problems_path)
+ *   - 'working' "Ingest Working Directory" (islandora_digital_workflow_ingest_prepared_path).
  * @return string
  *   The batch_path for the given batch_values record.
  */
-function islandora_digital_workflow_batch_path($batch_record, $is_delivery = FALSE) {
+function islandora_digital_workflow_batch_path($batch_record, $which_path = 'delivery') {
   if (is_object($batch_record)) {
     $batch_record = (array) $batch_record;
   }
@@ -594,11 +595,22 @@ function islandora_digital_workflow_batch_path($batch_record, $is_delivery = FAL
             'there is no value for the batch "Name" (batch_name field) yet.'), 'warning');
     return '';
   }
-  $ingest_path = ($is_delivery) ? variable_get('islandora_digital_workflow_ingest_delivery_path', file_directory_temp()) :
-    variable_get('islandora_digital_workflow_ingest_prepared_path', file_directory_temp());
-  if ($ingest_path == 'ftp' || (ltrim($ingest_path, 'ftp:') <> $ingest_path)) {
-    $ingest_path = variable_get('islandora_digital_workflow_ingest_prepared_path', file_directory_temp());
-  } elseif (strstr($ingest_path, ":")) {
+  switch ($which_path) {
+    // for Delivery - also the default case
+    case "delivery": default:
+      $ingest_path = variable_get('islandora_digital_workflow_ingest_delivery_path', file_directory_temp());
+      break;
+    // for "problems"
+    case 'problems':
+      $ingest_path = variable_get('islandora_digital_workflow_ingest_problems_path', '');
+      break;
+
+    // for "working"
+    case 'working':
+      $ingest_path = variable_get('islandora_digital_workflow_ingest_prepared_path', file_directory_temp());
+      break;
+  }
+  if (strstr($ingest_path, ":")) {
     @list($ingest_host, $ingest_path) = explode(":", $ingest_path);
     drupal_set_message(t('This batch is configured to use files from a different server.  ' .
         'That server needs to be configured as a mounted folder under the /ingest ' .
@@ -1217,7 +1229,7 @@ function islandora_digital_workflow_prepare_csv2mods($input_filename, $batch_rec
   }
 
   $batch_path = islandora_digital_workflow_batch_path($batch_record);
-  $batch_delivery_path = islandora_digital_workflow_batch_path($batch_record, true);
+  $batch_delivery_path = islandora_digital_workflow_batch_path($batch_record);
 
   ini_set('auto_detect_line_endings', true);
   $outputFilename   = 'MODS.xml';
@@ -1859,6 +1871,7 @@ function islandora_digital_workflow_validate_batch_items_file_upload($override_f
     switch ($mimetype) {
       // 1. MRC "application/marc".
       case "application/marc":
+      case "application/octet-stream":
         $dest = drupal_tempnam('temporary://', 'batch_objects.marc');
         $validation_function = 'islandora_digital_workflow_validate_mrc';
         break;
@@ -2919,7 +2932,7 @@ function islandora_digital_workflow_copy_delivery_file($batch_item_id, $is_probl
     module_load_include('inc', 'islandora_digital_workflow', 'includes/file_utilities');
 
     $batch_record = islandora_digital_workflow_get_batch_record_by_batch_id($batch_item_obj->batch_id);
-    $item_working_folder = islandora_digital_workflow_batch_path($batch_record, FALSE) . '/' . $batch_item_obj->identifier;
+    $item_working_folder = islandora_digital_workflow_batch_path($batch_record, 'working') . '/' . $batch_item_obj->identifier;
     // Scan the source folder - and copy over all page resources
     $item_folder = islandora_digital_workflow_get_item_delivery_filename($batch_item_obj);
     $item_files = islandora_digital_workflow_scan_files($item_folder);
@@ -3004,7 +3017,7 @@ function islandora_digital_workflow_get_item_delivery_filename($batch_item, $bat
   $batch_record = !(is_null($batch_record)) ? $batch_record : islandora_digital_workflow_get_batch_record_by_batch_id($batch_item->batch_id);
   // The great thing is that this function call will CREATE the directory
   // if it doesn't exist.
-  $batch_path = islandora_digital_workflow_batch_path($batch_record, TRUE);
+  $batch_path = islandora_digital_workflow_batch_path($batch_record);
 
   // Need to change to "Incoming Delivery Directory" and get the object's file --
   // and copy the item's file into the "Ingest Working Directory" location.

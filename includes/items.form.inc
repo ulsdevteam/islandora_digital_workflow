@@ -181,6 +181,7 @@ function islandora_digital_workflow_add_items_form(array $form, array &$form_sta
       switch ($mimetype) {
         // 1. MRC "application/marc".
         case "application/marc":
+        case "application/octet-stream":
           $marc_and_mods_records = islandora_marc_utility_mrc_split($tmp_uploaded_batch_items_file);
           list($file_header, $file_rows) = islandora_digital_workflow_mrc_results_as_array($marc_and_mods_records);
           break;

@@ -36,6 +36,7 @@ function islandora_digital_workflow_sync_node_batch_record_info($node, $form_sta
     switch ($mimetype) {
       // 1. MRC "application/marc".
       case "application/marc":
+      case "application/octet-stream":
         $marc_and_mods_records = islandora_marc_utility_mrc_split($batch_items_filename);
         list($file_header, $file_rows) = islandora_digital_workflow_mrc_results_as_array($marc_and_mods_records);
         $arr = array('header' => $file_header, 'rows' => $file_rows);
