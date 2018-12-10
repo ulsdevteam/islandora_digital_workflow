@@ -1010,6 +1010,21 @@ function islandora_digital_workflow_preprocess_page(&$vars) {
               $title,
           ))
       );
+      // Loop through the tabs and remove the "Edit" node tab... no need for that
+      // interface to confuse users when the "Edit Batch" tab is more appropriate.
+      if ( array_key_exists('tabs', $vars) && array_key_exists('#primary', $vars['tabs']) &&
+          is_array($vars['tabs']['#primary']) ) {
+        $index_to_unset = NULL;
+        foreach ($vars['tabs']['#primary'] as $index => $a_tab ) {
+          if ( array_key_exists('#link', $a_tab) && array_key_exists('path', $a_tab['#link']) &&
+            ($a_tab['#link']['path'] == 'node/%/edit') ) {
+            $index_to_unset = $index;
+          }
+        }
+        if (!is_null($index_to_unset)) {
+          unset($vars['tabs']['#primary'][$index_to_unset]);
+        }
+      }
     }
     elseif ($node->type == 'webform' && module_exists('islandora_digitization_requests') &&
         user_access(ISLANDORA_DIGITAL_WORKFLOW_CREATE_DIGITIZATION_REQUEST)) {

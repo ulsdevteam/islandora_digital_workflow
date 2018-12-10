@@ -22,7 +22,10 @@
   <?php
     foreach ($islandora_digital_workflow_batch as $field => $value) {
       $span_id = "islandora-digital-workflow-" . $field; ?>
-  <div><label for='<?php print $span_id; ?>'><?php print $field; ?></label> <span id='<?php print $span_id; ?>'>"<?php print $value; ?>"</span></div>
+  <div><label for='<?php print $span_id; ?>'><?php print $field; ?></label> <span id='<?php print $span_id; ?>'>"<?php
+      $truncated_ellipsis = (strlen($value) > 180) ? ' ... <i>(continued)</i> ' : '';
+      print substr($value, 0, 180) . $truncated_ellipsis;
+    ?>"</span></div>
     <?php }
   } ?>
 </div><!-- /end islandora-digital-workflow-batch-defaults -->
