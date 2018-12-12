@@ -344,7 +344,7 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
   }
   // Prepare a couple variables for use with file upload options:
   $upload_size = min((int) ini_get('post_max_size'), (int) ini_get('upload_max_filesize'));
-  $extensions = array('csv');
+  $extensions = array('csv', 'xml', 'mrc');
 
   // For legacy batches, this array may need to be joined with the legacy
   // collection `c_id` pointers instead of Solr PID values.
@@ -579,11 +579,16 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
     $form['batch_objects_frame']['file'] = array(
         '#type' => 'file',
         '#title' => t('File'),
-        '#description' => t('Select items file to upload.<br/>Files must be less than <strong>@size MB.</strong><br/>Allowed file types: <strong>@ext.</strong>', array('@size' => $upload_size, '@ext' => $extensions[0])) .
+        '#description' => t('Select items file to upload.<br/>Files must be less ' .
+          'than <strong>@size MB.</strong><br/>Allowed file types: <strong>@ext.</strong>',
+            array(
+              '@size' => $upload_size,
+              '@ext' => implode(", ", $extensions))) .
           (($batch_record && isset($batch_record['uploaded_batch_items_file']) && ($batch_record['uploaded_batch_items_file'] <> '')) ?
-          '<br>Upload file will <em>completely replace any existing items records ' .
-          'and any transactions on them.  To add additional CSV files, use the ' .
-          '"Add items" option on the ' . l(t('Batch Items page'), 'node/' . $batch_record['nid'] . '/items') . '.</em>' : '') .
+          t('<br>Upload file will <em>completely replace any existing items records ' .
+          'and any transactions on them.  Additional CSV files can be merged to ' .
+          'add more items, using the "Add items" option on the batch\s ') .
+          l(t('"Batch Items" page'), 'node/' . $batch_record['nid'] . '/items') . '.</em>' : '') .
           ' | ' . l('Download CSV template (minimal)', 'islandora/islandora_digital_workflow/csv_template/minimal') .
           ' | ' . l('Download CSV template (full)', 'islandora/islandora_digital_workflow/csv_template/extended'),
         '#upload_location' => 'temporary://',

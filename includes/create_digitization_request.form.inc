@@ -43,7 +43,7 @@ function islandora_digital_workflow_create_digitization_request_form(array $form
   // a form with links to Submit a Digitization Request to each of the Webforms
   // that exist.
   $webforms = islandora_digitization_requests_get_webforms();
-  $digitization_request_webforms = islandora_digitization_requests_get_scan_request_webforms($webforms);
+  $digitization_request_webforms = islandora_digitization_requests_get_digitization_request_webforms($webforms);
 
   if (count($digitization_request_webforms) == 1) {
     reset($digitization_request_webforms);

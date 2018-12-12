@@ -1046,7 +1046,7 @@ function islandora_digital_workflow_preprocess_page(&$vars) {
         if ($submission_prefix) {
           module_load_include('inc', 'islandora_digitization_requests', 'includes/db');
           $webforms = islandora_digitization_requests_get_webforms();
-          $digitization_request_webforms = islandora_digitization_requests_get_scan_request_webforms($webforms);
+          $digitization_request_webforms = islandora_digitization_requests_get_digitization_request_webforms($webforms);
           if (array_key_exists($nid, $digitization_request_webforms)) {
             drupal_set_message($submission_prefix, 'message_info');
           }

@@ -297,7 +297,7 @@ function islandora_digital_workflow_search_digitization_requests($searchterm, $h
     module_load_include('inc', 'islandora_digitization_requests', 'includes/db');
     module_load_include('inc', 'islandora_digital_workflow', 'includes/create_digitization_request.form');
     $webforms = islandora_digitization_requests_get_webforms();
-    $digitization_request_webforms = islandora_digitization_requests_get_scan_request_webforms($webforms);
+    $digitization_request_webforms = islandora_digitization_requests_get_digitization_request_webforms($webforms);
     $allrows = array();
     foreach ($digitization_request_webforms as $nid => $webform_title) {
       $search_fields = islandora_digital_workflow_searchable_fields($nid, TRUE);
