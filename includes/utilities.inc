@@ -2944,7 +2944,7 @@ function islandora_digital_workflow_copy_delivery_file($batch_item_id, $is_probl
     $working_filename = $batch_item_obj->filename;
     $item_working_folder = $working_filename;
     $exists = (file_exists($sanitized_delivery_filename));
-    $copied = ($exists) ? copy($sanitized_delivery_filename, $working_filename) : FALSE;
+    $copied = ($exists && !is_dir($sanitized_delivery_filename)) ? copy($sanitized_delivery_filename, $working_filename) : FALSE;
     $whatwas_copied_message = 'file ' . $batch_item_obj->master_filename_basename . ' was';
     $copied_to_location = $working_filename;
   }

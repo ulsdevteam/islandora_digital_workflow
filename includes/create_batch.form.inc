@@ -579,15 +579,16 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
     $form['batch_objects_frame']['file'] = array(
         '#type' => 'file',
         '#title' => t('File'),
-        '#description' => t('Select items file to upload.<br/>Files must be less ' .
-          'than <strong>@size MB.</strong><br/>Allowed file types: <strong>@ext.</strong>',
+        '#description' => t('Select items file to upload.  Uploading a new file ' .
+          'here <em>completely replaces any existing items records AND any ' .
+          'transactions on them</em>.<br/>Files must be less than <strong>' .
+          '@size MB.</strong><br/>Allowed file types: <strong>@ext.</strong>',
             array(
               '@size' => $upload_size,
               '@ext' => implode(", ", $extensions))) .
           (($batch_record && isset($batch_record['uploaded_batch_items_file']) && ($batch_record['uploaded_batch_items_file'] <> '')) ?
-          t('<br>Upload file will <em>completely replace any existing items records ' .
-          'and any transactions on them.  Additional CSV files can be merged to ' .
-          'add more items, using the "Add items" option on the batch\s ') .
+          t('<br>For CSV files ONLY, additional files may be ' .
+          'merged to add more items, using the "Add items" option on the batch\s ') .
           l(t('"Batch Items" page'), 'node/' . $batch_record['nid'] . '/items') . '.</em>' : '') .
           ' | ' . l('Download CSV template (minimal)', 'islandora/islandora_digital_workflow/csv_template/minimal') .
           ' | ' . l('Download CSV template (full)', 'islandora/islandora_digital_workflow/csv_template/extended'),
