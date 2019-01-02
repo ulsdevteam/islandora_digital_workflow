@@ -144,14 +144,23 @@ function islandora_digital_workflow_admin_form() {
       'ingest_ignore_filenames' => array(
         '#type' => 'textarea',
         '#title' => t('Ignore Specific Filenames'),
-        '#default_value' => variable_get('islandora_digital_workflow_ingest_ignore_filenames'),
         '#attributes' => array(
-            'placeholder' => 'ignored_filename_*
+            'placeholder' => '*.xml
+ignored_filename_*
 *_ignored_filenames
 *_ignored_filenames_*
 ??_ignored_filenames'),
-        '#description' => t('List filenames or wildcard filenames (supports *, ? characters) <b>ONE per line</b> that the ingest process should ignore when preparing the files that exist in the batch folder for ingest.
-                             <p>When the files are managed in various environments, there are sometimes extra files left behind that are not intended as part of the ingest process (for example color calibration files such as "Target.tif", or hidden files or folders that might still cause a problem for the ingest).</p>'),
+        '#default_value' =>  variable_get('islandora_digital_workflow_ingest_ignore_filenames'),
+        '#description' => t('List filenames or wildcard filenames (supports *, ? ' .
+            'characters) <b>ONE per line</b> that the ingest process should ignore ' .
+            'when preparing the item files that exist in the batch folder for ingest.' .
+            '<p>When the files are managed in various environments, there are ' .
+            'sometimes extra files left behind that are not intended as part of the ' .
+            'ingest process (for example color calibration files such as ' .
+            '"Target.tif", or hidden files or folders that might still cause a ' .
+            'problem for the ingest).  Regardless of the ignore filters set here, '.
+            'the process that pulls files from the delivery area will always ignore '.
+            'all "*.xml" files.</p>'),
       ),
     )
   );

@@ -25,7 +25,7 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
   $batch_name = $node->title;
 
   $batch_record = islandora_digital_workflow_get_batch_record_by_name($batch_name);
-  $batch_path = islandora_digital_workflow_batch_path($batch_record);
+  $batch_path = islandora_digital_workflow_batch_path($batch_record, 'working');
 
   $batch_description_markup = theme('islandora_digital_workflow_batch_description', array(
       'batch_record' => $batch_record,
@@ -135,6 +135,13 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
   $item_record_results = islandora_digital_workflow_get_batch_item_record($batch_item_id);
   $drush_log_entries = islandora_digital_workflow_get_drush_log_for_batch_item($batch_item_id);
   $item = array_pop($item_record_results);
+  if (!is_object($item)) {
+    drupal_set_message(t('Error: the item @batch_item_id could not be loaded.  ' .
+        'It may have been deleted.  You have been redirected to the dashboard.',
+        array('@batch_item_id' => $batch_item_id)), 'error');
+    drupal_goto('islandora/islandora_digital_workflow');
+  }
+
   @list($namespace, $pid) = explode(":", $item->identifier);
 
   $is_paged_content = islandora_digital_workflow_is_paged_object($item->islandora_model) || $is_paged_content;
@@ -142,12 +149,13 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
   $batch_delivery_path = islandora_digital_workflow_batch_path($batch_record);
   $item_delivery_path = $batch_delivery_path . '/' . $item->identifier;
   $found_delivery_files = islandora_digital_workflow_scandir_paged_content_files($item_delivery_path);
+  $item_working_path = $batch_path . '/' . $item->identifier;
   if ($is_paged_content) {
-    $found_files = islandora_digital_workflow_scandir_paged_content_files($batch_path . '/' . $item->identifier);
+    $found_files = islandora_digital_workflow_scandir_paged_content_files($item_working_path);
   }
   else {
     $file_records = islandora_digital_workflow_get_batch_files_by_nid($batch_record['nid']);
-    $found_files = islandora_digital_workflow_scan_files($batch_path . '/' . $item->identifier, $file_records);
+    $found_files = islandora_digital_workflow_scan_files($item_working_path, array(), TRUE);
   }
 
   $item_record_transactions = islandora_digital_workflow_get_batch_item_transactions($batch_item_id, $node->nid, $batch_record['batch_id']);
@@ -238,6 +246,8 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
         'pid' => $pid,
         'can_ingest' => $can_ingest,
         'ingested_links' => $ingested_links,
+        'working_directory' => $item_working_path,
+        'delivery_directory' => $item_delivery_path,
         'found_files' => $found_files,
         'found_delivery_files' => $found_delivery_files,
         'resource_select_box' => $resource_select_box,

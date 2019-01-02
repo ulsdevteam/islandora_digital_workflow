@@ -59,7 +59,7 @@
     <?php endif; ?>
 
     <?php if (count($found_files) > 0) : ?>
-    <h3>Actual files found in batch folder</h3>
+    <h3>Working Files</h3>
     <p>The batch folder "<?php print $batch_path; ?>" contains the following files.
     Files that are marked in green are expected, while the red files are not referenced
     by the batch items; it is possible that those files may not cause any problems.</p>
@@ -68,16 +68,12 @@
         <?php $otoggle = !$otoggle; ?>
         <?php $toggle = FALSE; ?>
 
-<fieldset  class="<?php print (($otoggle) ? 'evenrow' : 'oddrow'); ?>" id="<?php print $item->identifier; ?>">
+<fieldset  class="not_white <?php print (($otoggle) ? 'evenrow' : 'oddrow'); ?>" id="<?php print $item->identifier; ?>">
     <legend>
       <span class="fieldset-legend">
           <a href="/node/<?php print $node->nid; ?>/item/<?php print $item->batch_item_id; ?>"><?php print $item->identifier; ?></a></span>
     </legend>
     <div class="fieldset-wrapper fieldset_scrollable_div_wrapper">
-        <small class="small_lt_text"><b>Files location:</b> <?php
-        $filename_pathinfo = pathinfo($item->filename);
-        print (isset($filename_pathinfo['dirname']) ? $filename_pathinfo['dirname']: ' -- Directory for "' . $item->filename . '" does not exist.');
-        ?></small>
       <table>
         <tr>
           <th>Filename</th>
@@ -95,6 +91,12 @@
         <?php } ?>
       </table>
     </div>
+        <small class="small_lt_text"><b>Files location:</b> <?php
+        print $batch_path . '/' . $item->identifier;
+//        $filename_pathinfo = pathinfo($item->filename);
+//        print (isset($filename_pathinfo['dirname']) && ($filename_pathinfo['dirname'] <> '.')) ? $filename_pathinfo['dirname']: ' -- Directory for "' . $item->filename . '" does not exist.';
+        ?></small>
+    
 </fieldset>
 
     <?php } ?>

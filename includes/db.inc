@@ -1509,7 +1509,7 @@ function islandora_digital_workflow_insert_transactions_record($action_id, $batc
     if ($action_id == IDW_ACTION_PROBLEM) {
       islandora_digital_workflow_set_problem_record($transaction_id, ($alternative_uid) ? $alternative_uid : $user->uid, $problem_notes);
     } elseif ($action_id == IDW_ACTION_SCAN && !is_null($batch_item_id)) {
-      islandora_digital_workflow_copy_delivery_file($batch_item_id);
+      islandora_digital_workflow_copy_delivery_files($batch_item_id);
     }
 
     return $transaction_id;
@@ -2079,4 +2079,25 @@ function islandora_digital_workflow_delete_workflow_batch_nodes() {
     $delete_success &= node_delete($nid);
   }
   return $delete_success;
+}
+
+/**
+ * Will look up the batch set for the given batch_external_id ... will match an
+ * islandora PID value when prefixed with the ingest namespace variable.
+ *
+ * @param string $pid
+ * @return integer - value of the set
+ */
+function islandora_digital_workflow_get_set($pid) {
+  $result = 0;
+  $results = array();
+  $q = db_select('islandora_batch_queue', 'q');
+  $items = $q->fields('q', array('sid'))
+    ->condition('q.id', $pid)
+    ->execute();
+  while ($item = $items->fetchAssoc()) {
+    $result = $item['sid'];
+  }
+
+  return $result;
 }

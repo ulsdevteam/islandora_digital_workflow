@@ -226,10 +226,8 @@ function islandora_digital_workflow_add_items_form(array $form, array &$form_sta
           '#description' => t('Select CSV file to append to current CSV for batch.<br/>' .
               'Files must be less than <strong>@size MB.</strong><br/>Allowed file types: ' .
               '<strong>@ext.</strong>', array('@size' => $upload_size, '@ext' => $extensions[0])) .
-                (($batch_record && isset($batch_record_arr['file']) && ($batch_record_arr['file'] <> '')) ?
-                    '<br>Upload file will be stored: <em>' . str_replace($batch_path, '', $batch_record_arr['file']) . '</em>' :
-                    '') . ' | ' . l('Download CSV template (minimal)', 'islandora/islandora_digital_workflow/csv_template/minimal') .
-                    ' | ' . l('Download CSV template (full)', 'islandora/islandora_digital_workflow/csv_template/extended'),
+              l('Download CSV template (minimal)', 'islandora/islandora_digital_workflow/csv_template/minimal') .
+                ' | ' . l('Download CSV template (full)', 'islandora/islandora_digital_workflow/csv_template/extended'),
           '#upload_location' => 'temporary://',
           '#upload_validators' => array(
             'file_validate_extensions' => $extensions,

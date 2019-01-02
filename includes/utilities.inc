@@ -333,7 +333,9 @@ function islandora_digital_workflow_sync_batch_item_record($batch_record, $csv_f
       'batch_id' => $batch_record['batch_id'],
       'identifier' => $csv_file_source['identifier'],
       'title' => $title,
-      'filename' => $csv_file_source['filename']);
+      'filename' => $csv_file_source['filename'],
+      'islandora_model' => $batch_record['islandora_model']);
+
   // Only add the values for mods_content or marc_content if they are present...
   // making any values persis that were in there before this call.
   if (file_exists($csv_file_source['mods_filename'])) {
@@ -1628,23 +1630,59 @@ function islandora_digital_workflow_timeago_from_timestamp($timestamp) {
  * This will return the set of files that are found in the $scan_path.
  *
  * This will also check the expected set of filenames to mark which ones are
- * missing -- ignoring the ".xml" files.
+ * missing -- ignoring the ".xml" files and any filters defined in the
+ * $file_masks['discard_filemasks'] array if that is supplied.
  *
  * @param string $scan_path
  *   Folder to scan.
- * @param array $expected_file_records
- *   Array of stdObjects that have properties for each batch item that needs
- * to be scanned.
+ * @param array $file_masks
+ *   (Optional) - May filter out or keep specific files that are in the
+ * directory.  This is based on the underlying islandora model that the files
+ * represent.
+ * @param boolean $all_files
+ *   (Optional) - If this is passed, then ignore any filter or filemask... get all of the files
+ * in the $scan_path.
+ * @return array
+ *   An array of the files that reside in the $scan_path that relate to the
+ * object underlying that folder.
  */
-function islandora_digital_workflow_scan_files($scan_path, $expected_file_records = array()) {
+function islandora_digital_workflow_scan_files($scan_path,  $file_masks = array(), $all_files = FALSE) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/file_utilities');
   $files = islandora_digital_workflow_file_scandir($scan_path, '', TRUE);
   $ret_arr = array();
   $sequence = 1;
+  // Easiest to loop through and remove any file references that match the
+  // filters set up in islandora_digital_workflow_ingest_ignore_filenames.  This
+  // should always filter out the "*.xml" files even if it is not referenced
+  // in the ingore_filnames filters.
+  $ignore_filenames = variable_get('islandora_digital_workflow_ingest_ignore_filenames', array('*.xml'));
+  $filters = array_flip(explode("\n", trim($ignore_filenames)));
+  foreach ($filters as $key => $value) {
+    $filters[$key] = $key;
+    if ($key == '') {
+      unset($filters['']);
+    }
+  }
+  // Join together the $filters and the $file_masks['discard_filemasks']
+  if ($all_files) {
+    $file_masks_and_filters['discard_filemasks'] = array();
+    $file_masks_and_filters['keep_filemasks'] = array('*' => '*');
+  }
+  else {
+    $file_masks_and_filters['discard_filemasks'] = (array_key_exists('discard_filemasks', $file_masks) && is_array($file_masks['discard_filemasks'])) ?
+      array_merge($filters, $file_masks['discard_filemasks'])
+      : $filters;
+    $file_masks_and_filters['keep_filemasks'] =  (array_key_exists('keep_filemasks', $file_masks) && is_array($file_masks['keep_filemasks'])) ?
+      $file_masks['keep_filemasks']
+      : array('*' => '*');
+  }
   foreach ($files as $folder => $folder_files) {
     if (is_array($folder_files)) {
-      foreach ($folder_files as $file) {
-        $ret_arr[$folder . '/' . $file] = islandora_digital_workflow_get_filesize_class($scan_path, $folder, $file, FALSE, $sequence);
+      foreach ($folder_files as $subfolder => $file) {
+        $subfolder = (is_array($file)) ? $subfolder . "/" : '';
+        $file = (is_array($file)) ? array_pop($file) : $file;
+        $use_folder = ($subfolder) ? $folder . '/' . $subfolder : $folder;
+        $ret_arr[$folder . '/' . $subfolder . $file] = islandora_digital_workflow_get_filesize_class($scan_path, $use_folder, $file, FALSE, $sequence);
       }
     }
     else {
@@ -1652,6 +1690,15 @@ function islandora_digital_workflow_scan_files($scan_path, $expected_file_record
     }
   }
   ksort($ret_arr);
+
+  // loop through the found files just before returning them (because the
+  // recursion above is needed).
+  foreach ($ret_arr as $file => $arr)
+    if (!(islandora_digital_workflow_filemask_comparison($file, $file_masks_and_filters))) {
+      // remove that file from the list
+      unset($ret_arr[$file]);
+    }
+
   return $ret_arr;
 }
 
@@ -2347,8 +2394,8 @@ function islandora_digital_workflow_check_and_deploy_forena_reports() {
   $forena_data_source_idw = Frx::RepoMan()->repository('islandora_digital_workflow_sql');
   if (is_object($forena_data_source_idw) && $forena_frx_path) {
     $forena_sql_path = $forena_data_source_idw->block_path;
-    $frx_files = islandora_digital_workflow_scan_files($forena_frx_path);
-    $sql_files = islandora_digital_workflow_scan_files($forena_sql_path);
+    $frx_files = islandora_digital_workflow_scan_files($forena_frx_path, array(), TRUE);
+    $sql_files = islandora_digital_workflow_scan_files($forena_sql_path, array(), TRUE);
 
     // Finally set up the file paths needed if deploying.
     $this_folder = dirname(__FILE__);
@@ -2456,7 +2503,7 @@ function islandora_digital_workflow_is_paged_object($object_or_string) {
     return FALSE;
   }
   else {
-    return (!array_search($object_or_string, $paged_content_models) === FALSE);
+    return (!(array_search($object_or_string, $paged_content_models) === FALSE));
   }
 }
 
@@ -2898,7 +2945,7 @@ function islandora_digital_workflow_item_is_paged_content($batch_item_id, $batch
 }
 
 /**
- * This will copy the file for the given $batch_item_id item to the working
+ * This will copy the file/s for the given $batch_item_id item to the working
  * directory for the batch.
  *
  * The path to the delivery files is looked up using the item's batch record
@@ -2910,10 +2957,16 @@ function islandora_digital_workflow_item_is_paged_content($batch_item_id, $batch
  * @param boolean $is_problems_location
  *   (Optional) This defaults to FALSE, so most of the code calls this to copy
  * from the delivery folder...
+ * @param string $content_model
+ *   (Optional) - the type of underling object that would be stored in this file
+ * location.  This defaults to `islandora:large_image_sp_cmodel` and is needed
+ * in order to perform filtering of the files location differently for each
+ * content type.
  * @return boolean
  *   Whether or not there was a successful file copy operation.
  */
-function islandora_digital_workflow_copy_delivery_file($batch_item_id, $is_problems_location = FALSE) {
+function islandora_digital_workflow_copy_delivery_files($batch_item_id,
+        $is_problems_location = FALSE, $content_model = 'islandora:large_image_sp_cmodel') {
   $item_record_results = islandora_digital_workflow_get_batch_item_record($batch_item_id);
   $batch_item_obj = array_pop($item_record_results);
   $item_is_paged = islandora_digital_workflow_item_is_paged_content($batch_item_id);
@@ -2927,15 +2980,18 @@ function islandora_digital_workflow_copy_delivery_file($batch_item_id, $is_probl
     return FALSE;
   }
   $sanitized_delivery_filename = islandora_digital_workflow_get_item_delivery_filename($batch_item_obj);
-  $existed = FALSE;
+  $exists = FALSE;
   if ($item_is_paged) {
     module_load_include('inc', 'islandora_digital_workflow', 'includes/file_utilities');
-
     $batch_record = islandora_digital_workflow_get_batch_record_by_batch_id($batch_item_obj->batch_id);
     $item_working_folder = islandora_digital_workflow_batch_path($batch_record, 'working') . '/' . $batch_item_obj->identifier;
     // Scan the source folder - and copy over all page resources
     $item_folder = islandora_digital_workflow_get_item_delivery_filename($batch_item_obj);
-    $item_files = islandora_digital_workflow_scan_files($item_folder);
+
+    $model_filemasks  = islandora_digital_workflow_content_model_filemask($content_model);
+    // Call this with $all_files set to FALSE so that it uses the $model_filemasks
+    // to get the correct files related to this item.
+    $item_files = islandora_digital_workflow_scan_files($item_folder, $model_filemasks, FALSE);
     $copied = islandora_digital_workflow_copy_resequence_files($item_files, $item_folder, $item_working_folder, $batch_record['batch_name']);
     $whatwas_copied_message = 'files were';
     $copied_to_location = 'the item subfolder under the batch\'s working directory';
@@ -2950,7 +3006,7 @@ function islandora_digital_workflow_copy_delivery_file($batch_item_id, $is_probl
   }
 
   // but only display or try to delete the delivery folder if the file existed.
-  if ($existed) {
+  if ($exists) {
     if ($copied) {
       // Load the batch record for this item so that the sizes can be recalculated.
       $batch_record = islandora_digital_workflow_get_batch_record_by_batch_id($batch_item_obj->batch_id);
@@ -2983,7 +3039,7 @@ function islandora_digital_workflow_copy_delivery_file($batch_item_id, $is_probl
           )));
     }
   }
-  return (!($existed) || $copied);
+  return ($copied);
 }
 
 /**
@@ -3047,7 +3103,7 @@ function islandora_digital_workflow_get_item_delivery_filename($batch_item, $bat
 function islandora_digital_workflow_recalc_batch_files($batch_record, &$output_contents = array(), &$output_footer = array()) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
   $batch_record = (array) $batch_record;
-  $batch_path = islandora_digital_workflow_batch_path($batch_record);
+  $batch_path = islandora_digital_workflow_batch_path($batch_record, 'working');
   $batch_folders = islandora_digital_workflow_find_folders_files($batch_path);
   $item_data = array();
   if (count($batch_folders) > 0) {
@@ -3108,7 +3164,7 @@ function islandora_digital_workflow_mrc_results_as_array($mrc_results_arr) {
 
 function islandora_digital_workflow_marc_mods_arr_to_item_file_sources($batch_record, $marc_and_mods_records) {
   $item_file_sources = array();
-  $batch_path = islandora_digital_workflow_batch_path($batch_record);
+  $batch_path = islandora_digital_workflow_batch_path($batch_record, 'working');
 
   foreach ($marc_and_mods_records as $idx => $marc_mods_arr) {
     $bib_id = $marc_mods_arr['bib_id'];
@@ -3145,3 +3201,143 @@ function islandora_digital_workflow_marc_mods_arr_to_item_file_sources($batch_re
   }
   return $item_file_sources;
 }
+
+
+/**
+ * This will return the filematch that was matched if the file should be kept based
+ * upon matching a single filemask.
+ *
+ * @param type $file
+ * @param type $filemask
+ * @return string
+ */
+function islandora_digital_workflow_filemask_match($file, $filemask) {
+  $d = ($file == '0001.thumb.jpg' && $filemask == '*.thumb.jpg');
+  if ($filemask == '*') {
+    return TRUE;
+  }
+  $filemask_without_wildcards = str_replace("*", "", $filemask);
+  $starts_with_wildcard = ($filemask[0] == '*');
+  $ends_with_wildcard = ($filemask[strlen($filemask) - 1] == '*');
+  if ($starts_with_wildcard && $ends_with_wildcard) {
+    $result = (strstr($file, $filemask));
+  }
+  elseif ($starts_with_wildcard && !$ends_with_wildcard) {
+    // the last few characters are the same as the mask, but not anything before the
+    // wildcard, but MUST compare to the $filemask_without_wildcards
+    $result = (substr($file, -strlen($filemask_without_wildcards)) == $filemask_without_wildcards);
+  }
+  elseif (!$starts_with_wildcard && $ends_with_wildcard) {
+    // the first few characters are the same as the mask, but not anything after the
+    // wildcard, but MUST compare to the $filemask_without_wildcards
+    $result = (substr($file, 1, strlen($filemask_without_wildcards)) == $filemask_without_wildcards);
+  }
+  else {
+    $result = ($file == $filemask);
+  }
+  return ($result) ? $filemask : '';
+}
+
+/**
+ * This will return either a blank string if the file should be discarded, or the filemask
+ * that was used for keeping the file.
+ *
+ * @param string $file
+ * @param string $filemask
+ */
+function islandora_digital_workflow_filemask_comparison($file, $filemasks) {
+  $discard = FALSE;
+  if ((array_key_exists('discard_filenames', $filemasks) === FALSE)) {
+    $filemasks['discard_filemasks'] = $filemasks;
+  }
+
+  foreach ($filemasks['discard_filemasks'] as $discard_mask => $discard_filemask_name) {
+    if (!$discard) {
+      $discard = islandora_digital_workflow_filemask_match($file, $discard_mask);
+    }
+  }
+  if ($discard) {
+    return '';
+  }
+  $keep = FALSE;
+  foreach ($filemasks['keep_filemasks'] as $keep_mask => $keep_filemask_name) {
+    if (!$keep) {
+      $keep = islandora_digital_workflow_filemask_match($file, $keep_mask);
+    }
+  }
+  return $keep;
+}
+
+// This is all called via
+//  $model_filemasks = islandora_digital_workflow_content_model_filemask($content_model);
+// and is goverened by the content type (islandora model) of the underlying object
+
+/**
+ * This will return an array of filemasks that should be kept / copied from the incoming
+ * folder based upon content_model.
+ *
+ * @todo There should ultimately be a configuration for each content model's
+ * keep / discard filters.
+ *
+ * @param type $content_model
+ */
+function islandora_digital_workflow_content_model_filemask($content_model) {
+  $filemasks = $discard_filemasks = array();
+  switch ($content_model) {
+    case 'islandora:sp_large_image_cmodel':
+      // the MODS is created via CSV
+      $filemasks['*.mods.xml'] = 'MODS XML';
+      $filemasks['*.tif'] = 'Image TIF';
+      $filemasks['*.jpg'] = 'Image JPG';
+      $discard_filemasks['*.200dpi.jpg'] = '200 dpi jpg file';
+      $discard_filemasks['*.thumb.jpg'] = 'old thumbnail file';
+      $discard_filemasks['*.thumb_large.jpg'] = 'old large thumbnail file';
+      $discard_filemasks['target.tif'] = 'graphics calibration';
+      $discard_filemasks['aiim.tif'] = 'graphics calibration';
+      break;
+
+    case 'islandora:bookCModel'; case 'islandora:manuscriptCModel'; case 'islandora:newspaperCModel'; case 'islandora:newspaperIssueCModel';
+      $filemasks['*.mods.xml'] = 'MODS XML';
+      $filemasks['*.marcxml.xml'] = 'MARC XML';
+      $filemasks['*.mets.xml'] = 'METS XML';
+      $filemasks['*.tif'] = 'Page TIF';
+      $filemasks['*.jpg'] = 'Page JPG';
+      $filemasks['*.pdf'] = 'PDF file';
+      $discard_filemasks['*.thumb.jpg'] = 'old thumbnail file';
+      $discard_filemasks['*.thumb_large.jpg'] = 'old large thumbnail file';
+      $discard_filemasks['target.tif'] = 'graphics calibration';
+      $discard_filemasks['aiim.tif'] = 'graphics calibration';
+      break;
+
+    case 'islandora:sp_pdf':
+      $filemasks['*.mods.xml'] = 'MODS XML';
+      $filemasks['*.pdf'] = 'PDF file';
+      break;
+
+    case 'islandora:compoundCModel':
+      $filemasks['*_MODS.xml'] = 'MODS XML';
+      $filemasks['*.mods.xml'] = 'MODS XML';
+      $filemasks['*.wav'] = 'Audio WAV file';
+      $filemasks['*.vtt'] = 'Web VTT Transcript';
+      // $filemasks['*'] = 'any file';
+      break;
+
+    case 'islandora:sp_audioCModel':
+      $filemasks['*_MODS.xml'] = 'MODS XML';
+      $filemasks['*.mods.xml'] = 'MODS XML';
+      $filemasks['*.wav'] = 'Audio WAV file';
+      break;
+
+    case 'islandora:sp_videoCModel':
+      $filemasks['*_MODS.xml'] = 'MODS XML';
+      $filemasks['*.mods.xml'] = 'MODS XML';
+      $filemasks['*.mp4'] = 'Video file';
+      break;
+
+    default:
+      break;
+
+  }
+  return array('keep_filemasks' => $filemasks, 'discard_filemasks' => $discard_filemasks);
+}
+

@@ -112,13 +112,20 @@ function islandora_digital_workflow_sync_delivery_files_form_submit(array $form,
       $items = islandora_digital_workflow_get_batch_items_by_nid($batch_record['nid']);
       $success_moving = TRUE;
       foreach ($items as $item_obj) {
-        $success_moving &= islandora_digital_workflow_copy_delivery_file($item_obj->batch_item_id, TRUE);
+        // Use the item's islandora_model value in the event that it is overriding
+        // the value at the batch level, but use the batch value if the item value
+        // is not set -- just to be safe.
+        $content_model = (isset($item_obj->islandora_model) &&  $item_obj->islandora_model) ?
+                $item_obj->islandora_model : $batch_record['islandora_model'];
+        $success_moving &= islandora_digital_workflow_copy_delivery_files($item_obj->batch_item_id, FALSE, $content_model);
       }
       if ($success_moving) {
+        drupal_set_message(t('The files have been copied over from the delivery folder for "@batch_name".',
+                array('@batch_name' => $batch_record['batch_name'])), 'message_info');
         // Update the "problem_resolved_timestamp" value for the related
-        // problem state record of the item.
+        // problem state record of the item (if there is one).
         islandora_digital_workflow_unset_problems_records($batch_record['batch_id']);
-        drupal_goto('node/' . $batch_record['nid']);
+        drupal_goto('node/' . $batch_record['nid'] . '/files');
       }
     }
   }

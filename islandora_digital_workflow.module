@@ -609,6 +609,8 @@ function islandora_digital_workflow_theme() {
         'pid' => '',
         'can_ingest' => FALSE,
         'ingested_links' => '',
+        'working_directory' => '',
+        'delivery_directory' => '',
         'found_files' => array(),
         'found_delivery_files' => array(),
         'resource_select_box' => '',

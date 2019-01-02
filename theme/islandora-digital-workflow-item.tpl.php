@@ -177,6 +177,7 @@
     <?php if ((count($found_files) > 0) || count($found_delivery_files) > 0) : ?>
     <?php $toggle = FALSE; ?>
     <h3>Working Files</h3>
+      <small class="small_lt_text"><b>Files location:</b> <?php print $working_directory; ?></small>
       <table>
         <tr>
           <th>Filename</th>
@@ -192,6 +193,7 @@
         <?php } ?>
       </table>
     <h3>Delivery Files</h3>
+      <small class="small_lt_text"><b>Files location:</b> <?php print $delivery_directory; ?></small>
       <table>
         <tr>
           <th>Filename</th>

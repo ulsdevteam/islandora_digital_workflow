@@ -140,7 +140,7 @@ function islandora_digital_workflow_do_ingest_item($batch_item_id, $batch_record
 
   $output = array();
   $return_val = 1;
-
+  $ingest_set_fields = NULL;
   try {
     $had_exception = FALSE;
     // Now, make the array of field values that will be saved
@@ -152,11 +152,26 @@ function islandora_digital_workflow_do_ingest_item($batch_item_id, $batch_record
         'output' => serialize(array('output' => 'There was an exception when this command was called.')),
         'return_val' => $return_val,
     );
-    // For development purposes for now... do not issue an actual drush command here
-    //  -- just use the "pwd" command to execute so that nothing is prepared right now
-    exec('pwd', $output, $return_val);  //  exec($drush_prepare_command, $output, $return_val);
+    exec($drush_prepare_command, $output, $return_val);
 
-  } catch (Exception $ex) {
+    // Try to ingest that set now too...
+    $ingest_namespace = islandora_digital_workflow_get_ingest_namespace($batch_record);
+    $ingest_namespace_nocolon = rtrim($ingest_namespace, ':');
+    $item_assign_pid = (isset($batch_item_object->assigned_pid) && $batch_item_object->assigned_pid <> '') ? $batch_item_object->assigned_pid :
+            $ingest_namespace_nocolon . ':' . trim($batch_item_object->identifier);
+dpm('trying to get $set for PID = ' . $item_assign_pid);
+    $set = islandora_digital_workflow_get_set($item_assign_pid);
+    if ($set) {
+      $this_domain = 'http://' . $_SERVER['HTTP_HOST'];
+      $ingest_set_drush_command = 'drush -v -u ' . $user->uid . ' --uri=' . $this_domain . ' islandora_batch_ingest --ingest_set=' . $set;
+      exec($ingest_set_drush_command, $ingest_set_output, $ingest_set_return_var);
+
+      $ingest_set_fields = $fields;
+      $ingest_set_fields['output'] = serialize($ingest_set_output);
+      $ingest_set_fields['return_val'] = $ingest_set_return_var;
+    }
+  }
+  catch (Exception $ex) {
     $had_exception = TRUE;
   }
   $fields['output'] = serialize($output);
@@ -164,7 +179,12 @@ function islandora_digital_workflow_do_ingest_item($batch_item_id, $batch_record
   db_insert('islandora_digital_workflow_drush_log')
       ->fields($fields)
       ->execute();
-
+  if (!is_null($ingest_set_fields)) {
+    // The set was also ingested -- add the record for that as well.
+    db_insert('islandora_digital_workflow_drush_log')
+        ->fields($ingest_set_fields)
+        ->execute();
+  }
   if (($return_val == -1 || $return_val == 255) || $had_exception) {
     drupal_set_message(t('There was an error calling the drush command : @drush_command.', array('@drush_command' => $drush_prepare_command)), 'error');
     return FALSE;
@@ -203,12 +223,17 @@ function islandora_digital_workflow_make_drush_prepare_statement($batch_item_obj
 
   $content_model = (isset($batch_item_object->islandora_model) ?
       $batch_item_object->islandora_model : $batch_record['islandora_model']);
-  $raw_item_path = islandora_digital_workflow_batch_path($batch_record) . '/' . $batch_item_object->identifier;
+  $raw_item_path = islandora_digital_workflow_batch_path($batch_record, 'working') . '/' . $batch_item_object->identifier;
   $filepath = islandora_digital_workflow_filename_sanitize($raw_item_path);
   $batch_preprocessor = islandora_digital_workflow_get_preprocessor($content_model);
 
   $ingest_namespace = islandora_digital_workflow_get_ingest_namespace($batch_record);
+  $item_assign_pid = $batch_item_object->assigned_pid;
+  if (strstr($item_assign_pid, ":") == ":") {
+    @list($ingest_namespace, $identifier_junk) = explode(":", $item_assign_pid);
+  }
   $ingest_namespace_nocolon = rtrim($ingest_namespace, ':');
+
   // From the batch record:
   // For the --parent parameter use the collection mappings
   // For the -- use the site_id mapping based on config for islandora_digital_workflow_use_isMemberOfSite.
@@ -221,7 +246,7 @@ function islandora_digital_workflow_make_drush_prepare_statement($batch_item_obj
   $param_and_vals[] = 'namespace=' . $ingest_namespace_nocolon;
   $param_and_vals[] = 'type=directory';
   if (variable_get('islandora_digital_workflow_assign_PIDs', 0)) {
-    $param_and_vals[] = 'assign_pid=' . $ingest_namespace . $batch_item_object->identifier;
+    $param_and_vals[] = 'assign_pid=' . $item_assign_pid;
   }
   // Relationship parameter as "isMemberOfSite" object
   if (variable_get('islandora_digital_workflow_use_isMemberOfSite', 0) && $batch_record['mapto_site_id_values']) {

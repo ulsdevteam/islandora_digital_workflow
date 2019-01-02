@@ -794,6 +794,7 @@ function islandora_digital_workflow_create_empty_batch_form_validate(&$elements,
  *   The form_id that is being validated -- optional.
  */
 function islandora_digital_workflow_create_batch_form_validate(&$elements, &$form_state, $form_id = NULL) {
+  dpm($elements);
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
   $batch_name = $form_state['values']['batch_name'];
   if (isset($_FILES['files']) && array_key_exists('tmp_name', $_FILES) && isset($_FILES['tmp_name'])) {
