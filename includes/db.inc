@@ -971,10 +971,13 @@ function islandora_digital_workflow_calculate_ready_for(&$rows, $nid) {
  * @return array
  *   Either returns an array of a single batch item record objects.
  */
-function islandora_digital_workflow_get_batch_item_record($batch_item_id) {
+function islandora_digital_workflow_get_batch_item_record($batch_item_id, $batch_id = NULL) {
   $query = db_select('islandora_digital_workflow_batch_items', 'bi')
       ->fields('bi')
       ->condition('bi.batch_item_id', $batch_item_id);
+  if (!is_null($batch_id)) {
+    $query->condition('bi.batch_id', $batch_id);
+  }
   $results = $query->execute();
   $rows = $results->fetchAll();
   foreach ($rows as $index => $row) {
@@ -1509,7 +1512,7 @@ function islandora_digital_workflow_insert_transactions_record($action_id, $batc
     if ($action_id == IDW_ACTION_PROBLEM) {
       islandora_digital_workflow_set_problem_record($transaction_id, ($alternative_uid) ? $alternative_uid : $user->uid, $problem_notes);
     } elseif ($action_id == IDW_ACTION_SCAN && !is_null($batch_item_id)) {
-      islandora_digital_workflow_copy_delivery_files($batch_item_id);
+      islandora_digital_workflow_copy_delivery_files($batch_item_id, FALSE, NULL);
     }
 
     return $transaction_id;

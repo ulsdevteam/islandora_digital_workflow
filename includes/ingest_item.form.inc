@@ -159,7 +159,6 @@ function islandora_digital_workflow_do_ingest_item($batch_item_id, $batch_record
     $ingest_namespace_nocolon = rtrim($ingest_namespace, ':');
     $item_assign_pid = (isset($batch_item_object->assigned_pid) && $batch_item_object->assigned_pid <> '') ? $batch_item_object->assigned_pid :
             $ingest_namespace_nocolon . ':' . trim($batch_item_object->identifier);
-dpm('trying to get $set for PID = ' . $item_assign_pid);
     $set = islandora_digital_workflow_get_set($item_assign_pid);
     if ($set) {
       $this_domain = 'http://' . $_SERVER['HTTP_HOST'];

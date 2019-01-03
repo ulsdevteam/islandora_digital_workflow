@@ -148,10 +148,12 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
 
   $batch_delivery_path = islandora_digital_workflow_batch_path($batch_record);
   $item_delivery_path = $batch_delivery_path . '/' . $item->identifier;
+
   $found_delivery_files = islandora_digital_workflow_scandir_paged_content_files($item_delivery_path);
   $item_working_path = $batch_path . '/' . $item->identifier;
   if ($is_paged_content) {
-    $found_files = islandora_digital_workflow_scandir_paged_content_files($item_working_path);
+    $item_working_path .=  (is_null($item)) ? '' :  '/' . islandora_digital_workflow_object_subfolder_name($item->islandora_model, $batch_record);
+    $found_files = islandora_digital_workflow_scandir_paged_content_files($item_working_path, FALSE);
   }
   else {
     $file_records = islandora_digital_workflow_get_batch_files_by_nid($batch_record['nid']);

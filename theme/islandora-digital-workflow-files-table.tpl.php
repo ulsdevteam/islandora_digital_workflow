@@ -33,7 +33,8 @@
             <b>Files:</b> <?php print number_format($folder['files_count']); ?>
             <fieldset class="collapsible collapsed straight-edge" id="<?php print $folder['item_name']; ?>">
                 <legend><span class="fieldset-legend">Show files</span></legend>
-                <table class="fieldset-wrapper" style="display: none;">
+                <div  style="display: none;" class="fieldset-wrapper text-report scroll-v-200">
+                <table>
                     <tr>
                         <th>Filename</th>
                         <th>Size</th>
@@ -41,6 +42,8 @@
                     </tr>
                     <?php print $folder['files_table_rows']; ?>
                 </table>
+                </div>
+                <div class="right-total"><span><b>Total: </b><?php print number_format($folder['files_total_size']); ?> bytes</span></div>
             </fieldset>
           </div>
       </div>

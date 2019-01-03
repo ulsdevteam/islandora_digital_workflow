@@ -1739,7 +1739,8 @@ function islandora_digital_workflow_find_folders_files($root) {
       $return_folders[$key]['files_count'] = count($files);
       $filesize_date_files = islandora_digital_workflow_add_filesize_date_to_files($root . '/' . $key, $files);
       $return_folders[$key]['filesize_date_files_raw'] = $filesize_date_files;
-      $return_folders[$key]['files_table_rows'] = islandora_digital_workflow_convert_tab_to_table_cells($root . '/' . $key, $filesize_date_files);
+      $return_folders[$key]['files_total_size'] = 0;
+      $return_folders[$key]['files_table_rows'] = islandora_digital_workflow_convert_tab_to_table_cells($root . '/' . $key, $filesize_date_files, $return_folders[$key]['files_total_size']);
     }
   }
   return $return_folders;
@@ -1776,16 +1777,19 @@ function islandora_digital_workflow_filter_out_non_batch_folders(&$values, $item
  *   the file path where these batch files are located.
  * @param array $rows
  *   An array of strings that are TAB "\t" delimited.
+ * @param integer $file_total_size
+ *   Total size of files -- passed by reference.
  * @return string
  *   The html markup for a table row for each row of file info.
  */
-function islandora_digital_workflow_convert_tab_to_table_cells($files_root, $rows) {
+function islandora_digital_workflow_convert_tab_to_table_cells($files_root, $rows, &$file_total_size) {
   $return_string = '';
   $toggle = FALSE;
   $last_file_folder = '';
   foreach ($rows as $row) {
     $file_name = $row['file'];
     $file_size = $row['size_as_string'];
+    $file_total_size += $row['size'];
     $file_date = $row['date_as_string'];
     @list($this_file_folder, $junk) = explode("/", $file_name);
     if ($last_file_folder <> $this_file_folder) {
@@ -1810,9 +1814,10 @@ function islandora_digital_workflow_convert_tab_to_table_cells($files_root, $row
  * This will also check the expected set of filenames to mark which ones are
  * missing -- ignoring the ".xml" files.
  *
- * @param type $scan_path
+ * @param string $scan_path
+ *   File path to scan for files.
  */
-function islandora_digital_workflow_scandir_paged_content_files($scan_path) {
+function islandora_digital_workflow_scandir_paged_content_files($scan_path, $mark_bad_sequence = TRUE) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/file_utilities');
   $files = islandora_digital_workflow_file_scandir($scan_path, '', TRUE);
   $ret_arr = array();
@@ -1821,11 +1826,11 @@ function islandora_digital_workflow_scandir_paged_content_files($scan_path) {
     if (is_array($folder_files)) {
       foreach ($folder_files as $file) {
         $pop_file = (is_array($file)) ? array_pop($file): $file;
-        $ret_arr[$folder . '/' . $pop_file] = islandora_digital_workflow_get_filesize_class($scan_path, $folder, $pop_file, TRUE, $sequence);
+        $ret_arr[$folder . '/' . $pop_file] = islandora_digital_workflow_get_filesize_class($scan_path, $folder, $pop_file, TRUE, $sequence, $mark_bad_sequence);
       }
     }
     else {
-      $ret_arr[$folder_files] = islandora_digital_workflow_get_filesize_class($scan_path, '', $folder_files, TRUE, $sequence);
+      $ret_arr[$folder_files] = islandora_digital_workflow_get_filesize_class($scan_path, '', $folder_files, TRUE, $sequence, $mark_bad_sequence);
     }
   }
   ksort($ret_arr);
@@ -1844,10 +1849,13 @@ function islandora_digital_workflow_scandir_paged_content_files($scan_path) {
  * @param string $file
  *   The file from the batch that needs filesize and CSS class.
  * @param boolean $tif_must_be_numeric
+ * @param integer $seq
+ *   This is passed by reference and will return a value that is one greater than
+ * the value that was passed in.
  * @return array
  *   The returned array has a 'filesize' (string) and a 'class' (string) value.
  */
-function islandora_digital_workflow_get_filesize_class($scan_path, $folder, $file, $tif_must_be_numeric = FALSE, &$seq = 1) {
+function islandora_digital_workflow_get_filesize_class($scan_path, $folder, $file, $tif_must_be_numeric = FALSE, &$seq = 1, $mark_bad_sequence = FALSE) {
   $pop_file = (is_array($file)) ? array_pop($file): $file;
   $relative_file_path = (($folder) ? $folder . '/' : '') . $pop_file;
   $full_file_path = $scan_path . '/' . $relative_file_path;
@@ -1859,20 +1867,23 @@ function islandora_digital_workflow_get_filesize_class($scan_path, $folder, $fil
     if ($ext <> 'xml') {
       $class = '';
       if ($tif_must_be_numeric) {
-        if (!($ext == 'tif' && is_numeric($filename))) {
+        if (!($ext == 'tif' && is_numeric($folder))) {
           $class = 'bad';
         }
-        $file_sequence = (integer) ($filename + 0);
-        if ($file_sequence <> $seq) {
-          $class .= ' bad_sequence';
+        if ($mark_bad_sequence) {
+          $file_sequence = (integer) ($filename + 0);
+          if ($file_sequence <> $seq) {
+            $class .= ' bad_sequence';
+          }
         }
-        $seq++; // = $file_sequence + 1;
+        $seq++;
       }
     }
     else {
       $class = '';
     }
     return array(
+      'scan_path' => $scan_path,
       'filesize' => $size,
       'class' => $class,
     );
@@ -2965,8 +2976,7 @@ function islandora_digital_workflow_item_is_paged_content($batch_item_id, $batch
  * @return boolean
  *   Whether or not there was a successful file copy operation.
  */
-function islandora_digital_workflow_copy_delivery_files($batch_item_id,
-        $is_problems_location = FALSE, $content_model = 'islandora:large_image_sp_cmodel') {
+function islandora_digital_workflow_copy_delivery_files($batch_item_id, $is_problems_location = FALSE, $content_model = 'islandora:large_image_sp_cmodel') {
   $item_record_results = islandora_digital_workflow_get_batch_item_record($batch_item_id);
   $batch_item_obj = array_pop($item_record_results);
   $item_is_paged = islandora_digital_workflow_item_is_paged_content($batch_item_id);
@@ -2984,10 +2994,14 @@ function islandora_digital_workflow_copy_delivery_files($batch_item_id,
   if ($item_is_paged) {
     module_load_include('inc', 'islandora_digital_workflow', 'includes/file_utilities');
     $batch_record = islandora_digital_workflow_get_batch_record_by_batch_id($batch_item_obj->batch_id);
-    $item_working_folder = islandora_digital_workflow_batch_path($batch_record, 'working') . '/' . $batch_item_obj->identifier;
+    $subfolder_name = ($item_is_paged ? '/' . islandora_digital_workflow_object_subfolder_name($batch_item_obj->islandora_model) : '');
+    $item_working_folder = islandora_digital_workflow_batch_path($batch_record, 'working') . '/' . $batch_item_obj->identifier  . $subfolder_name;
     // Scan the source folder - and copy over all page resources
     $item_folder = islandora_digital_workflow_get_item_delivery_filename($batch_item_obj);
+    // Use the value that is passed as a parameter if it exists, else fall back to
+    // the item's islandora_model value
 
+    $content_model = ($content_model) ? $content_model : $batch_item_obj->islandora_model;
     $model_filemasks  = islandora_digital_workflow_content_model_filemask($content_model);
     // Call this with $all_files set to FALSE so that it uses the $model_filemasks
     // to get the correct files related to this item.
@@ -3165,10 +3179,14 @@ function islandora_digital_workflow_mrc_results_as_array($mrc_results_arr) {
 function islandora_digital_workflow_marc_mods_arr_to_item_file_sources($batch_record, $marc_and_mods_records) {
   $item_file_sources = array();
   $batch_path = islandora_digital_workflow_batch_path($batch_record, 'working');
-
   foreach ($marc_and_mods_records as $idx => $marc_mods_arr) {
     $bib_id = $marc_mods_arr['bib_id'];
-    $item_path = $batch_path . '/' . $bib_id;
+    $batch_item_id = islandora_digital_workflow_get_batch_item_id_by_identifier($bib_id, $batch_record['batch_id'], FALSE);
+    $item_is_paged = islandora_digital_workflow_item_is_paged_content($batch_item_id, $batch_record);
+    $batch_item_object = islandora_digital_workflow_get_batch_item($batch_item_id);
+
+    $subfolder_name = ($item_is_paged ? '/' . islandora_digital_workflow_object_subfolder_name($batch_item_object->islandora_model) : '');
+    $item_path = $batch_path . '/' . $bib_id . $subfolder_name;
     if (!file_exists($item_path)) {
       $call = mkdir($item_path);
       if (!$call) {
@@ -3341,3 +3359,51 @@ function islandora_digital_workflow_content_model_filemask($content_model) {
   return array('keep_filemasks' => $filemasks, 'discard_filemasks' => $discard_filemasks);
 }
 
+
+
+/**
+ * This will return the subfolder name that is needed for preparing an islandora
+ * batch ingest of the files.  Eg: the files for a manuscript object should be
+ * structured like:
+ *   {identifier}               * the unique identifier for the item
+ *     manuscript               * (this is the subfolder_name value)
+ *       {seq_1}
+ *         OBJ.tif
+ *       {seq_2}
+ *         OBJ.tif
+ *       --METADATA--.xml
+ *       MODS.xml
+ *
+ * @param string $model_name
+ *   The name of the Islandora model for which the form is being generated.
+ * @param array $batch_record
+ *   The batch record for the given item.  It is only used when the item does not
+ * specify the model name.
+ * @return string
+ *   The name of the subfolder - if one is needed for the given model.
+ */
+function islandora_digital_workflow_object_subfolder_name($model_name, $batch_record = array()) {
+  $model_name = ($model_name == '') ? $batch_record['islandora_model']: $model_name;
+  switch ($model_name) {
+    case "islandora:bookCModel":
+      $subfolder_name = 'book';
+      break;
+
+    case "islandora:manuscriptCModel":
+      $subfolder_name = 'manuscript';
+      break;
+
+    case "islandora:newspaperCModel":
+      $subfolder_name = 'newspaper_parent';
+      break;
+
+    case "islandora:newspaperIssueCModel":
+      $subfolder_name = 'newspaper';
+      break;
+
+    default:
+      $subfolder_name = 'newspaper';
+      break;
+  }
+  return $subfolder_name;
+}

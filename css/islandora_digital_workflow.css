@@ -362,10 +362,10 @@ div.form-disabled label.enabled_text {
 .bad_sequence {
     color: red;
 }
-.evenrow.bad_sequence {
+.evenrow.bad_sequence .bad {
     background-color: #ff5 !important;
 }
-.oddrow.bad_sequence {
+.oddrow.bad_sequence .bad {
     background-color: #ee6 !important;
 }
 
@@ -450,9 +450,15 @@ div.form-disabled label.enabled_text {
 
 .report, .report_table table {
     font-size: 0.9em;
-    max-height: 600px;
+    max-height: 100px;
     overflow: auto;
     margin-top: 8px;
+}
+
+.scroll-v-200 {
+    max-height: 200px;
+    overflow-y: scroll !important;
+    height: 200px;
 }
 
 #islandora-digital-workflow-batch-items-form div table thead tr th:first-child,
@@ -551,10 +557,19 @@ tr.batch_action, tr.item_action {
     border: none !important;
 }
 
+.short-text-area, .right-total {
+    font-family: Andale Mono, monospace;
+    font-size: 0.825em;
+}
+
 .short-text-area {
     width: 99%;
-    font-size: 0.825em;
-    font-family: Andale Mono, monospace;
+}
+
+.right-total span {
+    text-align: right;
+    float: right;
+    padding-right: 12px;
 }
 
 .fieldset_scrollable_div_wrapper {

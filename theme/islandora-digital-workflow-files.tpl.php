@@ -20,11 +20,8 @@
     <p><?php print $table_description; ?></p>
     <?php } ?>
 
-    <?php $toggle = FALSE; ?>
     <div class="lookup_result <?php print ($toggle) ? 'evenrow' : 'oddrow'; ?>">
-        <?php
-        $toggle = !$toggle;
-        ?>
+    <?php $toggle = TRUE; ?>
         <div class="lookup_result_indent">
             <span class="<?php print (count($item_file_records) == $batch_record['object_count']) ? 'good' : 'bad'; ?>">
             <b>How many physical objects:</b><?php print $batch_record['object_count']; ?>
@@ -64,6 +61,7 @@
     Files that are marked in green are expected, while the red files are not referenced
     by the batch items; it is possible that those files may not cause any problems.</p>
       <?php $otoggle = FALSE; ?>
+      <?php $total_size = 0;  $last_path = ''; ?>
       <?php foreach ($item_file_records as $item) { ?>
         <?php $otoggle = !$otoggle; ?>
         <?php $toggle = FALSE; ?>
@@ -73,29 +71,26 @@
       <span class="fieldset-legend">
           <a href="/node/<?php print $node->nid; ?>/item/<?php print $item->batch_item_id; ?>"><?php print $item->identifier; ?></a></span>
     </legend>
-    <div class="fieldset-wrapper fieldset_scrollable_div_wrapper">
+    <div class="text-report scroll-v-200">
       <table>
         <tr>
           <th>Filename</th>
-          <th class="numeric">Size</th>
+          <th class="numeric">Size (bytes)</th>
         </tr>
         <?php foreach ($found_files as $filename => $file_info) { ?>
-          <?php if (strstr($filename, $item->identifier) <> '') : ?>
+        <?php if ($last_path <> $file_info['scan_path']) { $last_path =  $file_info['scan_path']; } ?>
+        <?php $total_size += $file_info['filesize']; ?>
             <?php $toggle = !$toggle; ?>
         <tr class="<?php print (($toggle) ? 'evenrow' : 'oddrow') .
             (($file_info['class'] <> '') ? ' ' . $file_info['class'] : ''); ?>">
           <td><?php print $filename; ?></td>
           <td class="numeric"><?php print number_format($file_info['filesize']); ?></td>
         </tr>
-          <?php endif; ?>
         <?php } ?>
       </table>
     </div>
-        <small class="small_lt_text"><b>Files location:</b> <?php
-        print $batch_path . '/' . $item->identifier;
-//        $filename_pathinfo = pathinfo($item->filename);
-//        print (isset($filename_pathinfo['dirname']) && ($filename_pathinfo['dirname'] <> '.')) ? $filename_pathinfo['dirname']: ' -- Directory for "' . $item->filename . '" does not exist.';
-        ?></small>
+    <div class="right-total"><span><b>Total: </b><?php print number_format($total_size); ?> bytes</span></div>
+        <small class="small_lt_text"><b>Files location:</b> <?php print $last_path; ?></small>
     
 </fieldset>
 

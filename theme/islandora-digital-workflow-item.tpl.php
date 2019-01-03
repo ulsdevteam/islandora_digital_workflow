@@ -12,6 +12,7 @@
 * - $drush_log_entries => array(),
 * - $item_record_transactions => array(),
 * - $found_files => array(),
+* - $found_delivery_files => array(),
 * - $resource_select_box - prerendered HTML for a <select ... > input box.
 * - $islandora_model_select_box - prerendered HTML for a <select ... > input box.
 */
@@ -175,41 +176,53 @@
     <?php print $workflow_sequence_text; ?>
 
     <?php if ((count($found_files) > 0) || count($found_delivery_files) > 0) : ?>
-    <?php $toggle = FALSE; ?>
+    <?php $toggle = FALSE;  $total_size = 0; ?>
     <h3>Working Files</h3>
       <small class="small_lt_text"><b>Files location:</b> <?php print $working_directory; ?></small>
-      <table>
-        <tr>
-          <th>Filename</th>
-          <th class="numeric">Size</th>
-        </tr>
-        <?php foreach ($found_files as $filename => $file_info) { ?>
+      <div class="text-report scroll-v-200">
+        <table>
+          <tr>
+            <th>Filename</th>
+            <th class="numeric">Size (bytes)</th>
+          </tr>
+          <?php foreach ($found_files as $filename => $file_info) { ?>
             <?php $toggle = !$toggle; ?>
-        <tr class="<?php print (($toggle) ? 'evenrow' : 'oddrow') .
-            (($file_info['class'] <> '') ? ' ' . $file_info['class'] : ''); ?>">
-          <td><?php print $filename; ?></td>
-          <td class="numeric"><?php print number_format($file_info['filesize']); ?></td>
-        </tr>
-        <?php } ?>
-      </table>
+            <?php $total_size += $file_info['filesize']; ?>
+          <tr class="<?php print (($toggle) ? 'evenrow' : 'oddrow') .
+              (($file_info['class'] <> '') ? ' ' . $file_info['class'] : ''); ?>">
+            <td><?php print $filename; ?></td>
+            <td class="numeric"><?php print number_format($file_info['filesize']); ?></td>
+          </tr>
+          <?php } ?>
+        </table>
+      </div>
+      <div class="right-total"><span><b>Total: </b><?php print number_format($total_size); ?> bytes</span></div>
+
+    <?php $toggle = FALSE;  $total_size = 0; ?>
     <h3>Delivery Files</h3>
       <small class="small_lt_text"><b>Files location:</b> <?php print $delivery_directory; ?></small>
-      <table>
-        <tr>
-          <th>Filename</th>
-          <th class="numeric">Size</th>
-        </tr>
-        <?php foreach ($found_delivery_files as $filename => $file_info) { ?>
+      <div class="text-report scroll-v-200">
+        <table>
+          <tr>
+            <th>Filename</th>
+            <th class="numeric">Size (bytes)</th>
+          </tr>
+          <?php foreach ($found_delivery_files as $filename => $file_info) { ?>
             <?php $toggle = !$toggle; ?>
-        <tr <?php if (strstr($file_info['class'], 'bad_sequence')) {
-          print 'title="Filename sequence bad and will be renamed when brought into the working files location" ';
-        } ?>class="<?php print (($toggle) ? 'evenrow' : 'oddrow') .
-            (($file_info['class'] <> '') ? ' ' . $file_info['class'] : ''); ?>">
-          <td><?php print $filename; ?></td>
-          <td class="numeric"><?php print number_format($file_info['filesize']); ?></td>
-        </tr>
-        <?php } ?>
-      </table>
+            <?php $total_size += $file_info['filesize']; ?>
+
+          <tr <?php if (strstr($file_info['class'], 'bad_sequence')) {
+            print 'title="Filename sequence bad and will be renamed when brought into the working files location" ';
+          } ?>class="<?php print (($toggle) ? 'evenrow' : 'oddrow') .
+              (($file_info['class'] <> '') ? ' ' . $file_info['class'] : ''); ?>">
+            <td><?php print $filename; ?></td>
+            <td class="numeric"><?php print number_format($file_info['filesize']); ?></td>
+          </tr>
+          <?php } ?>
+        </table>
+      </div>
+      <div class="right-total"><span><b>Total: </b><?php print number_format($total_size); ?> bytes</span></div>
+
     <?php endif; ?>
 
   </div><!-- /end report_table "Item Transactions" -->

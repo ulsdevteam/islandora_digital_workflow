@@ -38,7 +38,7 @@ function islandora_digital_workflow_files($node) {
   // Scan for files in that directory - this will mark any files that are expected,
   // but not found with "bad" class.
   $is_paged_content = islandora_digital_workflow_is_paged_object($batch_record['islandora_model']);
-  if ($is_paged_content) {
+  if (!$is_paged_content) {
     $found_files = islandora_digital_workflow_scan_files($batch_path, array(), TRUE);
     $batch_delivery_path = islandora_digital_workflow_batch_path($batch_record);
     foreach ($file_records as $index => $file_item) {
@@ -47,7 +47,13 @@ function islandora_digital_workflow_files($node) {
     }
   }
   else {
-    $found_files = islandora_digital_workflow_scandir_paged_content_files($batch_path);
+    $found_files = array();
+    foreach ($file_records as $idx => $item) {
+      $item_working_path = $batch_path . '/' . $item->identifier . '/' . islandora_digital_workflow_object_subfolder_name($item->islandora_model);
+      $item_files = islandora_digital_workflow_scandir_paged_content_files($item_working_path, FALSE);
+      $found_files += $item_files;
+    }
+    // $found_files = islandora_digital_workflow_scandir_paged_content_files($batch_path);
     // Loop through the $file_records and see which ones are missing from the file system
     foreach ($file_records as $index => $file_item) {
       $relative_folder_file = str_replace($batch_path . '/', '', $file_item->filename);
