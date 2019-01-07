@@ -504,9 +504,9 @@ table.report tr {
     color: #22FF66;
 }
 .textarea_terminal {
-    height: 300px;
+    height: 500px;
     max-height: none !important;
-    width: 81%;
+    width: 100%;
 }
 
 table.report tr.oddrow td textarea, table.report tr.oddrow, .report_table fieldset.oddrow, .report_table table tr.oddrow {

@@ -147,7 +147,7 @@ function islandora_digital_workflow_menu() {
     ),
     // the "standard Workflow user" (usually ISLANDORA_DIGITAL_WORKFLOW) menu handlers.
     'islandora/islandora_digital_workflow' => array(
-      'title' => t('Islandora Digital Workflow Dashboard'),
+      'title' => t('Islandora Digital Workflow'),
       'type' => MENU_NORMAL_ITEM,
       'page callback' => array('islandora_digital_workflow_dashboard'),
       'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW),
