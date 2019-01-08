@@ -284,7 +284,7 @@ function islandora_digital_workflow_add_items_form_validate(&$elements, &$form_s
     foreach ($csv_file_sources as $csv_file_source) {
       $all_ok &= (array_search($csv_file_source['identifier'], $existing_batch_identifiers) === FALSE);
     }
-    if (!$all_ok) {
+    if (count($csv_file_sources) > 0 && !$all_ok) {
       form_set_error('file', t('At least one identifier value from the new CSV file already exists for this batch.'));
     }
   }

@@ -1225,6 +1225,41 @@ function islandora_digital_workflow_prepare_csv2mods($input_filename, $batch_rec
   }
   else {
     $temp_batch_items_filename = '';
+    $mimetype = mime_content_type($input_filename);
+    $v1 = arg(1);
+
+    switch ($mimetype) {
+      // 1. MRC "application/marc".
+      case "application/marc":
+      case "application/octet-stream":
+      // 2. MARCXML "application/xml".
+      case "application/xml":
+        drupal_set_message(t('MARC collections can not merged together.  To replace the ' .
+            'items file, upload it from the <b>Batch Items</b> section of the page ') .
+            l('Edit Batch Record page', '/node/' . $v1 . '/batch') . '.');
+        return array();
+        break;
+
+      case "text/plain":
+        break;
+
+      default:
+        // 3. CSV "text/plain" -- all other cases -- attempt as CSV "text/plain".
+        $arr = islandora_digital_workflow_csv_file_as_array($tmp_uploaded_batch_items_file);
+        $file_header = (isset($arr['header']) ? $arr['header'] : array());
+        $file_rows = (isset($arr['rows']) ? $arr['rows'] : array());
+        $csv_header_mappings = islandora_digital_workflow_get_csv_header_xpath_mappings();
+        foreach ($file_header as $header) {
+          $machine_header = str_replace(" ", "_", strtolower(trim($header)));
+          if ($machine_header && !(array_key_exists($machine_header, $csv_header_mappings))) {
+            drupal_set_message('CSV ' . t('column "') . $header . t('" not recognized.  Batch ' .
+                'may not be able to ingest or process.  Please replace the attached ' .
+                'CSV file.'), 'error');
+          }
+        }
+        break;
+    }
+
   }
   if (!$input_filename) {
     return array();
@@ -3185,13 +3220,23 @@ function islandora_digital_workflow_marc_mods_arr_to_item_file_sources($batch_re
     $item_is_paged = islandora_digital_workflow_item_is_paged_content($batch_item_id, $batch_record);
     $batch_item_object = islandora_digital_workflow_get_batch_item($batch_item_id);
 
-    $subfolder_name = ($item_is_paged ? '/' . islandora_digital_workflow_object_subfolder_name($batch_item_object->islandora_model) : '');
-    $item_path = $batch_path . '/' . $bib_id . $subfolder_name;
+    $model = (is_object($batch_item_object) ? $batch_item_object->islandora_model : $batch_record['islandora_model']);
+    $subfolder_name = ($item_is_paged ? '/' . islandora_digital_workflow_object_subfolder_name($model) : '');
+    $item_path = $batch_path . '/' . $bib_id;
+    $item_subfolder_path = $item_path . $subfolder_name;
     if (!file_exists($item_path)) {
       $call = mkdir($item_path);
       if (!$call) {
         drupal_set_message(t('The item folder "@item_path" could not be created.', array(
             '@item_path' => $item_path
+        )), 'error');
+      }
+    }
+    if (!file_exists($item_subfolder_path)) {
+      $call = mkdir($item_subfolder_path);
+      if (!$call) {
+        drupal_set_message(t('The item subfolder "@item_path" could not be created.', array(
+            '@item_path' => $item_subfolder_path
         )), 'error');
       }
     }
@@ -3406,4 +3451,46 @@ function islandora_digital_workflow_object_subfolder_name($model_name, $batch_re
       break;
   }
   return $subfolder_name;
+}
+
+/**
+ * This will return the Fedora PID value for the default parent collection
+ * related to a namespace - for the "--parent=???" parameter when ingesting the
+ * batch items.  If the collection object does not exist, it will be created.
+ *
+ * @param string $ingest_namespace
+ *   The fedora namespace that was used for the object that needs to be related
+ * to a parent collection that was not specified for the batch.
+ *
+ * @return string
+ *   The Fedora PID value that represents the default parent collection object
+ * for the $ingest_namespace.
+ */
+function  islandora_digital_workflow_get_default_parent_collection($ingest_namespace) {
+  $default_collection_pid = $ingest_namespace . ':' .
+      variable_get('islandora_digital_workflow_default_parent_collection_identifier', 'default_collection');
+
+  $module_path = drupal_get_path('module', 'islandora_digital_workflow');
+  $connection = islandora_get_tuque_connection();
+  $repository = $connection->repository;
+  $default_collection = islandora_object_load($default_collection_pid);
+  if (!is_object($default_collection)) {
+    drupal_set_message(t('The "Default Parent Collection" object @default_collection_pid ' .
+        'did not exist and was created.', array(
+            '@default_collection_pid' => $default_collection_pid)), 'message_info');
+    $default_collection = $repository->constructObject($default_collection_pid);
+    $default_collection->label = t('Default Parent Collection namespace "@namespace"',
+            array('@namespace' => $ingest_namespace));
+    $default_collection->models = 'islandora:collectionCModel';
+
+    // COLLECTION_POLICY Datastream.
+    $datastream = $default_collection->constructDatastream('COLLECTION_POLICY', 'X');
+    $datastream->label = 'COLLECTION_POLICY';
+    $datastream->mimetype = 'application/xml';
+    $datastream->setContentFromFile("$module_path/xml/islandora_basic_collection_collection_policy.xml", FALSE);
+    $default_collection->ingestDatastream($datastream);
+
+    $repository->ingestObject($default_collection);
+  }
+  return $default_collection_pid;
 }

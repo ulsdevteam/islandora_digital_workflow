@@ -217,6 +217,7 @@ function islandora_digital_workflow_do_ingest_item($batch_item_id, $batch_record
  */
 function islandora_digital_workflow_make_drush_prepare_statement($batch_item_object, $batch_record) {
   global $user;
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
   $this_domain = 'http://' . $_SERVER['HTTP_HOST'];
   $drush_command_prefix = 'drush -v -u ' . $user->uid . ' --uri=' . $this_domain . ' ';
 
@@ -228,6 +229,10 @@ function islandora_digital_workflow_make_drush_prepare_statement($batch_item_obj
 
   $ingest_namespace = islandora_digital_workflow_get_ingest_namespace($batch_record);
   $item_assign_pid = $batch_item_object->assigned_pid;
+  if ($item_assign_pid == '') {
+    // use the identifier and namespace to get the assigned_pid value
+    $item_assign_pid  = $ingest_namespace . $batch_item_object->identifier;
+  }
   if (strstr($item_assign_pid, ":") == ":") {
     @list($ingest_namespace, $identifier_junk) = explode(":", $item_assign_pid);
   }
@@ -257,6 +262,15 @@ function islandora_digital_workflow_make_drush_prepare_statement($batch_item_obj
   // object will be related to the top-level collection islandora:root.
   if ($batch_record['mapto_collections']) {
     $param_and_vals[] = 'parent=' . $batch_record['mapto_collections'];
+  }
+  else {
+    // we should set some collection as the parent --
+    $default_parent_collection_pid = islandora_digital_workflow_get_default_parent_collection($ingest_namespace_nocolon);
+    drupal_set_message(t('The object did not have a parent collection selected.  ' .
+        'The default parent collection of @default_parent has been used.', array(
+            '@default_parent' => $default_parent_collection_pid,
+        )), 'message_info');
+    $param_and_vals[] = 'parent=' . $default_parent_collection_pid;
   }
   $param_and_vals[] = 'target=' . $filepath;
   return $drush_command_prefix . ' ' . $batch_preprocessor . ' --' . implode(" --", $param_and_vals);

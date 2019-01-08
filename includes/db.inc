@@ -301,33 +301,34 @@ function islandora_digital_workflow_search_digitization_requests($searchterm, $h
     $allrows = array();
     foreach ($digitization_request_webforms as $nid => $webform_title) {
       $search_fields = islandora_digital_workflow_searchable_fields($nid, TRUE);
-      $components = islandora_digitization_requests_webform_components($nid);
-      $query = db_select('webform_submitted_data', 'wd')
-          ->fields('wd');
-      $query->join('webform_submissions', 'ws', 'wd.sid = ws.sid AND wd.nid = ws.nid');
-      $query->fields('ws', array('uid','submitted', 'remote_addr'));
-      $query->addJoin('LEFT OUTER', 'users', NULL, 'ws.uid = users.uid');
-      $query->addField('users', 'name', 'user_name');
-      $query->join('webform_component', 'wc', 'wd.cid = wc.cid AND wd.nid = wc.nid');
-      $query->fields('wc', array('form_key'));
-      $query->join('node', 'n', 'n.nid = wc.nid');
-      $query->addField('n', 'title', 'webform_title');
-      $query->condition('wd.nid', $nid);
-      $query->condition('wc.form_key', $search_fields, 'IN');
-      $query->condition('wd.data', '%' . db_like($searchterm) . '%', 'LIKE');
-      $query->orderBy('ws.submitted', 'DESC');
-      $results = $query->execute();
-      $rows = $results->fetchAll();
-      foreach ($rows as $idx => $row) {
-        $submission_tooltip = islandora_digital_workflow_get_submission_tooltip($row->sid, $searchterm, $search_fields, $highlight_hash);
-        $row->submission_tooltip = $submission_tooltip;
-        $row->batch_id = 'ws_' . $nid . '_' . $row->sid;
-        $allrows[] = $row;
-        $rows[$idx]->submission_tooltip = $submission_tooltip;
-        $rows[$idx]->batch_id = $row->batch_id;
+      if (count($search_fields) > 0) {
+        $components = islandora_digitization_requests_webform_components($nid);
+        $query = db_select('webform_submitted_data', 'wd')
+            ->fields('wd');
+        $query->join('webform_submissions', 'ws', 'wd.sid = ws.sid AND wd.nid = ws.nid');
+        $query->fields('ws', array('uid','submitted', 'remote_addr'));
+        $query->addJoin('LEFT OUTER', 'users', NULL, 'ws.uid = users.uid');
+        $query->addField('users', 'name', 'user_name');
+        $query->join('webform_component', 'wc', 'wd.cid = wc.cid AND wd.nid = wc.nid');
+        $query->fields('wc', array('form_key'));
+        $query->join('node', 'n', 'n.nid = wc.nid');
+        $query->addField('n', 'title', 'webform_title');
+        $query->condition('wd.nid', $nid);
+        $query->condition('wc.form_key', $search_fields, 'IN');
+        $query->condition('wd.data', '%' . db_like($searchterm) . '%', 'LIKE');
+        $query->orderBy('ws.submitted', 'DESC');
+        $results = $query->execute();
+        $rows = $results->fetchAll();
+        foreach ($rows as $idx => $row) {
+          $submission_tooltip = islandora_digital_workflow_get_submission_tooltip($row->sid, $searchterm, $search_fields, $highlight_hash);
+          $row->submission_tooltip = $submission_tooltip;
+          $row->batch_id = 'ws_' . $nid . '_' . $row->sid;
+          $allrows[] = $row;
+          $rows[$idx]->submission_tooltip = $submission_tooltip;
+          $rows[$idx]->batch_id = $row->batch_id;
+        }
       }
     }
-
     return $allrows;
   }
   else {

@@ -13,6 +13,7 @@
 *
 */
 ?>
+<?php $toggle = TRUE; ?>
 <div id="no-sidebars">
   <div class="report_table">
     <h3><?php print $table_title; ?></h3>
