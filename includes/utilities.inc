@@ -2120,25 +2120,30 @@ function islandora_digital_workflow_merge_uploaded_csv_files(&$batch_record, $no
   }
   if ($merged_csv_file) {
     $temp_batch_items_filename = drupal_realpath(drupal_tempnam('temporary://', 'merged_csv.csv'));
+    $save_merged_csv_file = ((count($merged_rows) > 0) ? $merged_csv_file : '');
     if ($bytes_written = file_put_contents($temp_batch_items_filename, $merged_csv_file)) {
       $csv_array = islandora_digital_workflow_csv_file_as_array($temp_batch_items_filename, TRUE);
       if (array_key_exists('uploaded_batch_items_filename', $_SESSION) && file_exists($_SESSION['uploaded_batch_items_filename'])) {
         // This usage of _SESSION['uploaded_batch_items_filename'] can get tricky, but
         // must set this value here because the referencing code calls another
         // function that uses this value to work with the batch's csv file.
-        file_put_contents($_SESSION['uploaded_batch_items_filename'], $merged_csv_file);
+        file_put_contents($_SESSION['uploaded_batch_items_filename'], $save_merged_csv_file);
       }
       unlink($temp_batch_items_filename);
     }
 
-    $batch_record['uploaded_batch_items_file'] = $merged_csv_file;
-    $new_value = theme('islandora_digital_workflow_batch_defaults', array('islandora_digital_workflow_batch' => $batch_record));
-    $field_values = array('uploaded_batch_items_file' => $merged_csv_file, 'object_count' => count($merged_rows));
+    $batch_record['uploaded_batch_items_file'] = $save_merged_csv_file;
+    module_load_include('install', 'islandora_digital_workflow', 'islandora_digital_workflow');
+    $schema = islandora_digital_workflow_schema();
+    $new_value = theme('islandora_digital_workflow_batch_defaults', array(
+        'batch_record' => $batch_record,
+        'schema' => $schema));
+    $field_values = array('uploaded_batch_items_file' => $save_merged_csv_file, 'object_count' => count($merged_rows));
     islandora_digital_workflow_update_batch($batch_record['batch_id'], $field_values);
 
     $node->field_batch_defaults[LANGUAGE_NONE][0]['value'] = $new_value;
     $csv_values_arr = islandora_digital_workflow_get_csv_values_for_fieldname('identifier', $csv_array);
-    $node->field_identifiers[$node->language][0]['value'] = implode("\n", $csv_values_arr['identifier']);
+    $node->field_identifiers[$node->language][0]['value'] = ((count($csv_values_arr) > 0) ? implode("\n", $csv_values_arr['identifier']) : '');
     node_save($node);
   }
 }

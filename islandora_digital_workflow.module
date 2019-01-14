@@ -562,7 +562,8 @@ function islandora_digital_workflow_theme() {
     'islandora_digital_workflow_batch_defaults' => array(
       'template' => 'theme/islandora-digital-workflow-batch-defaults',
       'variables' => array(
-        'islandora_digital_workflow_batch' => NULL,
+        'batch_record' => array(),
+        'schema' => array(),
       ),
     ),
     'islandora_digital_workflow_lookup' => array(

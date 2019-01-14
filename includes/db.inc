@@ -1996,7 +1996,6 @@ function islandora_digital_workflow_delete_batch_item($batch_item_id) {
     $batch_item_record_obj = array_pop($batch_item_record_arr);
     $item_path = '';
     if ($batch_item_record_obj->filename) {
-      @unlink($batch_item_record_obj->filename);
       if (variable_get('islandora_digital_workflow_delete_delivery_files', 0)) {
         $pathinfo = pathinfo($batch_item_record_obj->filename);
         // ONLY do this if the path is an "item subfolder" and not higher - such as
@@ -2006,7 +2005,10 @@ function islandora_digital_workflow_delete_batch_item($batch_item_id) {
           $item_path = $pathinfo['dirname'];
         }
       }
-      drupal_set_message(t('deleted file "' . $batch_item_record_obj->filename . '"'), 'error');
+      if (file_exists($batch_item_record_obj->filename)) {
+        @unlink($batch_item_record_obj->filename);
+        drupal_set_message(t('deleted file "' . $batch_item_record_obj->filename . '"'), 'error');
+      }
     }
     else {
       $batch_record = islandora_digital_workflow_get_batch_item_record($batch_item_id);

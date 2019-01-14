@@ -72,7 +72,7 @@ function islandora_digital_workflow_batch_transactions_form(array $form, array &
   );
   $form['info'] = array(
       '#type' => 'item',
-      '#markup' => '<div class="messages warning">The transactions for each batch item are managed from ' .
+      '#markup' => '<div class="messages message_info">The transactions for each batch item are managed from ' .
         l('Batch Items', 'node/' . $node->nid . '/items') . '</div>',
   );
   $form['add_batch_action'] = array(

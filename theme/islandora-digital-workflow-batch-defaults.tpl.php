@@ -9,23 +9,31 @@
  * body value for workflow_batch type nodes.
  *
  * Variables available:
- * - $islandora_digital_workflow_batch array
+ * - $batch_record array
+ * - $schema array
  */
-
 ?>
 
 <div id="islandora-digital-workflow-batch-defaults">
   <h3>Batch Defaults</h3>
-  <?php if (is_array($islandora_digital_workflow_batch)) { ?>
-  Edit Batch: "<?php print l($islandora_digital_workflow_batch['batch_name'],
-        'islandora/islandora_digital_workflow/edit_batch/' . $islandora_digital_workflow_batch['batch_name']); ?>"<hr>
+  <?php if (is_array($batch_record)) { ?>
+  Edit Batch: "<?php print l($batch_record['batch_name'],
+        'islandora/islandora_digital_workflow/edit_batch/' . $batch_record['batch_name']); ?>"<hr>
   <?php
-    foreach ($islandora_digital_workflow_batch as $field => $value) {
+    $string_fields = array('varchar' => 'varchar', 'text' => 'text');
+    foreach ($batch_record as $field => $value) {
+      $quote_char = (array_key_exists('type', $schema['islandora_digital_workflow_batch']['fields'][$field]) ?
+        (array_key_exists($schema['islandora_digital_workflow_batch']['fields'][$field]['type'], $string_fields) ?
+              '"' : '') : '');
+      $description = (array_key_exists('description', $schema['islandora_digital_workflow_batch']['fields'][$field]) ?
+        $schema['islandora_digital_workflow_batch']['fields'][$field]['description']: $field);
+      $type = (array_key_exists('type', $schema['islandora_digital_workflow_batch']['fields'][$field]) ?
+        $schema['islandora_digital_workflow_batch']['fields'][$field]['type']: 'varchar');
       $span_id = "islandora-digital-workflow-" . $field; ?>
-  <div><label for='<?php print $span_id; ?>'><?php print $field; ?></label> <span id='<?php print $span_id; ?>'>"<?php
+        <div><label title="field name &quot;<?php print $field; ?>&quot;" for='<?php print $span_id; ?>'><?php print $description; ?></label><span class="idw_field_type_<?php print  $type; ?>" id='<?php print $span_id; ?>'><?php print $quote_char; ?><?php
       $truncated_ellipsis = (strlen($value) > 180) ? ' ... <i>(continued)</i> ' : '';
       print substr($value, 0, 180) . $truncated_ellipsis;
-    ?>"</span></div>
+    ?><?php print $quote_char; ?></span></div>
     <?php }
   } ?>
 </div><!-- /end islandora-digital-workflow-batch-defaults -->

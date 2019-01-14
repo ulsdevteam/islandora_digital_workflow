@@ -200,6 +200,27 @@ span.transaction_action_reserved_action_spacer {
     margin-left: 10px;
 }
 
+/* values for the batch_defaults HTML output */
+.idw_field_type_text {
+    display: block;
+    font-size: 0.825em;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overflow-wrap: break-word;
+}
+
+.idw_field_type_int, .idw_field_type_serial, .idw_field_type_varchar, .idw_field_type_text {
+    background-color: white;
+    display: inline-block;
+    width: 68%;
+    margin: -2px -2px 0 1%;
+    border: 1px solid #ccc;
+}
+
+.idw_field_type_int, .idw_field_type_serial {
+    font-family: Andale Mono, monospace;
+}
+
 .dashboard-report, #islandora-digital-workflow-batch-defaults {
     border-radius: 8px;
     padding: 10px;
@@ -266,9 +287,10 @@ div.message_info p.message_info {
 }
 
 #islandora-digital-workflow-batch-defaults label {
+    color: #666;
     margin-bottom: 4px;
     float: left;
-    width: 24%;
+    width: 30%;
 }
 .fixed_label_width {
     margin-bottom: 4px;
@@ -279,6 +301,10 @@ div.message_info p.message_info {
     
 #islandora-digital-workflow-batch-defaults div {
     clear: left;
+}
+
+#islandora-digital-workflow-batch-defaults {
+    background-color: #f8f8f8;
 }
 
 .batch-description label {

@@ -131,6 +131,8 @@ function islandora_digital_workflow_delete_batch_items_form_submit(array $form, 
   $id = $form_state['triggering_element']['#id'];
   module_load_include('inc', 'islandora_digital_workflow', 'includes/node_utilities');
   $batch_record = islandora_digital_workflow_get_batch_record_by_name($form_state['values']['batch_name']);
+  $batch_id = $batch_record['batch_id'];
+  $nid = $batch_record['nid'];
   switch ($id) {
     case 'edit-delete':
       $batch_item_ids = unserialize($form_state['values']['batch_item_ids']);
@@ -150,11 +152,11 @@ function islandora_digital_workflow_delete_batch_items_form_submit(array $form, 
       drupal_set_message(t('[@date] Selected batch items have been deleted.', array(
           '@date' => $current_time,
         )));
-      drupal_goto('node/' . $batch_record['nid'] . '/items');
+      drupal_goto('node/' . $nid . '/items');
       break;
     case 'edit-cancel':
       drupal_set_message(t('Create Batch has been cancelled.'), 'message_info');
-      drupal_goto('islandora/islandora_digital_workflow/edit_batch/' . $batch_record['batch_id']);
+      drupal_goto('islandora/islandora_digital_workflow/edit_batch/' . $batch_id);
       break;
   }
   return;

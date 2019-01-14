@@ -69,7 +69,11 @@ function islandora_digital_workflow_sync_node_batch_record_info($node, $form_sta
     $node = (is_object($node)) ? $node : (($batch_record['nid'] > 0) ? node_load($batch_record['nid']) : NULL);
     // Sync the CCK field for Batch Defaults with the latest values
     if (is_array($batch_record) && is_object($node)) {
-      $new_value = theme('islandora_digital_workflow_batch_defaults', array('islandora_digital_workflow_batch' => $batch_record));
+      module_load_include('install', 'islandora_digital_workflow', 'islandora_digital_workflow');
+      $schema = islandora_digital_workflow_schema();
+      $new_value = theme('islandora_digital_workflow_batch_defaults', array(
+          'batch_record' => $batch_record,
+          'schema' => $schema));
       $node->field_batch_defaults[$node->language][0]['value'] = $new_value;
       // Make sure that the format is Full HTML here so it doesn't strip any HTML tags.
       $node->field_batch_defaults[$node->language][0]['format'] = 'full_html';
