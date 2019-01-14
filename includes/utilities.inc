@@ -92,7 +92,6 @@ function islandora_digital_workflow_create_stub_batch_record($form_state) {
  */
 function islandora_digital_workflow_create_batch_record_by_form($form_state, $node, $batch_items_filename, $alternative_uid = NULL, $marc_and_mods_records = array()) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
-
   global $user;
   if (is_array($form_state) && isset($form_state['values']['batch_name'])
     && $form_state['values']['batch_name']) {
@@ -179,21 +178,6 @@ function islandora_digital_workflow_create_batch_record_by_form($form_state, $no
     }
     $field_values['nid'] = is_object($node) ? $node->nid : 0;
     $field_values['user'] = $user->name;
-//        'lastmod' => time(),
-
-        // default_type_of_resource - the text value of the selected Islandora Model
-        // 
-        // if configured, set the site_id field and value
-        //   mapto_site_id_values
-
-        /*
-        'batch_default_perm_notes' => '',
-        'structural_metadata_treatment' => '',
-        'image_editing_treatment' => '',
-        'blank_and_missing_treatment' => '',
-        'page_edge_treatment' => '',
-        'batch_condition_handling' => '',
-        */
 
     // if configured, set the site_id field and value
     //   mapto_site_id_values / sites_select
@@ -209,10 +193,6 @@ function islandora_digital_workflow_create_batch_record_by_form($form_state, $no
     if ($batch_items_filename) {
        // replace Microsoft Word version of single  and double quotations marks (“ ” ‘ ’) with  regular quotes (' and ")
       $field_values['uploaded_batch_items_file'] = islandora_digital_workflow_convert_smart_quotes($uploaded_batch_items_file);
-/*
-      $field_values['uploaded_batch_items_file'] = mb_check_encoding($field_values['uploaded_batch_items_file'], 'UTF-8') ?
-          $field_values['uploaded_batch_items_file'] : utf8_encode($field_values['uploaded_batch_items_file']);
- */
     }
     db_query("SET NAMES utf8");
     if ((!is_array($batch_record))) {
@@ -227,6 +207,8 @@ function islandora_digital_workflow_create_batch_record_by_form($form_state, $no
       ->execute();
     }
     $updated_batch_record = islandora_digital_workflow_get_batch_record_by_name($batch_name);
+    // Ingest any batch defaults into the MODS files.
+    islandora_digital_workflow_inject_defaults_to_mods($marc_and_mods_records, $updated_batch_record);
     islandora_digital_workflow_sync_node_to_items($updated_batch_record, $node, $batch_items_filename, TRUE, $alternative_uid, $marc_and_mods_records);
     return $updated_batch_record;
   }
@@ -338,22 +320,22 @@ function islandora_digital_workflow_sync_batch_item_record($batch_record, $csv_f
 
   // Only add the values for mods_content or marc_content if they are present...
   // making any values persis that were in there before this call.
-  if (file_exists($csv_file_source['mods_filename'])) {
+  if (array_key_exists('mods_filename', $csv_file_source) && file_exists($csv_file_source['mods_filename'])) {
     $mods_content = file_get_contents($csv_file_source['mods_filename']);
     $mods_content = islandora_digital_workflow_convert_smart_quotes($mods_content);
-    $fields['mods'] = $mods_content;
   }
   else {
     $mods_content = '';
   }
-  if (file_exists($csv_file_source['marc_filename'])) {
+  $fields['mods'] = $mods_content;
+  if (array_key_exists('marc_filename', $csv_file_source) && file_exists($csv_file_source['marc_filename'])) {
     $marc_content = file_get_contents($csv_file_source['marc_filename']);
     $marc_content = islandora_digital_workflow_convert_smart_quotes($marc_content);
-    $fields['marc'] = $marc_content;
   }
   else {
     $marc_content = '';
   }
+  $fields['marc'] = $marc_content;
 
   // Get a list of existing batch_item identifiers - only insert the record if
   // one does not exist for this identifier.
@@ -1196,10 +1178,6 @@ function islandora_digital_workflow_model_ingest_module_info($model) {
  * $prepared_filepath = The path to the folder that contains the MODS and image TIF.
  * $identifier - the identifier value (if provided in the spreadsheet).
  *
- * @todo capture batch-level values for default_genre, batch_default_CR_status,
- *       batch_default_pub_status, and batch_default_CR_holder -- to potentially set
- *       when creating MODS below.
- *
  * @param type $input_filename
  * @param type $batch_record
  * @param type $keep_created_MODS_files
@@ -1376,8 +1354,13 @@ function islandora_digital_workflow_prepare_csv2mods($input_filename, $batch_rec
 
     $root = $doc->appendChild($root);
     $child = NULL;
-    // Set all of the "default_FIELD_in_CSV" values to false --
-    $depositor_in_CSV = $default_genre_in_CSV = $batch_default_CR_status_in_CSV = $batch_default_CR_holder_in_CSV = $batch_default_pub_status_in_CSV = FALSE;
+    // Set all of the "default_FIELD_in_CSV" values to false.
+    $depositor_in_CSV =
+        $default_genre_in_CSV =
+        $default_type_of_resource_in_CSV =
+        $batch_default_CR_status_in_CSV =
+        $batch_default_CR_holder_in_CSV =
+        $batch_default_pub_status_in_CSV = FALSE;
     foreach($headers as $i => $header) {
       if (array_key_exists($header, $csv_header_xpath_mappings)) {
         if (is_array($rowcopy) && array_key_exists($i, $rowcopy) && $rowcopy[$i]) {
@@ -1391,6 +1374,9 @@ function islandora_digital_workflow_prepare_csv2mods($input_filename, $batch_rec
           }
           if (!$default_genre_in_CSV && $header == 'genre') {
             $default_genre_in_CSV = TRUE;
+          }
+          if (!$default_type_of_resource_in_CSV && $header == 'type_of_resource') {
+            $default_type_of_resource_in_CSV = TRUE;
           }
           if (!$batch_default_CR_status_in_CSV && $header == 'copyright_status') {
             $batch_default_CR_status_in_CSV = TRUE;
@@ -1420,6 +1406,12 @@ function islandora_digital_workflow_prepare_csv2mods($input_filename, $batch_rec
       $child = $doc->createElement('genre');
       $child = $root->appendChild($child);
       $value = $doc->createTextNode($batch_record['default_genre']);
+      $value = $child->appendChild($value);
+    }
+    if (!$default_type_of_resource_in_CSV && $batch_record['default_type_of_resource'] && !array_key_exists('type_of_resource', $headers)) {
+      $child = $doc->createElement('type_of_resource');
+      $child = $root->appendChild($child);
+      $value = $doc->createTextNode($batch_record['default_type_of_resource']);
       $value = $child->appendChild($value);
     }
     if (!$batch_default_CR_status_in_CSV && $batch_record['batch_default_CR_status'] && !array_key_exists('copyright_status', $headers)) {
@@ -3493,4 +3485,50 @@ function  islandora_digital_workflow_get_default_parent_collection($ingest_names
     $repository->ingestObject($default_collection);
   }
   return $default_collection_pid;
+}
+
+function islandora_digital_workflow_inject_defaults_to_mods(&$marc_and_mods_records, $batch_record) {
+  foreach ($marc_and_mods_records as $idx => $marc_mods_arr) {
+    $mods_changed = FALSE;
+    $bib_id = $marc_mods_arr['bib_id'];
+    // Given the "default" values from the batch_record, apply the transforms
+    // to the underlying MODS.xml files.
+    $mods_changed |= islandora_digital_workflow_inject_default_value_to_mods($batch_record['default_depositor'], 'depositor', $marc_mods_arr['MODS']);
+    $mods_changed |= islandora_digital_workflow_inject_default_value_to_mods($batch_record['default_genre'], 'genre', $marc_mods_arr['MODS']);
+    $mods_changed |= islandora_digital_workflow_inject_default_value_to_mods($batch_record['default_type_of_resource'], 'type_of_resource', $marc_mods_arr['MODS']);
+    $mods_changed |= islandora_digital_workflow_inject_default_value_to_mods($batch_record['batch_default_CR_status'], 'copyright_status', $marc_mods_arr['MODS']);
+    $mods_changed |= islandora_digital_workflow_inject_default_value_to_mods($batch_record['batch_default_pub_status'], 'publication_status', $marc_mods_arr['MODS']);
+    $mods_changed |= islandora_digital_workflow_inject_default_value_to_mods($batch_record['batch_default_CR_holder'], 'rights_holder', $marc_mods_arr['MODS']);
+    if ($mods_changed) {
+      $marc_and_mods_records[$idx]['MODS size'] = file_exists($marc_mods_arr['MODS']) ? filesize($marc_mods_arr['MODS']) : FALSE;
+    }
+  }
+}
+
+function islandora_digital_workflow_inject_default_value_to_mods($batch_record_value, $mods_fieldname,  $mods_filename) {
+  $mods_changed = FALSE;
+  // Since this only needs to inject a value if there is one, FIRST check that
+  // there is a value.
+  if ($batch_record_value <> '') {
+    // perform an XSL transform that can inject the given MODS fieldname.
+    $xsl_template_contents = theme('islandora_digital_workflow_xsl_' . $mods_fieldname,
+        array('value' => $batch_record_value));
+    $temp_xsl_filename = drupal_realpath(drupal_tempnam('temporary://', 'xsl_template_' . $mods_fieldname));
+    file_put_contents($temp_xsl_filename, $xsl_template_contents);
+    $mods_content = islandora_digital_workflow_convert_smart_quotes(file_get_contents($mods_filename));
+    $MODS = ($mods_content) ? islandora_digital_workflow_runXslTransform(
+              array(
+                'xsl' => $temp_xsl_filename,
+                'input' => trim($mods_content),
+              )
+            ) : '';
+
+     if (file_exists($temp_xsl_filename)) {
+      @unlink($temp_xsl_filename);
+    }
+    $bytes_written = file_put_contents($mods_filename, $MODS);
+    $new_mods_content = islandora_digital_workflow_convert_smart_quotes(file_get_contents($mods_filename));
+    $mods_changed = $mods_content <> $new_mods_content;
+  }
+  return $mods_changed;
 }

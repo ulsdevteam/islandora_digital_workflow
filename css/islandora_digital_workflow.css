@@ -502,6 +502,7 @@ table.report tr {
     font-family: monospace;
     background-color: black;
     color: #22FF66;
+    white-space: pre-wrap;
 }
 .textarea_terminal {
     height: 500px;

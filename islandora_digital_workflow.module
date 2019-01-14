@@ -735,6 +735,45 @@ function islandora_digital_workflow_theme() {
         'debug_record' => array(),
       ),
     ),
+    // dynamically created XSL templates... only handles several MODS fieldnames:
+    // depositor, genre, type_of_resource, copyright_status, publication_status,
+    // and rights_holder.
+    'islandora_digital_workflow_xsl_depositor' => array(
+      'template' => 'theme/islandora-digital-workflow-xsl-depositor',
+      'variables' => array(
+        'value' => '',
+      ),
+    ),
+    'islandora_digital_workflow_xsl_genre' => array(
+      'template' => 'theme/islandora-digital-workflow-xsl-genre',
+      'variables' => array(
+        'value' => '',
+      ),
+    ),
+    'islandora_digital_workflow_xsl_type_of_resource' => array(
+      'template' => 'theme/islandora-digital-workflow-xsl-type-of-resource',
+      'variables' => array(
+        'value' => '',
+      ),
+    ),
+    'islandora_digital_workflow_xsl_copyright_status' => array(
+      'template' => 'theme/islandora-digital-workflow-xsl-copyright-status',
+      'variables' => array(
+        'value' => '',
+      ),
+    ),
+    'islandora_digital_workflow_xsl_publication_status' => array(
+      'template' => 'theme/islandora-digital-workflow-xsl-publication-status',
+      'variables' => array(
+        'value' => '',
+      ),
+    ),
+    'islandora_digital_workflow_xsl_rights_holder' => array(
+      'template' => 'theme/islandora-digital-workflow-xsl-rights-holder',
+      'variables' => array(
+        'value' => '',
+      ),
+    ),
   );
 }
 
