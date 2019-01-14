@@ -49,7 +49,7 @@
   </div>
   <?php endif; ?>
 
-  <?php if ($max_timestamp_and_how_long_ago->max_timestamp && 
+  <?php if ($max_timestamp_and_how_long_ago->max_timestamp &&
       ($workflow_sequences[$batch_record['workflow_sequence_id']]['max_timestamp'] > $max_timestamp_and_how_long_ago->max_timestamp)): ?>
   <div class="dashboard-report messages message_info">
     <h3>Workflow Sequence updated</h3>
@@ -67,14 +67,23 @@
     <h3>Object has been ingested</h3>
       <?php print $ingested_links; ?>
   </div>
-  <?php elseif ($can_ingest): ?>
-  <div class="messages message_info">
-    <div class="good"><p>All requirements are completed.
-        <b>Ingest this item into Islandora now: <a href="/islandora/islandora_digital_workflow/ingest_item/<?php print urlencode($item->batch_item_id); ?>"><?php print $item->identifier; ?></a></b>
+  <?php endif; ?>
+
+  <?php if ($can_ingest): ?>
+    <?php if ($ingested_links) : ?>
+    <div class="messages warning">
+      <div class="bad"><p><b>All requirements are completed.  This object has already been ingested.</b></p>
+        <p><i>You will need to manually delete the object and any islandora_batch queue records before this can ingest again.</i><br>
+        Ingest this item into Islandora again: <a href="/islandora/islandora_digital_workflow/ingest_item/<?php print urlencode($item->batch_item_id); ?>"><?php print $item->identifier; ?></a>.
+    <?php else: ?>
+    <div class="messages message_info">
+      <div class="good"><p><b>All requirements are completed.</b></p><p>Ingest this item into Islandora now:
+        <a href="/islandora/islandora_digital_workflow/ingest_item/<?php print urlencode($item->batch_item_id); ?>"><?php print $item->identifier; ?></a>.
+    <?php endif; ?>
     </div>
   </div>
   <?php endif; ?>
-    
+
   <?php if ($description_markup): ?>
     <?php print $description_markup; ?>
   <?php endif; ?>
@@ -226,7 +235,7 @@
     <?php endif; ?>
 
   </div><!-- /end report_table "Item Transactions" -->
-  
+
   <?php if (user_access(ISLANDORA_DIGITAL_WORKFLOW_VIEW_EXTRA_INFO) && (count($drush_log_entries) > 0)): ?>
     <?php $toggle = FALSE; ?>
     <h3>Ingest Commands</h3>

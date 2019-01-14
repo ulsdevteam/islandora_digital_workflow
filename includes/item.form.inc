@@ -218,7 +218,7 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
 
   islandora_digital_workflow_merge_transactions_with_item_actions($item_record_transactions, $required_batch_actions, $node->nid);
   $namespace = islandora_digital_workflow_get_ingest_namespace($batch_record);
-  $pid = $namespace . $item->identifier;
+  $pid = ($item->assigned_pid <> '') ? $item->assigned_pid : $namespace . $item->identifier;
   $islandora_object = islandora_object_load($pid);
   if (is_object($islandora_object)) {
     $link_att = array('attributes' => array('target' => '_blank'));
