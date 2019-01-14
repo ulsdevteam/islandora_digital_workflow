@@ -224,7 +224,6 @@ function islandora_digital_workflow_make_or_update_node($form_state, $arr, $node
   if ($stage_new_tid && !$node_has_new_stage_already) {
     $node->field_stage[$node->language][] = array('tid' => $stage_new_tid);
   }
-
   if (array_key_exists('values', $form_state)) {
     $content_types_vocab = taxonomy_vocabulary_machine_name_load(IDW_CONTENT_TYPE_TAXONOMY_MACHINE_NAME);
     // For the Content Types cck field, the batch_record value is storing the term value
@@ -246,7 +245,7 @@ function islandora_digital_workflow_make_or_update_node($form_state, $arr, $node
   // Since islandora_digital_workflow_csv_file_as_array returned all headings in
   // lowercase, look for "identifier"
   $csv_values_arr = islandora_digital_workflow_get_csv_values_for_fieldname('identifier', $arr);
-  if (array_key_exists('identifier', $arr) && (count($arr) > 0)) {
+  if ((array_key_exists('header', $arr)) && (!(array_search('identifier', $arr['header']) === FALSE)) && (count($arr['rows']) > 0)) {
     $node->field_identifiers[$node->language][0]['value'] = implode("\n", $csv_values_arr['identifier']);
   }
   else {
