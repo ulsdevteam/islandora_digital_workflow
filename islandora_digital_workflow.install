@@ -373,6 +373,14 @@ function islandora_digital_workflow_schema() {
         'default' => 0,
         'not null' => FALSE,
       ),
+      'webform_submission_sid'  => array(
+        'description' => 'Webform submission sid value',
+        'type' => 'int',
+        'size' => 'medium',
+        'unsigned' => TRUE,
+        'default' => 0,
+        'not null' => FALSE,
+      ),
       'user' => array(
         'description' => 'Drupal user',
         'type' => 'varchar',
