@@ -23,41 +23,45 @@
 <frx:description/><meta content="Display the &amp;quot;File Count&amp;quot; and &amp;quot;File Size&amp;quot; value for all batches." name="description"/></head>
 <body><div class="FrxTable" frx:block="islandora_digital_workflow_sql/batch_stats" id="batch_stats_block">
 	<table class="report_table">
-		<caption>
-			Batch Stats</caption>
-		<thead>
-			<tr>
-				<th>
-					Batch</th>
-				<th>
-					Description</th>
-				<th class="numeric_heading">
-					# of Items</th>
-				<th class="numeric_heading">
-					File count</th>
-				<th class="numeric_heading">
-					File size (bytes)</th>
-				<th>
-					Modified</th>
-			</tr>
-		</thead>
-		<tbody>
-			<tr frx:foreach="*" id="batch_stats">
-				<td>
-					{batch_name}</td>
-				<td>
-					{batch_description}</td>
-				<td class="numeric_cell">
-					{batch_item_id}</td>
-				<td class="numeric_cell">
-					{file_count}</td>
-				<td class="numeric_cell">
-					{file_size}</td>
-				<td>
-					{lastmod}</td>
-			</tr>
-		</tbody>
-	</table>
+                <caption>
+                        Batch Stats</caption>
+                <thead>
+                        <tr>
+                                <th>
+                                        Batch</th>
+                                <th>
+                                        Description</th>
+                                <th class="numeric_heading wide_200_cell">
+                                        # of Items <div>(progress)</div></th>
+                                <th class="numeric_heading">
+                                        File count</th>
+                                <th class="numeric_heading">
+                                        File size (bytes)</th>
+                                <th>
+                                        Modified</th>
+                        </tr>
+                </thead>
+                <tbody>
+                        <tr frx:foreach="*" id="batch_stats">
+                                <td>
+                                        {batch_name}</td>
+                                <td>
+                                        {batch_description}</td>
+                                <td class="numeric_cell">
+<div><b>TOTAL:</b> {item_count}</div>
+<div><b>New:</b> {progress_new_count}</div>
+<div><b>In Progress:</b> {progress_in_progress_count}</div>
+<div><b>Prepared:</b> {progress_prepared_count}</div>
+<div><b>Completed:</b> {progress_completed_count}</div></td>
+                                <td class="numeric_cell">
+                                        {file_count}</td>
+                                <td class="numeric_cell">
+                                        {file_size}</td>
+                                <td>
+                                        {lastmod}</td>
+                        </tr>
+                </tbody>
+        </table>
 </div>
 </body>
 </html>

@@ -475,6 +475,9 @@ function islandora_digital_workflow_convert_digitization_request_to_batch_submit
       $islandora_digital_workflow_batch_stub_fields, 
       $results['islandora_digital_workflow_batch_fields']);
 
+  // Add the current timestamp for the 'created' batch fields value.
+  $islandora_digital_workflow_batch_fields['created'] = date("Y-m-d H:i:s");
+
   // Insert this record into the batch table.
   $batch_id = db_insert('islandora_digital_workflow_batch')
     ->fields($islandora_digital_workflow_batch_fields)

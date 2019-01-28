@@ -16,7 +16,8 @@
         </frx:docgen>
         <frx:fields>
             <frx:field id="User" link="user/{User}"/>
-            <frx:field id="identifier" link="node/{nid}"/>
+            <frx:field id="batch_name" link="node/{nid}"/>
+            <frx:field id="identifier" link="node/{nid}/item/{batch_item_id}"/>
         </frx:fields>
         <frx:menu/>
         <frx:cache/>
@@ -39,8 +40,32 @@
                 </tbody>
                 <tbody>
                     <tr>
-                        <th># of Items</th>
-                        <td>{batch_item_id}</td>
+                        <th>TOTAL items</th>
+                        <td>{item_count}</td>
+                    </tr>
+                </tbody>
+                <tbody>
+                    <tr>
+                        <th><span class="nobold"> &nbsp;"New" items</span></th>
+                        <td>{progress_new_count}</td>
+                    </tr>
+                </tbody>
+                <tbody>
+                    <tr>
+                        <th><span class="nobold"> &nbsp;"In Progress" items</span></th>
+                        <td>{progress_in_progress_count}</td>
+                    </tr>
+                </tbody>
+                <tbody>
+                    <tr>
+                        <th><span class="nobold"> &nbsp;"Prepared" items</span></th>
+                        <td>{progress_prepared_count}</td>
+                    </tr>
+                </tbody>
+                <tbody>
+                    <tr>
+                        <th><span class="nobold"> &nbsp;"Completed" items</span></th>
+                        <td>{progress_completed_count}</td>
                     </tr>
                 </tbody>
                 <tbody>
@@ -53,6 +78,12 @@
                     <tr>
                         <th>File size (bytes)</th>
                         <td>{file_size}</td>
+                    </tr>
+                </tbody>
+                <tbody>
+                    <tr>
+                        <th>Created (date accepted)</th>
+                        <td>{created}</td>
                     </tr>
                 </tbody>
                 <tbody>

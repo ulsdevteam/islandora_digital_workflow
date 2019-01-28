@@ -48,6 +48,8 @@ function islandora_digital_workflow_create_stub_batch_record($form_state) {
       );
 
     if ((!is_array($batch_record))) {
+      // Add the current timestamp for the 'created' field value.
+      $field_values['created'] = date("Y-m-d H:i:s");
       $batch_id = db_insert('islandora_digital_workflow_batch')
       ->fields($field_values)
       ->execute();
@@ -194,6 +196,8 @@ function islandora_digital_workflow_create_batch_record_by_form($form_state, $no
        // replace Microsoft Word version of single  and double quotations marks (“ ” ‘ ’) with  regular quotes (' and ")
       $field_values['uploaded_batch_items_file'] = islandora_digital_workflow_convert_smart_quotes($uploaded_batch_items_file);
     }
+    // Add the current timestamp for the 'created' field value.
+    $field_values['created'] = date("Y-m-d H:i:s");
     db_query("SET NAMES utf8");
     if ((!is_array($batch_record))) {
       $batch_id = db_insert('islandora_digital_workflow_batch')
@@ -797,6 +801,14 @@ function islandora_digital_workflow_get_reduced_readable_cmodels() {
   return $return_models;
 }
 
+/**
+ * Validates a MARC file.
+ *
+ * @param string $batch_items_filename
+ *   Filename for a MARC file that needs validation.
+ * @return boolean
+ *   Whether or not the MARC file is valid.
+ */
 function islandora_digital_workflow_validate_mrc($batch_items_filename) {
   return TRUE;
 }
@@ -3146,7 +3158,7 @@ function islandora_digital_workflow_get_item_delivery_filename($batch_item, $bat
  * @param type $output_footer
  *   HTML markup for process form for this processing mode.
  */
-function islandora_digital_workflow_recalc_batch_files($batch_record, &$output_contents = array(), &$output_footer = array()) {
+function islandora_digital_workflow_recalc_batch_files($batch_record, &$output_contents = array(), &$output_footer = array(), $specific_batch_item_id = NULL) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
   $batch_record = (array) $batch_record;
   $batch_path = islandora_digital_workflow_batch_path($batch_record, 'working');
@@ -3155,9 +3167,11 @@ function islandora_digital_workflow_recalc_batch_files($batch_record, &$output_c
   if (count($batch_folders) > 0) {
     $output_contents[] = '<p>Processing batch "' . $batch_record['batch_name'] . '"</p>';
     foreach ($batch_folders as $item_identifier => $found_folders_files) {
-      foreach ($found_folders_files['filesize_date_files_raw'] as $filesize_date_files_raw) {
-        $record_identifier = $batch_record['ingest_namespace'] . ":" . $item_identifier;
-        $item_data[$record_identifier][] = $filesize_date_files_raw;
+      if (is_null($specific_batch_item_id) ? TRUE : ($specific_batch_item_id == $item_identifier)) {
+        foreach ($found_folders_files['filesize_date_files_raw'] as $filesize_date_files_raw) {
+          $record_identifier = $batch_record['ingest_namespace'] . ":" . $item_identifier;
+          $item_data[$record_identifier][] = $filesize_date_files_raw;
+        }
       }
     }
     $output_footer[] = islandora_digital_workflow_update_item_file_data($batch_record, $item_data);
@@ -3198,6 +3212,14 @@ function islandora_digital_workflow_test_RW($path, $require_write) {
   return $ret;
 }
 
+/**
+ * Returns only the MARC file references from a MARC array that potentially
+ * contains MODS file references as well.
+ *
+ * @param array $mrc_results_arr
+ *   Array of the identifiers MARC record
+ * @return type
+ */
 function islandora_digital_workflow_mrc_results_as_array($mrc_results_arr) {
   $rows = array();
   foreach ($mrc_results_arr as $idx => $mrc_result_arr) {
@@ -3208,6 +3230,18 @@ function islandora_digital_workflow_mrc_results_as_array($mrc_results_arr) {
   return $ret;
 }
 
+/**
+ * Returns the MARC and MODS file source locations for the underlying temporary
+ * files.
+ *
+ * @param array $batch_record
+ *   The batch record in question.
+ * @param array $marc_and_mods_records
+ *   In some cases, this would be the parsed MRC and contains pointers to the
+ * MARCXML and MODS records.
+ * @return array
+ *   An array of temporary filenames that store the MARC and MODS files.
+ */
 function islandora_digital_workflow_marc_mods_arr_to_item_file_sources($batch_record, $marc_and_mods_records) {
   $item_file_sources = array();
   $batch_path = islandora_digital_workflow_batch_path($batch_record, 'working');
@@ -3261,7 +3295,6 @@ function islandora_digital_workflow_marc_mods_arr_to_item_file_sources($batch_re
   }
   return $item_file_sources;
 }
-
 
 /**
  * This will return the filematch that was matched if the file should be kept based
@@ -3328,13 +3361,12 @@ function islandora_digital_workflow_filemask_comparison($file, $filemasks) {
   return $keep;
 }
 
-// This is all called via
-//  $model_filemasks = islandora_digital_workflow_content_model_filemask($content_model);
-// and is goverened by the content type (islandora model) of the underlying object
-
 /**
  * This will return an array of filemasks that should be kept / copied from the incoming
  * folder based upon content_model.
+ *
+ * This goverens the content type islandora model for the underlying object via
+ *   $model_filemasks = islandora_digital_workflow_content_model_filemask($content_model);
  *
  * @todo There should ultimately be a configuration for each content model's
  * keep / discard filters.
@@ -3400,8 +3432,6 @@ function islandora_digital_workflow_content_model_filemask($content_model) {
   }
   return array('keep_filemasks' => $filemasks, 'discard_filemasks' => $discard_filemasks);
 }
-
-
 
 /**
  * This will return the subfolder name that is needed for preparing an islandora
@@ -3492,24 +3522,63 @@ function  islandora_digital_workflow_get_default_parent_collection($ingest_names
   return $default_collection_pid;
 }
 
-function islandora_digital_workflow_inject_defaults_to_mods(&$marc_and_mods_records, $batch_record) {
+/**
+ * This will inject the batch_record's default values into the MODS files for
+ * all items in the batch.
+ *
+ * This can optionally update only a single batch_record default field - see the
+ * $specific_batch_fieldname and $specific_update_field variables.
+ *
+ * @param array $marc_and_mods_records
+ *   A set of MARC and MODS filenames related to the items of the batch.
+ * @param array $batch_record
+ *   The batch record.
+ * @param string $specific_batch_fieldname
+ *   [optional] when provided, this will ONLY update that default field in the
+ * resultant MODS.
+ * @param string $specific_update_field
+ *   [optional] when provided, this will be the single batch's specific fieldname
+ * that is being updated.
+ */
+function islandora_digital_workflow_inject_defaults_to_mods(&$marc_and_mods_records, $batch_record, $specific_batch_fieldname = NULL, $specific_update_field = NULL) {
   foreach ($marc_and_mods_records as $idx => $marc_mods_arr) {
     $mods_changed = FALSE;
     $bib_id = $marc_mods_arr['bib_id'];
     // Given the "default" values from the batch_record, apply the transforms
     // to the underlying MODS.xml files.
-    $mods_changed |= islandora_digital_workflow_inject_default_value_to_mods($batch_record['default_depositor'], 'depositor', $marc_mods_arr['MODS']);
-    $mods_changed |= islandora_digital_workflow_inject_default_value_to_mods($batch_record['default_genre'], 'genre', $marc_mods_arr['MODS']);
-    $mods_changed |= islandora_digital_workflow_inject_default_value_to_mods($batch_record['default_type_of_resource'], 'type_of_resource', $marc_mods_arr['MODS']);
-    $mods_changed |= islandora_digital_workflow_inject_default_value_to_mods($batch_record['batch_default_CR_status'], 'copyright_status', $marc_mods_arr['MODS']);
-    $mods_changed |= islandora_digital_workflow_inject_default_value_to_mods($batch_record['batch_default_pub_status'], 'publication_status', $marc_mods_arr['MODS']);
-    $mods_changed |= islandora_digital_workflow_inject_default_value_to_mods($batch_record['batch_default_CR_holder'], 'rights_holder', $marc_mods_arr['MODS']);
+    if (is_null($specific_update_field)) {
+      $mods_changed |= islandora_digital_workflow_inject_default_value_to_mods($batch_record['default_depositor'], 'depositor', $marc_mods_arr['MODS']);
+      $mods_changed |= islandora_digital_workflow_inject_default_value_to_mods($batch_record['default_genre'], 'genre', $marc_mods_arr['MODS']);
+      $mods_changed |= islandora_digital_workflow_inject_default_value_to_mods($batch_record['default_type_of_resource'], 'type_of_resource', $marc_mods_arr['MODS']);
+      $mods_changed |= islandora_digital_workflow_inject_default_value_to_mods($batch_record['batch_default_CR_status'], 'copyright_status', $marc_mods_arr['MODS']);
+      $mods_changed |= islandora_digital_workflow_inject_default_value_to_mods($batch_record['batch_default_pub_status'], 'publication_status', $marc_mods_arr['MODS']);
+      $mods_changed |= islandora_digital_workflow_inject_default_value_to_mods($batch_record['batch_default_CR_holder'], 'rights_holder', $marc_mods_arr['MODS']);
+    }
+    else {
+      $mods_changed |= islandora_digital_workflow_inject_default_value_to_mods($batch_record[$specific_batch_fieldname], $specific_update_field, $marc_mods_arr['MODS']);
+    }
     if ($mods_changed) {
       $marc_and_mods_records[$idx]['MODS size'] = file_exists($marc_mods_arr['MODS']) ? filesize($marc_mods_arr['MODS']) : FALSE;
     }
   }
 }
 
+/**
+ * This is a helper function that is called from within the loop from the
+ * islandora_digital_workflow_inject_defaults_to_mods function.  This is the
+ * code that calls the actual XSL transform file to inject that field into the 
+ * MODS file that is referenced.
+ *
+ * @param string $batch_record_value
+ *   The value for the default field of the item's batch record.
+ * @param string $mods_fieldname
+ *   The MODS field name into which to inject the $batch_record_value.  This
+ * determines the XSL transform template to run.
+ * @param string $mods_filename
+ *   The filename that points to the MODS file that is potentially being modified.
+ * @return boolean
+ *   Whether or not the MODS file was changed by the function.
+ */
 function islandora_digital_workflow_inject_default_value_to_mods($batch_record_value, $mods_fieldname,  $mods_filename) {
   $mods_changed = FALSE;
   // Since this only needs to inject a value if there is one, FIRST check that
@@ -3536,4 +3605,29 @@ function islandora_digital_workflow_inject_default_value_to_mods($batch_record_v
     $mods_changed = $mods_content <> $new_mods_content;
   }
   return $mods_changed;
+}
+
+/**
+ * This will save out the items' MODS files and return an array of temporary
+ * filenames to where they were saved.
+ *
+ * @param array $batch_item_ids
+ *   Array that stores a set of batch_item_id values.
+ * @return array
+ *   A set of filenames that contain the MODS filename and the size of that file
+ * in the "MODS" and "MODS size" array keys.
+ */
+function islandora_digital_workflow_save_batch_items_mods($batch_item_ids) {
+  $mods_arr = array();
+  foreach ($batch_item_ids as $batch_item_id) {
+    $item_record_results = islandora_digital_workflow_get_batch_item_record($batch_item_id);
+    $batch_item_obj = array_pop($item_record_results);
+    $batch_item_mods_filename = drupal_realpath(drupal_tempnam('temporary://', 'batch_item_' . $batch_item_id . '_MODS'));
+    $mods_content = $batch_item_obj->mods;
+    file_put_contents($batch_item_mods_filename, $mods_content);
+    $mods_size = filesize($batch_item_mods_filename);
+    $mods_arr[$batch_item_id]['MODS'] =  $batch_item_mods_filename;
+    $mods_arr[$batch_item_id]['MODS size'] =  $mods_size;
+  }
+  return $mods_arr;
 }

@@ -123,6 +123,8 @@ function islandora_digital_workflow_uninstall() {
 function islandora_digital_workflow_enable() {
   db_query("ALTER TABLE `islandora_digital_workflow_batch` CHANGE COLUMN " .
     "`lastmod` `lastmod` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+  db_query("ALTER TABLE `islandora_digital_workflow_batch` CHANGE COLUMN " .
+    "`created` `created` TIMESTAMP NULL");
   db_query("ALTER TABLE `islandora_digital_workflow_transactions` " .
     "CHANGE COLUMN `timestamp` `timestamp` TIMESTAMP NULL DEFAULT " .
     "CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
@@ -381,6 +383,15 @@ function islandora_digital_workflow_schema() {
         'default' => 0,
         'not null' => FALSE,
       ),
+      // Internal / system calculated fields
+      'progress' => array(
+        'description' => 'The progress for the individual object',
+        'type' => 'varchar',
+        // possible values "New", "In Progress", "Prepared", "Completed"
+        'default' => 'New',
+        'length' => 11,
+        'not null' => FALSE,
+      ),
       'user' => array(
         'description' => 'Drupal user',
         'type' => 'varchar',
@@ -389,6 +400,11 @@ function islandora_digital_workflow_schema() {
       ),
       'lastmod' => array(
         'description' => 'Last modified date of the record',
+        'type' => 'int',
+        'not null' => FALSE,
+      ),
+      'created' => array(
+        'description' => 'Created date of the record',
         'type' => 'int',
         'not null' => FALSE,
       ),
@@ -468,6 +484,15 @@ function islandora_digital_workflow_schema() {
         'type' => 'text',
         'size' => 'big',
         'not null' => TRUE,
+      ),
+      // Internal / system calculated fields
+      'progress' => array(
+        'description' => 'The progress for the individual object',
+        'type' => 'varchar',
+        // possible values "New", "In Progress", "Prepared", "Completed"
+        'default' => 'New',
+        'length' => 11,
+        'not null' => FALSE,
       ),
       'file_count' => array(
         'description' => 'The total number of files related to this item',

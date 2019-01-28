@@ -90,6 +90,7 @@
 
   <h3>Item Details</h3>
   <div class="lookup_result oddrow">
+      <h4>Progress: <span class="progress_<?php print strtolower(str_replace(" ", "_", $item->progress)); ?>"><?php print $item->progress; ?></span></h4>
       <form action="" method="POST" enctype="multipart/form-data">
           <input name="batch_item_id" type="hidden" value="<?php print $item->batch_item_id; ?>">
         <fieldset class="lookup_result_indent evenrow"<?php print ($can_update) ? '' : ' disabled' ?>>

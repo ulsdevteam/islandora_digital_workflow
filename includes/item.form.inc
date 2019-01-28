@@ -116,7 +116,7 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
           '<b>Updated Identifier:</b> "<span class="@identifier_class">@u_identifier</span>"<br>' : '') .
           (($mods_file_changed) ? '<b>MODS file changed:</b><i>changes not displayed here</i><br>' : '') .
           (($marc_file_changed) ? '<b>MARC file changed:</b><i>changes not displayed here</i><br>' : '') .
-          (($is_paged_content) ?
+          (($is_paged_content && ($original_values->filename <> $_POST['filename'])) ?
           '<b>Previous Filename:</b> "@o_filename"<br>' .
           '<b>Updated Filename:</b> "<span class="@filename_class">@u_filename</span>"' : ''), array(
                   '@o_title' => $original_values->title,

@@ -265,6 +265,12 @@ div.message_info p.message_info {
     margin-left: 12px;
 }
 
+textarea.indent-item {
+    width: 98% !important;
+    margin-left: 12px !important;
+    height: 1.485em;
+}
+
 .major-item {
     font-weight: bold;
     font-size: 1.10em;
@@ -311,7 +317,7 @@ div.message_info p.message_info {
     margin-bottom: 4px;
     float: left;
     clear: left;
-    width: 16%;
+    width: 20%;
 }
 
 .required_action, .optional_action {
@@ -722,6 +728,10 @@ tr.spaceUnder>td {
     border-radius: 8px;
 }
 
+.lookup_result label {
+    line-height: 1em !important;
+}
+
 .corner_bordered {
     border-radius: 8px;
     border: 1px solid #BBB;
@@ -1016,4 +1026,29 @@ td.slide-cross {
 
 .not_white {
     background-color: #FBFBFB;
+}
+
+.wide_200_cell {
+    min-width: 200px;
+}
+
+.nobold {
+    font-weight: normal !important;
+}
+
+.lookup_result h4 {
+    margin-top: 0;
+}
+
+.progress_new {
+    color: red;
+}
+.progress_in_process {
+    color: #666;
+}
+.progress_prepared {
+    color: blue;
+}
+.progress_completed {
+    color: green;
 }

@@ -156,7 +156,6 @@ function islandora_digital_workflow_add_items_form(array $form, array &$form_sta
   $results = islandora_digital_workflow_find_batch_records_by_name($batch_name);
   $batch_record = array_pop($results);
   $batch_record_arr = (array)$batch_record;
-  $batch_path = islandora_digital_workflow_batch_path($batch_record);
 
   // This is needed to determine whether or not to allow a CSV file upload.
   $readable_models = islandora_digital_workflow_get_reduced_readable_cmodels();
@@ -358,11 +357,12 @@ function islandora_digital_workflow_batch_items_form(array $form, array &$form_s
 
   $batch_name = $node->title;
   $results = islandora_digital_workflow_find_batch_records_by_name($batch_name);
-  $batch_record = array_pop($results);
+  $batch_record = (array) array_pop($results);
 
   // Prepare various objects for the dynamic form generation...
   $items = islandora_digital_workflow_get_batch_items_by_nid($node->nid);
   $options = array();
+  $default_type_of_resources = islandora_digital_workflow_get_default_type_of_resource_options(TRUE);
 
   $item_transactions_count = ((array_key_exists(0, $items) && is_object($items[0])) ? count($items[0]->transactions) : 0);
   // Based on the $item_transactions_count, set a class for the "Transactions" table
@@ -372,7 +372,7 @@ function islandora_digital_workflow_batch_items_form(array $form, array &$form_s
           ($item_transactions_count < 11) ? 'td_wide_240' :
           (($item_transactions_count < 18) ? 'td_wide_320' : 'td_wide_400')));
 
-  $is_batch_paged_content = islandora_digital_workflow_is_paged_object($batch_record->islandora_model);
+  $is_batch_paged_content = islandora_digital_workflow_is_paged_object($batch_record['islandora_model']);
   $all_items_are_paged_content = TRUE;
   foreach ($items as $item) {
     $all_items_are_paged_content &= islandora_digital_workflow_is_paged_object($item->islandora_model);
@@ -410,7 +410,7 @@ function islandora_digital_workflow_batch_items_form(array $form, array &$form_s
     }
   }
 
-  $required_batch_actions = islandora_digital_workflow_get_required_batch_actions($batch_record->batch_id);
+  $required_batch_actions = islandora_digital_workflow_get_required_batch_actions($batch_record['batch_id']);
   // Easy to loop through the set of $required_batch_actions to set the ones that
   // are valid for this batch's sequence.
   $batch_items_actions = array('' => 'Select an action');
@@ -474,6 +474,141 @@ function islandora_digital_workflow_batch_items_form(array $form, array &$form_s
     );
   }
 
+  if (user_access(ISLANDORA_DIGITAL_WORKFLOW_EDIT_ITEM_META))  {
+    $form['wrapper_update'] = array(
+        '#type' => 'fieldset',
+        '#title' => t('Force Update MODS'),
+        '#collapsible' => TRUE,
+        '#collapsed' => TRUE,
+    );
+    // Metadata defaults frame
+    $form['wrapper_update']['meta_defaults_frame'] = array(
+        '#type' => 'fieldset',
+        '#description' => t('Force the values from the batch record into selected ' .
+            'items\' MODS (using the checkboxes in the table below).  Select which ' .
+            'fields to overwrite any values; alternate values can be set using each ' .
+            'of the field prompts.'),
+        '#collapsible' => TRUE,
+        '#collapsed' => FALSE,
+      );
+
+    // Default copyright status: select (hard-coded options based off MODS
+    // typeOfResource specification).
+    $form['wrapper_update']['meta_defaults_frame']['force_default_type_of_resource'] = array(
+      '#title' => 'Force type of resource?',
+      '#type' => 'checkbox',
+      'default_value' => FALSE,
+    );
+    $form['wrapper_update']['meta_defaults_frame']['default_type_of_resource'] = array(
+        '#type' => 'select',
+        '#required' => true,
+        '#attributes' => array(
+          'title' => 'Default type of resource',
+          'class' => array('indent-item')
+        ),
+        '#options' => $default_type_of_resources,
+        '#default_value' => ($batch_record && isset($batch_record['default_type_of_resource'])) ? $batch_record['default_type_of_resource'] : '',
+      );
+
+    // Default genre: textfield
+    $form['wrapper_update']['meta_defaults_frame']['force_default_genre'] = array(
+      '#title' => 'Force Genre?',
+      '#type' => 'checkbox',
+      'default_value' => FALSE,
+    );
+    $form['wrapper_update']['meta_defaults_frame']['default_genre'] = array(
+        '#type' => 'textfield',
+        '#attributes' => array(
+          'title' => 'Default Genre',
+          'class' => array('indent-item')
+        ),
+        '#default_value' => ($batch_record && isset($batch_record['default_genre'])) ? $batch_record['default_genre'] : '',
+      );
+
+      // Default depositor: textfield
+    $form['wrapper_update']['meta_defaults_frame']['force_default_depositor'] = array(
+      '#title' => 'Force Depositor?',
+      '#type' => 'checkbox',
+      'default_value' => FALSE,
+    );
+    $form['wrapper_update']['meta_defaults_frame']['default_depositor'] = array(
+        '#type' => 'textfield',
+        '#attributes' => array(
+          'title' => 'Default Depositor',
+          'class' => array('indent-item')
+        ),
+        '#default_value' => ($batch_record && isset($batch_record['default_depositor'])) ? $batch_record['default_depositor'] : '',
+      );
+
+    // Default copyright status: select (hard-coded options)
+    $form['wrapper_update']['meta_defaults_frame']['force_batch_default_CR_status'] = array(
+      '#title' => 'Force Copyright Status?',
+      '#type' => 'checkbox',
+      'default_value' => FALSE,
+    );
+    $form['wrapper_update']['meta_defaults_frame']['batch_default_CR_status'] = array(
+        '#type' => 'select',
+        '#attributes' => array(
+          'title' => 'Default Copyright Status',
+          'class' => array('indent-item')
+        ),
+        '#options' => array(''=>'Select Default Copyright Status',
+          'copyrighted' => 'copyrighted',
+          'pd' => 'public domain',
+          'pd_usfed' => 'public domain - us federal document',
+          'pd_holder' => 'public domain - dedicated by rights holder',
+          'pd_expired' => 'public domain - expired copyright',
+          'unknown' => 'unknown',
+        ),
+        '#default_value' => ($batch_record && isset($batch_record['batch_default_CR_status'])) ? $batch_record['batch_default_CR_status'] : '',
+      );
+
+    // Default publication status: select (hard-coded options)
+    $form['wrapper_update']['meta_defaults_frame']['force_batch_default_pub_status'] = array(
+      '#title' => 'Force Publication Status?',
+      '#type' => 'checkbox',
+      'default_value' => FALSE,
+    );
+    $form['wrapper_update']['meta_defaults_frame']['batch_default_pub_status'] = array(
+        '#type' => 'select',
+        '#attributes' => array(
+          'title' => 'Default Publication Status',
+          'class' => array('indent-item')
+        ),
+        '#options' => array(''=>'Select Default Publication Status',
+          'published' => 'published',
+          'unpublished' => 'unpublished',
+          'unknown' => 'unknown',
+        ),
+        '#default_value' => ($batch_record && isset($batch_record['batch_default_pub_status'])) ? $batch_record['batch_default_pub_status'] : '',
+      );
+
+    // Default copyright holder name: textarea
+    $form['wrapper_update']['meta_defaults_frame']['force_batch_default_CR_holder'] = array(
+      '#title' => 'Force Copyright Holder Name?',
+      '#type' => 'checkbox',
+      'default_value' => FALSE,
+    );
+    $form['wrapper_update']['meta_defaults_frame']['batch_default_CR_holder'] = array(
+        '#type' => 'textarea',
+        '#attributes' => array(
+          'title' => 'Default Copyright Holder Name',
+          'class' => array('indent-item')
+        ),
+        '#rows' => 1,
+        '#default_value' => ($batch_record && isset($batch_record['batch_default_CR_holder'])) ? $batch_record['batch_default_CR_holder'] : '',
+      );
+
+    $form['wrapper_update']['submit'] = array(
+        '#type' => 'submit',
+        '#value' => t('Force Update'),
+            '#attributes' => array('class' => array(
+          'bad'
+        )),
+        '#suffix' => '&nbsp;' . t(' <b>NOTE: </b>This can not be undone.'),
+    );
+  }
+
   $form['wrapper']['notes_wrapper'] = array(
       '#type' => 'fieldset',
       '#title' => 'Problem notes',
@@ -505,7 +640,7 @@ function islandora_digital_workflow_batch_items_form(array $form, array &$form_s
   }
   $form['wrapper']['using__batch_id'] = array(
       '#type' => 'hidden',
-      '#default_value' => $batch_record->batch_id,
+      '#default_value' => $batch_record['batch_id'],
   );
   $form['wrapper']['submit'] = array(
       '#type' => 'submit',
@@ -543,38 +678,69 @@ function islandora_digital_workflow_batch_items_form_submit(array $form, array &
   $add_action_id = $form_state['values']['add_batch_action'];
   $problem_notes = $form_state['values']['problem_notes'];
   $remove_action_id = $form_state['values']['remove_batch_action'];
-  if ($form_state['values']['op'] == 'Delete') {
-    $batch_item_ids = array();
-    foreach ($selected_identifiers as $identifier) {
-      $batch_item_id = islandora_digital_workflow_get_batch_item_id_by_identifier($identifier, $using__batch_id, TRUE);
-      $batch_item_ids[] = $batch_item_id;
-    }
-    $_SESSION['ids_by_session'] = $batch_item_ids;
-    drupal_goto('islandora/islandora_digital_workflow/delete_batch_item/ids_by_session');
-  }
-  if ($remove_action_id == '' && $add_action_id == '') {
-    drupal_set_message(t('No transactions were added or removed'), 'message_info');
-  }
-  else {
-    $could_not_be_processed = array();
-    foreach ($selected_identifiers as $identifier) {
-      $batch_item_id = islandora_digital_workflow_get_batch_item_id_by_identifier($identifier, $using__batch_id);
-      if ($add_action_id) {
-        if (!islandora_digital_workflow_insert_transactions_record($add_action_id, NULL, $batch_item_id, NULL, $problem_notes)) {
-          $could_not_be_processed[] = $identifier;
+  $batch_item_ids = array();
+  switch ($form_state['values']['op']) {
+    case t('Delete'):
+      foreach ($selected_identifiers as $identifier) {
+        $batch_item_id = islandora_digital_workflow_get_batch_item_id_by_identifier($identifier, $using__batch_id, TRUE);
+        $batch_item_ids[] = $batch_item_id;
+      }
+      $_SESSION['ids_by_session'] = $batch_item_ids;
+      drupal_goto('islandora/islandora_digital_workflow/delete_batch_item/ids_by_session');
+      break;
+
+    case t('Force Update'):
+      $nid = arg(1);
+      $node = node_load($nid);
+      $batch_name = $node->title;
+      $results = islandora_digital_workflow_find_batch_records_by_name($batch_name);
+      $batch_record = (array) array_pop($results);
+      $default_type_of_resources = islandora_digital_workflow_get_default_type_of_resource_options(TRUE);
+
+      // Prepare various objects for the dynamic form generation...
+      $items = islandora_digital_workflow_get_batch_items_by_nid($node->nid);
+      foreach ($selected_identifiers as $identifier) {
+        $batch_item_id = islandora_digital_workflow_get_batch_item_id_by_identifier($identifier, $using__batch_id, TRUE);
+        $batch_item_ids[] = $batch_item_id;
+      }
+      $mods_arr = islandora_digital_workflow_save_batch_items_mods($batch_item_ids);
+
+
+      foreach ($mods_arr as $batch_item_id => $mods_size_filename) {
+        $filename = (array_key_exists('MODS', $mods_size_filename) ?  $mods_size_filename['MODS'] : '');
+        if (file_exists($filename)) {
+          @unlink($filename);
         }
+      }
+      break;
+
+    default:
+      // "Submit"
+      if ($remove_action_id == '' && $add_action_id == '') {
+        drupal_set_message(t('No transactions were added or removed'), 'message_info');
       }
       else {
-        if (!islandora_digital_workflow_remove_transactions_record($remove_action_id, NULL, $batch_item_id)) {
-          $could_not_be_processed[] = $identifier;
+        $could_not_be_processed = array();
+        foreach ($selected_identifiers as $identifier) {
+          $batch_item_id = islandora_digital_workflow_get_batch_item_id_by_identifier($identifier, $using__batch_id);
+          if ($add_action_id) {
+            if (!islandora_digital_workflow_insert_transactions_record($add_action_id, NULL, $batch_item_id, NULL, $problem_notes)) {
+              $could_not_be_processed[] = $identifier;
+            }
+          }
+          else {
+            if (!islandora_digital_workflow_remove_transactions_record($remove_action_id, NULL, $batch_item_id)) {
+              $could_not_be_processed[] = $identifier;
+            }
+          }
+        }
+        if (count($could_not_be_processed) > 0) {
+          drupal_set_message(t('Some of the selected items could not be updated. ') .
+            implode(", ", $could_not_be_processed));
+        } else {
+          drupal_set_message(t('All selected items have been updated.'));
         }
       }
-    }
-    if (count($could_not_be_processed) > 0) {
-      drupal_set_message(t('Some of the selected items could not be updated. ') .
-        implode(", ", $could_not_be_processed));
-    } else {
-      drupal_set_message(t('All selected items have been updated.'));
-    }
+      break;
   }
 }

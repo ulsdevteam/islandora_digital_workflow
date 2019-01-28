@@ -336,6 +336,21 @@ function islandora_digital_workflow_search_digitization_requests($searchterm, $h
   }
 }
 
+/**
+ * Helper function that returns the HTML for a tooltip based on a webform
+ * submission.
+ *
+ * @param integer $sid
+ *   The submission identifier.
+ * @param string $searchterm
+ *   The search text.
+ * @param array $search_fields
+ *   A set of fields that were searched - based on configuration.
+ * @param string $highlight_hash
+ *   The unique string that will be used to replace a searchterm match in any
+ * non-search field data.
+ * @return type
+ */
 function islandora_digital_workflow_get_submission_tooltip($sid, $searchterm, $search_fields, $highlight_hash) {
   $submission_arr = islandora_digital_requests_get_webform_submission($sid, TRUE);
   $output = array();
@@ -889,7 +904,7 @@ function islandora_digital_workflow_get_batch_items_by_nid($nid) {
     (MAX(bt.timestamp)) as `when`,
     GROUP_CONCAT(DISTINCT a.name) as `transaction_actions`,
     GROUP_CONCAT(DISTINCT a.action_id) as `transaction_action_ids`,
-    bi.batch_item_id
+    bi.progress, bi.batch_item_id
 FROM islandora_digital_workflow_batch b
 JOIN islandora_digital_workflow_batch_items bi ON b.batch_id = bi.batch_id
 LEFT JOIN islandora_digital_workflow_transactions bt ON (bi.batch_item_id = bt.batch_item_id OR bi.batch_id = bt.batch_id)
@@ -1021,19 +1036,41 @@ function islandora_digital_workflow_get_drush_log_for_batch_item($batch_item_id)
  */
 function islandora_digital_workflow_update_batch_item_record($batch_item_id, $update_values, $original_values) {
   db_query("SET NAMES utf8");
+  // Get the batch_record related to this item -- needed below in a couple places.
+  $batch_item_record_arr = islandora_digital_workflow_get_batch_item_record($batch_item_id);
+  if (is_array($batch_item_record_arr)) {
+    $batch_item_record_obj = array_pop($batch_item_record_arr);
+    $batch_record = islandora_digital_workflow_get_batch_record_by_batch_id($batch_item_record_obj->batch_id);
+  }
+  else {
+    $batch_record = array();
+  }
+
   $results = db_update('islandora_digital_workflow_batch_items')
       ->fields(array(
         'title' => $update_values['title'],
         'identifier' => $update_values['identifier'],
         'filename' => $update_values['filename'],
         'assigned_pid' => (array_key_exists('assigned_pid', $update_values) ? $update_values['assigned_pid'] : ''),
-        'islandora_model' => $update_values['islandora_model'],
-        'type_of_resource' => $update_values['type_of_resource'],
+        'islandora_model' => (array_key_exists('islandora_model', $update_values) ? $update_values['islandora_model'] : ''),
+        'type_of_resource' => (array_key_exists('type_of_resource', $update_values) ? $update_values['type_of_resource'] : ''),
         'mods' => $update_values['mods'],
         'marc' => (array_key_exists('marc', $update_values) ? $update_values['marc'] : ''),
       ))
       ->condition('batch_item_id', $batch_item_id)
       ->execute();
+
+  // Need to get the item's batch record in order to derive the various file paths
+  // for the rename operations.  This will be needed if the item's identifier
+  // changes (below) and to pass to the calculate function.
+  $current_delivery_item_path = islandora_digital_workflow_batch_path($batch_record, 'delivery') .
+        '/' . $original_values->identifier;
+  $current_problems_item_path = islandora_digital_workflow_batch_path($batch_record, 'problems') .
+        '/' . $original_values->identifier;
+  $current_working_item_path = islandora_digital_workflow_batch_path($batch_record, 'working') .
+        '/' . $original_values->identifier;
+  // If the identifier changes, these variables will be set in that conditional.
+  $update_delivery_item_path = $update_problems_item_path = $update_working_item_path = '';
 
   if ($results) {
     // Compare the filename value to the previous filename value to see
@@ -1080,21 +1117,10 @@ function islandora_digital_workflow_update_batch_item_record($batch_item_id, $up
       islandora_digital_workflow_insert_transactions_record(IDW_ACTION_MODS_RECORD_UPDATED, NULL, $batch_item_id);
     }
 
-
     // Compare the item identifier to see if it has changed... if so, the system
     // will need to rename those folders (delivery, (and if they exists) problems
     // and working folder.
     if ($update_values['identifier'] <> $original_values->identifier) {
-      // Need to get the item's batch record in order to derive the various file paths
-      // for the rename operations.
-      $batch_record = islandora_digital_workflow_get_batch_item_record($batch_item_id);
-      $current_delivery_item_path = islandora_digital_workflow_batch_path($batch_record, 'delivery') .
-            '/' . $original_values->identifier;
-      $current_problems_item_path = islandora_digital_workflow_batch_path($batch_record, 'problems') .
-            '/' . $original_values->identifier;
-      $current_working_item_path = islandora_digital_workflow_batch_path($batch_record, 'working') .
-            '/' . $original_values->identifier;
-
       $replace_to = '/' . $update_values['identifier'] . '/';
       $replace_from = '/' . $original_values->identifier . '/';
       $update_delivery_item_path = str_replace($replace_from, $replace_to, $current_delivery_item_path);
@@ -1133,7 +1159,68 @@ function islandora_digital_workflow_update_batch_item_record($batch_item_id, $up
       }
     }
   }
+
+  // Get the current working directory path for the item to pass on to the
+  // calculate function.
+  $item_working_item_path = (($update_working_item_path) ? $update_working_item_path : $current_working_item_path);
+  // Call the function that will update the calculated values for item_progress, file_count, and file_size
+  islandora_digital_workflow_calculate_item_progress_filedetails($batch_item_id, $batch_record, $item_working_item_path);
+  islandora_digital_workflow_update_batch_record_progress($batch_record);
+
   return $results;
+}
+
+/**
+ * Calculates the progress and file count for the given batch item.
+ *
+ * @param integer $batch_item_id
+ *   The batch_item_id of the item for which to calculate progress,
+ * @param array $batch_record
+ *   The batch record array that the item belongs to.
+ * @param string $item_working_item_path
+ *   The working directory that the item uses for the digital items.
+ */
+function islandora_digital_workflow_calculate_item_progress_filedetails($batch_item_id, $batch_record, $item_working_item_path)  {
+  $item_record_transactions = islandora_digital_workflow_get_batch_item_transactions($batch_item_id, $batch_record['nid'], $batch_record['batch_id']);
+  $required_batch_actions = islandora_digital_workflow_get_required_batch_actions($batch_record['batch_id']);
+  $item_record_results = islandora_digital_workflow_get_batch_item_record($batch_item_id);
+  $batch_item_obj = array_pop($item_record_results);
+
+  // Start with the easiest assumption... the item is new:
+  $progress = 'New';
+
+  // Are there any actions for this item?  If so, then consider it "In Progress".
+  if (is_array($item_record_transactions) && count($item_record_transactions) > 1) {
+    $progress = 'In Progress';
+  }
+
+  // Now, if it is not new, we must see if it is ready for ingest:
+  $item_ready_for_ingest = islandora_digital_workflow_item_ingest_prerequisites_all_done($item_record_transactions, $required_batch_actions);
+  $progress = ($item_ready_for_ingest) ? 'Prepared' : $progress;
+
+  // Now if it is ready for ingest, we should check to see whether or not it is done.
+  $item_done = FALSE;
+  foreach ($item_record_transactions as $item_transaction_object) {
+    $item_done |= ($item_transaction_object->action_id  == IDW_ACTION_SYSTEM_INGEST);
+  }
+
+  // There may be the action_id that the object is ingested / done, but we may want to
+  // check whether or not the islandora object behind that item ACTUALLY does exist.
+  if ($item_done) {
+    $namespace = islandora_digital_workflow_get_ingest_namespace($batch_record);
+    $pid = ($batch_item_obj->assigned_pid <> '') ? $batch_item_obj->assigned_pid : $namespace . $batch_item_obj->identifier;
+    $islandora_object = islandora_object_load($pid);
+    $item_done |= (is_object($islandora_object));
+  }
+  $progress = ($item_done) ? 'Completed' : $progress;
+  if ($progress <> $batch_item_obj->progress) {
+    $set_fields = array('progress' => $progress);
+    db_update('islandora_digital_workflow_batch_items')
+      ->condition('batch_item_id', $batch_item_id)
+      ->fields($set_fields)
+      ->execute();
+  }
+  islandora_digital_workflow_recalc_batch_files($batch_record, $output_contents, $output_footer, $batch_item_id);
 }
 
 /**
@@ -1744,6 +1831,7 @@ function islandora_digital_workflow_get_free_action_id() {
  */
 function islandora_digital_workflow_update_item_file_data($batch_record, $item_data) {
   $batch_record = (array) $batch_record;
+  $markup_arr = array();
   foreach ($item_data as $item_pid => $identifer_data) {
     @list($item_namespace, $item_identifier) = explode(":", $item_pid);
     $total_file_size = 0;
@@ -2106,4 +2194,60 @@ function islandora_digital_workflow_get_set($pid) {
   }
 
   return $result;
+}
+
+/**
+ * This will set the batch record's progress based on the completedness of all
+ * of the items of the batch.
+ *
+ * @param array $batch_record
+ *   The batch_record array related to the batch in question.
+ */
+function islandora_digital_workflow_update_batch_record_progress($batch_record = array()) {
+  // must get all items related to the batch -- and loop through to set the batch
+  // value for progress based on all items having that progress.
+  $batch_items = islandora_digital_workflow_get_batch_items_by_nid($batch_record['nid']);
+  // Go in the reverse order of possible progress values.
+  if (!($set_batch_progress_to = islandora_digital_workflow_batch_items_all_same_progress($batch_items, 'Completed', array()))) {
+    if (!($set_batch_progress_to = islandora_digital_workflow_batch_items_all_same_progress($batch_items, 'Prepared', array('Completed')))) {
+      if (!($set_batch_progress_to = islandora_digital_workflow_batch_items_all_same_progress($batch_items, 'In Process', array('Prepared', 'Completed')))) {
+        $set_batch_progress_to = 'New';
+      }
+    }
+  }
+  // may need to set the progress if it is not the same as the current value stored
+  // in the batch_record.
+  if ($batch_record['progress'] <> $set_batch_progress_to) {
+    islandora_digital_workflow_update_batch($batch_record['batch_id'], array(
+        'progress' => $set_batch_progress_to));
+  }
+}
+
+/**
+ * Helper function to determine whether or not all of the items are at the same
+ * "progress" step.
+ *
+ * @param array $batch_items
+ *   Set of batch_item objects.
+ * @param array $check_for_progress
+ *   A progress value to check all items if they have passed that progress.
+ * @param array $check_for_progress_array
+ *   A set of progress values that would allow the code to consider that the
+ * lowest value was obtained.  For example, if there are three items and two are
+ * "Completed" and one was "Prepared", the two checks of the items for the
+ * "Prepared" stage should also consider it a match if the progress value was
+ * "Completed" - in other words, "Prepared" was actually already achieved for
+ * that item.
+ * @return string
+ *   Will return the status of the items ONLY when all items have the same status,
+ * else this will return an empty string.
+ */
+function islandora_digital_workflow_batch_items_all_same_progress($batch_items, $check_for_progress, $check_for_progress_array = array()) {
+  // Start off with a TRUE -- will be FALSE when there are no items in the array.
+  $all_same = (is_array($batch_items) && (count($batch_items) > 0));
+  $check_for_progress_array[] = $check_for_progress;
+  foreach ($batch_items as $item_obj) {
+    $all_same &= (!(array_search($item_obj->progress, $check_for_progress_array) === FALSE));
+  }
+  return (!$all_same) ? '' : $check_for_progress;
 }
