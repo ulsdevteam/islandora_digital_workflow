@@ -28,7 +28,8 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
   $batch_path = islandora_digital_workflow_batch_path($batch_record, 'working');
 
   $batch_description_markup = theme('islandora_digital_workflow_batch_description', array(
-      'batch_record' => $batch_record,
+    'batch_record' => $batch_record,
+    'batch_mapped_from_webformsubmission' => islandora_digital_workflow_get_webformsubmission($batch_record['webform_submission_sid']),
   ));
 
   $required_batch_actions = islandora_digital_workflow_get_required_batch_actions($batch_record['batch_id']);

@@ -2251,3 +2251,52 @@ function islandora_digital_workflow_batch_items_all_same_progress($batch_items, 
   }
   return (!$all_same) ? '' : $check_for_progress;
 }
+
+/**
+ * This will return the batch record that is related to a webforms submission.
+*
+ * @param integer $sid
+ *   Webform submission identifier value.
+ * @return mixed
+ *   Either returns the batch record object or NULL if it cannot be found.
+ */
+function islandora_digital_workflow_get_batch_of_webformsubmission($sid) {
+  if ($sid) {
+    $query = db_select('islandora_digital_workflow_batch', 'b');
+    $query->fields('b')
+        ->condition('b.webform_submission_sid', $sid);
+    $results = $query->execute();
+    $rows = $results->fetchAll();
+    return $rows;
+  }
+  else {
+    return NULL;
+  }
+}
+
+/**
+ * This will get the values for a given submission by the submission identifier.
+ * This joins the submission table to the node table in order to get the title
+ * of that kind of submission (ie: "Scan Request")
+ *
+ * @param integer $sid
+ *   Webform submission identifier value.
+ * @return mixed
+ *   Either returns the batch record object or NULL if it cannot be found.
+ */
+function islandora_digital_workflow_get_webformsubmission($sid) {
+  if ($sid) {
+    $query = db_select('webform_submissions', 'ws');
+    $query->fields('ws');
+    $query->join('node', 'n', 'n.nid = ws.nid');
+    $query->fields('n', array('title'))
+        ->condition('ws.sid', $sid);
+    $results = $query->execute();
+    $rows = $results->fetchAll();
+    $row = array_pop($rows);
+    return $row;
+  }
+  else {
+    return NULL;
+  }
+}

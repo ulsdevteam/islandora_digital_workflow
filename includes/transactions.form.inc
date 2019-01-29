@@ -62,7 +62,8 @@ function islandora_digital_workflow_batch_transactions_form(array $form, array &
   $form = array();
 
   $batch_description_markup = theme('islandora_digital_workflow_batch_description', array(
-      'batch_record' => $batch_record,
+    'batch_record' => $batch_record,
+    'batch_mapped_from_webformsubmission' => islandora_digital_workflow_get_webformsubmission($batch_record['webform_submission_sid']),
   ));
 
   $form['batch_id'] = array(

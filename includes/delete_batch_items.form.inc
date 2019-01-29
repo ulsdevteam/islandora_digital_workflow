@@ -66,8 +66,9 @@ function islandora_digital_workflow_delete_batch_items_form(array $form, array &
   }
 
   $batch_description_markup = theme('islandora_digital_workflow_batch_description', array(
-        'batch_record' => $batch_record,
-      ));
+    'batch_record' => $batch_record,
+    'batch_mapped_from_webformsubmission' => islandora_digital_workflow_get_webformsubmission($batch_record['webform_submission_sid']),
+  ));
 
   $existing_batch_identifiers = islandora_digital_workflow_get_existing_identifiers($batch_record['batch_id']);
   $batch_item_identifiers = array();
