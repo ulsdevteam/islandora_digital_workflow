@@ -65,7 +65,6 @@ function islandora_digital_workflow_create_digitization_request_form(array $form
     }
 
     $form['links_wrapper'] = array(
-        '#type' => 'fieldset',
         '#title' => 'Select Request Form',
         '#type' => 'item',
         '#markup' => '<ul>' . implode("</li><li>", $links) . '</ul>',
@@ -95,7 +94,7 @@ function islandora_digital_workflow_create_digitization_request_form_submit(arra
 }
 
 /**
- * Returns only the configuratoin fields related to Webform submissions that are
+ * Returns only the configuration fields related to Webform submissions that are
  * "digitization requests".
  *
  * @return string
@@ -113,6 +112,7 @@ function islandora_digital_workflow_get_digitization_requests_config_form() {
   $webform_options = variable_get('islandora_digital_workflow_digitization_requests', array());
   $link_attributes = array('attributes'=>array('target' => '_blank'));
   foreach ($webforms as $nid => $webform_arr) {
+    $form_components = islandora_digitization_requests_webform_components($nid);
     $searchable_fields = islandora_digital_workflow_searchable_fields($nid);
     $search_options = array();
     if (!isset($webform_digitization_requests[$nid]) || !$webform_digitization_requests[$nid]['selected']) {
@@ -130,6 +130,16 @@ function islandora_digital_workflow_get_digitization_requests_config_form() {
       );
     }
     else {
+      $copy_form_components =array();
+      foreach ($form_components as $key => $value) {
+        $copy_form_components[$key] = $value;
+        $extra_as_arr = unserialize($value['extra']);
+        $copy_form_components[$key]['extra'] = $extra_as_arr;
+        if (array_key_exists('items', $extra_as_arr)) {
+          $copy_form_components[$key]['extra']['items'] = explode("\n", $extra_as_arr['items']);
+        }
+      }
+      $javascript_variables =  json_encode($copy_form_components);
       $form_elements['webform_options']['webform_' . $nid] = array(
         '#type' => 'fieldset',
         '#title' => '<b>' . $webform_arr['title'] . '</b> Options and mappings',
@@ -171,8 +181,6 @@ function islandora_digital_workflow_get_digitization_requests_config_form() {
       );
 
       module_load_include('install', 'islandora_digital_workflow', 'islandora_digital_workflow');
-      $form_components = islandora_digitization_requests_webform_components($nid);
-
       // Search fields
       foreach ($form_components as $cid => $components_arr) {
         $form_elements['webform_options']['webform_' . $nid]['webform_' . $nid . '_searchfields_wrapper']['webform_' . $nid . '_searchfields_' . $cid] = array(
@@ -182,15 +190,43 @@ function islandora_digital_workflow_get_digitization_requests_config_form() {
         );
       }
 
-      $allowed_field_types_for_text_mapping = array('textarea', 'textfield');
+      $allowed_field_types_for_text_mapping = array('textarea', 'textfield', 'select');
+      $tmp_dr_text_options = $tmp_dr_numeric_options = array();
       $map_dr_text_options = $map_dr_numeric_options = array('' => 'Select field');
       foreach ($form_components as $cid => $components_arr) {
         if ((!(array_search($components_arr['type'], $allowed_field_types_for_text_mapping) === FALSE))) {
-          $map_dr_text_options[$cid] = $components_arr['name'];
+          $is_text = TRUE;
+          // The select boxes can be considered numeric if they are not multiple and
+          // all of the items values are numeric.
+          if ($components_arr['type'] == 'select') {
+            $select_input_extra_arr = unserialize($components_arr['extra']);
+            if ((array_key_exists('multiple', $select_input_extra_arr)) && ($select_input_extra_arr['multiple'] < 1)) {
+              if ((array_key_exists('items', $select_input_extra_arr))) {
+                $all_numeric = TRUE;
+                if (is_array($select_input_extra_arr['items']) && (count($select_input_extra_arr['items']) > 0)) {
+                  foreach ($select_input_extra_arr['items'] as $val => $text) {
+                    $all_numeric &= is_numeric($text);
+                  }
+                }
+                $is_text = !$all_numeric;
+              }
+            }
+          }
+        }
+        if ($is_text) {
+          $tmp_dr_text_options[$cid] = $components_arr['name'];
         }
         else {
-          $map_dr_numeric_options[$cid] = $components_arr['name'];
+          $tmp_dr_numeric_options[$cid] = $components_arr['name'];
         }
+      }
+      arsort($tmp_dr_text_options);
+      arsort($tmp_dr_numeric_options);
+      foreach ($tmp_dr_text_options as $k => $v) {
+        $map_dr_text_options[$k] = $v;
+      }
+      foreach ($tmp_dr_numeric_options as $k => $v) {
+        $map_dr_numeric_options[$k] = $v;
       }
 
       // Mappings (string fields)
@@ -203,7 +239,11 @@ function islandora_digital_workflow_get_digitization_requests_config_form() {
       );
       $toggle = FALSE;
       foreach ($mapping_to_fieldnames_for_textfields as $fieldname => $value) {
-        $form_elements['webform_options']['webform_' . $nid]['webform_' . $nid . '_mappings_wrapper']['stringfields']['webform_' . $nid . '_mappings_' . $fieldname] = array(
+        $form_elements['webform_options']['webform_' . $nid]['webform_' . $nid . '_mappings_wrapper']['stringfields']['webform_' . $nid . '_wrapwrap_' . $fieldname] = array(
+          '#type' => 'fieldset',
+        );
+
+        $form_elements['webform_options']['webform_' . $nid]['webform_' . $nid . '_mappings_wrapper']['stringfields']['webform_' . $nid . '_wrapwrap_' . $fieldname]['webform_' . $nid . '_mappings_' . $fieldname] = array(
           '#type' => 'select',
           '#title' => $value,
           '#options' => $map_dr_text_options,
@@ -212,12 +252,12 @@ function islandora_digital_workflow_get_digitization_requests_config_form() {
                 $webform_options[$nid]['mapped_fields'][$fieldname]: ''),
           '#attributes' => array('class' => array(($toggle) ? 'odd_child' : 'even_child')),
         );
+
         @list($field_description_only, $junk) = explode(" (", strip_tags($value));
-        $form_elements['webform_options']['webform_' . $nid]['webform_' . $nid . '_mappings_wrapper']['stringfields']['webform_' . $nid . '_default_' . $fieldname] = array(
+        $form_elements['webform_options']['webform_' . $nid]['webform_' . $nid . '_mappings_wrapper']['stringfields']['webform_' . $nid . '_wrapwrap_' . $fieldname]['webform_' . $nid . '_default_' . $fieldname] = array(
           '#type' => 'textfield',
           '#title' => '<i class="disabled_text">default value</i>',
           '#default_value' => '',
-          '#suffix' => '<br class="break_float">',
           '#attributes' => array(
               'title' => 'When there is no mapping, provide a default value for the batch record\'s "' . $field_description_only . '"',
               'class' => array(($toggle) ? 'odd_child' : 'even_child')),
@@ -225,6 +265,65 @@ function islandora_digital_workflow_get_digitization_requests_config_form() {
                 array_key_exists($fieldname, $webform_options[$nid]['default_values_fields'])) ?
                 $webform_options[$nid]['default_values_fields'][$fieldname]: ''),
         );
+        if ($fieldname == 'islandora_model') {
+          // modify the #attributes for this element to add a javascript callback.
+          $form_elements['webform_options']['webform_' . $nid]['webform_' . $nid . '_mappings_wrapper']['stringfields']['webform_' . $nid . '_wrapwrap_' . $fieldname]['webform_' . $nid . '_mappings_' . $fieldname]['#attributes']['onchange'] = 'model_mapping_selected(this,' . $javascript_variables . ')';
+          // render all of the possible mapping fields now and keep them all hidden
+          // unless that mapping is already configured (persistant relationships
+          // should be displayed). Make the whole fieldset visible and persist
+          // the configuration values by setting default_value in the foreach
+          // loop below.
+
+          $show_fieldset = FALSE;
+//          dr_field_show
+
+          $display_fields = array('Format');
+          $configured_supported_models = islandora_digital_workflow_get_accessible_cmodels(FALSE);
+          $islandora_model_select_options = array('' => 'Select model');
+          $islandora_model_select_options = array_merge($islandora_model_select_options, $configured_supported_models);
+
+          foreach ($form_components as $cid => $components_arr) {
+            // If the value is already set, make the whole fieldset visible and
+            // persist the configuration values by setting default_value
+            $this_field_extra_values = (array_key_exists('extra', $components_arr)) ?
+              unserialize($components_arr['extra']) : '';
+            $this_field_items = ($this_field_extra_values) ? 
+                (array_key_exists('items', $this_field_extra_values) ? explode("\r\n", trim($this_field_extra_values['items'])) : array()) : array();
+            if (count($this_field_items) > 0) {
+              $form_elements['webform_options']['webform_' . $nid]['webform_' . $nid . '_mappings_wrapper']['stringfields']['webform_' . $nid . '_wrapwrap_' . $fieldname]['webformfield_fieldset_'. $nid . '_' . $cid] = array(
+                '#type' => 'fieldset',
+                '#title' => $components_arr['name'],
+                '#description' => '[' . $cid . '] ' . t('<b>"@webform_title" mappings for Islandora ' .
+                    'Model</b><p>The mappings from the selected field into Islandora ' .
+                    'Model is special may require explicit mapping of the field values ' .
+                    'and could result in the abillity to create more than one batch ' .
+                    'from a digitization request.</p>', array(
+                      '@webform_title' => $webform_arr['title'],
+                    )),
+                '#attributes' => array(
+                    'class' => array('idw_special_mapping_fieldset',
+                        ($show_fieldset) ? 'dr_field_show' : 'dr_field_hide')
+                  ),
+              );
+
+              foreach ($this_field_items as $webfield_value_label) {
+                @list($value, $label) = explode("|", $webfield_value_label);
+                $form_elements['webform_options']['webform_' . $nid]['webform_' . $nid . '_mappings_wrapper']['stringfields']['webform_' . $nid . '_wrapwrap_' . $fieldname]['webformfield_fieldset_'. $nid . '_' . $cid]['dr_field_'. $nid . '_' . $cid . '_' . $value] = array(
+                  '#type' => 'select',
+                  '#title' => $label,
+                  '#options' => $islandora_model_select_options,
+                  '#default_value' => ((array_key_exists($nid, $webform_options) && array_key_exists('islandora_model_mappings', $webform_options[$nid]) &&
+                    is_array($webform_options[$nid]['islandora_model_mappings']) &&
+                    array_key_exists($cid, $webform_options[$nid]['islandora_model_mappings']) &&
+                    is_array($webform_options[$nid]['islandora_model_mappings'][$cid]) &&
+                    array_key_exists($label, $webform_options[$nid]['islandora_model_mappings'][$cid])) ?
+                      $webform_options[$nid]['islandora_model_mappings'][$cid][$label] : ''),
+                );
+              }
+            }
+
+          }
+        }
         $toggle = !$toggle;
       }
       // Mappings (numeric fields)
@@ -237,7 +336,10 @@ function islandora_digital_workflow_get_digitization_requests_config_form() {
       );
       $toggle = FALSE;
       foreach ($mapping_to_fieldnames_for_intfields as $fieldname => $value) {
-        $form_elements['webform_options']['webform_' . $nid]['webform_' . $nid . '_mappings_wrapper']['numericfields']['webform_' . $nid . '_mappings_' . $fieldname] = array(
+        $form_elements['webform_options']['webform_' . $nid]['webform_' . $nid . '_mappings_wrapper']['numericfields']['webform_' . $nid . '_wrapwrap_' . $fieldname] = array(
+          '#type' => 'fieldset',
+        );
+        $form_elements['webform_options']['webform_' . $nid]['webform_' . $nid . '_mappings_wrapper']['numericfields']['webform_' . $nid . '_wrapwrap_' . $fieldname]['webform_' . $nid . '_mappings_' . $fieldname] = array(
           '#type' => 'select',
           '#title' => $value,
           '#options' => $map_dr_numeric_options,
@@ -247,7 +349,7 @@ function islandora_digital_workflow_get_digitization_requests_config_form() {
           '#attributes' => array('class' => array(($toggle) ? 'odd_child' : 'even_child')),
         );
         @list($field_description_only, $junk) = explode(" (", strip_tags($value));
-        $form_elements['webform_options']['webform_' . $nid]['webform_' . $nid . '_mappings_wrapper']['numericfields']['webform_' . $nid . '_default_' . $fieldname] = array(
+        $form_elements['webform_options']['webform_' . $nid]['webform_' . $nid . '_mappings_wrapper']['numericfields']['webform_' . $nid . '_wrapwrap_' . $fieldname]['webform_' . $nid . '_default_' . $fieldname] = array(
           '#type' => 'textfield',
           '#title' => '<i class="disabled_text">default value</i>',
           '#default_value' => '',
@@ -281,7 +383,7 @@ function islandora_digital_workflow_get_digitization_requests_config_form() {
 function islandora_digital_workflow_batch_field_mappings($text_fields = TRUE, $integer_fields = TRUE) {
   module_load_include('install', 'islandora_digital_workflow', 'islandora_digital_workflow');
 
-  $never_map_fieldnames = array('batch_name', 'uploaded_batch_items_file', 'nid', 'workflow_sequence_id', 'user', 'lastmod');
+  $never_map_fieldnames = array('batch_name', 'uploaded_batch_items_file', 'nid', 'workflow_sequence_id', 'webform_submission_sid', 'user', 'lastmod');
   $schema = islandora_digital_workflow_schema();
   $allowed_field_types_for_mapping = $mapping_to_fieldnames = array();
   if ($text_fields) {
@@ -299,6 +401,18 @@ function islandora_digital_workflow_batch_field_mappings($text_fields = TRUE, $i
       $mapping_to_fieldnames[$fieldname] = $desc . '<span class="nonbold "> (' . $field['type'] . ')</span>';
     }
   }
+  // If this is for $text_fields, make sure the islandora_model values are first.
+  if ($text_fields) {
+    $tmp = $mapping_to_fieldnames;
+    $mapping_to_fieldnames = array();
+    $mapping_to_fieldnames['islandora_model'] = $tmp['islandora_model'];
+    foreach ($tmp as $fieldname => $val) {
+      if ($fieldname <> 'islandora_model') {
+        $mapping_to_fieldnames[$fieldname] = $tmp[$fieldname];
+      }
+    }
+  }
+  
   return $mapping_to_fieldnames;
 }
 

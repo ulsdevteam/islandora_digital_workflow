@@ -372,6 +372,24 @@ function islandora_digital_workflow_admin_form_submit(array $form, array &$form_
             $digitization_request_options[$nid]['mapped_fields'][$fieldname] = (isset($form_state['values'][$form_field]) ? $form_state['values'][$form_field] : '');
             $form_field = 'webform_' . $nid . '_default_' . $fieldname;
             $digitization_request_options[$nid]['default_values_fields'][$fieldname] = (isset($form_state['values'][$form_field]) ? $form_state['values'][$form_field] : '');
+            if ($fieldname == 'islandora_model') {
+              foreach ($form_components as $cid => $components_arr) {
+                if ($cid == $digitization_request_options[$nid]['mapped_fields'][$fieldname]) {
+                  $this_field_extra_values = (array_key_exists('extra', $components_arr)) ?
+                    unserialize($components_arr['extra']) : '';
+                  $this_field_items = ($this_field_extra_values) ?
+                      (array_key_exists('items', $this_field_extra_values) ? explode("\n", trim($this_field_extra_values['items'])) : array()) : array();
+                  if (count($this_field_items) > 0) {
+                    $digitization_request_options[$nid]['islandora_model_mappings'] = array($cid => array());
+                    foreach ($this_field_items as $webfield_value_label) {
+                      @list($value, $label) = explode("|", $webfield_value_label);
+                      $form_field = 'dr_field_' . $nid . '_' . $cid . '_' . $value;
+                      $digitization_request_options[$nid]['islandora_model_mappings'][$cid][$value] = (isset($form_state['values'][$form_field]) ? $form_state['values'][$form_field] : '');
+                    }
+                  }
+                }
+              }
+            }
           }
           $digitization_request_options[$nid]['message_info_' . $nid] = (isset($form_state['values']['message_info_' . $nid]) ? $form_state['values']['message_info_' . $nid] : '');
         }

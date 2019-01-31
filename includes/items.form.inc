@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Form and functoins related to displaying all of the items in a batch.
+ * Form and functions related to displaying all of the items in a batch.
  */
 
 /**

@@ -782,12 +782,13 @@ li.no_indent {
 }
 
 .multi_input_line .form-item {
-    padding-left: 3%;
-    padding-right: 3%;
-    width: 44%;
-    max-width: 40%;
+    padding-left: 0%;
+    padding-right: 1%;
+    width: 48%;
+    max-width: 48%;
     display: inline-block;
     float: left;
+    margin: 2px 0;
 }
 
 .form-disabled .form-item-namespace {
@@ -810,6 +811,10 @@ li.no_indent {
 .inline_form .fieldset-wrapper input[type="submit"] {
     clear: both;
     float: left;
+}
+
+.fieldset-wrapper {
+    font-size: 96% !important;
 }
 
 /* To display an inline right-floating fieldset wrapper for entering problem notes */
@@ -1040,6 +1045,7 @@ td.slide-cross {
     margin-top: 0;
 }
 
+/* Progress classes for items and batches. */
 .progress_new {
     color: red;
 }
@@ -1051,4 +1057,16 @@ td.slide-cross {
 }
 .progress_completed {
     color: green;
+}
+
+.idw_special_mapping_fieldset {
+    margin: 0 1%;
+}
+
+.dr_field_hide {
+    display: none;
+}
+
+.dr_field_show {
+    display: block;
 }

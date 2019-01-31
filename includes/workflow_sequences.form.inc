@@ -785,7 +785,7 @@ function _islandora_digital_workflow_arraysort($a, $b) {
 }
 
 /**
- * Displays configuration optoins for the Workflow Sequence - Models selection form.
+ * Displays configuration options for the Workflow Sequence - Models selection form.
  *
  * @param array $form
  *   The Drupal form definition.

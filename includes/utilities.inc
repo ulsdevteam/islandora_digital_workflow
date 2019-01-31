@@ -712,11 +712,14 @@ function islandora_digital_workflow_get_reduced_cmodels() {
  * This will get all configured models and filter them to display only the ones
  * that the user has access to use.
  *
+ * @param boolean $keyby_tid
+ *   Whether or not to use the islandora models' taxonomy term tid value as
+ * the key for the returned array... else, the key will be the same as the value.
  * @return array
  *   An associative array where the key is the taxonomy id for that content type
  * and the value is the name.
  */
-function islandora_digital_workflow_get_accessible_cmodels() {
+function islandora_digital_workflow_get_accessible_cmodels($keyby_tid = TRUE) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/access_permissions');
   module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy_utilities');
   $readable_models = islandora_digital_workflow_get_reduced_readable_cmodels();
@@ -730,8 +733,13 @@ function islandora_digital_workflow_get_accessible_cmodels() {
       // Now, check that the user has access to this model
       $permission = islandora_digital_workflow_permission_of_model($cmodel);
       if (user_access($permission)) {
-        $tid = islandora_digital_workflow_get_tid_by_name($cmodel, $content_types_vocab);
-        $accessible_models[$tid] = $cmodel;
+        if ($keyby_tid) {
+          $tid = islandora_digital_workflow_get_tid_by_name($cmodel, $content_types_vocab);
+          $accessible_models[$tid] = $cmodel;
+        }
+        else {
+          $accessible_models[$cmodel] = $model;
+        }
       }
     }
   }
