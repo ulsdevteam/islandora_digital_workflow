@@ -300,6 +300,23 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
   else {
     $tid_for_cmodel_selected = '';
   }
+  // Check that the model that this batch represents has an islandora_model
+  // value that is supported.
+  if ($tid_for_cmodel_selected && (array_key_exists($tid_for_cmodel_selected, $accessible_models) === FALSE)) {
+    $link_attributes = array('attributes'=>array('target' => '_blank'));
+    $admin_link = (user_access(ISLANDORA_DIGITAL_WORKFLOW_MANAGE)) ?
+      '  <b>Configure the workflow here: ' .
+        l('Islandora Digital Workflow Settings', '/admin/islandora/islandora_digital_workflow', $link_attributes) . '</b>'
+      : '';
+    $batch_link = l($batch_name, 'islandora/islandora_digital_workflow/edit_batch/' . $batch_name, $link_attributes);
+    drupal_set_message(t('"@cmodel" islandora model that is set for ' . $batch_link .
+        ' is not configured.  That model must be configured before this batch ' .
+        'can be worked on.', array(
+      '@cmodel' => $cmodel,
+      '@admin_link' => $admin_link,
+    )) . $admin_link, 'error');
+    drupal_goto('islandora/islandora_digital_workflow');
+  }
   $model_name = islandora_digital_workflow_get_name_of_tid($tid_for_cmodel_selected);
   $sequences = islandora_digital_workflow_get_workflow_sequences_for_model($model_name);
   $file_not_allowed_for_model_names = array('islandora:findingAidCModel', 'islandora:newspaperCModel', 'islandora:newspaperIssueCModel');
