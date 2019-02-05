@@ -510,10 +510,6 @@ div.form-disabled label.enabled_text {
     margin-left: 20px;
 }
 
-.form-wrapper .fieldset-wrapper {
-    padding: 0 !important;
-}
-
 .report_table fieldset {
     border-radius: 6px;
     margin: 4px;
@@ -786,13 +782,12 @@ li.no_indent {
 }
 
 .multi_input_line .form-item {
-    padding-left: 0%;
-    padding-right: 1%;
-    width: 48%;
-    max-width: 48%;
+    width: 49%;
+    max-width: 49%;
+    padding-right: 0.05%;
+    padding-left: 0.05%;
     display: inline-block;
     float: left;
-    margin: 2px 0;
 }
 
 .form-disabled .form-item-namespace {
@@ -1064,7 +1059,12 @@ td.slide-cross {
 }
 
 .idw_special_mapping_fieldset {
-    margin: 0 1%;
+    margin: 0;
+    clear: both;    
+}
+
+.idw_special_mapping_fieldset .fieldset-wrapper {
+    margin-top: 1.5em;
 }
 
 .dr_field_hide {
@@ -1073,4 +1073,23 @@ td.slide-cross {
 
 .dr_field_show {
     display: block;
+}
+
+/* ------- Admin configuration form settings ----- */
+#islandora-digital-workflow-admin-form .form-item {
+    padding: 2px !important;
+    margin: 0 0 2px !important;
+}
+
+#islandora-digital-workflow-admin-form p {
+    margin-top: 4px !important;
+}
+
+#islandora-digital-workflow-admin-form .multi_input_line .form-wrapper,
+#islandora-digital-workflow-admin-form .multi_input_line {
+    padding-top: 4px !important;
+}
+
+#islandora-digital-workflow-admin-form fieldset .fieldset-wrapper {
+    border: none;
 }

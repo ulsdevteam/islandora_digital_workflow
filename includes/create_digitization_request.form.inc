@@ -293,11 +293,11 @@ function islandora_digital_workflow_get_digitization_requests_config_form() {
               $form_elements['webform_options']['webform_' . $nid]['webform_' . $nid . '_mappings_wrapper']['stringfields']['webform_' . $nid . '_wrapwrap_' . $fieldname]['webformfield_fieldset_'. $nid . '_' . $cid] = array(
                 '#type' => 'fieldset',
                 '#title' => $components_arr['name'],
-                '#description' => '[' . $cid . '] ' . t('<b>"@webform_title" mappings for Islandora ' .
-                    'Model</b><p>The mappings from the selected field into Islandora ' .
-                    'Model is special may require explicit mapping of the field values ' .
-                    'and could result in the abillity to create more than one batch ' .
-                    'from a digitization request.</p>', array(
+                '#description' => t('<b>"@webform_title" mappings for Islandora Model</b>' .
+                    '<p>The mappings from the selected field into Islandora Model is ' .
+                    'special may require explicit mapping of the field values and could ' .
+                    'result in the abillity to create more than one batch from a ' .
+                    'digitization request.</p>', array(
                       '@webform_title' => $webform_arr['title'],
                     )),
                 '#attributes' => array(
