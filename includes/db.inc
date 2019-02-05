@@ -352,7 +352,7 @@ function islandora_digital_workflow_search_digitization_requests($searchterm, $h
  * @return type
  */
 function islandora_digital_workflow_get_submission_tooltip($sid, $searchterm, $search_fields, $highlight_hash) {
-  $submission_arr = islandora_digital_requests_get_webform_submission($sid, TRUE);
+  $submission_arr = islandora_digitization_requests_get_webform_submission($sid, TRUE);
   $output = array();
 
   foreach ($submission_arr as $cid => $submission_field_arr) {

@@ -503,11 +503,15 @@ div.form-disabled label.enabled_text {
     line-height: 26px;
 }
 
-.foobar .fieldset-wrapper .form-item {
+.idw_actions_config .fieldset-wrapper .form-item {
     display: inline-block;
     float: left;
     margin-top: 0;
     margin-left: 20px;
+}
+
+.form-wrapper .fieldset-wrapper {
+    padding: 0 !important;
 }
 
 .report_table fieldset {

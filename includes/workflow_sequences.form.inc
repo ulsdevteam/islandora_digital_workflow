@@ -1000,7 +1000,7 @@ function islandora_digital_workflow_actions_form(array $form, array &$form_state
       'reserved_actions' => array(
           '#type' => 'fieldset',
           '#title' => 'Actions',
-          '#attributes' => array('class' => array('foobar')),
+          '#attributes' => array('class' => array('idw_actions_config')),
           '#description' => 'The description and glyph for each action can be ' . 
             'edited.  <i>Actions that have already been associated with any ' .
             'workflow sequence cannot be assigned a different description.</i>',
