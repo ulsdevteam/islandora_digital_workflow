@@ -232,7 +232,7 @@ function islandora_digital_workflow_get_digitization_requests_config_form() {
       // Mappings (string fields)
       $form_elements['webform_options']['webform_' . $nid]['webform_' . $nid . '_mappings_wrapper']['stringfields'] = array(
           '#type' => 'fieldset',
-          '#prefix' => '<b>Text batch record fields</b>',
+          '#title' => t('Batch fields that are alphanumeric'),
           '#attributes' => array('class' => array(
             'multi_input_line'
           )),
@@ -273,22 +273,25 @@ function islandora_digital_workflow_get_digitization_requests_config_form() {
           // should be displayed). Make the whole fieldset visible and persist
           // the configuration values by setting default_value in the foreach
           // loop below.
-
-          $show_fieldset = FALSE;
-//          dr_field_show
-
-          $display_fields = array('Format');
           $configured_supported_models = islandora_digital_workflow_get_accessible_cmodels(FALSE);
           $islandora_model_select_options = array('' => 'Select model');
           $islandora_model_select_options = array_merge($islandora_model_select_options, $configured_supported_models);
-
+          $show_fieldset = FALSE;
           foreach ($form_components as $cid => $components_arr) {
             // If the value is already set, make the whole fieldset visible and
             // persist the configuration values by setting default_value
+            $islandora_model_map_field = (array_key_exists($nid, $webform_options) &&
+                array_key_exists('islandora_model_mappings', $webform_options[$nid]) &&
+                is_array($webform_options[$nid]['islandora_model_mappings']) &&
+                array_key_exists($cid, $webform_options[$nid]['islandora_model_mappings']) &&
+                is_array($webform_options[$nid]['islandora_model_mappings'][$cid])) ?
+                    $webform_options[$nid]['islandora_model_mappings'][$cid] : NULL;
+
             $this_field_extra_values = (array_key_exists('extra', $components_arr)) ?
               unserialize($components_arr['extra']) : '';
             $this_field_items = ($this_field_extra_values) ? 
                 (array_key_exists('items', $this_field_extra_values) ? explode("\r\n", trim($this_field_extra_values['items'])) : array()) : array();
+            $show_fieldset = (is_array($islandora_model_map_field));
             if (count($this_field_items) > 0) {
               $form_elements['webform_options']['webform_' . $nid]['webform_' . $nid . '_mappings_wrapper']['stringfields']['webform_' . $nid . '_wrapwrap_' . $fieldname]['webformfield_fieldset_'. $nid . '_' . $cid] = array(
                 '#type' => 'fieldset',
@@ -312,12 +315,9 @@ function islandora_digital_workflow_get_digitization_requests_config_form() {
                   '#type' => 'select',
                   '#title' => $label,
                   '#options' => $islandora_model_select_options,
-                  '#default_value' => ((array_key_exists($nid, $webform_options) && array_key_exists('islandora_model_mappings', $webform_options[$nid]) &&
-                    is_array($webform_options[$nid]['islandora_model_mappings']) &&
-                    array_key_exists($cid, $webform_options[$nid]['islandora_model_mappings']) &&
-                    is_array($webform_options[$nid]['islandora_model_mappings'][$cid]) &&
-                    array_key_exists($label, $webform_options[$nid]['islandora_model_mappings'][$cid])) ?
-                      $webform_options[$nid]['islandora_model_mappings'][$cid][$label] : ''),
+                  '#default_value' => (is_array($islandora_model_map_field) &&
+                    array_key_exists($label, $islandora_model_map_field) ?
+                      $islandora_model_map_field[$label] : ''),
                 );
               }
             }
@@ -329,7 +329,7 @@ function islandora_digital_workflow_get_digitization_requests_config_form() {
       // Mappings (numeric fields)
       $form_elements['webform_options']['webform_' . $nid]['webform_' . $nid . '_mappings_wrapper']['numericfields'] = array(
           '#type' => 'fieldset',
-          '#prefix' => '<b>Numeric batch record fields</b>',
+          '#title' => t('Batch fields that are numeric'),
           '#attributes' => array('class' => array(
             'multi_input_line'
           )),
@@ -484,18 +484,60 @@ function islandora_digital_workflow_searchable_fields($nid, $return_form_key = F
  */
 function islandora_digital_workflow_convert_digitization_request_to_batch(array $form, array &$form_state) {
   module_load_include('inc', 'islandora_digitization_requests', 'includes/db');
-  // Take the submission record and process that according to the configuration
-  // settings for the $digitization_request_options[$nid]['mapped_fields']
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
+
   $nid = arg(3);
   $sid = arg(4);
+  // Need the extra->items from the components of this webform that map to the
+  // islandora_model for this webform's configuration.
+  $digitization_requests_config = variable_get('islandora_digital_workflow_digitization_requests');
+  $islandora_model_mappings_config = (is_array($digitization_requests_config) && array_key_exists($nid, $digitization_requests_config) &&
+      array_key_exists('islandora_model_mappings', $digitization_requests_config[$nid])) ?
+      $digitization_requests_config[$nid]['islandora_model_mappings'] : array();
+  // assume no mapping to the islandora_model.
+  $islandora_model_mapped_to_cid = NULL;
+  $submission_field_mappings = array();
+  foreach($islandora_model_mappings_config as $islandora_model_mapped_to_cid => $submission_field_mappings) {
+  }
 
-  $results = islandora_digital_workflow_map_submission($nid, $sid);
+  $results = islandora_digital_workflow_map_submission($nid, $sid, $islandora_model_mappings_config);
+
+//  $form_components = islandora_digitization_requests_webform_components($nid);
+  $submission_data = islandora_digitization_requests_get_webform_submission($sid);
+
+  $webforms = islandora_digitization_requests_get_webforms();
+  $digitization_request_webforms = islandora_digitization_requests_get_digitization_request_webforms($webforms);
+
+  // # take the submission_data element that corresponds to the field that is
+  // mapped to the islandora_model.
+  $set_submission_values_that_map_to_islandora_model = array_key_exists($islandora_model_mapped_to_cid, $submission_data) ?
+      $submission_data[$islandora_model_mapped_to_cid] : '';
+  $submission_values_that_map_to_islandora_model_arr = array();
+  foreach ($set_submission_values_that_map_to_islandora_model as $submission_values_that_map_to_islandora_model) {
+    if (array_key_exists('data', $submission_values_that_map_to_islandora_model)) {
+      $submission_values_that_map_to_islandora_model_arr[] = $submission_values_that_map_to_islandora_model['data'];
+    }
+  }
+
   $mappings = $results['mappings'];
+  $multiple_fields_mappedto_islandora_model = ((count($results['islandora_models_maptobatch']) > 0) ?
+    reset($results['islandora_models_maptobatch'])['data'] : '');
+  $islandora_model_mapped_to_cidfield = '';
+  foreach ($mappings as $m => $mapping_html) {
+    if (strstr($mapping_html, '.islandora_model')) {
+      $islandora_model_mapped_to_cidfield = strip_tags($mapping_html, '<b>');
+    }
+  }
+  @list($islandora_model_mapped_to_cidfield, $junk) = explode(" to islandora_digital_workflow_batch.islandora_model", $islandora_model_mapped_to_cidfield);
+
   $islandora_digital_workflow_batch_fields = $results['islandora_digital_workflow_batch_fields'];
+  $return_to_submission_link = l(t('Return to "@digitization_request_name" submission #@sid',
+      array('@sid' => $sid,
+            '@digitization_request_name' => $digitization_request_webforms[$nid]['title'])), 'node/' . $nid . '/submission/' . $sid);
   $confirm_mapping_form = array();
   $confirm_mapping_form['nothing'] = array(
     '#type' => 'item',
-    '#markup' => 
+    '#markup' => '<div class="messages warning">' . $return_to_submission_link . '</div>' .
       ((count($mappings) > 0) ?
         '<div class="big_font bad">' .
           t('<b>THIS CAN NOT BE UNDONE!</b><br>Are you SURE that you want to ' .
@@ -504,10 +546,21 @@ function islandora_digital_workflow_convert_digitization_request_to_batch(array 
         'digitization request that can map to any batch record fields.</b>')
   );
 
+  $batch_name_inputfield_suffix = '';
+  if ($multiple_fields_mappedto_islandora_model) {
+    $batch_name_inputfield_suffix = '<span class="pseudo_textfield">_</span>';
+  }
   $confirm_mapping_form['batch_name'] = array(
     '#type' => 'textfield',
-    '#title' => 'Batch name',
-    '#required' => TRUE,
+    '#title' => 'Batch name' .
+     (($multiple_fields_mappedto_islandora_model) ? ' prefix' : ''),
+    '#description' =>
+      (($multiple_fields_mappedto_islandora_model) ?
+        'Since there are multiple field values that are mapped to Islandora Model ' .
+        'for the scan request field ' . $islandora_model_mapped_to_cidfield . ', ' .
+        'multiple batches will be created with batch name values that begin ' .
+        'with the batch name prefix specified above appended to the value that ' .
+        'maps to each of the mapped islandora models.' : ''),
     '#default_value' => '',
   );
   $confirm_mapping_form['sid'] = array(
@@ -518,9 +571,13 @@ function islandora_digital_workflow_convert_digitization_request_to_batch(array 
     '#type' => 'hidden',
     '#default_value' => $nid,
   );
+
+  $create_what_text = ($multiple_fields_mappedto_islandora_model) ?
+    $multiple_fields_mappedto_islandora_model . ' Batch records' : 'batch record';
+
   $confirm_mapping_form['submit'] = array(
     '#type' => 'submit',
-    '#value' => t('Create batch record'),
+    '#value' => t('Create @create_what_text', array('@create_what_text' => $create_what_text)),
   );
 
   $confirm_mapping_form['cancel'] = array(
@@ -547,7 +604,7 @@ function islandora_digital_workflow_convert_digitization_request_to_batch_valida
   // Check for the batch name already existing.
   $batch_name = $form_state['values']['batch_name'];
   $batch_record = islandora_digital_workflow_get_batch_record_by_name($batch_name);
-  if (is_array($batch_record)) {
+  if ($form_state['triggering_element']['#value'] <> 'Cancel' && is_array($batch_record)) {
     form_set_error('batch_name', t('A batch already exists with the name @batch_name.',
         array('@batch_name' => $batch_name)));
     $link_options = array('attributes'=>array(
@@ -571,7 +628,8 @@ function islandora_digital_workflow_convert_digitization_request_to_batch_submit
   $batch_name = $form_state['values']['batch_name'];
 
   if ($form_state['triggering_element']['#value'] == 'Cancel') {
-    drupal_set_message('Mapping to an islandora_digital_workflow_batch record has been canceled.');
+    drupal_set_message('Mapping of this digitization request submission to an ' .
+        'islandora_digital_workflow_batch record has been canceled.');
     drupal_goto('node/' . $nid . '/submission/' . $sid);
   }
 
@@ -621,16 +679,19 @@ function islandora_digital_workflow_convert_digitization_request_to_batch_submit
  *   nid value for a Drupal node object.
  * @param type $sid
  *   sid value for a Webform submission object.
+ * @param array $islandora_model_mappings_config
+ *   OPTIONAL array of fields mapped between the items of a submission field
+ * and the possible islandora models.
  * @return type
  */
-function islandora_digital_workflow_map_submission($nid, $sid) {
+function islandora_digital_workflow_map_submission($nid, $sid, $islandora_model_mappings_config = array()) {
   global $user;
 
-  $submission_data = islandora_digital_requests_get_webform_submission($sid);
+  $submission_data = islandora_digitization_requests_get_webform_submission($sid);
   // Use the configuration to set field values for a islandora_digital_workflow_batch
   // record based on the field values for the given submission.
   $webform_options = variable_get('islandora_digital_workflow_digitization_requests', array());
-  $mappings = $unmapped_fields = array();
+  $mappings = $unmapped_fields = $islandora_models_maptobatch = array();
   $components = islandora_digitization_requests_webform_components($nid);
   $islandora_digital_workflow_batch_fields = array();
   foreach ($webform_options as $options_nid => $options) {
@@ -640,23 +701,52 @@ function islandora_digital_workflow_map_submission($nid, $sid) {
           t('(unknown webform with nid = @nid)', array('@nid' => $nid)));
       // Set up an array to keep track of submitted data that does not get mapped
       foreach ($components as $cid => $webform_field) {
-        if (array_key_exists($cid, $submission_data) && $submission_data[$cid]['data']) {
+        if (count($submission_data[$cid]) > 1) {
+          $values = array();
+          foreach ($submission_data[$cid] as $num => $submission_field_arr) {
+            if (array_key_exists('data', $submission_field_arr)) {
+              $values[] = $submission_field_arr['data']; 
+            }
+          }
+          $data_point = array('data' => implode(", ", $values));
+        }
+        else {
+          $data_point = reset($submission_data[$cid]);
+        }
+        if (array_key_exists($cid, $submission_data) && 
+          array_key_exists('data', $data_point) &&
+          $data_point['data']) {
           $unmapped_fields[$cid] = array(
               'webform_field_label' => strtoupper($webform_field['name']),
-              'value' => $submission_data[$cid]['data'],
+              'value' => $data_point['data'],
             );
         }
       }
-
+      $data_points = array();
       foreach ($options['mapped_fields'] as $fieldname => $setting) {
         if ($setting) {
           if (array_key_exists($setting, $submission_data)) {
-            $file_truncated_ellipsis = (strlen($submission_data[$setting]['data']) > 600) ? ' ... ' : '';
+            if (count($submission_data[$setting]) > 1) {
+              $values = array();
+              foreach ($submission_data[$setting] as $num => $submission_field_arr) {
+                if (array_key_exists('data', $submission_field_arr)) {
+                  $values[] = $submission_field_arr['data'];
+                }
+              }
+              $data_points[$setting] = array('data' => implode(", ", $values));
+            }
+            else {
+              $data_points[$setting] = reset($submission_data[$setting]);
+            }
+            if ($fieldname == 'islandora_model') {
+              $islandora_models_maptobatch = $data_points;
+            }
+            $file_truncated_ellipsis = (strlen($data_points[$setting]['data']) > 600) ? ' ... ' : '';
             $mappings[] = '<div><b>' . $components[$setting]['name'] . '</b> to ' .
                 '<span class="idw_fieldname">islandora_digital_workflow_batch.' . $fieldname . '</span><br>' .
-                '<span class="small_font">' . substr($submission_data[$setting]['data'], 0, 600) .
+                '<span class="small_font">' . substr($data_points[$setting]['data'], 0, 600) .
                 $file_truncated_ellipsis . '</span></div>';
-            $islandora_digital_workflow_batch_fields[$fieldname] = $submission_data[$setting]['data'];
+            $islandora_digital_workflow_batch_fields[$fieldname] = $data_points[$setting]['data'];
             unset($unmapped_fields[$setting]);
           }
           else {
@@ -679,10 +769,15 @@ function islandora_digital_workflow_map_submission($nid, $sid) {
       // Set the value for $uid_cid if that $cid key is the same as the $components
       // that has a form_key value of "uid".  Only if there is at least one
       // submission, set the user value from that submission.
-      // NOTE: the array starts at 1 instead of 0.
+      // NOTE: this $cid value was the final index for the loop through the
+      // webform's fields - each submission_data element will have an element
+      // for each of the $cid values, so using $cid here is safe to access the
+      // last data point's drupal_username.
       if (count($submission_data) > 0) {
-        $islandora_digital_workflow_batch_fields['user'] = $submission_data[1]['drupal_username'];
-        $mappings[] = '<div>"<b>' . $submission_data[1]['drupal_username'] . '</b>" to ' .
+        $last_datapoint = reset($submission_data[$cid]);
+
+        $islandora_digital_workflow_batch_fields['user'] = $last_datapoint['drupal_username'];
+        $mappings[] = '<div>"<b>' . $last_datapoint['drupal_username'] . '</b>" to ' .
             '<span class="idw_fieldname">islandora_digital_workflow_batch.user</span></div>';
       }
       // Stuff any unmapped submission values into the batch_description field
@@ -727,5 +822,6 @@ function islandora_digital_workflow_map_submission($nid, $sid) {
   return array(
       'mappings' => $mappings,
       'islandora_digital_workflow_batch_fields' => $islandora_digital_workflow_batch_fields,
+      'islandora_models_maptobatch' => $islandora_models_maptobatch,
   );
 }
