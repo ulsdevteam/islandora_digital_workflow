@@ -43,7 +43,10 @@
             <?php print l($record->data, '/node/' . $record->nid . '/submission/' . $record->sid); ?>
           <div class="digitization_request_info">
           <?php if ($record->submitted): ?><div>Submitted <?php print date('Y-m-d H:i:s', $record->submitted); ?></div><?php endif; ?>
-          <?php if ($record->uid): ?><div>by user <?php print l($record->user_name, '/user/' . $record->uid, array('attributes'=>array('target' => '_blank'))); ?></div><?php endif; ?>
+          <?php if ($record->uid): ?><div>by user <?php print l($record->user_name, '/user/' . $record->uid, array('attributes'=>array(
+      'title' => 'link opens in separate tab',
+      'class' => array('link_open_new_tab_tiny'),
+      'target' => '_blank'))); ?></div><?php endif; ?>
           <?php if ($record->remote_addr): ?><div>(IP Address: <span class="idr_ip"><?php print $record->remote_addr; ?></span>)</div><?php endif; ?>
           </div>
           <br class="break_float">

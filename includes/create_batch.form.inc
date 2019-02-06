@@ -21,6 +21,7 @@ if (!defined('UPDATE_BUTTON_TEXT')) {
  */
 function islandora_digital_workflow_create_batch() {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/lookup.form');
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
   $lookup_form_markup = theme('islandora_digital_workflow_lookup', array('searchterm' => ''));
   $batch_name = arg(3);
 
@@ -31,12 +32,19 @@ function islandora_digital_workflow_create_batch() {
   );
   drupal_set_breadcrumb($breadcrumb);
 
+  $batch_record = islandora_digital_workflow_get_batch_record_by_name($batch_name);
+  $batch_description_markup = (is_array($batch_record) && $batch_record['webform_submission_sid']) ?
+    theme('islandora_digital_workflow_batch_description', array(
+      'batch_record' => $batch_record,
+      'batch_mapped_from_webformsubmission' => islandora_digital_workflow_get_webformsubmission($batch_record['webform_submission_sid']),
+    )) : '<h3>not set</h3>';
+
   $form = (!$batch_name) ?
     drupal_get_form('islandora_digital_workflow_create_empty_batch_form') :
     drupal_get_form('islandora_digital_workflow_create_batch_form', $batch_name);
   $title = 'Islandora Digital Workflow - ' . (($batch_name) ? 'Edit' : 'Create') . ' Batch';
   drupal_set_title(t($title), CHECK_PLAIN);
-  $markup = $lookup_form_markup . drupal_render($form);
+  $markup = $lookup_form_markup . $batch_description_markup . drupal_render($form);
   return $markup;
 }
 
@@ -100,110 +108,117 @@ function islandora_digital_workflow_create_empty_batch_form(array $form, array &
   //
   // admin/islandora/islandora_digital_workflow
   $supported_models_description = 'Select the type of objects from the ' .
-      'available content models that this batch will contain.' .
-      (user_access('administer site configuration') ?
-          '  Configuration for ' . l(t('Islandora Digital Workflow'),
-          'admin/islandora/islandora_digital_workflow',
-          array('attributes'=>array('target' => '_blank'))) . '.  ' : '');
+    'available content models that this batch will contain.' .
+    (user_access('administer site configuration') ?
+      '  Configuration for ' . l(t('Islandora Digital Workflow'),
+      'admin/islandora/islandora_digital_workflow',
+      array('attributes'=>array(
+        'title' => 'link opens in separate tab',
+        'class' => array('link_open_new_tab_tiny'),
+        'target' => '_blank'))) . '.  ' : '');
 
   $form = array('about' => array(
-      '#type' => 'item',
-      '#markup' => '<i>A batch should <strong>ALWAYS</strong> be a group of similar ' .
-        'objects that need to be tracked through the workflow together.  They are ' .
-        'usually added to the <strong>same collection</strong>, <strong>use the ' .
-        'same object model</strong>, and usually have many of the <strong>same ' .
-        'properties</strong>.</i>',
-    ));
+    '#type' => 'item',
+    '#markup' => '<i>A batch should <strong>ALWAYS</strong> be a group of similar ' .
+      'objects that need to be tracked through the workflow together.  They are ' .
+      'usually added to the <strong>same collection</strong>, <strong>use the ' .
+      'same object model</strong>, and usually have many of the <strong>same ' .
+      'properties</strong>.</i>',
+  ));
   $form['batch_edit_frame'] = array(
+    '#type' => 'fieldset',
+    '#title' => 'Create Batch',
+    'batch_name' => array(
+      '#type' => 'textfield',
+      '#title' => t('Batch name'),
+      '#required' => true,
+      '#description' => t('Human readable name for the batch of digital objects.'),
+      '#default_value' => $batch_name,
+    ),
+    'cmodel_select' => array(
+      '#title' => t('Destination Islandora Content Model'),
+      '#type' => 'select',
+      '#required' => true,
+      '#options' => $accessible_models,
+      '#description' => $supported_models_description,
+      '#default_value' => $tid_for_cmodel_selected,
+    ),
+    'batch_priority' => array(
+      '#title' => t('Batch Priority'),
+      '#type' => 'select',
+      '#required' => true,
+      '#options' => $priority_options,
+      '#description' => 'Priority of this batch.',
+      '#default_value' => $regular_tid,
+    ),
+    'batch_description' => array(
+      '#type' => 'textarea',
+      '#title' => t('Batch description'),
+      '#description' => t('Description of the items in this batch.'),
+      '#default_value' => '',
+    ),
+
+    // Is a request? checkbox
+    'meta_defaults_frame' => array(
+      '#title' => 'Metadata defaults',
       '#type' => 'fieldset',
-      '#title' => 'Create Batch',
-      'batch_name' => array(
+      '#collapsible' => TRUE,
+      '#collapsed' => FALSE,
+      'default_type_of_resource' => array(
+        '#title' => t('Default type of resource'),
+        '#type' => 'select',
+        '#required' => true,
+        '#options' => $default_type_of_resources,
+        '#description' => 'Select the default type of resource for this batch.  ' .
+          'Refer to ' . l(t('documentation on the MODS "typeOfResource" field.'),
+          'https://www.loc.gov/standards/mods/userguide/typeofresource.html',
+          array('attributes'=>array(
+            'title' => 'link opens in separate tab',
+            'class' => array('link_open_new_tab_tiny'),
+            'target' => '_blank'))),
+        '#default_value' => 0,
+      ),
+    ),
+
+    // Is a request? checkbox
+    'batch_request' => array(
+      '#title' => 'Batch Request?',
+      '#type' => 'fieldset',
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
+      'is_batch_request' => array(
+        '#type' => 'checkbox',
+        '#title' => t('Is a Request?'),
+        '#default_value' => 0,
+      ),
+      // Requestor: textfield
+      'batch_requestor' => array(
         '#type' => 'textfield',
-        '#title' => t('Batch name'),
-        '#required' => true,
-        '#description' => t('Human readable name for the batch of digital objects.'),
-        '#default_value' => $batch_name,
-      ),
-      'cmodel_select' => array(
-        '#title' => t('Destination Islandora Content Model'),
-        '#type' => 'select',
-        '#required' => true,
-        '#options' => $accessible_models,
-        '#description' => $supported_models_description,
-        '#default_value' => $tid_for_cmodel_selected,
-      ),
-      'batch_priority' => array(
-        '#title' => t('Batch Priority'),
-        '#type' => 'select',
-        '#required' => true,
-        '#options' => $priority_options,
-        '#description' => 'Priority of this batch.',
-        '#default_value' => $regular_tid,
-      ),
-      'batch_description' => array(
-        '#type' => 'textarea',
-        '#title' => t('Batch description'),
-        '#description' => t('Description of the items in this batch.'),
+        '#title' => t('Requestor'),
         '#default_value' => '',
       ),
-
-      // Is a request? checkbox
-      'meta_defaults_frame' => array(
-        '#title' => 'Metadata defaults',
-        '#type' => 'fieldset',
-        '#collapsible' => TRUE,
-        '#collapsed' => FALSE,
-        'default_type_of_resource' => array(
-          '#title' => t('Default type of resource'),
-          '#type' => 'select',
-          '#required' => true,
-          '#options' => $default_type_of_resources,
-          '#description' => 'Select the default type of resource for this batch.  ' .
-            'Refer to <a href="https://www.loc.gov/standards/mods/userguide/' .
-            'typeofresource.html">documentation on the MODS "typeOfResource" field.</a>',
-          '#default_value' => 0,
-        ),
+      // Request due date: textfield
+      'batch_request_due_date' => array(
+        '#type' => 'date',
+        '#default_value' => array(
+          'month' => format_date(time(), 'custom', 'n'),
+          'day' => format_date(time(), 'custom', 'j'),
+          'year' => format_date(time(), 'custom', 'Y'),
+         ),
+        '#title' => t('Request Due Date'),
       ),
-
-      // Is a request? checkbox
-      'batch_request' => array(
-        '#title' => 'Batch Request?',
-        '#type' => 'fieldset',
-        '#collapsible' => TRUE,
-        '#collapsed' => TRUE,
-        'is_batch_request' => array(
-          '#type' => 'checkbox',
-          '#title' => t('Is a Request?'),
-          '#default_value' => 0,
-        ),
-        // Requestor: textfield
-        'batch_requestor' => array(
-          '#type' => 'textfield',
-          '#title' => t('Requestor'),
-          '#default_value' => '',
-        ),
-        // Request due date: textfield
-        'batch_request_due_date' => array(
-          '#type' => 'date',
-          '#default_value' => array(
-            'month' => format_date(time(), 'custom', 'n'),
-            'day' => format_date(time(), 'custom', 'j'),
-            'year' => format_date(time(), 'custom', 'Y'),
-           ),
-          '#title' => t('Request Due Date'),
-        ),
-      ),
-    );
+    ),
+  );
 
   $form['submit'] = array(
-      '#type' => 'submit',
-      '#value' => t($button_text),
-    );
+    '#type' => 'submit',
+    '#value' => t($button_text),
+  );
   $form['cancel'] = array(
-      '#type' => 'submit',
-      '#prefix' => '&nbsp; ',
-      '#value' => t('Cancel'),
-    );
+    '#type' => 'submit',
+    '#prefix' => '&nbsp; ',
+    '#value' => t('Cancel'),
+  );
   return $form;
 }
 
@@ -303,7 +318,10 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
   // Check that the model that this batch represents has an islandora_model
   // value that is supported.
   if ($tid_for_cmodel_selected && (array_key_exists($tid_for_cmodel_selected, $accessible_models) === FALSE)) {
-    $link_attributes = array('attributes'=>array('target' => '_blank'));
+    $link_attributes = array('attributes'=>array(
+              'title' => 'link opens in separate tab',
+              'class' => array('link_open_new_tab_tiny'),
+              'target' => '_blank'));
     $admin_link = (user_access(ISLANDORA_DIGITAL_WORKFLOW_MANAGE)) ?
       '  <b>Configure the workflow here: ' .
         l('Islandora Digital Workflow Settings', '/admin/islandora/islandora_digital_workflow', $link_attributes) . '</b>'
@@ -387,7 +405,10 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
       (user_access('administer site configuration') ?
           '  Configuration for ' . l(t('Islandora Digital Workflow'),
           'admin/islandora/islandora_digital_workflow',
-          array('attributes'=>array('target' => '_blank'))) . '.  ' : '');
+          array('attributes'=>array(
+              'title' => 'link opens in separate tab',
+              'class' => array('link_open_new_tab_tiny'),
+              'target' => '_blank'))) . '.  ' : '');
 
   $form = array('about' => array(
       '#type' => 'item',
@@ -418,7 +439,10 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
           (user_access(ISLANDORA_DIGITAL_WORKFLOW_MANAGE_SEQUENCES) ?
               l(t('workflow sequence configuration'), 
                 'admin/islandora/islandora_digital_workflow/workflow_sequences', 
-                array('attributes'=>array('target' => '_blank'))) : 
+                array('attributes'=>array(
+              'title' => 'link opens in separate tab',
+              'class' => array('link_open_new_tab_tiny'),
+              'target' => '_blank'))) :
             'workflow sequence configuration') .
           t(' relates the actions that are required for this object type.'),
         '#options' => $sequences,
@@ -502,8 +526,12 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
       '#required' => true,
       '#options' => $default_type_of_resources,
       '#description' => 'Select the default type of resource for this batch.  ' .
-        'Refer to <a href="https://www.loc.gov/standards/mods/userguide/' .
-        'typeofresource.html">documentation on the MODS "typeOfResource" field.</a>',
+        'Refer to ' . l(t('documentation on the MODS "typeOfResource" field.'),
+            'https://www.loc.gov/standards/mods/userguide/typeofresource.html',
+            array('attributes'=>array(
+              'title' => 'link opens in separate tab',
+              'class' => array('link_open_new_tab_tiny'),
+              'target' => '_blank'))),
       '#default_value' => ($batch_record && isset($batch_record['default_type_of_resource'])) ? $batch_record['default_type_of_resource'] : '',
     );
 
@@ -668,8 +696,15 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
     );
   if (user_access('create child collection')) {
     $top_level_collection_uri = rtrim(variable_get('islandora_digital_workflow_top_level_collection', '/islandora/object/islandora:root'), "/");
-    $form['ingest_options_frame']['collections_select']['#description'] = l('Create Collection', $top_level_collection_uri . '/manage/overview/ingest', array('attributes'=>array('target' => '_blank'))) .
-        ' if a new Islandora collection is needed.  In order to select any newly created collections, this page will need to be reloaded.';
+    $form['ingest_options_frame']['collections_select']['#description'] =
+      l(t('Create Collection'),
+        $top_level_collection_uri . '/manage/overview/ingest',
+        array('attributes'=>array(
+          'title' => 'link opens in separate tab',
+          'class' => array('link_open_new_tab_tiny'),
+          'target' => '_blank'))) .
+      ' if a new Islandora collection is needed.  In order to select any ' .
+      'newly created collections, this page will need to be reloaded.';
   }
 
 

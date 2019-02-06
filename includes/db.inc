@@ -729,7 +729,10 @@ function islandora_digital_workflow_get_batch_transactions_by_nid($nid) {
   foreach ($rows as $index => $row) {
     $rows[$index]->how_long_ago = islandora_digital_workflow_timeago_from_timestamp($row->timestamp);
     $rows[$index]->glyph_class = islandora_digital_workflow_glyph_class($row->action_name);
-    $rows[$index]->user_name = ($row->uid) ? l($row->name, 'user/' . $row->uid, array('attributes' => array('target' => '_blank'))) : 'system';
+    $rows[$index]->user_name = ($row->uid) ? l($row->name, 'user/' . $row->uid, array('attributes'=>array(
+      'title' => 'link opens in separate tab',
+      'class' => array('link_open_new_tab_tiny'),
+      'target' => '_blank'))) : 'system';
     $rows[$index]->admin_links = ($access_edit_transactions) ? TRUE : FALSE;
     $rows[$index]->nid = $nid;
   }
@@ -804,7 +807,10 @@ function islandora_digital_workflow_get_batch_item_transactions($batch_item_id, 
   $rows = $results->fetchAll();
   foreach ($rows as $index => $row) {
     $rows[$index]->how_long_ago = islandora_digital_workflow_timeago_from_timestamp($row->timestamp);
-    $rows[$index]->user_name = ($row->uid) ? l($row->name, 'user/' . $row->uid, array('attributes' => array('target' => '_blank'))) : 'system';
+    $rows[$index]->user_name = ($row->uid) ? l($row->name, 'user/' . $row->uid, array('attributes'=>array(
+      'title' => 'link opens in separate tab',
+      'class' => array('link_open_new_tab_tiny'),
+      'target' => '_blank'))) : 'system';
     $rows[$index]->glyph_class = islandora_digital_workflow_glyph_class($row->action_name);
     $rows[$index]->admin_links = ($access_edit_transactions) ? TRUE : FALSE;
     $rows[$index]->nid = $nid;
@@ -844,7 +850,10 @@ function islandora_digital_workflow_get_batch_item_problems($batch_item_id, $bat
   foreach ($rows as $index => $row) {
     $rows[$index]->problem_how_long_ago = islandora_digital_workflow_timeago_from_timestamp($row->problem_timestamp);
     $rows[$index]->problem_resolved_how_long_ago = (($unresolved) ? '' : islandora_digital_workflow_timeago_from_timestamp($row->problem_resolved_timestamp));
-    $rows[$index]->user_name = ($row->uid) ? l($row->user_name, 'user/' . $row->uid, array('attributes' => array('target' => '_blank'))) : 'system';
+    $rows[$index]->user_name = ($row->uid) ? l($row->user_name, 'user/' . $row->uid, array('attributes'=>array(
+      'title' => 'link opens in separate tab',
+      'class' => array('link_open_new_tab_tiny'),
+      'target' => '_blank'))) : 'system';
     $rows[$index]->problem_notes = $row->problem_notes;
   }
   return $rows;

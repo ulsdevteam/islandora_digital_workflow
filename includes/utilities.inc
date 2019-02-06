@@ -1170,6 +1170,7 @@ function islandora_digital_workflow_model_ingest_module_info($model) {
   }
   $link_options = array('attributes'=>array(
       'title' => 'Drupal module source code',
+      'class' => array('link_open_new_tab_tiny'),
       'target' => '_blank'));
   $retval['git_link'] = ($git_link) ? l($retval['module_name'], $git_link, $link_options) : '';
   $retval['uls_git_link'] = ($uls_git_link) ? l($retval['module_name'], $uls_git_link, $link_options) : '';
@@ -2329,7 +2330,10 @@ function islandora_digital_workflow_sequences_using_action($action_id) {
               array(
                   'fragment' => $workflow_sequences[$workflow_sequence_id]['name'],
                   'external' => TRUE,
-                  'attributes' => array('target' => '_blank'),
+                  'attributes' => array(
+                    'title' => 'link opens in separate tab',
+                    'class' => array('link_open_new_tab_tiny'),
+                    'target' => '_blank'),
               )
           ) :
           $workflow_sequences[$workflow_sequence_id]);
@@ -2442,7 +2446,10 @@ function islandora_digital_workflow_move_batch_item_file($batch_item_id, $destin
  */
 function islandora_digital_workflow_check_and_deploy_forena_reports() {
   if (!module_exists('forena')) {
-    $link_att = array('attributes' => array('target' => '_blank'));
+    $link_att = array('attributes'=>array(
+      'title' => 'link opens in separate tab',
+      'class' => array('link_open_new_tab_tiny'),
+      'target' => '_blank'));
     drupal_set_message(t('The Forena reporting module is not installed.  ') .
         l('Forena', 'https://git.drupal.org/project/forena.git', $link_att) . ' | ' .
         l('ulsdevteam "Forena"', 'https://github.com/ulsdevteam/forena.git', $link_att), 'error'
@@ -3260,7 +3267,7 @@ function islandora_digital_workflow_marc_mods_arr_to_item_file_sources($batch_re
     $batch_item_object = islandora_digital_workflow_get_batch_item($batch_item_id);
 
     $model = (is_object($batch_item_object) ? $batch_item_object->islandora_model : $batch_record['islandora_model']);
-    $subfolder_name = ($item_is_paged ? '/' . islandora_digital_workflow_object_subfolder_name($model) : '');
+    $subfolder_name = ($item_is_paged ? '/' . islandora_digital_workflow_object_subfolder_name($model, $batch_record) : '');
     $item_path = $batch_path . '/' . $bib_id;
     $item_subfolder_path = $item_path . $subfolder_name;
     if (!file_exists($item_path)) {

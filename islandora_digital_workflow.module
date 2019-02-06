@@ -1150,18 +1150,32 @@ function islandora_digital_workflow_page_alter(&$page) {
         isset($webform_digitization_requests[$nid]) && $webform_digitization_requests[$nid]['selected']) {
       // If the request was never mapped to a batch, display this message...
       module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
-      $batch = islandora_digital_workflow_get_batch_of_webformsubmission($sid);
-      $was_mapped = (is_array($batch) && (count($batch) > 0));
+      $batches = islandora_digital_workflow_get_batch_of_webformsubmission($sid);
+      $was_mapped = (is_array($batches) && (count($batches) > 0));
       if ($was_mapped) {
-        $batch_record = array_pop($batch);
+        $link_attributes = array('attributes'=>array(
+          'title' => 'link opens in separate tab',
+          'class' => array('link_open_new_tab_tiny'),
+          'target' => '_blank'));
+        $links = array();
+        foreach ($batches as $batch) {
+          // Create the right link depending on whether or not the batch has been
+          // finalized or if it is just a "stub record".
+          $links[] = ($batch->nid) ?
+            l($batch->batch_name, 'node/' . $batch->nid . '/batch', $link_attributes) :
+            l($batch->batch_name, 'islandora/islandora_digital_workflow/edit_batch/'  . $batch->batch_name, $link_attributes);
+        }
+        $batch_record = array_pop($batches);
         $batch_name = $batch_record->batch_name;
         $page['content']['system_main']['#submission_information'] = '<div class="messages warning">' .
-            l('Convert this Digitization Request into an Islandora Digital Workflow batch.',
-              'islandora/islandora_digital_workflow/map_digitization_request_to_batch/' . $nid . '/' . $sid) .
-            '<hr><b class="bad">This digitization request has already been mapped to the batch ' .
-            l($batch_name, 'node/' . $batch_record->nid . '/batch') . ' - are you sure that ' .
-            'you want to map this same request into another batch?</b></div>' .
-            $page['content']['system_main']['#submission_information'];
+          l('Convert this Digitization Request into an Islandora Digital ' .
+            'Workflow batch.', 'islandora/islandora_digital_workflow/map_digitization_request_to_batch/' . $nid . '/' . $sid) .
+          '<hr><b class="bad">Are you sure that you want to map this same ' .
+          'request into another batch?</b>  <b>This digitization request has ' .
+          'already been mapped to at least one batch already:</b> <i>(links ' .
+          'open in separate tab)</i><ul><li>' .
+          implode("</li><li>", $links) . '</li></ul></div>' .
+          $page['content']['system_main']['#submission_information'];
       }
       else {
         $page['content']['system_main']['#submission_information'] = '<div class="messages warning">' .

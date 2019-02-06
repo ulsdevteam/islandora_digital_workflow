@@ -110,7 +110,10 @@ function islandora_digital_workflow_get_digitization_requests_config_form() {
   $webforms = islandora_digitization_requests_get_webforms();
   $webform_digitization_requests = variable_get('islandora_digitization_requests_webform_forms', array());
   $webform_options = variable_get('islandora_digital_workflow_digitization_requests', array());
-  $link_attributes = array('attributes'=>array('target' => '_blank'));
+  $link_attributes = array('attributes'=>array(
+    'title' => 'link opens in separate tab',
+    'class' => array('link_open_new_tab_tiny'),
+    'target' => '_blank'));
   foreach ($webforms as $nid => $webform_arr) {
     $form_components = islandora_digitization_requests_webform_components($nid);
     $searchable_fields = islandora_digital_workflow_searchable_fields($nid);
@@ -606,12 +609,14 @@ function islandora_digital_workflow_convert_digitization_request_to_batch_valida
     $batch_records = islandora_digital_workflow_find_batch_records_by_name($batch_name_prefix);
     if (count($batch_records) > 1) {
       $link_options = array('attributes'=>array(
-          'target' => '_blank'));
+        'title' => 'link opens in separate tab',
+        'class' => array('link_open_new_tab_tiny'),
+        'target' => '_blank'));
       foreach ($batch_records as $batch_record) {
         form_set_error('batch_name', t('A batch already exists with the name @batch_name.',
             array('@batch_name' => $batch_record->batch_name)));
         $edit_this_batch_link = l($batch_record->batch_name, 'islandora/islandora_digital_workflow/edit_batch/' . $batch_record->batch_name, $link_options);
-        drupal_set_message(t('Edit that existing batch "') . $edit_this_batch_link . '" (link will open in a new tab).', 'warning');
+        drupal_set_message(t('Edit that existing batch ') . $edit_this_batch_link . '.', 'warning');
       }
     }
   }
@@ -619,9 +624,11 @@ function islandora_digital_workflow_convert_digitization_request_to_batch_valida
     form_set_error('batch_name', t('A batch already exists with the name @batch_name.',
         array('@batch_name' => $batch_name)));
     $link_options = array('attributes'=>array(
-        'target' => '_blank'));
+              'title' => 'link opens in separate tab',
+              'class' => array('link_open_new_tab_tiny'),
+              'target' => '_blank'));
     $edit_this_batch_link = l($batch_name, 'islandora/islandora_digital_workflow/edit_batch/' . $batch_name, $link_options);
-    drupal_set_message(t('Edit that existing batch "') . $edit_this_batch_link . '" (link will open in a new tab).', 'warning');
+    drupal_set_message(t('Edit that existing batch ') . $edit_this_batch_link . '.', 'warning');
   }
 }
 
@@ -652,7 +659,10 @@ function islandora_digital_workflow_convert_digitization_request_to_batch_submit
   if ($multiple_fields_mappedto_islandora_model) {
     $fields_mappedto_islandora_model_arr = explode(", ", $multiple_fields_mappedto_islandora_model);
     $links = array();
-    $link_attributes = array('attributes'=>array('target' => '_blank'));
+    $link_attributes = array('attributes'=>array(
+        'title' => 'link opens in separate tab',
+        'class' => array('link_open_new_tab_tiny'),
+        'target' => '_blank'));
     foreach ($fields_mappedto_islandora_model_arr as $fields_mappedto_islandora_model) {
       $islandora_model_for_submission_field = islandora_digital_workflow_get_config_islandora_model_for_submission_field($nid, $fields_mappedto_islandora_model);
       $local_batch_name = rtrim($batch_name, "_") . '_' . strtolower($fields_mappedto_islandora_model);

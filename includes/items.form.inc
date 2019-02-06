@@ -429,7 +429,10 @@ function islandora_digital_workflow_batch_items_form(array $form, array &$form_s
                 array(
                     'fragment' => $sequence_name,
                     'external' => TRUE,
-                    'attributes' => array('target' => '_blank'),
+                    'attributes'=>array(
+                      'title' => 'link opens in separate tab',
+                      'class' => array('link_open_new_tab_tiny'),
+                      'target' => '_blank'),
                 )
             ) :
             $sequence_name);
