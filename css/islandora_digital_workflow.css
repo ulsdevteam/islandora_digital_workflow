@@ -16,6 +16,21 @@ and open the template in the editor.
     line-height: 1em;
 }
 
+.link_open_new_tab_tiny, .link_open_new_tab {
+    line-height: 0.95em;
+    padding-bottom: 0.2em;
+}
+
+.link_open_new_tab_tiny {
+    padding-right: 16px;
+    background: url("../images/open-new-tab_12.png") top right no-repeat !important;
+}
+
+.link_open_new_tab {
+    padding-right: 20px;
+    background: url("../images/open-new-tab_16.png") top right no-repeat !important;
+}
+
 .transaction_action_check_in {
     background: url("../images/check-in-physical-item_20.png") 0px 0px no-repeat !important;
 }

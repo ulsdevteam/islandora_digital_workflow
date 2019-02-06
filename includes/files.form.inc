@@ -50,7 +50,7 @@ function islandora_digital_workflow_files($node) {
   else {
     $found_files = array();
     foreach ($file_records as $idx => $item) {
-      $item_working_path = $batch_path . '/' . $item->identifier . '/' . islandora_digital_workflow_object_subfolder_name($item->islandora_model);
+      $item_working_path = $batch_path . '/' . $item->identifier . '/' . islandora_digital_workflow_object_subfolder_name($item->islandora_model, $batch_record);
       $item_files = islandora_digital_workflow_scandir_paged_content_files($item_working_path, FALSE);
       $found_files += $item_files;
     }

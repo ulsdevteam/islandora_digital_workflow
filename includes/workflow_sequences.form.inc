@@ -214,7 +214,10 @@ function islandora_digital_workflow_workflow_sequence_delete_submit(array $form,
     $results = $query->execute();
     $rows = $results->fetchAll();
     $affected_batch_nodes = array();
-    $link_attributes = array('attributes' => array('target' => '_blank'));
+    $link_attributes = array('attributes'=>array(
+      'title' => 'link opens in separate tab',
+      'class' => array('link_open_new_tab_tiny'),
+      'target' => '_blank'));
     foreach ($rows as $i => $row) {
       // Make a list of links to edit these batchs' batch records.
       $affected_batch_nodes[] = l($row->batch_name, 'node/' . $row->nid . '/batch', $link_attributes);
@@ -265,7 +268,10 @@ function islandora_digital_workflow_get_batches_by_workflow_sequence_id($workflo
   $results = $query->execute();
   $rows = $results->fetchAll();
   $affected_batch_nodes = array();
-  $link_attributes = array('attributes' => array('target' => '_blank'));
+  $link_attributes = array('attributes'=>array(
+      'title' => 'link opens in separate tab',
+      'class' => array('link_open_new_tab_tiny'),
+      'target' => '_blank'));
   foreach ($rows as $i => $row) {
     // Make a list of links to edit these batchs' batch records.
     $affected_batch_nodes[] = '<b>' . l($row->batch_name, 'node/' . $row->nid . '/batch', $link_attributes) . '</b> ' .
