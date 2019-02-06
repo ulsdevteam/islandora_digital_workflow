@@ -122,10 +122,14 @@ function islandora_digital_workflow_lookup_form_submitted($searchterm = '') {
     // reorder the found_batch_records so that it removes duplicates and sorts
     // by the number of match reasons.
     $found_records = islandora_digital_workflow_ungroup_search_records($found_records);
+
+    // Must get the count of the secondary results after they have been grouped.
+    $secondary_results_count = islandora_digital_workflow_get_digitization_requests_count($found_records);
     $found_markup = islandora_digital_workflow_make_content_clean_output_to_highlight(
         theme('islandora_digital_workflow_lookup_results', array(
           'records' => $found_records,
           'results_count' => count($found_records),
+          'secondary_results_count' => $secondary_results_count,
           'searchterm' => $searchterm,
           'matched_csv_only' => $matched_csv_only,
         )
@@ -146,6 +150,26 @@ function islandora_digital_workflow_lookup_form_submitted($searchterm = '') {
     $request_uri = isset($_SESSION['request_uri']) ? trim($_SESSION['request_uri']) : 'islandora/islandora_digital_workflow';
     drupal_goto($request_uri);
   }
+}
+
+/**
+ * This calculates the total number of digitization requests that are in the
+ * given $found_records.
+ *
+ * @param array $found_records
+ *   Array of found record objects -- either batch records or can be digitization
+ * request submissions.
+ * @return int
+ *   The count of digitization requests from the given $found_records.
+ */
+function islandora_digital_workflow_get_digitization_requests_count($found_records) {
+  $count = 0;
+  foreach ($found_records as $found_record_obj) {
+    if (substr($found_record_obj->batch_id, 0, 3) == 'ws_') {
+      $count++;
+    }
+  }
+  return $count;
 }
 
 /**
@@ -236,7 +260,7 @@ function islandora_digital_workflow_DR_compare($a, $b) {
   $a_matches = isset($a->search_matches) ? $a->search_matches : 999;
   $b_matches = isset($b->search_matches) ? $b->search_matches : 999;
   if ($a_matches == $b_matches) {
-      return 0;
+      return 1;
   }
   return ($a_matches > $b_matches) ? -1 : 1;
 }

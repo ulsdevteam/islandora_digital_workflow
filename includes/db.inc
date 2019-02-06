@@ -354,8 +354,8 @@ function islandora_digital_workflow_search_digitization_requests($searchterm, $h
 function islandora_digital_workflow_get_submission_tooltip($sid, $searchterm, $search_fields, $highlight_hash) {
   $submission_arr = islandora_digitization_requests_get_webform_submission($sid, TRUE);
   $output = array();
-
   foreach ($submission_arr as $cid => $submission_field_arr) {
+    $submission_field_arr = reset($submission_field_arr);
     // Protect the data value if this field is not one of the searchable ones
     $searched_this_field = (!(array_search($submission_field_arr['form_key'], $search_fields) === FALSE));
     if (!$searched_this_field) {
@@ -2295,6 +2295,25 @@ function islandora_digital_workflow_get_webformsubmission($sid) {
     $rows = $results->fetchAll();
     $row = array_pop($rows);
     return $row;
+  }
+  else {
+    return NULL;
+  }
+}
+
+function islandora_digital_workflow_get_webform_componentdef_extra($cid, $type = '') {
+  $query = db_select('webform_component', 'wc')
+      ->fields('wc');
+  if ($type) {
+    $query->condition('wc.type', 'select');
+  }
+  $query->condition('wc.cid', $cid);
+  $results = $query->execute();
+  $rows = $results->fetchAll();
+  if (count($rows) > 0) {
+    $row = array_pop($rows);
+    $extra = unserialize($row->extra);
+    return $extra;
   }
   else {
     return NULL;

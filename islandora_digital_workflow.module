@@ -577,6 +577,7 @@ function islandora_digital_workflow_theme() {
       'variables' => array(
         'records' => array(),
         'results_count' => 0,
+        'secondary_results_count' => 0,
         'searchterm' => NULL,
         'reason' => '',
         'matched_csv_only' => FALSE,

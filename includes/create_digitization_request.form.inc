@@ -755,18 +755,24 @@ function islandora_digital_workflow_map_submission($nid, $sid) {
       $webform_title = (is_object($webform_node) ? $webform_node->title :
           t('(unknown webform with nid = @nid)', array('@nid' => $nid)));
       // Set up an array to keep track of submitted data that does not get mapped
+      $last_element_cid = 0;
       foreach ($components as $cid => $webform_field) {
-        if (count($submission_data[$cid]) > 1) {
-          $values = array();
-          foreach ($submission_data[$cid] as $num => $submission_field_arr) {
-            if (array_key_exists('data', $submission_field_arr)) {
-              $values[] = $submission_field_arr['data']; 
+        if (array_key_exists($cid, $submission_data)) {
+          $last_element_cid = $cid;
+          if (count($submission_data[$cid]) > 1) {
+            $values = array();
+            foreach ($submission_data[$cid] as $num => $submission_field_arr) {
+              if (array_key_exists('data', $submission_field_arr)) {
+                $values[] = $submission_field_arr['data'];
+              }
+            }
+            $data_point = array('data' => implode(", ", $values));
+          }
+          else {
+            if (!is_null($submission_data[$cid])) {
+              $data_point = reset($submission_data[$cid]);
             }
           }
-          $data_point = array('data' => implode(", ", $values));
-        }
-        else {
-          $data_point = reset($submission_data[$cid]);
         }
         if (array_key_exists($cid, $submission_data) && 
           array_key_exists('data', $data_point) &&
@@ -801,7 +807,7 @@ function islandora_digital_workflow_map_submission($nid, $sid) {
                 '<span class="idw_fieldname">islandora_digital_workflow_batch.' . $fieldname . '</span><br>' .
                 '<span class="small_font">' . substr($data_points[$setting]['data'], 0, 600) .
                 $file_truncated_ellipsis . '</span></div>';
-            $islandora_digital_workflow_batch_fields[$fieldname] = $data_points[$setting]['data'];
+            $islandora_digital_workflow_batch_fields[$fieldname] = islandora_digital_workflow_get_webform_item_mapping_or_value($data_points[$setting]['data'], $setting);
             unset($unmapped_fields[$setting]);
           }
           else {
@@ -829,8 +835,7 @@ function islandora_digital_workflow_map_submission($nid, $sid) {
       // for each of the $cid values, so using $cid here is safe to access the
       // last data point's drupal_username.
       if (count($submission_data) > 0) {
-        $last_datapoint = reset($submission_data[$cid]);
-
+        $last_datapoint = $data_points[$last_element_cid]; // reset($submission_data[$cid]);
         $islandora_digital_workflow_batch_fields['user'] = $last_datapoint['drupal_username'];
         $mappings[] = '<div>"<b>' . $last_datapoint['drupal_username'] . '</b>" to ' .
             '<span class="idw_fieldname">islandora_digital_workflow_batch.user</span></div>';
@@ -921,4 +926,40 @@ function islandora_digital_workflow_get_config_islandora_model_for_submission_fi
     }
   }
   return $model_found;
+}
+
+/**
+ * This will return the data behind that value - if it is a select field, the
+ * code will look up that component's items to see which one has the value that
+ * matches $data.
+ *
+ * @param string $data
+ *   The submission value from the webform.
+ * @param integer $cid
+ *   Webform submission field component $cid identifier.
+ * @return type
+ */
+function islandora_digital_workflow_get_webform_item_mapping_or_value($data, $cid) {
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
+  // This returns "extra" for select items that match the component $cid value.
+  $extra = islandora_digital_workflow_get_webform_componentdef_extra($cid, 'select');
+  // Given the webform component "extra" properties
+  if ($extra) {
+    $items = (is_array($extra) && array_key_exists('items', $extra)) ? explode("\r\n", $extra['items']) : array();
+    // Since these items are not keyed as a traditional array, in order to search
+    // for it, you need to append a "|" to the $data value and find the first
+    // element that contains that string value.
+    $look_for = "|" . $data;
+    $found_key = NULL;
+    foreach ($items as $key_pipe_val) {
+      if (is_null($found_key) && strstr($key_pipe_val, $look_for)) {
+        @list($key, $val) = explode("|", $key_pipe_val);
+        $found_key = $key;
+      }
+    }
+    return (!is_null($found_key) ? $found_key : $data);
+  }
+  else {
+    return $data;
+  }
 }

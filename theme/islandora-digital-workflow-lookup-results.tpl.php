@@ -14,8 +14,9 @@
 ?>
 <div class="lookup_results">
     <h3>Searched for "<?php print $searchterm; ?>"</h3>
-    <p>Found <?php print $results_count; ?> results<?php
-    if ($matched_csv_only) : ?> <i>(found only in uploaded CSV file)</i><?php endif; ?></p>
+    <p><?php if ($secondary_results_count): ?><p>Total results found <?php print $results_count; ?> results<br><?php endif; ?>
+    Found <?php print ($results_count - $secondary_results_count); ?> batches
+    <?php if ($matched_csv_only) : ?> <i>(found only in uploaded CSV file)</i><?php endif; ?></p>
 
     <?php $digital_request_heading_displayed = FALSE; ?>
     <?php $toggle = FALSE; ?>
@@ -23,6 +24,7 @@
       <?php $is_digitization_request = (!(array_search('digitization requests', $record->reasons) === FALSE)); ?>
         <?php if (!$digital_request_heading_displayed && (!(array_search('digitization requests', $record->reasons) === FALSE))): ?>
           <h3>Digitization Requests</h3>
+          <p>Found <?php print $secondary_results_count; ?> digitization request results
           <?php $digital_request_heading_displayed = TRUE; ?>
         <?php endif; ?>
 
