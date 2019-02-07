@@ -2310,6 +2310,17 @@ function islandora_digital_workflow_get_webformsubmission($sid) {
   }
 }
 
+/**
+ * Finds the webform_component.extra value for a given webform component.
+ *
+ * @param integer $cid
+ *   Webform component identifier.
+ * @param string $type
+ *   Optional type of component to filter upon.
+ * @return mixed
+ *   Returns the extra value if there is a matching record, else returns NULL.
+ *
+ */
 function islandora_digital_workflow_get_webform_componentdef_extra($cid, $type = '') {
   $query = db_select('webform_component', 'wc')
       ->fields('wc');
