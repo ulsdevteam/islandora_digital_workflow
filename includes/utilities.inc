@@ -1791,6 +1791,14 @@ function islandora_digital_workflow_find_folders_files($root) {
       $return_folders[$key]['files_table_rows'] = islandora_digital_workflow_convert_tab_to_table_cells($root . '/' . $key, $filesize_date_files, $return_folders[$key]['files_total_size']);
     }
   }
+  // Since some folders can be created just by referencing them, they need
+  // to be checked for any files.  Remove any that have file_count < 1.
+  foreach ($return_folders as $batch_name => $folder_info) {
+    if ($folder_info['files_count'] < 1) {
+      unset($return_folders[$batch_name]);
+    }
+  }
+
   return $return_folders;
 }
 
