@@ -400,17 +400,20 @@ function islandora_digital_workflow_admin_form_submit(array $form, array &$form_
       break;
     case 'edit-reset':
       variable_del('islandora_digital_workflow_islandora_models');
+      variable_del('islandora_digital_workflow_stages');
+      variable_del('islandora_digital_workflow_rules_one');
       variable_del('islandora_digital_workflow_ingest_namespace');
-      variable_del('islandora_digital_workflow_assign_PIDs');
-      variable_del('islandora_digital_workflow_top_level_collection');
-      variable_del('islandora_digital_workflow_ingest_delivery_path');
       variable_del('islandora_digital_workflow_ingest_prepared_path');
-      variable_del('islandora_digital_workflow_ingest_problems_path');
-      variable_del('islandora_digital_workflow_ingest_ignore_filenames');
       variable_del('islandora_digital_workflow_use_isMemberOfSite');
       variable_del('islandora_digital_workflow_delete_delivery_files');
       variable_del('islandora_digital_workflow_delete_delivery_files_INTENDED_VAL');
       variable_del('islandora_digital_workflow_handle_islandora_hook');
+      variable_del('islandora_digital_workflow_ingest_delivery_path');
+      variable_del('islandora_digital_workflow_ingest_problems_path');
+      variable_del('node_submitted_workflow_batch');
+      variable_del('islandora_digital_workflow_assign_PIDs');
+      variable_del('islandora_digital_workflow_top_level_collection');
+      variable_del('islandora_digital_workflow_ingest_ignore_filenames');
       drupal_set_message('[' . date('H:i:s') . '] The settings have been reset.');
       break;
   }

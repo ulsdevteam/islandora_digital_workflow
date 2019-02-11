@@ -109,6 +109,8 @@ function islandora_digital_workflow_delete_batch_form(array $form, array &$form_
 function islandora_digital_workflow_delete_batch_form_submit(array $form, array &$form_state) {
   $id = $form_state['triggering_element']['#id'];
   module_load_include('inc', 'islandora_digital_workflow', 'includes/node_utilities');
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/file_utilities');
+
   $batch_record = islandora_digital_workflow_get_batch_record_by_name($form_state['values']['batch_name']);
 
   switch ($id) {

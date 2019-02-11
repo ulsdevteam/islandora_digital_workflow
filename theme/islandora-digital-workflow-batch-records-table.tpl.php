@@ -28,7 +28,7 @@
           <?php
           $toggle = !$toggle;
           ?>
-          <fieldset class="collapsible collapsed straight-edge" id="box_<?php print $batch_record->batch_id; ?>_<?php print $table_title; ?>" >
+          <fieldset class="collapsible collapsed straight-edge" id="box_<?php print str_replace(" ", "-", $batch_record->batch_id); ?>_<?php print $table_title; ?>" >
           <!-- <div class="lookup_result_indent"> -->
               <legend><span class="fieldset-legend"><?php print $batch_record->batch_name; ?></span></legend>
               <div class="fieldset-wrapper" style="display: none;">
