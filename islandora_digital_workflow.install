@@ -1020,7 +1020,7 @@ function islandora_digital_workflow_insert_islandora_digital_workflow_actions() 
       'glyph' => 'images/add-marc-record_20.png',
     ),
     IDW_ACTION_MODS_RECORD_UPDATED => array(
-      'name' => 'update-mods-record',
+      'name' => 'mods-record-updated',
       'description' => 'MODS record updated',
       'glyph' => 'images/mods-record-updated_20.png',
     ),

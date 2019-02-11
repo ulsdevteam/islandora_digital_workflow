@@ -445,7 +445,8 @@ function islandora_digital_workflow_find_batch_records_is_batch_request() {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy_utilities');
   $query = db_select('islandora_digital_workflow_batch', 'b')
       ->fields('b')
-      ->condition('b.is_batch_request', 1);
+      ->condition('b.is_batch_request', 1)
+      ->condition('b.progress', 'Completed', '<>');
   $query->addJoin('LEFT OUTER', 'taxonomy_term_data', 't', 'b.batch_priority_tid = t.tid');
   $query->addField('t', 'weight');
   $query->addField('t', 'name', 'priority');

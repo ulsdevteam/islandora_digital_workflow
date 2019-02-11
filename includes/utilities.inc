@@ -3300,6 +3300,10 @@ function islandora_digital_workflow_marc_mods_arr_to_item_file_sources($batch_re
     if (file_exists($marc_mods_arr['MODS'])) {
       $mods_filename = (copy($marc_mods_arr['MODS'], $item_path . '/MODS.xml')) ?
           $item_path . '/MODS.xml' : '';
+      $use_title = islandora_digital_workflow_get_mods_title($marc_mods_arr['MODS']);
+    }
+    else {
+      $use_title = $bib_id;
     }
     // Copy the file from the temp location to the batch working directory.
     if (file_exists($marc_mods_arr['MARC'])) {
@@ -3308,7 +3312,7 @@ function islandora_digital_workflow_marc_mods_arr_to_item_file_sources($batch_re
     }
 
     $remapped_arr = array(
-      'title' => $bib_id,
+      'title' => $use_title,
       'identifier' => $bib_id,
       'filename' => '',
       'mods_filename' => $mods_filename,
@@ -3653,4 +3657,39 @@ function islandora_digital_workflow_save_batch_items_mods($batch_item_ids) {
     $mods_arr[$batch_item_id]['MODS size'] =  $mods_size;
   }
   return $mods_arr;
+}
+
+/**
+ * REturns the Title of a MODS files.
+ *
+ * @param string $mods_filename
+ *   A filename on the web server.
+ * @return the title value that is parsed out of the MODS via running a
+ * xpath query of //mods/titleInfo/title
+ */
+function islandora_digital_workflow_get_mods_title($mods_filename) {
+  $title = '';
+  if (file_exists($mods_filename)) {
+    $mods_content = file_get_contents($mods_filename);
+    if ($mods_content) {
+      $doc = new DOMDocument();
+      if (!$doc->loadXML($mods_content)) {
+        die('in _get_xpath_nodeValue, could not load XML - ' . htmlspecialchars(substr($mods_content, 0, 99)) . '...');
+        return '';
+      }
+      $xpath = new DOMXPath($doc);
+      $xpath->registerNamespace('d', 'http://www.loc.gov/mods/v3');
+      $results = $xpath->query('/d:mods/d:titleInfo/d:title');
+      $nodeValue = NULL;
+      // the value coming from the XML usually has a bunch of extra spaces and potential line feeds
+      foreach ($results as $result) {
+        $nodeValue = str_replace(array("\t", "\r", "\n"), "", trim($result->nodeValue));
+      }
+      while (strstr($nodeValue, "  ")) {
+        $nodeValue = str_replace("  ", " ", $nodeValue);
+      }
+      $title = $nodeValue;
+    }
+  }
+  return $title;
 }
