@@ -234,6 +234,8 @@ span.transaction_action_reserved_action_spacer {
 
 .idw_field_type_int, .idw_field_type_serial {
     font-family: Andale Mono, monospace;
+    text-align: right;
+    max-width: 120px;
 }
 
 .dashboard-report, #islandora-digital-workflow-batch-defaults {

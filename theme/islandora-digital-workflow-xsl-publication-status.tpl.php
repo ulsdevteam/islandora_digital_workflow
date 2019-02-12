@@ -19,23 +19,31 @@
    </xsl:template>
 
   <!--  If the element exists, copy and change it -->
-  <xsl:template match="/mods:mods/mods:accessCondition/copyrightMD:copyright">
+  <xsl:template match="/mods:mods/mods:accessCondition/copyrightMD:copyright/@publication.status">
     <xsl:copy>
       <xsl:copy-of select="@*"/>
       <xsl:text><?php print $value; ?></xsl:text>
     </xsl:copy>
   </xsl:template>
 
-  <!--  If the element doesn't exist, add it -->
-  <xsl:template match="/mods:mods">
+  <!-- If the copyright exists, but the copyright.status attribute does not -->
+  <xsl:template match="/mods:mods/mods:accessCondition/copyrightMD:copyright[not(@publication.status)]">
     <xsl:copy>
-        <xsl:if test="not(mods:accessCondition/copyrightMD:copyright)">
-            <accessCondition xmlns="http://www.loc.gov/mods/v3">
-                <copyright xmlns="http://www.cdlib.org/inside/diglib/copyrightMD" copyright.status="<?php print $value; ?>">
-                </copyright>
-            </accessCondition>
-        </xsl:if>
-        <xsl:apply-templates/>
+      <xsl:attribute name="publication.status"><?php print $value; ?></xsl:attribute>
+      <xsl:apply-templates select="@*|node()" />
     </xsl:copy>
   </xsl:template>
+
+  <!--  If the element doesn't exist at all, add it -->
+  <xsl:template match="/mods:mods">
+    <xsl:copy>
+      <xsl:if test="not(mods:accessCondition/copyrightMD:copyright)">
+        <accessCondition xmlns="http://www.loc.gov/mods/v3">
+          <copyright xmlns="http://www.cdlib.org/inside/diglib/copyrightMD" publication.status="<?php print $value; ?>"/>
+        </accessCondition>
+      </xsl:if>
+      <xsl:apply-templates/>
+    </xsl:copy>
+  </xsl:template>
+
 </xsl:stylesheet>

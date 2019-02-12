@@ -18,30 +18,24 @@
     </xsl:copy>
   </xsl:template>
 
-  <xsl:template match="/mods:mods/mods:name">
-    <xsl:choose>
-      <xsl:when test="./mods:role/mods:roleTerm[@text='depositor']">
-      <!-- If the node existed, replace the value for the namePart based on what was passed -->
-        <namePart xmlns="http://www.loc.gov/mods/v3">
-          <xsl:text><?php print $value; ?></xsl:text>
-        </namePart>
-        <role xmlns="http://www.loc.gov/mods/v3">
-          <roleTerm xmlns="http://www.loc.gov/mods/v3" type="text">depositor</roleTerm>
-        </role>
-      </xsl:when>
-      <xsl:otherwise>
-      <!-- If the node existed, insert the value for the namePart as well as
-           the role/roleTerm[@text="depositor"] nodes based on what was passed -->
-      <name xmlns="http://www.loc.gov/mods/v3">
-        <namePart xmlns="http://www.loc.gov/mods/v3">
-          <xsl:text><?php print $value; ?></xsl:text>
-        </namePart>
-        <role xmlns="http://www.loc.gov/mods/v3">
-          <roleTerm xmlns="http://www.loc.gov/mods/v3" type="text">depositor</roleTerm>
-        </role>
-      </name>
-      </xsl:otherwise>
-    </xsl:choose>
+  <!--  If the element exists, do what you want to do -->
+  <xsl:template match="/mods:mods/mods:name/mods:role/mods:roleTerm[@type='text']">
+    <xsl:copy><?php print $value; ?></xsl:copy>
+  </xsl:template>
+
+  <!--  If the element doesn't exist, add it -->
+  <xsl:template match="/mods:mods">
+    <xsl:copy>
+      <xsl:if test="not(mods:name/mods:role/mods:roleTerm[@type='text'])">
+        <name xmlns="http://www.loc.gov/mods/v3">
+          <namePart xmlns="http://www.loc.gov/mods/v3"><?php print $value; ?></namePart>
+          <role xmlns="http://www.loc.gov/mods/v3">
+            <roleTerm xmlns="http://www.loc.gov/mods/v3" type="text">depositor</roleTerm>
+          </role>
+        </name>
+      </xsl:if>
+      <xsl:apply-templates/>
+    </xsl:copy>
   </xsl:template>
 
 </xsl:stylesheet>

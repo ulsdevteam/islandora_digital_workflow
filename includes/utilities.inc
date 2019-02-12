@@ -578,6 +578,10 @@ function islandora_digital_workflow_batch_path($batch_record, $which_path = 'del
   if (is_object($batch_record)) {
     $batch_record = (array) $batch_record;
   }
+  elseif (is_array($batch_record) && array_key_exists(0, $batch_record) &&
+      is_object($batch_record[0])) {
+    $batch_record = islandora_digital_workflow_get_batch_record_by_batch_id($batch_record[0]->batch_id);
+  }
   if (!is_array($batch_record) || !array_key_exists('batch_name', $batch_record)) {
     drupal_set_message(t('The batch path could not be determined.  Either the values are missing or ' .
             'there is no value for the batch "Name" (batch_name field) yet.'), 'warning');
@@ -3270,7 +3274,12 @@ function islandora_digital_workflow_marc_mods_arr_to_item_file_sources($batch_re
   $batch_path = islandora_digital_workflow_batch_path($batch_record, 'working');
   foreach ($marc_and_mods_records as $idx => $marc_mods_arr) {
     $bib_id = $marc_mods_arr['bib_id'];
-    $batch_item_id = islandora_digital_workflow_get_batch_item_id_by_identifier($bib_id, $batch_record['batch_id'], FALSE);
+    $use_identifier = $bib_id;
+    if (file_exists($marc_mods_arr['MARC'])) {
+      $use_identifier = 'item_' . str_pad((1 + $idx), 4, '0', STR_PAD_LEFT);
+    }
+
+    $batch_item_id = islandora_digital_workflow_get_batch_item_id_by_identifier($use_identifier, $batch_record['batch_id'], FALSE);
     $item_is_paged = islandora_digital_workflow_item_is_paged_content($batch_item_id, $batch_record);
     $batch_item_object = islandora_digital_workflow_get_batch_item($batch_item_id);
 
@@ -3313,7 +3322,7 @@ function islandora_digital_workflow_marc_mods_arr_to_item_file_sources($batch_re
 
     $remapped_arr = array(
       'title' => $use_title,
-      'identifier' => $bib_id,
+      'identifier' => $use_identifier,
       'filename' => '',
       'mods_filename' => $mods_filename,
       'marc_filename' => $marc_filename,

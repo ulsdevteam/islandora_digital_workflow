@@ -18,8 +18,41 @@
          </xsl:copy>
    </xsl:template>
 
+  <!--  If the element exists, copy and change it -->
+  <xsl:template match="/mods:mods/mods:accessCondition/copyrightMD:copyright/copyrightMD:rights.holder/copyrightMD:name">
+    <xsl:copy>
+      <xsl:copy-of select="@*"/>
+
+      <xsl:text><?php print $value; ?></xsl:text>
+    </xsl:copy>
+  </xsl:template>
+
+  <!-- If the copyright exists, but the copyright.status attribute does not -->
+  <xsl:template match="/mods:mods/mods:accessCondition/copyrightMD:copyright[not(copyrightMD:rights.holder)]">
+    <xsl:copy>
+      <xsl:copy-of select="@*"/>
+      <rights.holder xmlns="http://www.cdlib.org/inside/diglib/copyrightMD">
+        <name xmlns="http://www.cdlib.org/inside/diglib/copyrightMD"><?php print $value; ?></name>
+        <contact xmlns="http://www.cdlib.org/inside/diglib/copyrightMD"/>
+      </rights.holder>
+    </xsl:copy>
+  </xsl:template>
+
+  <!--  If the element doesn't exist at all, add it -->
   <xsl:template match="/mods:mods">
-    <xsl:copy-of select="."/>
+    <xsl:copy>
+      <xsl:if test="not(mods:accessCondition/copyrightMD:copyright)">
+        <accessCondition xmlns="http://www.loc.gov/mods/v3">
+          <copyright xmlns="http://www.cdlib.org/inside/diglib/copyrightMD">
+            <rights.holder xmlns="http://www.cdlib.org/inside/diglib/copyrightMD">
+              <name xmlns="http://www.cdlib.org/inside/diglib/copyrightMD"><?php print $value; ?></name>
+              <contact xmlns="http://www.cdlib.org/inside/diglib/copyrightMD"/>
+            </rights.holder>
+          </copyright>
+        </accessCondition>
+      </xsl:if>
+      <xsl:apply-templates/>
+    </xsl:copy>
   </xsl:template>
 
 </xsl:stylesheet>
