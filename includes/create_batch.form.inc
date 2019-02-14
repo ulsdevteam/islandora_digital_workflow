@@ -33,10 +33,10 @@ function islandora_digital_workflow_create_batch() {
   drupal_set_breadcrumb($breadcrumb);
 
   $batch_record = islandora_digital_workflow_get_batch_record_by_name($batch_name);
-  $batch_description_markup = (is_array($batch_record) && $batch_record['webform_submission_sid']) ?
+  $batch_description_markup = (is_array($batch_record)) ?
     theme('islandora_digital_workflow_batch_description', array(
       'batch_record' => $batch_record,
-      'batch_mapped_from_webformsubmission' => islandora_digital_workflow_get_webformsubmission($batch_record['webform_submission_sid']),
+      'batch_mapped_from_webformsubmission' => ($batch_record['webform_submission_sid'] ? islandora_digital_workflow_get_webformsubmission($batch_record['webform_submission_sid']) : ''),
     )) : '<h3>not set</h3>';
 
   $form = (!$batch_name) ?
