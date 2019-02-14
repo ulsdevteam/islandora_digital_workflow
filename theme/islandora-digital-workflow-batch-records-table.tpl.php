@@ -30,7 +30,13 @@
           ?>
           <fieldset class="collapsible collapsed straight-edge" id="box_<?php print str_replace(" ", "-", $batch_record->batch_id); ?>_<?php print $table_title; ?>" >
           <!-- <div class="lookup_result_indent"> -->
-              <legend><span class="fieldset-legend"><?php print $batch_record->batch_name; ?></span></legend>
+              <legend><span class="fieldset-legend"><b><?php print $batch_record->batch_name; ?></b> &raquo;
+                <?php foreach (array('New', 'In Progress', 'Prepared', 'Completed') as $progress_step) : ?>
+                    <span class="progress_<?php print (($batch_record->progress == $progress_step) ?
+                      strtolower(str_replace(" ", "_", $batch_record->progress)) : "na"); ?>"><?php print $progress_step; ?></span>
+                    <?php print (($progress_step <> 'Completed') ? ' | ' : ''); ?>
+                <?php endforeach; ?></span></legend>
+
               <div class="fieldset-wrapper" style="display: none;">
                 <h3><a href="<?php print ($batch_record->nid) ? '/node/' . $batch_record->nid . '/batch' : '/islandora/islandora_digital_workflow/edit_batch/' . $batch_record->batch_name; ?>"><?php print $batch_record->batch_name; ?></a></h3>
                 <ul class="indented_ul">

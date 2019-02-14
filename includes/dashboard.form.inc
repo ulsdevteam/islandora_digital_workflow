@@ -25,7 +25,6 @@ function islandora_digital_workflow_dashboard() {
   $tasks_tables = islandora_digital_workflow_get_tasks_tables();
   $links = islandora_digital_workflow_get_dashboard_links();
   $action_links = islandora_digital_workflow_get_dashboard_action_links();
-
   return $lookup_form_markup .
       theme('islandora_digital_workflow_dashboard', array(
           'dashboard_data' => $dashboard_data,
@@ -205,7 +204,6 @@ function islandora_digital_workflow_get_tasks_tables() {
     $delivery_root = variable_get('islandora_digital_workflow_ingest_delivery_path', '');
     $delivery_folders = islandora_digital_workflow_find_folders_files($delivery_root);
     $bad_delivery_folder_names = islandora_digital_workflow_filter_out_non_batch_folders($delivery_folders, $batch_names);
-
     if (count($delivery_folders)) {
       $tables[] = theme('islandora_digital_workflow_files_table', array(
         'folders' => $delivery_folders,

@@ -1820,11 +1820,15 @@ function islandora_digital_workflow_find_folders_files($root) {
  * other delivery folders.
  */
 function islandora_digital_workflow_filter_out_non_batch_folders(&$values, $item_names) {
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
   $bad_folder_names = array();
   foreach ($values as $item_name => $info) {
     if (array_search($info['item_name'], $item_names) === FALSE) {
       unset($values[$item_name]);
       $bad_folder_names[] = $item_name;
+    }
+    elseif ($info['nid']) {
+      $values[$item_name]['batch_record'] = (object)islandora_digital_workflow_get_batch_record_by_nid($info['nid']);
     }
   }
   return $bad_folder_names;

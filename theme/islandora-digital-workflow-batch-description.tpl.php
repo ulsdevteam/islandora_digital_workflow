@@ -18,9 +18,8 @@
           <?php foreach (array('New', 'In Progress', 'Prepared', 'Completed') as $progress_step) : ?>
           <span class="progress_<?php print (($batch_record['progress'] == $progress_step) ?
             strtolower(str_replace(" ", "_", $batch_record['progress'])) : "na"); ?>"><?php print $progress_step; ?></span>
-          <?php print (($progress_step <> 'Done') ? ' | ' : ''); ?>
+          <?php print (($progress_step <> 'Completed') ? ' | ' : ''); ?>
       <?php endforeach; ?>
-
     <br>
     <label>Batch description:</label> <?php print $batch_record['batch_description']; ?>
     <?php if ($batch_mapped_from_webformsubmission) : ?>
