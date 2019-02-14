@@ -87,15 +87,28 @@ function islandora_digital_workflow_get_batch_record_by_nid($nid) {
  * Gets a SINGLE batch record for a `batch_id` value.
  *
  * @param string $batch_id
- *   The `batch_id` value for a batch record.
+ *   Optional - the `batch_id` value for a batch record.
+ * @param string $batch_id
+ *   Optional - the `batch_item_id` value for any batch_items record related to
+ * the batch in question.
  * @return mixed
  *   Either returns the batch record object or NULL if it cannot be found.
  */
-function islandora_digital_workflow_get_batch_record_by_batch_id($batch_id) {
-  if ($batch_id) {
+function islandora_digital_workflow_get_batch_record_by_batch_id($batch_id = NULL, $batch_item_id = NULL) {
+  if (!is_null($batch_id)) {
     $query = db_select('islandora_digital_workflow_batch', 'b')
         ->fields('b')
         ->condition('b.batch_id', $batch_id)
+        ->range(0,1);
+    $results = $query->execute();
+    $row = $results->fetchAssoc();
+    return $row;
+  }
+  elseif (!is_null($batch_item_id)) {
+    $query = db_select('islandora_digital_workflow_batch', 'b')
+        ->fields('b');
+    $query->join('islandora_digital_workflow_batch_items', 'bi', 'b.batch_id = bi.batch_id');
+    $query->condition('bi.batch_item_id', $batch_item_id)
         ->range(0,1);
     $results = $query->execute();
     $row = $results->fetchAssoc();
@@ -784,7 +797,6 @@ function islandora_digital_workflow_get_max_timestamp_for_batch_item_transaction
  */
 function islandora_digital_workflow_get_batch_item_transactions($batch_item_id, $nid, $batch_id) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
-
   $sql = 'SELECT bt.timestamp AS `timestamp`, bt.transaction_id AS transaction_id, ' .
          'users.uid AS uid, users.name AS name, a.description AS description, ' .
          'a.action_id AS action_id, a.name AS action_name, a.is_batch_action AS is_batch_action, p.problem_notes ' .
@@ -983,11 +995,16 @@ function islandora_digital_workflow_calculate_ready_for(&$rows, $nid) {
       }
     }
 
-    $next_action = islandora_digital_workflow_get_action($next_action_id);
-    $rows[$index]->ready_for = '<a title="' . $next_action['action_description'] .
-        '" href="/node/' . $nid . '/add_transaction/' . $row->batch_item_id .
-        '/' . $next_action_id . '"><div class="add_20">&nbsp;</div></a><div class="' .
-        islandora_digital_workflow_glyph_class($next_action['action_name']) . '">&nbsp;</div>';
+    if ($next_action_id <> -1) {
+      $next_action = islandora_digital_workflow_get_action($next_action_id);
+      $rows[$index]->ready_for = '<a title="' . $next_action['action_description'] .
+          '" href="/node/' . $nid . '/add_transaction/' . $row->batch_item_id .
+          '/' . $next_action_id . '"><div class="add_20">&nbsp;</div></a><div class="' .
+          islandora_digital_workflow_glyph_class($next_action['action_name']) . '">&nbsp;</div>';
+    }
+    else {
+      $rows[$index]->ready_for = '';
+    }
   }
 }
 
@@ -1195,7 +1212,6 @@ function islandora_digital_workflow_calculate_item_progress_filedetails($batch_i
   $required_batch_actions = islandora_digital_workflow_get_required_batch_actions($batch_record['batch_id']);
   $item_record_results = islandora_digital_workflow_get_batch_item_record($batch_item_id);
   $batch_item_obj = array_pop($item_record_results);
-
   // Start with the easiest assumption... the item is new:
   $progress = 'New';
 
@@ -1203,7 +1219,6 @@ function islandora_digital_workflow_calculate_item_progress_filedetails($batch_i
   if (is_array($item_record_transactions) && count($item_record_transactions) > 1) {
     $progress = 'In Progress';
   }
-
   // Now, if it is not new, we must see if it is ready for ingest:
   $item_ready_for_ingest = islandora_digital_workflow_item_ingest_prerequisites_all_done($item_record_transactions, $required_batch_actions);
   $progress = ($item_ready_for_ingest) ? 'Prepared' : $progress;
@@ -1611,6 +1626,16 @@ function islandora_digital_workflow_insert_transactions_record($action_id, $batc
       islandora_digital_workflow_set_problem_record($transaction_id, ($alternative_uid) ? $alternative_uid : $user->uid, $problem_notes);
     } elseif ($action_id == IDW_ACTION_SCAN && !is_null($batch_item_id)) {
       islandora_digital_workflow_copy_delivery_files($batch_item_id, FALSE, NULL);
+    }
+
+    if (!is_null($batch_item_id)) {
+      $item_record_results = islandora_digital_workflow_get_batch_item_record($batch_item_id);
+      $batch_item_obj = array_pop($item_record_results);
+      $batch_record = islandora_digital_workflow_get_batch_record_by_batch_id(NULL, $batch_item_id);
+      // Before exiting, this can cause the "progress" of an item to change
+      $item_working_item_path = islandora_digital_workflow_batch_path($batch_record, 'working') .
+          '/' . $batch_item_obj->identifier;
+      islandora_digital_workflow_calculate_item_progress_filedetails($batch_item_id, $batch_record, $item_working_item_path);
     }
 
     return $transaction_id;
