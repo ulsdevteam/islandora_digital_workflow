@@ -379,15 +379,17 @@ function islandora_digital_workflow_batch_items_form(array $form, array &$form_s
     $all_items_are_paged_content &= islandora_digital_workflow_is_paged_object($item->islandora_model);
     $options[$item->identifier] = array(
       'id' => $item->identifier,
-      'Transactions' => array('data' => theme('islandora_digital_workflow_transactions_glyphs', array('transaction_actions' => $item->transactions)),
+      t('Transactions') => array('data' => theme('islandora_digital_workflow_transactions_glyphs', array('transaction_actions' => $item->transactions)),
           'class' => array($transactions_cell_class)),
-      'Title' => array('data' => l($item->title, '/node/' . $node->nid . '/item/' . $item->batch_item_id),
+      t('Title') => array('data' => l($item->title, '/node/' . $node->nid . '/item/' . $item->batch_item_id),
           'class' => array('small_font', 'not_too_wide')),
-      'Identifier' => '<span class="small_font">' . l($item->identifier, '/node/' . $node->nid . '/item/' . $item->batch_item_id) . '</span>',
-      'Filename' => '<span class="small_font">' . $item->master_filename_basename . '</span>',
-      'Ready for' => '<span class="small_font">' . $item->ready_for . '</span>',
-      'Last action' => '<span class="small_font">' . $item->last_action . '</span>',
-      'When' => '<span class="small_font">' . $item->when . '</span>',
+      t('Identifier') => '<span class="small_font">' . l($item->identifier, '/node/' . $node->nid . '/item/' . $item->batch_item_id) . '</span>',
+      t('Filename') => '<span class="small_font">' . $item->master_filename_basename . '</span>',
+      t('Progress') => '<span class="small_font progress_' .
+        strtolower(str_replace(" ", "_", $item->progress)) . '">' . $item->progress . '</span>',
+      t('Ready for') => '<span class="small_font">' . $item->ready_for . '</span>',
+      t('Last action') => '<span class="small_font">' . $item->last_action . '</span>',
+      t('When') => '<span class="small_font">' . $item->when . '</span>',
     );
   }
   $items_header = array(
@@ -396,6 +398,7 @@ function islandora_digital_workflow_batch_items_form(array $form, array &$form_s
           'class' => array('not_too_wide')), //  'Title',
     'Identifier' => t('Identifier'),
     'Filename' => t('Filename'),
+    'Progress' => t('Progress'),
     'Ready for' => t('Ready for'),
     'Last action' => t('Last action'),
     'When' => t('When'),

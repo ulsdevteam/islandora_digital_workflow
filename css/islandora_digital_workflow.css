@@ -1069,6 +1069,9 @@ td.slide-cross {
 .progress_new {
     color: red;
 }
+.progress_na {
+    color: #BBB;
+}
 .progress_in_process {
     color: #666;
 }
@@ -1113,4 +1116,11 @@ td.slide-cross {
 
 #islandora-digital-workflow-admin-form fieldset .fieldset-wrapper {
     border: none;
+}
+
+.big_workflow_link {
+    font-size: large;
+    background-color: #ddd;
+    border: 1px solid #c2c2c2;
+    padding: 4px;
 }

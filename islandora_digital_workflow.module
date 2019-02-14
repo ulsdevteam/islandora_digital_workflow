@@ -1128,7 +1128,8 @@ function islandora_digital_workflow_user_view_alter(&$build) {
  * @param type $markup
  */
 function islandora_digital_workflow_user_post_render(&$markup) {
-  $dashboard_link = l('Islandora Digital Workflow', 'islandora/islandora_digital_workflow');
+  $dashboard_link = l('Islandora Digital Workflow', 'islandora/islandora_digital_workflow',
+          array('attributes' => array('class' => array('big_workflow_link'))));
   print str_replace('content">','content">' . $dashboard_link, $markup);
 }
 

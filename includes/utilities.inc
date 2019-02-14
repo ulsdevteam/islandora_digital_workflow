@@ -2279,17 +2279,20 @@ function islandora_digital_workflow_item_ingest_prerequisites_all_done($item_rec
   // any required actions on the item that have not been completed.
   $retval = TRUE;
   // Make an array of the required_batch_actions that are set to is_ingest_prerequisite.
-  $ingest_prerequisite_ids = array();
+  $ingest_prerequisite_ids = $item_action_ids = array();
   foreach ($required_batch_actions as $required_batch_action) {
-    if (!$required_batch_action['is_ingest_prerequisite']) {
+    if ($required_batch_action['is_ingest_prerequisite']) {
       $ingest_prerequisite_ids[] = $required_batch_action['action_id'];
     }
   }
   foreach ($item_record_transactions as $transaction_obj) {
-    $action_is_ingest_prerequisite = !(array_search($transaction_obj->action_id, $ingest_prerequisite_ids) === FALSE);
-    if (!$action_is_ingest_prerequisite) {
-      $retval &= ($transaction_obj->transaction_id <> -1);
+    if ($transaction_obj->transaction_id > -1) {
+      $item_action_ids[$transaction_obj->action_id] = $transaction_obj->action_id;
     }
+  }
+
+  foreach ($ingest_prerequisite_ids as $required_action_id) {
+    $retval &= !(array_search($required_action_id, $item_action_ids) === FALSE);
   }
   return $retval;
 }
