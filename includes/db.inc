@@ -1749,6 +1749,7 @@ function islandora_digital_workflow_get_action($action_id) {
   $query = db_select('islandora_digital_workflow_actions', 'wa');
   $query->fields('wa');
   $query->addField('wa', 'name', 'action_name');
+  $query->addField('wa', 'is_system_action', 'is_system_action');
   $query->addField('wa', 'description', 'action_description');
 
   $query->condition('wa.action_id', $action_id);
@@ -1768,6 +1769,7 @@ function islandora_digital_workflow_get_action($action_id) {
         'action_description' => $row->action_description,
         'glyph' => $row->glyph,
         'is_batch_action' => $row->is_batch_action,
+        'is_system_action' => $row->is_system_action,
         'is_triggered_by_single_item' => $row->is_triggered_by_single_item,
         'stage_taxonomy_tid' => $row->stage_taxonomy_tid,
         'is_triggered_by_single_item_rm' => $row->is_triggered_by_single_item_rm,
@@ -2243,10 +2245,10 @@ function islandora_digital_workflow_update_batch_record_progress($batch_record =
   // value for progress based on all items having that progress.
   $batch_items = islandora_digital_workflow_get_batch_items_by_nid($batch_record['nid']);
   // Go in the reverse order of possible progress values.
-  if (!($set_batch_progress_to = islandora_digital_workflow_batch_items_all_same_progress($batch_items, 'Completed', array()))) {
-    if (!($set_batch_progress_to = islandora_digital_workflow_batch_items_all_same_progress($batch_items, 'Prepared', array('Completed')))) {
-      if (!($set_batch_progress_to = islandora_digital_workflow_batch_items_all_same_progress($batch_items, 'In Process', array('Prepared', 'Completed')))) {
-        $set_batch_progress_to = 'New';
+  if (!($set_batch_progress_to = islandora_digital_workflow_batch_items_all_same_progress($batch_items, t('Completed'), array()))) {
+    if (!($set_batch_progress_to = islandora_digital_workflow_batch_items_all_same_progress($batch_items, t('Prepared'), array(t('Completed'))))) {
+      if (!($set_batch_progress_to = islandora_digital_workflow_batch_items_all_same_progress($batch_items, t('In Process'), array(t('Prepared'), t('Completed'))))) {
+        $set_batch_progress_to = t('New');
       }
     }
   }

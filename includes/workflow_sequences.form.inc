@@ -1007,9 +1007,9 @@ function islandora_digital_workflow_actions_form(array $form, array &$form_state
           '#type' => 'fieldset',
           '#title' => 'Actions',
           '#attributes' => array('class' => array('idw_actions_config')),
-          '#description' => 'The description and glyph for each action can be ' . 
+          '#description' => t('The description and glyph for each action can be ' .
             'edited.  <i>Actions that have already been associated with any ' .
-            'workflow sequence cannot be assigned a different description.</i>',
+            'workflow sequence cannot be deleted or assigned a different description.</i>'),
       ),
   );
   $markup_item_actions = $markup_batch_actions = array();
@@ -1025,7 +1025,9 @@ function islandora_digital_workflow_actions_form(array $form, array &$form_state
             (($action_record_array['is_triggered_by_single_item_rm']) ? ' / 1' : ' / all') .
              '</span>' : '');
 
-    $sequence_ids_using_action = islandora_digital_workflow_using_action($workflow_sequence_actions, $action_id);
+    $sequence_ids_using_action = ($action_record_array['is_system_action']) ?
+        1 :
+        islandora_digital_workflow_using_action($workflow_sequence_actions, $action_id);
     $glyph_class = islandora_digital_workflow_glyph_class($action_record_array['action_name']);
     $markup = '<tr class="' . $glyph_class . '"><td><b>Action name:</b><br>' . $action_record_array['action_name'] .
             '</td></tr>';
@@ -1041,6 +1043,7 @@ function islandora_digital_workflow_actions_form(array $form, array &$form_state
             ),
             $action_record_array['action_description'],
             '<small class="disabled_text">' . $glyph_class . '</small>',
+            ($action_record_array['is_system_action'] ? 'Yes' : 'No'),
             $trigger_add_stage,
             $trigger_remove_stage,
         ),
@@ -1061,6 +1064,7 @@ function islandora_digital_workflow_actions_form(array $form, array &$form_state
           '<small class="disabled_text">transaction_action_unconfigured_reserved_action</small>',
           '',
           '',
+          '',
       ),
   );
   $markup_item_actions[] = array(
@@ -1072,10 +1076,12 @@ function islandora_digital_workflow_actions_form(array $form, array &$form_state
           '<small class="disabled_text">transaction_action_unconfigured_reserved_action</small>',
           '',
           '',
+          '',
       ),
   );
 
-  $header = array('Name', 'Description', 'CSS class name', 'Add Stage', 'Remove Stage');
+  $header = array(t('Action Name'), t('Description'), t('CSS class name'),
+    t('System Action'), t('Add Stage'), t('Remove Stage'));
   foreach ($markup_item_actions as $action_id => $markup) {
     $form['reserved_actions']['item_actions'] = array(
         '#type' => 'item',
@@ -1238,7 +1244,7 @@ function islandora_digital_workflow_actions_edit_form(array $form, array &$form_
   // Disable the action name edit box if this action is one of the special system
   // actions - and display a message.
   $system_action_names = array('ingest', 'system-made-derivatives', 'problem', 'all-ingest');
-  if (!(array_search($action_name, $system_action_names) === FALSE)) {
+  if (!(array_search($action_name, $system_action_names) === FALSE) || ($action_record['is_system_action'])) {
     $form['name_desc_wrapper']['#attributes'] = $read_only_att;
     $form['name_desc_wrapper']['name']['#description'] = '<em>' .
         'This action is a system action and cannot be renamed.</em>  ' .

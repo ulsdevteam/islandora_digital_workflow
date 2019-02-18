@@ -37,8 +37,8 @@ function islandora_digital_workflow_add_taxonomy_data() {
 
   $stage_vocab = (object) array(
       'name' => 'Islandora Digital Workflow Stage vocabulary',
-      'description' => 'This vocabulary has the various stages for ' .
-        'workflow_batch nodes.',
+      'description' => t('This vocabulary has the various stages for ' .
+        'workflow_batch nodes.'),
       'machine_name' => IDW_STAGE_TAXONOMY_MACHINE_NAME,
    );
   taxonomy_vocabulary_save($stage_vocab);
@@ -48,8 +48,8 @@ function islandora_digital_workflow_add_taxonomy_data() {
 
   $new_vocab = (object) array(
       'name' => 'Islandora Digital Workflow Content Type vocabulary',
-      'description' => 'This vocabulary has the various content types for ' .
-        'workflow_batch nodes (related to Islandora content models).',
+      'description' => t('This vocabulary has the various content types for ' .
+        'workflow_batch nodes (related to Islandora content models).'),
       'machine_name' => IDW_CONTENT_TYPE_TAXONOMY_MACHINE_NAME,
    );
   taxonomy_vocabulary_save($new_vocab);
@@ -58,8 +58,8 @@ function islandora_digital_workflow_add_taxonomy_data() {
 
   $priority_vocab = (object) array(
       'name' => 'Islandora Digital Workflow Batch Priority vocabulary',
-      'description' => 'This vocabulary has the various priority levels for ' .
-        'workflow_batch nodes.',
+      'description' => t('This vocabulary has the various priority levels for ' .
+        'workflow_batch nodes.'),
       'machine_name' => IDW_BATCH_PRIORITY_TAXONOMY_MACHINE_NAME,
    );
   taxonomy_vocabulary_save($priority_vocab);
@@ -154,7 +154,7 @@ function islandora_digital_workflow_schema() {
         'related to a defined islandora_digital_workflow_model_sequence'),
     'fields' => array(
       'action_id' => array(
-        'description' => 'The primary identifier for the record',
+        'description' => t('The primary identifier for the record'),
         'type' => 'serial',
         'unsigned' => TRUE,
         'not null' => TRUE,
@@ -176,7 +176,15 @@ function islandora_digital_workflow_schema() {
         'default' => '',
       ),
       'is_batch_action' => array(
-        'description' => 'Is the action for a batch or a batch_item?',
+        'description' => t('Is the action for a batch or a batch_item?'),
+        'type' => 'int',
+        'size' => 'tiny',
+        'default' => 0,
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'is_system_action' => array(
+        'description' => t('Is the action triggered by the system?'),
         'type' => 'int',
         'size' => 'tiny',
         'default' => 0,
@@ -184,14 +192,14 @@ function islandora_digital_workflow_schema() {
         'not null' => TRUE,
       ),
       'stage_taxonomy_tid' => array(
-        'description' => 'The optional taxonomy term tid value to set the related Stage',
+        'description' => t('The optional taxonomy term tid value to set the related Stage'),
         'type' => 'int',
         'size' => 'medium',
         'unsigned' => TRUE,
         'not null' => FALSE,
       ),
       'is_triggered_by_single_item' => array(
-        'description' => 'If this is for a "Batch Item" action, trigger by a single batch_item?',
+        'description' => t('If this is for a "Batch Item" action, trigger by a single batch_item?'),
         'type' => 'int',
         'size' => 'tiny',
         'default' => 0,
@@ -199,14 +207,14 @@ function islandora_digital_workflow_schema() {
         'not null' => TRUE,
       ),
       'stage_taxonomy_tid_rm' => array(
-        'description' => 'The optional taxonomy term tid value to REMOVE the related Stage',
+        'description' => t('The optional taxonomy term tid value to REMOVE the related Stage'),
         'type' => 'int',
         'size' => 'medium',
         'unsigned' => TRUE,
         'not null' => FALSE,
       ),
       'is_triggered_by_single_item_rm' => array(
-        'description' => 'If this is for a "Batch Item" action, trigger REMOVAL by a single batch_item?',
+        'description' => t('If this is for a "Batch Item" action, trigger REMOVAL by a single batch_item?'),
         'type' => 'int',
         'size' => 'tiny',
         'default' => 0,
@@ -224,32 +232,32 @@ function islandora_digital_workflow_schema() {
         'not stored on the node object.'),
     'fields' => array(
       'batch_id' => array(
-        'description' => 'The primary identifier for the record',
+        'description' => t('The primary identifier for the record'),
         'type' => 'serial',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
       'batch_name' => array(
-        'description' => 'Batch name',
+        'description' => t('Batch name'),
         'type' => 'varchar',
         'length' => 50,
         'not null' => TRUE,
       ),
       'islandora_model' => array(
-        'description' => 'Islandora Model for the objects in the batch',
+        'description' => t('Islandora Model for the objects in the batch'),
         'type' => 'varchar',
         'length' => 50,
         'not null' => FALSE,
         'default' => '',
       ),
       'batch_description' => array(
-        'description' => 'Batch description',
+        'description' => t('Batch description'),
         'type' => 'text',
         'size' => 'normal',
         'not null' => TRUE,
       ),
       'batch_priority_tid' => array(
-        'description' => 'Batch priority (Drupal taxonomy term tid value)',
+        'description' => t('Batch priority (Drupal taxonomy term tid value)'),
         'type' => 'int',
         'size' => 'medium',
         'unsigned' => TRUE,
@@ -257,7 +265,7 @@ function islandora_digital_workflow_schema() {
         'not null' => FALSE,
       ),
       'is_batch_active' => array(
-        'description' => 'Is the batch Active?',
+        'description' => t('Is the batch Active?'),
         'type' => 'int',
         'size' => 'tiny',
         'default' => 0,
@@ -265,7 +273,7 @@ function islandora_digital_workflow_schema() {
         'not null' => TRUE,
       ),
       'is_batch_request' => array(
-        'description' => 'Is the batch a special request?',
+        'description' => t('Is the batch a special request?'),
         'type' => 'int',
         'size' => 'tiny',
         'default' => 0,
@@ -273,24 +281,24 @@ function islandora_digital_workflow_schema() {
         'not null' => TRUE,
       ),
       'batch_requestor' => array(
-        'description' => 'Requester who may have requested this batch',
+        'description' => t('Requester who may have requested this batch'),
         'type' => 'varchar',
         'length' => 50,
         'not null' => FALSE,
       ),
       'batch_request_due_date' => array(
-        'description' => 'Due date if the batch is a request',
+        'description' => t('Due date if the batch is a request'),
         'type' => 'int',
         'not null' => FALSE,
       ),
       'default_ead_id' => array(
-        'description' => 'Finding Aid related to the batch',
+        'description' => t('Finding Aid related to the batch'),
         'type' => 'varchar',
         'length' => 50,
         'not null' => FALSE,
       ),
       'object_count' => array(
-        'description' => 'Number of objects in batch',
+        'description' => t('Number of objects in batch'),
         'type' => 'int',
         'size' => 'small', // limit goes to 8388607
         'default' => 0,
@@ -298,73 +306,73 @@ function islandora_digital_workflow_schema() {
         'not null' => TRUE,
       ),
       'uploaded_batch_items_file' => array(
-        'description' => 'Items file (raw) uploaded to the batch',
+        'description' => t('Items file (raw) uploaded to the batch'),
         'type' => 'text',
         'size' => 'big',
         'not null' => FALSE,
       ),
       'ingest_namespace' => array(
-        'description' => 'Ingest namespace',
+        'description' => t('Ingest namespace'),
         'type' => 'varchar',
         'length' => 20,
         'not null' => FALSE,
       ),
       'mapto_collections' => array(
-        'description' => 'Islandora Collection(s)',
+        'description' => t('Islandora Collection(s)'),
         'type' => 'varchar',
         'length' => 255,
         'not null' => FALSE,
       ),
       'mapto_site_id_values' => array(
-        'description' => 'Site',
+        'description' => t('Site'),
         'type' => 'varchar',
         'length' => 255,
         'not null' => FALSE,
       ),
       'ocr_language' => array(
-        'description' => 'Character set to use for the OCR process',
+        'description' => t('Character set to use for the OCR process'),
         'type' => 'varchar',
         'length' => 10,
         'not null' => FALSE,
       ),
       'default_depositor' => array(
-        'description' => 'Default depositor',
+        'description' => t('Default depositor'),
         'type' => 'varchar',
         'length' => 100,
         'not null' => FALSE,
       ),
       'default_type_of_resource' => array(
-        'description' => 'Type of resource',
+        'description' => t('Type of resource'),
         'type' => 'varchar',
         'length' => 50,
         'not null' => TRUE,
       ),
       'default_genre' => array(
-        'description' => 'Default genre',
+        'description' => t('Default genre'),
         'type' => 'varchar',
         'length' => 50,
         'not null' => FALSE,
       ),
       'batch_default_CR_status' => array(
-        'description' => 'Default Copyright status',
+        'description' => t('Default Copyright status'),
         'type' => 'varchar',
         'length' => 12,
         'not null' => FALSE,
       ),
       'batch_default_pub_status' => array(
-        'description' => 'Default Publication Status',
+        'description' => t('Default Publication Status'),
         'type' => 'varchar',
         'length' => 12,
         'not null' => FALSE,
       ),
       'batch_default_CR_holder' => array(
-        'description' => 'Default Copyright Holder Name',
+        'description' => t('Default Copyright Holder Name'),
         'type' => 'text',
         'size' => 'normal',
         'not null' => FALSE,
       ),
       'nid' => array(
-        'description' => 'Drupal node nid value',
+        'description' => t('Drupal node nid value'),
         'type' => 'int',
         'size' => 'medium',
         'unsigned' => TRUE,
@@ -372,7 +380,7 @@ function islandora_digital_workflow_schema() {
         'not null' => FALSE,
       ),
       'workflow_sequence_id' => array(
-        'description' => 'Workflow sequence',
+        'description' => t('Workflow sequence'),
         'type' => 'int',
         'size' => 'medium',
         'unsigned' => TRUE,
@@ -380,7 +388,7 @@ function islandora_digital_workflow_schema() {
         'not null' => FALSE,
       ),
       'webform_submission_sid'  => array(
-        'description' => 'Webform submission sid value',
+        'description' => t('Webform submission sid value'),
         'type' => 'int',
         'size' => 'medium',
         'unsigned' => TRUE,
@@ -389,7 +397,7 @@ function islandora_digital_workflow_schema() {
       ),
       // Internal / system calculated fields
       'progress' => array(
-        'description' => 'The progress for the individual object',
+        'description' => t('The progress for the individual object'),
         'type' => 'varchar',
         // possible values "New", "In Progress", "Prepared", "Completed"
         'default' => 'New',
@@ -397,18 +405,18 @@ function islandora_digital_workflow_schema() {
         'not null' => FALSE,
       ),
       'user' => array(
-        'description' => 'Drupal user',
+        'description' => t('Drupal user'),
         'type' => 'varchar',
         'length' => 50,
         'not null' => TRUE,
       ),
       'lastmod' => array(
-        'description' => 'Last modified date of the record (TIMESTAMP)',
+        'description' => t('Last modified date of the record (TIMESTAMP)'),
         'type' => 'int',
         'not null' => FALSE,
       ),
       'created' => array(
-        'description' => 'Created date of the record (TIMESTAMP)',
+        'description' => t('Created date of the record (TIMESTAMP)'),
         'type' => 'int',
         'not null' => FALSE,
       ),
@@ -426,39 +434,39 @@ function islandora_digital_workflow_schema() {
     'description' => t('Individual objects of the batch.'),
     'fields' => array(
       'batch_item_id' => array(
-        'description' => 'The primary identifier for the record',
+        'description' => t('The primary identifier for the record'),
         'type' => 'serial',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
       'batch_id' => array(
-        'description' => 'The batch_id for related ' .
-          'islandora_digital_workflow_batch record',
+        'description' => t('The batch_id for related ' .
+          'islandora_digital_workflow_batch record'),
         'type' => 'int',
         'size' => 'medium',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
       'identifier' => array(
-        'description' => 'The identifier for the object',
+        'description' => t('The identifier for the object'),
         'type' => 'varchar',
         'length' => 50,
         'not null' => TRUE,
       ),
       'title' => array(
-        'description' => 'The item title (not used)',
+        'description' => t('The item title'),
         'type' => 'varchar',
         'length' => 255,
         'not null' => TRUE,
       ),
       'filename' => array(
-        'description' => 'The description for the batch',
+        'description' => t('The description for the batch'),
         'type' => 'varchar',
         'length' => 255,
         'not null' => FALSE,
       ),
       'type_of_resource' => array(
-        'description' => 'The type of Islandora object',
+        'description' => t('The type of Islandora object'),
         'type' => 'varchar',
         'length' => 50,
         'not null' => FALSE,
@@ -470,28 +478,28 @@ function islandora_digital_workflow_schema() {
         'default' => '',
       ),
       'assigned_pid' => array(
-        'description' => 'The Islandora PID value for the item.  This may be ' .
+        'description' => t('The Islandora PID value for the item.  This may be ' .
           'used for assigning the value, or updated from the auto-generated ' .
-          'value after ingest.',
+          'value after ingest.'),
         'type' => 'varchar',
         'length' => 64,
         'not null' => FALSE,
       ),
       'mods' => array(
-        'description' => 'MODS xml created from CSV row for object',
+        'description' => t('MODS xml created from CSV row for object'),
         'type' => 'text',
         'size' => 'big',
         'not null' => TRUE,
       ),
       'marc' => array(
-        'description' => 'MARC (MAchine-Readable Cataloging) record for object',
+        'description' => t('MARC (MAchine-Readable Cataloging) record for object'),
         'type' => 'text',
         'size' => 'big',
         'not null' => TRUE,
       ),
       // Internal / system calculated fields
       'progress' => array(
-        'description' => 'The progress for the individual object',
+        'description' => t('The progress for the individual object'),
         'type' => 'varchar',
         // possible values "New", "In Progress", "Prepared", "Completed"
         'default' => 'New',
@@ -499,7 +507,7 @@ function islandora_digital_workflow_schema() {
         'not null' => FALSE,
       ),
       'file_count' => array(
-        'description' => 'The total number of files related to this item',
+        'description' => t('The total number of files related to this item'),
         'type' => 'int',
         'size' => 'small', // limit goes to 8388607
         'unsigned' => TRUE,
@@ -507,7 +515,7 @@ function islandora_digital_workflow_schema() {
         'not null' => TRUE,
       ),
       'file_size' => array(
-        'description' => 'The total size of the files related to this item (in bytes)',
+        'description' => t('The total size of the files related to this item (in bytes)'),
         'type' => 'int',
         'size' => 'medium',
         'unsigned' => TRUE,
@@ -527,48 +535,48 @@ function islandora_digital_workflow_schema() {
     'description' => t('Stores any drush commands that have been called relating to batches and batch items'),
     'fields' => array(
       'drush_log_id' => array(
-        'description' => 'The drush_log_id for a drush command',
+        'description' => t('The drush_log_id for a drush command'),
         'type' => 'serial',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
       'batch_id' => array(
-        'description' => 'The batch_id for related ' .
-          'islandora_digital_workflow_batch record',
+        'description' => t('The batch_id for related ' .
+          'islandora_digital_workflow_batch record'),
         'type' => 'int',
         'size' => 'medium',
         'unsigned' => TRUE,
         'not null' => FALSE,
       ),
       'batch_item_id' => array(
-        'description' => 'The batch_item_id for a related ' .
-          'islandora_digital_workflow_batch_items record',
+        'description' => t('The batch_item_id for a related ' .
+          'islandora_digital_workflow_batch_items record'),
         'type' => 'int',
         'size' => 'medium',
         'unsigned' => TRUE,
         'not null' => FALSE,
       ),
       'drupal_uid' => array(
-        'description' => 'The drupal user uid value related to the transaction',
+        'description' => t('The drupal user uid value related to the transaction'),
         'type' => 'int',
         'size' => 'medium',
         'unsigned' => TRUE,
         'not null' => FALSE,
       ),
       'drush_command' => array(
-        'description' => 'The fully qualified drush command that is called by the web server',
+        'description' => t('The fully qualified drush command that is called by the web server'),
         'type' => 'text',
         'size' => 'medium',
         'not null' => TRUE,
       ),
       'output' => array(
-        'description' => 'The output of the drush call',
+        'description' => t('The output of the drush call'),
         'type' => 'text',
         'size' => 'medium',
         'not null' => TRUE,
       ),
       'return_val' => array(
-        'description' => 'The return value of the drush call',
+        'description' => t('The return value of the drush call'),
         'type' => 'int',
         'size' => 'tiny',
         'default' => 0,
@@ -576,7 +584,7 @@ function islandora_digital_workflow_schema() {
         'not null' => TRUE,
       ),
       'timestamp' => array(
-        'description' => 'Last modified date of the record (TIMESTAMP)',
+        'description' => t('Last modified date of the record (TIMESTAMP)'),
         'type' => 'int',
         'not null' => FALSE,
       ),
@@ -590,36 +598,36 @@ function islandora_digital_workflow_schema() {
     'description' => t('Stores problem transactions related to batch items'),
     'fields' => array(
       'problem_id' => array(
-        'description' => 'Autoincrement primary key for this table',
+        'description' => t('Autoincrement primary key for this table'),
         'type' => 'serial',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
       'transaction_id' => array(
-        'description' => 'The transaction_id related to the action entered as a problem',
+        'description' => t('The transaction_id related to the action entered as a problem'),
         'type' => 'int',
         'size' => 'medium',
         'unsigned' => TRUE,
         'not null' => FALSE,
       ),
       'problem_notes' => array(
-        'description' => 'Notes on the nature of the problem with the scanned item',
+        'description' => t('Notes on the nature of the problem with the scanned item'),
         'type' => 'text',
         'size' => 'medium',
         'not null' => TRUE,
       ),
       'problem_timestamp' => array(
-        'description' => 'Last modified date of the record (TIMESTAMP)',
+        'description' => t('Last modified date of the record (TIMESTAMP)'),
         'type' => 'int',
         'not null' => FALSE,
       ),
       'problem_resolved_timestamp' => array(
-        'description' => 'Date when this problem was resolved (TIMESTAMP)',
+        'description' => t('Date when this problem was resolved (TIMESTAMP)'),
         'type' => 'int',
         'not null' => FALSE,
       ),
       'drupal_uid' => array(
-        'description' => 'The drupal user uid value related to the transaction',
+        'description' => t('The drupal user uid value related to the transaction'),
         'type' => 'int',
         'size' => 'medium',
         'unsigned' => TRUE,
@@ -632,19 +640,19 @@ function islandora_digital_workflow_schema() {
     'description' => t('Stores sets of process identifiers with a specific mode'),
     'fields' => array(
       'process_set_id' => array(
-        'description' => 'Autoincrement primary key for this table',
+        'description' => t('Autoincrement primary key for this table'),
         'type' => 'serial',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
       'set_mode' => array(
-        'description' => 'The mode of processing for the set of items.',
+        'description' => t('The mode of processing for the set of items.'),
         'type' => 'varchar',
         'length' => 50,
         'not null' => FALSE,
       ),
       'timestamp' => array(
-        'description' => 'Last modified date of the record',
+        'description' => t('Last modified date of the record'),
         'type' => 'int',
         'not null' => FALSE,
       ),
@@ -657,16 +665,16 @@ function islandora_digital_workflow_schema() {
         'islandora_digital_workflow_batch_items table.'),
     'fields' => array(
       'process_set_id' => array(
-        'description' => 'The process_set_id for related ' .
-          'islandora_digital_workflow_process_set record',
+        'description' => t('The process_set_id for related ' .
+          'islandora_digital_workflow_process_set record'),
         'type' => 'int',
         'size' => 'medium',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
       'batch_item_id' => array(
-        'description' => 'The batch_item_id for related ' .
-          'islandora_digital_workflow_batch_items record',
+        'description' => t('The batch_item_id for related ' .
+          'islandora_digital_workflow_batch_items record'),
         'type' => 'int',
         'size' => 'medium',
         'unsigned' => TRUE,
@@ -679,7 +687,7 @@ function islandora_digital_workflow_schema() {
     'description' => t('Stores the workflow sequences'),
     'fields' => array(
       'workflow_sequence_id' => array(
-        'description' => 'The primary identifier for the record',
+        'description' => t('The primary identifier for the record'),
         'type' => 'serial',
         'unsigned' => TRUE,
         'not null' => TRUE,
@@ -695,7 +703,7 @@ function islandora_digital_workflow_schema() {
         'not null' => TRUE,
       ),
       'is_mixed' => array(
-        'description' => 'Does the workflow sequence represent more than one object model?',
+        'description' => t('Does the workflow sequence represent more than one object model?'),
         'type' => 'int',
         'size' => 'tiny',
         'default' => 0,
@@ -712,7 +720,7 @@ function islandora_digital_workflow_schema() {
     'description' => t('Stores the workflow sequence to models relationship'),
     'fields' => array(
       'workflow_sequence_id' => array(
-        'description' => 'Identifier to match an islandora_digital_workflow_sequence record',
+        'description' => t('Identifier to match an islandora_digital_workflow_sequence record'),
         'type' => 'serial',
         'unsigned' => TRUE,
         'not null' => TRUE,
@@ -729,7 +737,7 @@ function islandora_digital_workflow_schema() {
     'description' => t('Stores the workflow sequence actions, their order, and whether they are required'),
     'fields' => array(
       'workflow_sequence_id' => array(
-        'description' => 'The primary identifier for the record',
+        'description' => t('The primary identifier for the record'),
         'type' => 'serial',
         'unsigned' => TRUE,
         'not null' => TRUE,
@@ -770,7 +778,7 @@ function islandora_digital_workflow_schema() {
         'not null' => TRUE,
       ),
       'timestamp' => array(
-        'description' => 'Last modified date of the record (TIMESTAMP)',
+        'description' => t('Last modified date of the record (TIMESTAMP)'),
         'type' => 'int',
         'not null' => FALSE,
       ),
@@ -785,45 +793,45 @@ function islandora_digital_workflow_schema() {
     'description' => t('Stores transactions related to batch and batch items'),
     'fields' => array(
       'transaction_id' => array(
-        'description' => 'The action_id for the transction for a related ' .
-          'islandora_digital_workflow_actions record',
+        'description' => t('The action_id for the transction for a related ' .
+          'islandora_digital_workflow_actions record'),
         'type' => 'serial',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
       'action_id' => array(
-        'description' => 'The action_id for the transction for a related ' .
-          'islandora_digital_workflow_actions record',
+        'description' => t('The action_id for the transction for a related ' .
+          'islandora_digital_workflow_actions record'),
         'type' => 'int',
         'size' => 'medium',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
       'batch_id' => array(
-        'description' => 'The batch_id for related ' .
-          'islandora_digital_workflow_batch record',
+        'description' => t('The batch_id for related ' .
+          'islandora_digital_workflow_batch record'),
         'type' => 'int',
         'size' => 'medium',
         'unsigned' => TRUE,
         'not null' => FALSE,
       ),
       'batch_item_id' => array(
-        'description' => 'The batch_item_id for a related ' .
-          'islandora_digital_workflow_batch_items record',
+        'description' => t('The batch_item_id for a related ' .
+          'islandora_digital_workflow_batch_items record'),
         'type' => 'int',
         'size' => 'medium',
         'unsigned' => TRUE,
         'not null' => FALSE,
       ),
       'drupal_uid' => array(
-        'description' => 'The drupal user uid value related to the transaction',
+        'description' => t('The drupal user uid value related to the transaction'),
         'type' => 'int',
         'size' => 'medium',
         'unsigned' => TRUE,
         'not null' => FALSE,
       ),
       'timestamp' => array(
-        'description' => 'Last modified date of the record (TIMESTAMP)',
+        'description' => t('Last modified date of the record (TIMESTAMP)'),
         'type' => 'int',
         'not null' => FALSE,
       ),
@@ -849,8 +857,8 @@ function islandora_digital_workflow_add_workflow_content_type_taxonomy_terms() {
   foreach ($models as $cmodel => $readable_name) {
     $term = (object) array(
      'name' => $cmodel,
-     'description' => 'This is for workflow_batch nodes for creating Islandora ' .
-        'objects of the ' . $readable_name . ' content model.',
+     'description' => t('This is for workflow_batch nodes for creating Islandora ' .
+        'objects of the ' . $readable_name . ' content model.'),
      'vid' => $vocab->vid,
     );
     taxonomy_term_save($term);
@@ -868,7 +876,7 @@ function islandora_digital_workflow_add_workflow_batch_priority_taxonomy_terms()
 
   $term = (object) array(
    'name' => 'Lowest',
-   'description' => 'Lowest priority batch.',
+   'description' => t('Lowest priority batch.'),
    'vid' => $vocab->vid,
    'weight' => 5,
   );
@@ -876,7 +884,7 @@ function islandora_digital_workflow_add_workflow_batch_priority_taxonomy_terms()
 
   $term = (object) array(
    'name' => 'Low',
-   'description' => 'Low priority batch.',
+   'description' => t('Low priority batch.'),
    'vid' => $vocab->vid,
    'weight' => 4,
   );
@@ -884,7 +892,7 @@ function islandora_digital_workflow_add_workflow_batch_priority_taxonomy_terms()
 
   $regular_priority_term = (object) array(
    'name' => 'Regular',
-   'description' => 'Regular priorty batch.',
+   'description' => t('Regular priorty batch.'),
    'vid' => $vocab->vid,
    'weight' => 3,
   );
@@ -892,7 +900,7 @@ function islandora_digital_workflow_add_workflow_batch_priority_taxonomy_terms()
 
   $term = (object) array(
    'name' => 'High',
-   'description' => 'High priorty batch.',
+   'description' => t('High priorty batch.'),
    'vid' => $vocab->vid,
    'weight' => 2,
   );
@@ -900,7 +908,7 @@ function islandora_digital_workflow_add_workflow_batch_priority_taxonomy_terms()
 
   $term = (object) array(
    'name' => 'Highest',
-   'description' => 'Highest priorty batch.',
+   'description' => t('Highest priorty batch.'),
    'vid' => $vocab->vid,
    'weight' => 1,
   );
@@ -921,72 +929,74 @@ function islandora_digital_workflow_add_workflow_stage_taxonomy_terms() {
   global $problem_tid;
   global $inactive_tid;
   global $inprocess_tid;
-  global $metadata_reveiw_tid;
+  global $metadata_review_tid;
+  global $done_tid;
   global $new_stage_term;
 
   module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy_utilities');
   $vocab = taxonomy_vocabulary_machine_name_load(IDW_STAGE_TAXONOMY_MACHINE_NAME);
 
   $term = (object) array(
-   'name' => 'Problem',
-   'description' => 'This is for workflow_batch nodes that have a problem.',
+   'name' => t('Problem'),
+   'description' => t('This is for workflow_batch nodes that have a problem.'),
    'vid' => $vocab->vid,
   );
   taxonomy_term_save($term);
   $problem_tid = islandora_digital_workflow_get_tid_by_name($term->name, $vocab);
 
   $new_stage_term = (object) array(
-   'name' => 'New',
-   'description' => 'This is for workflow_batch nodes that are new.',
+   'name' => t('New'),
+   'description' => t('This is for workflow_batch nodes that are new.'),
    'vid' => $vocab->vid,
   );
   taxonomy_term_save($new_stage_term);
   $new_stage_term->tid;
 
   $term = (object) array(
-   'name' => 'Scanned',
-   'description' => 'This is for workflow_batch nodes that have been scanned.',
+   'name' => t('Scanned'),
+   'description' => t('This is for workflow_batch nodes that have been scanned.'),
    'vid' => $vocab->vid,
   );
   taxonomy_term_save($term);
 
   $term = (object) array(
-   'name' => 'Reviewed',
-   'description' => 'This is for workflow_batch nodes that have been reviewed.',
+   'name' => t('Reviewed'),
+   'description' => t('This is for workflow_batch nodes that have been reviewed.'),
    'vid' => $vocab->vid,
   );
   taxonomy_term_save($term);
 
   $term = (object) array(
-   'name' => 'Metadata Review',
-   'description' => 'Metadata review for batches when all metadata has been "completed", but may still need to be quality-controlled.',
+   'name' => t('Metadata Review'),
+   'description' => t('Metadata review for batches when all metadata has been "completed", but may still need to be quality-controlled.'),
    'vid' => $vocab->vid,
   );
   taxonomy_term_save($term);
-  $metadata_reveiw_tid = islandora_digital_workflow_get_tid_by_name($term->name, $vocab);
+  $metadata_review_tid = islandora_digital_workflow_get_tid_by_name($term->name, $vocab);
 
   $term = (object) array(
-   'name' => 'In Process',
-   'description' => 'Batch in processing -- automatically contains batches that have had any item checked in -- and not all items checked out.',
+   'name' => t('In Process'),
+   'description' => t('Batch in processing -- automatically contains batches that have had any item checked in -- and not all items checked out.'),
    'vid' => $vocab->vid,
   );
   taxonomy_term_save($term);
   $inprocess_tid = islandora_digital_workflow_get_tid_by_name($term->name, $vocab);
 
   $term = (object) array(
-   'name' => 'Inactive',
-   'description' => 'Batch is inactive.',
+   'name' => t('Inactive'),
+   'description' => t('Batch is inactive.'),
    'vid' => $vocab->vid,
   );
   taxonomy_term_save($term);
   $inactive_tid = islandora_digital_workflow_get_tid_by_name($term->name, $vocab);
 
   $term = (object) array(
-   'name' => 'Done',
-   'description' => 'This is for workflow_batch nodes that are done.',
+   'name' => t('Done'),
+   'description' => t('This is for workflow_batch nodes that are done.'),
    'vid' => $vocab->vid,
   );
   taxonomy_term_save($term);
+  $done_tid = islandora_digital_workflow_get_tid_by_name($term->name, $vocab);
 }
 
 /**
@@ -1004,76 +1014,88 @@ function islandora_digital_workflow_insert_islandora_digital_workflow_actions() 
   global $inactive_tid;
   global $inprocess_tid;
   global $metadata_review_tid;
+  global $done_tid;
 
   $islandora_digital_workflow_actions = array(
     // defaults for batch_item actions
     IDW_ACTION_CHECK_IN => array(
       'name' => 'check-in',
-      'description' => 'Check in physical item',
+      'description' => t('Check in physical item'),
       'glyph' => 'images/check-in-physical-item_20.png',
       'stage_taxonomy_tid' => $inprocess_tid,
       'is_triggered_by_single_item' => 1,
     ),
     IDW_ACTION_ADD_MARC_RECORD => array(
       'name' => 'add-marc-record',
-      'description' => 'Add MARC record',
+      'description' => t('Add MARC record'),
       'glyph' => 'images/add-marc-record_20.png',
+      'is_system_action' => 1,
     ),
     IDW_ACTION_MODS_RECORD_UPDATED => array(
       'name' => 'mods-record-updated',
-      'description' => 'MODS record updated',
+      'description' => t('MODS record updated'),
       'glyph' => 'images/mods-record-updated_20.png',
+      'is_system_action' => 1,
     ),
     IDW_ACTION_MODS_RECORD_COMPLETED => array(
       'name' => 'metadata-completed',
-      'description' => 'Metadata Completed',
+      'description' => t('Metadata Completed'),
       'glyph' => 'images/metadata-completed_20.png',
       'stage_taxonomy_tid' => $metadata_review_tid,
       'is_triggered_by_single_item' => 0,
     ),
+    IDW_PUBLISH_OBJECT => array(
+      'name' => 'publish-object',
+      'description' => t('Publish object'),
+      'glyph' => 'images/publish-object_20.png',
+      'stage_taxonomy_tid_rm' => $done_tid,
+      'is_triggered_by_single_item_rm' => 0,
+    ),
     IDW_ACTION_METADATA_PASS_QC => array(
       'name' => 'metadata-passed-qc',
-      'description' => 'Metadata Passed QC',
+      'description' => t('Metadata Passed QC'),
       'glyph' => 'images/metadata-passed-qc_20.png',
       'stage_taxonomy_tid_rm' => $metadata_review_tid,
       'is_triggered_by_single_item_rm' => 0,
     ),
     IDW_ACTION_METADATA_FAIL_QC => array(
       'name' => 'metadata-failed-qc',
-      'description' => 'Metadata Failed QC',
+      'description' => t('Metadata Failed QC'),
       'glyph' => 'images/metadata-failed-qc_20.png',
     ),
     IDW_ACTION_SCAN => array(
       'name' => 'scan',
-      'description' => 'Scan the item',
+      'description' => t('Scan the item'),
       'glyph' => 'images/scan-the-item_20.png',
     ),
     IDW_ACTION_SYSTEM_INGEST => array(
       'name' => 'ingest',
-      'description' => 'Ingest item into repository',
+      'description' => t('Ingest item into repository'),
       'glyph' => 'images/ingest-item-into-repository_20.png',
+      'is_system_action' => 1,
     ),
     IDW_ACTION_CHECK_OUT => array(
       'name' => 'check-out',
-      'description' => 'Check out physical item',
+      'description' => t('Check out physical item'),
       'glyph' => 'images/check-out-physical-item_20.png',
       'stage_taxonomy_tid_rm' => $inprocess_tid,
       'is_triggered_by_single_item_rm' => 0,
     ),
     IDW_ACTION_RESCANNED => array(
       'name' => 'rescan',
-      'description' => 'Rescanned the item',
+      'description' => t('Rescanned the item'),
       'glyph' => 'images/rescanned-the-item_20.png',
     ),
     IDW_ACTION_CHECK_PHYSICAL_ITEMS => array(
       'name' => 'check-physical-items',
-      'description' => 'Check item against physical object',
+      'description' => t('Check item against physical object'),
       'glyph' => 'images/check-item-against-physical-object_20.png',
     ),
     IDW_ACTION_SYSTEM_MADE_DERIVATIVES => array(
       'name' => 'system-made-derivatives',
-      'description' => 'System made derivatives',
+      'description' => t('System made derivatives'),
       'glyph' => 'images/system-made-derivatives_20.png',
+      'is_system_action' => 1,
     ),
     // this will also trigger insertion of a record into the
     // islandora_digital_workflow_problem_items table.  The presence of these
@@ -1082,7 +1104,7 @@ function islandora_digital_workflow_insert_islandora_digital_workflow_actions() 
     // not resolved.
     IDW_ACTION_PROBLEM => array(
       'name' => 'problem',
-      'description' => 'Problem with scan',
+      'description' => t('Problem with scan'),
       'glyph' => 'images/problem_20.png',
       'stage_taxonomy_tid' => $problem_tid,
       'is_triggered_by_single_item' => 1,
@@ -1090,7 +1112,7 @@ function islandora_digital_workflow_insert_islandora_digital_workflow_actions() 
     // batch-level actions (action_id values greater than 100).
     IDW_BATCH_ACTION_INACTIVE => array(
       'name' => 'inactive',
-      'description' => 'Make batch inactive',
+      'description' => t('Make batch inactive'),
       'glyph' => 'images/make-batch-inactive_20.png',
       'stage_taxonomy_tid' => $inactive_tid,
       'is_triggered_by_single_item' => 0,
@@ -1528,8 +1550,8 @@ function _islandora_digital_workflow_installed_instances() {
       'entity_type' => 'node',
       'bundle' => 'workflow_batch',
       'required' => 0,
-      'description' => 'This should not be edited manually.  The system populates ' .
-        'this by parsing the batch\'s uploaded CSV file.',
+      'description' => t('This should not be edited manually.  The system populates ' .
+        'this by parsing the batch\'s uploaded CSV file.'),
       'label' => 'Identifiers',
       'widget' => array(
         'weight' => 5,
