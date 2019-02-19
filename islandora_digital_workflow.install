@@ -169,6 +169,14 @@ function islandora_digital_workflow_schema() {
         'length' => 255,
         'not null' => TRUE,
       ),
+      'extra_info' => array(
+        'type' => 'varchar',
+        'description' => t('Setup values only - this is never editable in the ' .
+            'interface.  The additional action info for special actions.'),
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+
       'glyph' => array(
         'type' => 'varchar',
         'length' => 255,
@@ -1046,7 +1054,8 @@ function islandora_digital_workflow_insert_islandora_digital_workflow_actions() 
     ),
     IDW_PUBLISH_OBJECT => array(
       'name' => 'publish-object',
-      'description' => t('Publish object'),
+      'description' => t('Publish the item'),
+      'extra_info' => t('The system will set the "Collection/s" and "Site/s" relationships for items when this action is assigned.'),
       'glyph' => 'images/publish-object_20.png',
       'stage_taxonomy_tid_rm' => $done_tid,
       'is_triggered_by_single_item_rm' => 0,
@@ -1066,11 +1075,13 @@ function islandora_digital_workflow_insert_islandora_digital_workflow_actions() 
     IDW_ACTION_SCAN => array(
       'name' => 'scan',
       'description' => t('Scan the item'),
+      'extra_info' => t('blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah'),
       'glyph' => 'images/scan-the-item_20.png',
     ),
     IDW_ACTION_SYSTEM_INGEST => array(
       'name' => 'ingest',
       'description' => t('Ingest item into repository'),
+      'extra_info' => t('extra info related to an item being ingested'),
       'glyph' => 'images/ingest-item-into-repository_20.png',
       'is_system_action' => 1,
     ),
@@ -1094,6 +1105,7 @@ function islandora_digital_workflow_insert_islandora_digital_workflow_actions() 
     IDW_ACTION_SYSTEM_MADE_DERIVATIVES => array(
       'name' => 'system-made-derivatives',
       'description' => t('System made derivatives'),
+      'extra_info' => t('extra info related to system derivative creation'),
       'glyph' => 'images/system-made-derivatives_20.png',
       'is_system_action' => 1,
     ),
@@ -1105,6 +1117,7 @@ function islandora_digital_workflow_insert_islandora_digital_workflow_actions() 
     IDW_ACTION_PROBLEM => array(
       'name' => 'problem',
       'description' => t('Problem with scan'),
+      'extra_info' => t('extra info related to Problem action'),
       'glyph' => 'images/problem_20.png',
       'stage_taxonomy_tid' => $problem_tid,
       'is_triggered_by_single_item' => 1,
@@ -1126,6 +1139,7 @@ function islandora_digital_workflow_insert_islandora_digital_workflow_actions() 
         'action_id' => $action_id,
         'name' => $values['name'],
         'description' => $values['description'],
+        'extra_info' => ((isset($values['extra_info']) && $values['extra_info']) ? $values['extra_info'] : ''),
         'glyph' => $values['glyph'],
         'is_batch_action' => (isset($values['is_batch_action']) ? $values['is_batch_action'] : 0),
         'stage_taxonomy_tid' => (isset($values['stage_taxonomy_tid']) ? $values['stage_taxonomy_tid'] : 0),

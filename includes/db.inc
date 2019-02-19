@@ -1767,6 +1767,7 @@ function islandora_digital_workflow_get_action($action_id) {
         'action_id' => $action_id,
         'action_name' => $row->action_name,
         'action_description' => $row->action_description,
+        'extra_info' => $row->extra_info,
         'glyph' => $row->glyph,
         'is_batch_action' => $row->is_batch_action,
         'is_system_action' => $row->is_system_action,

@@ -1042,17 +1042,29 @@ function islandora_digital_workflow_actions_form(array $form, array &$form_state
                 'data' => '<div class="' . $glyph_class . '">&nbsp;</div> ' . $action_record_array['action_name'] . $admin_links, 'class' => array()
             ),
             $action_record_array['action_description'],
-            '<small class="disabled_text">' . $glyph_class . '</small>',
             ($action_record_array['is_system_action'] ? 'Yes' : 'No'),
             $trigger_add_stage,
             $trigger_remove_stage,
         ),
-        'class' => array(),
+        'class' => array((isset($action_record_array['extra_info']) && $action_record_array['extra_info']) ? 'nonborderbottom' : ''),
     );
     if (islandora_digital_workflow_is_batch_action($action_record_array)) {
       $markup_batch_actions[$action_record_array['action_id']] = $arr;
     } else {
       $markup_item_actions[$action_record_array['action_id']] = $arr;
+    }
+    if (isset($action_record_array['extra_info']) && $action_record_array['extra_info']) {
+      $markup_item_actions[$action_record_array['action_id'] . '_extrainfo'] = array(
+        'data' => array(
+          '' => '',
+          'info' => array(
+            'colspan' => 4,
+            // here is the extra info
+            'data' => $action_record_array['extra_info'],
+            'class' => array('small_lt_text'),
+          ),
+        ),
+      );
     }
   }
   $markup_batch_actions[] = array(
@@ -1061,7 +1073,6 @@ function islandora_digital_workflow_actions_form(array $form, array &$form_state
             '<a href="/admin/islandora/islandora_digital_workflow/workflow_sequence_actions/add">Add new batch action</a><div class="admin_links">' . 
             '<a href="/admin/islandora/islandora_digital_workflow/workflow_sequence_actions/add" title="Add"><div class="add_20">&nbsp;</div></a></div>'),
           '&nbsp;',
-          '<small class="disabled_text">transaction_action_unconfigured_reserved_action</small>',
           '',
           '',
           '',
@@ -1073,38 +1084,33 @@ function islandora_digital_workflow_actions_form(array $form, array &$form_state
             '<a href="/admin/islandora/islandora_digital_workflow/workflow_sequence_actions/add">Add new item action</a><div class="admin_links">' . 
             '<a href="/admin/islandora/islandora_digital_workflow/workflow_sequence_actions/add" title="Add"><div class="add_20">&nbsp;</div></a></div>'),
           '&nbsp;',
-          '<small class="disabled_text">transaction_action_unconfigured_reserved_action</small>',
           '',
           '',
           '',
       ),
   );
 
-  $header = array(t('Action Name'), t('Description'), t('CSS class name'),
-    t('System Action'), t('Add Stage'), t('Remove Stage'));
-  foreach ($markup_item_actions as $action_id => $markup) {
-    $form['reserved_actions']['item_actions'] = array(
-        '#type' => 'item',
-        '#markup' => '<h3>Item Actions</h3>' . theme('table',
-            array(
-                'header' => $header,
-                'rows' => $markup_item_actions,
-                'attributes' => array('class' => array('full_width')))
-        ),
-    );
-  }
+  $header = array(t('Action Name'), t('Description'), t('System Action'),
+      t('Add Stage'), t('Remove Stage'));
+  $form['reserved_actions']['item_actions'] = array(
+      '#type' => 'item',
+      '#markup' => '<h3>Item Actions</h3>' . theme('table',
+          array(
+              'header' => $header,
+              'rows' => $markup_item_actions,
+              'attributes' => array('class' => array('full_width')))
+      ),
+  );
 
-  foreach ($markup_batch_actions as $action_id => $markup) {
-    $form['reserved_actions']['batch_actions'] = array(
-        '#type' => 'item',
-        '#markup' => '<h3>Batch Actions</h3>' . theme('table',
-            array(
-                'header' => $header,
-                'rows' => $markup_batch_actions,
-                'attributes' => array('class' => array('full_width')))
-        ),
-    );
-  }
+  $form['reserved_actions']['batch_actions'] = array(
+      '#type' => 'item',
+      '#markup' => '<h3>Batch Actions</h3>' . theme('table',
+          array(
+              'header' => $header,
+              'rows' => $markup_batch_actions,
+              'attributes' => array('class' => array('full_width')))
+      ),
+  );
 
   return $form;
 }
@@ -1157,6 +1163,10 @@ function islandora_digital_workflow_actions_edit_form(array $form, array &$form_
       '#type' => 'hidden',
       '#default_value' => $action_id,
   );
+
+  if ($action_record['extra_info']) {
+    drupal_set_message($action_record['extra_info'], 'message_info');
+  }
 
   $action_name = ((array_key_exists('action_name', $action_record)) ? $action_record['action_name'] : '');
   $form['name_desc_wrapper'] = array(
@@ -1471,4 +1481,3 @@ function islandora_digital_workflow_actions_add_form(array $form, array &$form_s
   $form = drupal_get_form('islandora_digital_workflow_actions_edit_form', 0);
   return $form;
 }
-

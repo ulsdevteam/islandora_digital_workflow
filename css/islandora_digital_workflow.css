@@ -393,6 +393,10 @@ div.form-disabled label.enabled_text {
     font-weight: normal;
 }
 
+.nonborderbottom {
+    border-bottom: none !important;
+}
+
 .small_lt_text {
     color: #888;
     font-size: small;

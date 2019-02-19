@@ -2715,22 +2715,13 @@ function islandora_digital_workflow_create_review_collections($collection_pids) 
  *   Straight array of filenames used for the static glyphs.
  */
 function islandora_digital_workflow_static_glyph_filenames() {
-  return array(
-      'add-marc-record' => 'images/add-marc-record_20.png',
-      'mods-record-updated' => 'images/mods-record-updated_20.png',
-      'problem' => 'images/problem_20.png',
-      'metadata-completed' => 'images/metadata-completed_20.png',
-      'metadata-passed-qc' => 'images/metadata-passed-qc_20.png',
-      'metadata-failed-qc' => 'images/metadata-failed-qc_20.png',
-      'check-in-physical-item' => 'images/check-in-physical-item_20.png',
-      'check-item-against-physical-object' => 'images/check-item-against-physical-object_20.png',
-      'check-out-physical-item' => 'images/check-out-physical-item_20.png',
-      'ingest-item-into-repository' => 'images/ingest-item-into-repository_20.png',
-      'rescanned-the-item' => 'images/rescanned-the-item_20.png',
-      'scan-the-item' => 'images/scan-the-item_20.png',
-      'system-made-derivatives' => 'images/system-made-derivatives_20.png',
-      'unconfigured-reserved-action' => 'images/unconfigured-reserved-action_20.png',
-      'make-batch-inactive' => 'images/make-batch-inactive_20.png',
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
+  $all_actions = islandora_digital_workflow_get_all_actions();
+  $glyph_filenames_arr = array();
+  foreach ($all_actions as $action_id => $action_arr) {
+    $glyph_filenames_arr[$action_arr['action_name']] = $action_arr['glyph'];
+  }
+  $static_glyph_filenames = array(
       'custom-glyph-01' => 'images/custom-glyph-01_20.png',
       'custom-glyph-02' => 'images/custom-glyph-02_20.png',
       'custom-glyph-03' => 'images/custom-glyph-03_20.png',
@@ -2751,8 +2742,9 @@ function islandora_digital_workflow_static_glyph_filenames() {
       'custom-glyph-18' => 'images/custom-glyph-18_20.png',
       'custom-glyph-19' => 'images/custom-glyph-19_20.png',
       'custom-glyph-20' => 'images/custom-glyph-20_20.png',
-      'custom-glyph-21' => 'imagesz/custom-glyph-21_20.png',
+      'custom-glyph-21' => 'images/custom-glyph-21_20.png',
       );
+  return array_merge($static_glyph_filenames, $glyph_filenames_arr);
 }
 
 /**
