@@ -1137,7 +1137,7 @@ function islandora_digital_workflow_user_post_render(&$markup) {
 /**
  * Implements hook_page_alter().
  *
- * This code will inject a link to any Webform submission that is .
+ * This code will inject a link to any Webform submission that is.
  */
 function islandora_digital_workflow_page_alter(&$page) {
   if (array_key_exists('content', $page) && array_key_exists('system_main', $page['content']) &&

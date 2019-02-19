@@ -2189,8 +2189,10 @@ function islandora_digital_workflow_merge_uploaded_csv_files(&$batch_record, $no
  * This will take an array and return it as a legal CSV string -- used for each
  * row to make a while file CSV representation for the data.
  *
- * @param type $array
- * @return type
+ * @param array $array
+ *   Array of values to convert into CSV format.
+ * @return string
+ *   The string representation of a CSV file.
  */
 function islandora_digital_workflow_array_to_csv($array) {
   $cleansed_arr = array();
@@ -2896,7 +2898,6 @@ function islandora_digital_workflow_purge_ds_for_identifiers($identifiers, $dsid
  * Helper function that will purge the datastreams from the child page objects - used
  * after PDF, or OCR datastreams have been aggregated successfully.  This will check for the
  * datastream to exist on the parent object before deleting the child's datastreams.
- *
  */
 function islandora_digital_workflow_purge_childpages_datastreams($islandora_object, $pages, $dsid) {
   // Remove the PDF datastreams for all child pages if the PDF has been aggregated
@@ -3668,12 +3669,12 @@ function islandora_digital_workflow_save_batch_items_mods($batch_item_ids) {
 }
 
 /**
- * REturns the Title of a MODS files.
+ * Returns the Title of a MODS files.
  *
  * @param string $mods_filename
  *   A filename on the web server.
  * @return the title value that is parsed out of the MODS via running a
- * xpath query of //mods/titleInfo/title
+ * xpath query of //mods/titleInfo/title.
  */
 function islandora_digital_workflow_get_mods_title($mods_filename) {
   $title = '';

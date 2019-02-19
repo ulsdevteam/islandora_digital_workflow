@@ -7,7 +7,8 @@
 
 /**
  * Handler for menu route "islandora/islandora_digital_workflow/lookup".  This
- * simply redirects to the corrislandora_digital_workflow_lookup_form_submitect handler without the "q=" part.
+ * simply redirects to the corrislandora_digital_workflow_lookup_form_submitect
+ * handler without the "q=" part.
  */
 function islandora_digital_workflow_lookup() {
   $q = isset($_POST['q']) ? trim($_POST['q']) : NULL;

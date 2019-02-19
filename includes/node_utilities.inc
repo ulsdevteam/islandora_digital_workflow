@@ -111,7 +111,6 @@ function islandora_digital_workflow_sync_node_batch_record_info($node, $form_sta
  *   nid value for a Drupal node object.
  * @param string $stage_name
  *   The name of the state value like "New", "Problem"
- *
  */
 function islandora_digital_workflow_set_node_stage($nid, $stage_name = '', $stage_tid = FALSE, $is_removal = FALSE) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy_utilities');

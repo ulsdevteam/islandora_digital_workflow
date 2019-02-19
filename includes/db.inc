@@ -698,7 +698,6 @@ function islandora_digital_workflow_check_trigger_stage_change($transaction_id =
  *   An alternate user uid value to use for this transaction.
  * @param string $problem_notes
  *   The notes that the user entered to submit the problem with the item.
- *
  */
 function islandora_digital_workflow_set_problem_record($transaction_id, $alternative_uid = NULL, $problem_notes = '') {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
@@ -1246,6 +1245,7 @@ function islandora_digital_workflow_calculate_item_progress_filedetails($batch_i
       ->execute();
   }
   islandora_digital_workflow_recalc_batch_files($batch_record, $output_contents, $output_footer, $batch_item_id);
+  islandora_digital_workflow_update_batch_record_progress($batch_record);
 }
 
 /**
@@ -1635,6 +1635,9 @@ function islandora_digital_workflow_insert_transactions_record($action_id, $batc
       // Before exiting, this can cause the "progress" of an item to change
       $item_working_item_path = islandora_digital_workflow_batch_path($batch_record, 'working') .
           '/' . $batch_item_obj->identifier;
+      if (!file_exists($item_working_item_path)) {
+        mkdir($item_working_item_path);
+      }
       islandora_digital_workflow_calculate_item_progress_filedetails($batch_item_id, $batch_record, $item_working_item_path);
     }
 
@@ -1934,7 +1937,7 @@ function islandora_digital_workflow_create_islandora_digital_workflow_sql_config
  * to a given batch_id.
  *
  * @param integer $batch_id
- *   The batch_id of the batch being sync'd from the delivery directory,
+ *   The batch_id of the batch being sync'd from the delivery directory.
  */
 function islandora_digital_workflow_unset_problems_records($batch_id) {
   $sql = 'UPDATE islandora_digital_workflow_problem_items 
@@ -2248,7 +2251,7 @@ function islandora_digital_workflow_update_batch_record_progress($batch_record =
   // Go in the reverse order of possible progress values.
   if (!($set_batch_progress_to = islandora_digital_workflow_batch_items_all_same_progress($batch_items, t('Completed'), array()))) {
     if (!($set_batch_progress_to = islandora_digital_workflow_batch_items_all_same_progress($batch_items, t('Prepared'), array(t('Completed'))))) {
-      if (!($set_batch_progress_to = islandora_digital_workflow_batch_items_all_same_progress($batch_items, t('In Process'), array(t('Prepared'), t('Completed'))))) {
+      if (!($set_batch_progress_to = islandora_digital_workflow_batch_items_all_same_progress($batch_items, t('In Progress'), array(t('Prepared'), t('Completed'))))) {
         $set_batch_progress_to = t('New');
       }
     }
@@ -2348,7 +2351,6 @@ function islandora_digital_workflow_get_webformsubmission($sid) {
  *   Optional type of component to filter upon.
  * @return mixed
  *   Returns the extra value if there is a matching record, else returns NULL.
- *
  */
 function islandora_digital_workflow_get_webform_componentdef_extra($cid, $type = '') {
   $query = db_select('webform_component', 'wc')

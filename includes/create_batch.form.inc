@@ -755,7 +755,6 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
  *   The name of the Islandora model for which the form is being generated.
  * @param array $form
  *   Drupal form representation as an array.
- *
  */
 function islandora_digital_workflow_remove_model_based_form_elements($model_name, &$form) {
   switch ($model_name) {
@@ -940,6 +939,8 @@ function islandora_digital_workflow_sync_batch_items() {
 }
 
 /**
+ * The Drupal form to confirm the "Sync files" procedure.  See the function
+ * islandora_digital_workflow_sync_batch_items() above.
  *
  * @param array $form
  *   The Drupal form definition.
@@ -970,6 +971,7 @@ function islandora_digital_workflow_sync_batch_items_confirmation(array $form, a
 }
 
 /**
+ * Submit form handler for "Sync files" procedure.
  *
  * @param array $form
  *   The Drupal form definition.
