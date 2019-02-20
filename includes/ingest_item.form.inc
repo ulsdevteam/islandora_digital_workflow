@@ -242,6 +242,28 @@ function islandora_digital_workflow_make_drush_prepare_statement($batch_item_obj
   // For the --parent parameter use the collection mappings
   // For the -- use the site_id mapping based on config for islandora_digital_workflow_use_isMemberOfSite.
 
+  // Switch all collections over to use the "_review" instances of the
+  // collections -- when the object is set to "Publish the item", then the
+  // relationship to the intended collections will be set.
+  if (variable_get('islandora_digital_workflow_use_isMemberOfSite', 0)) {
+    $parent = $batch_record['mapto_collections'];
+    $collections_arr = explode(",", $parent);
+    $review_collections = array();
+    foreach ($collections_arr as $collection_pid) {
+      $collection_pid = trim($collection_pid);
+      if ($collection_pid) {
+        $review_collections[] = str_replace("_review", "", $collection_pid) . '_review';
+      }
+    }
+    if (count($review_collections) > 0) {
+      islandora_digital_workflow_create_review_collections($review_collections);
+    }
+    $parent = implode(",", $review_collections);
+  }
+  else {
+    $parent = $batch_record['mapto_collections'];
+  }
+
   // For the --assign_pid value, use the items' identifier value prefixed by
   //   config variable_get('islandora_digital_workflow_ingest_namespace', 'islandora')
   //   ELSE islandora_pid value
@@ -261,7 +283,7 @@ function islandora_digital_workflow_make_drush_prepare_statement($batch_item_obj
   // Parent parameter as mapto_site_id_values value.  If this is not set, the
   // object will be related to the top-level collection islandora:root.
   if ($batch_record['mapto_collections']) {
-    $param_and_vals[] = 'parent=' . $batch_record['mapto_collections'];
+    $param_and_vals[] = 'parent=' . $parent;
   }
   else {
     // we should set some collection as the parent --

@@ -202,6 +202,19 @@ ignored_filename_*
         '#default_value' => variable_get('islandora_digital_workflow_use_isMemberOfSite', 0),
       ),
     ),
+    'reviewCollections' => array(
+      '#type' => 'item',
+      '#title' => t('Batch "isMemberOfSite" property'),
+      'use_reviewCollections' => array(
+        '#type' => 'checkbox',
+        '#title' => 'Use the "Review collections"',
+        '#description' => 'When this is checked and objects are ingested, they ' .
+          'related to clones of the selected collections so that they may be ' .
+          'reviewed in the Islandora user interface before they are published.',
+        '#default_value' => variable_get('islandora_digital_workflow_use_reviewCollections', 0),
+      ),
+    ),
+
     'delete_delivery_when_scanned_property' => array(
       '#type' => 'item',
       '#title' => t('Delete files after scan copies made'),
@@ -338,6 +351,8 @@ function islandora_digital_workflow_admin_form_submit(array $form, array &$form_
       variable_set('islandora_digital_workflow_ingest_problems_path', $form_state['values']['ingest_problems_path']);
       variable_set('islandora_digital_workflow_ingest_ignore_filenames', $form_state['values']['ingest_ignore_filenames']);
       variable_set('islandora_digital_workflow_use_isMemberOfSite', $form_state['values']['batch_use_isMemberOfSite']);
+      variable_set('islandora_digital_workflow_use_reviewCollections', $form_state['values']['use_reviewCollections']);
+
       // Depending on the file permissions, the folders may not be able to be deleted,
       // so override this flag setting here if that's the case.
       $delivery_path = $form_state['values']['ingest_delivery_path'];
@@ -405,6 +420,7 @@ function islandora_digital_workflow_admin_form_submit(array $form, array &$form_
       variable_del('islandora_digital_workflow_ingest_namespace');
       variable_del('islandora_digital_workflow_ingest_prepared_path');
       variable_del('islandora_digital_workflow_use_isMemberOfSite');
+      variable_del('islandora_digital_workflow_use_reviewCollections');
       variable_del('islandora_digital_workflow_delete_delivery_files');
       variable_del('islandora_digital_workflow_delete_delivery_files_INTENDED_VAL');
       variable_del('islandora_digital_workflow_handle_islandora_hook');
