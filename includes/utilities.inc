@@ -3702,3 +3702,53 @@ function islandora_digital_workflow_get_mods_title($mods_filename) {
   }
   return $title;
 }
+
+/**
+ * This will "publish" the object to the islandora site so that the public can
+ * discover it.
+ *
+ * This code needs to:
+ *      a. remove any relationship to "_review" collections
+ *      b. add relalationship/s to collection/s and site/s.
+ * 
+ * @param integer $batch_item_id
+ *   Identifier for the batch item to publish.
+ */
+function islandora_digital_workflow_publish_object($batch_item_id) {
+  // Get the batch record for this item for the collection/s and site/s mappings.
+  $batch_record = islandora_digital_workflow_get_batch_record_by_batch_id(NULL, $batch_item_id);
+  // Get the batch item object so that the Islandora object can be found.
+  $item_record_results = islandora_digital_workflow_get_batch_item_record($batch_item_id);
+  $batch_item_obj = array_pop($item_record_results);
+  $pid = ($batch_item_obj->assigned_pid) ? $batch_item_obj->assigned_pid :
+    $batch_record['ingest_namespace'] . ':' . $batch_item_obj->identifier;
+
+  $islandora_object = islandora_object_load($pid);
+
+  if (is_object($islandora_object)) {
+    // Remove any Collections relationships for the object
+    $islandora_object->relationships->remove(FEDORA_RELS_EXT_URI, 'isMemberOfCollection', NULL);
+    if (variable_get('islandora_digital_workflow_use_isMemberOfSite', 0)) {
+      $s_ns = variable_get('islandora_memberofsite_namespace', 'http://digital.library.pitt.edu/ontology/relations#');
+      $islandora_object->relationships->remove($s_ns, 'isMemberOfSite', NULL);
+    }
+  }
+  // Add relationships to the Site/s if configured and if batch has values.
+  $sites = trim($batch_record['mapto_site_id_values']);
+  if (variable_get('islandora_digital_workflow_use_isMemberOfSite', 0) && ($sites <> '')) {
+    $sites_arr = explode(",", $sites);
+    $s_ns = variable_get('islandora_memberofsite_namespace', 'http://digital.library.pitt.edu/ontology/relations#');
+    foreach ($sites_arr as $site) {
+      $islandora_object->relationships->add($s_ns, 'isMemberOfSite', $site);
+    }
+
+  }
+  // Add relationships to the Collection/s if batch has values.
+  $collections = trim($batch_record['mapto_collections']);
+  if ($collections <> '') {
+    $collections_arr = explode(",", $collections);
+    foreach ($collections_arr as $collection) {
+      $islandora_object->relationships->add(FEDORA_RELS_EXT_URI, 'isMemberOfCollection', $collection);
+    }
+  }
+}

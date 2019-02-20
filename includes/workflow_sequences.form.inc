@@ -669,6 +669,7 @@ function islandora_digital_workflow_workflow_sequence_actions_form_submit($form,
   foreach ($batch_actions as $action_id => $batch_action) {
     $all_actions[$action_id] = $batch_action;
   }
+
   $current_action_ids = $slides = array();
   $workflow_sequence_id = 0;
   $model = $form_state['values']['model'];
@@ -685,7 +686,8 @@ function islandora_digital_workflow_workflow_sequence_actions_form_submit($form,
   if (array_key_exists('rows', $form_state['values']['wrapper'])) {
     foreach ($form_state['values']['wrapper']['rows'] as $id => $item) {
       if ($id <> $remove_action_id) {
-        $current_action_ids[$item['action_id']] = $item['action_id'];
+        $this_action_id = $item['action_id'];
+        $current_action_ids[$item['action_id']] = $this_action_id;
         $workflow_sequence_id |= $item['workflow_sequence_id'];
       }
     }
@@ -693,6 +695,7 @@ function islandora_digital_workflow_workflow_sequence_actions_form_submit($form,
       $workflow_sequence_id = $sequence_arr['workflow_sequence_id'];
     }
   }
+
   if ($form_state['values']['wrapper']['add_new_item_action']) {
     if ((array_key_exists('rows', $form_state['values']['wrapper']))) {
       $index = count($form_state['values']['wrapper']['rows']) + 1;

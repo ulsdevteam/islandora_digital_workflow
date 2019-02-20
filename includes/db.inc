@@ -1222,10 +1222,11 @@ function islandora_digital_workflow_calculate_item_progress_filedetails($batch_i
   $item_ready_for_ingest = islandora_digital_workflow_item_ingest_prerequisites_all_done($item_record_transactions, $required_batch_actions);
   $progress = ($item_ready_for_ingest) ? 'Prepared' : $progress;
 
-  // Now if it is ready for ingest, we should check to see whether or not it is done.
+  // Now if it is ready for ingest, we should check to see whether or not it has
+  // been published.
   $item_done = FALSE;
   foreach ($item_record_transactions as $item_transaction_object) {
-    $item_done |= ($item_transaction_object->action_id  == IDW_ACTION_SYSTEM_INGEST);
+    $item_done |= ($item_transaction_object->action_id  == IDW_PUBLISH_OBJECT);
   }
 
   // There may be the action_id that the object is ingested / done, but we may want to
@@ -1592,6 +1593,10 @@ function islandora_digital_workflow_insert_batch_item($fields) {
  * by calling islandora_digital_workflow_set_problem_record.
  *   3. When the action is "Scanned" (IDW_ACTION_SCAN), the code needs to copy and
  * possibly delete the delivery file.
+ *   4. When the action is "Publish the item" (IDW_PUBLISH_OBJECT), the code
+ * needs to:
+ *      a. remove any relationship to "_review" collections
+ *      b. add relalationship/s to collection/s and site/s.
  *
  * @param type $action_id
  *   id value correponding to the action_id to insert.
@@ -1626,6 +1631,8 @@ function islandora_digital_workflow_insert_transactions_record($action_id, $batc
       islandora_digital_workflow_set_problem_record($transaction_id, ($alternative_uid) ? $alternative_uid : $user->uid, $problem_notes);
     } elseif ($action_id == IDW_ACTION_SCAN && !is_null($batch_item_id)) {
       islandora_digital_workflow_copy_delivery_files($batch_item_id, FALSE, NULL);
+    } elseif ($action_id == IDW_PUBLISH_OBJECT) {
+      islandora_digital_workflow_publish_object($batch_item_id);
     }
 
     if (!is_null($batch_item_id)) {

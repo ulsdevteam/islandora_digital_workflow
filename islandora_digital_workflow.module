@@ -667,6 +667,14 @@ function islandora_digital_workflow_theme() {
         'normal_size' => TRUE,
       ),
     ),
+    'islandora_digital_workflow_messages_div' => array(
+      'template' => 'theme/islandora-digital-workflow-messages-div',
+      'variables' => array(
+        'message_type' => '',
+        'title' => '',
+        'message' => '',
+      ),
+    ),
     'islandora_digital_workflow_rounded_box' => array(
       'template' => 'theme/islandora-digital-workflow-rounded-box',
       'variables' => array(
@@ -976,7 +984,10 @@ function theme_islandora_digital_workflow_workflow_sequence_actions_form($variab
   $form = $variables['form'];
   $sequence_id = 9999;
   $rows = array();
+  $this_action_id = $sequence_has_publish_action = FALSE;
   foreach (element_children($form['wrapper']['rows']) as $action_id) {
+    $this_action_id = $action_id;
+    $sequence_has_publish_action |= ($action_id == IDW_PUBLISH_OBJECT);
     $action_record = islandora_digital_workflow_get_action($action_id);
     $form['wrapper']['rows'][$action_id]['weight']['#attributes']['class'] = array('rows-order-weight');
     $sequence_id = $form['wrapper']['rows'][$action_id]['workflow_sequence_id']['#value'];
@@ -999,9 +1010,33 @@ function theme_islandora_digital_workflow_workflow_sequence_actions_form($variab
       'class' => $classes,
     );
   }
+  $prefix_message = '';
+  // Display a message if the publish action is not included or if it is not
+  // the final action in the workflow sequence.
+  if (!$sequence_has_publish_action) {
+    $prefix_message .= 'This sequence does not have the "<b>Publish the ' .
+      'item</b>" action.  In order for the item to be considered "<span ' .
+      'class="progress_completed">Completed</span>", this action is needs to ' .
+      'be added to the workflow sequence as the final step and it should not ' .
+      'ever be an "Ingest Prerequisite</b>.</div>';
+  }
+  // If the final action was not "Publish the item"...
+  if (!($this_action_id == IDW_PUBLISH_OBJECT)) {
+    drupal_set_message('The final action for any workflow sequence should be ' .
+      'the "<b>Publish the item</b>" action.  Please ' .
+      ((!$sequence_has_publish_action) ? 'add it and then ' : '') .
+      'drag it to the bottom and save the changes.', 'warning');
+  }
 
-  $header = array('', '', t('Action (If empty, title is used)'), t('Required?'), t('Ingest Prerequisite?'), t('Weight'), t('Operations'));
-  $output = theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => array('id' => 'rows-order-' . $sequence_id)));
+  $header = array('', '', t('Action'), t('Required?'), t('Ingest Prerequisite?'), t('Weight'), t('Operations'));
+  $output = '<p>Actions that are set to be <b>Required</b> will make ' .
+    'any items that use this action in their workflow sequence to not be ' .
+    '"<span class="progress_completed">Completed</span>" until all of the ' .
+    'actions in its sequence have been added.</p>' .
+    '<p>When a workflow sequence uses an action that is set to be an ' .
+    '<b>Ingest Prerequisite</b>, the item can not be ingested until all ' .
+    'of these have been added.</p>' .
+    theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => array('id' => 'rows-order-' . $sequence_id)));
   $output .= drupal_render_children($form);
 
   drupal_add_tabledrag('rows-order-' . $sequence_id, 'order', 'sibling', 'rows-order-weight', NULL, NULL, FALSE);
@@ -1169,21 +1204,26 @@ function islandora_digital_workflow_page_alter(&$page) {
         }
         $batch_record = array_pop($batches);
         $batch_name = $batch_record->batch_name;
-        $page['content']['system_main']['#submission_information'] = '<div class="messages warning">' .
-          l('Convert this Digitization Request into an Islandora Digital ' .
-            'Workflow batch.', 'islandora/islandora_digital_workflow/map_digitization_request_to_batch/' . $nid . '/' . $sid) .
-          '<hr><b class="bad">Are you sure that you want to map this same ' .
-          'request into another batch?</b>  <b>This digitization request has ' .
-          'already been mapped to at least one batch already:</b> <i>(links ' .
-          'open in separate tab)</i><ul><li>' .
-          implode("</li><li>", $links) . '</li></ul></div>' .
-          $page['content']['system_main']['#submission_information'];
+        $page['content']['system_main']['#submission_information'] =
+          theme('islandora_digital_workflow_messages_div', array(
+            'message_type' => 'warning',
+            'message' => l('Convert this Digitization Request into an Islandora Digital ' .
+                'Workflow batch.', 'islandora/islandora_digital_workflow/map_digitization_request_to_batch/' . $nid . '/' . $sid) .
+              '<hr><b class="bad">Are you sure that you want to map this same ' .
+              'request into another batch?</b>  <b>This digitization request has ' .
+              'already been mapped to at least one batch already:</b> <i>(links ' .
+              'open in separate tab)</i><ul><li>' .
+              implode("</li><li>", $links) . '</li></ul></div>' .
+              $page['content']['system_main']['#submission_information'],
+          ));
       }
       else {
-        $page['content']['system_main']['#submission_information'] = '<div class="messages warning">' .
-            l('Convert this Digitization Request into an Islandora Digital Workflow batch.',
+        $page['content']['system_main']['#submission_information'] = theme('islandora_digital_workflow_messages_div', array(
+            'message_type' => 'warning',
+            'message' => l('Convert this Digitization Request into an Islandora Digital Workflow batch.',
                 'islandora/islandora_digital_workflow/map_digitization_request_to_batch/' . $nid . '/' . $sid) .
-            '</div>' . $page['content']['system_main']['#submission_information'];
+            '</div>' . $page['content']['system_main']['#submission_information'],
+          ));
       }
     }
   }

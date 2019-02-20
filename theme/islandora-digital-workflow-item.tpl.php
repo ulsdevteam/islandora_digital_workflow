@@ -70,7 +70,7 @@
   <?php endif; ?>
 
   <?php if ($can_ingest): ?>
-    <?php if ($ingested_links) : ?>
+    <?php if ($ingested_links || $item->progress == 'Completed') : ?>
     <div class="messages warning">
       <div class="bad"><p><b>All requirements are completed.  This object has already been ingested.</b></p>
         <p><i>You will need to manually delete the object and any islandora_batch queue records before this can ingest again.</i><br>

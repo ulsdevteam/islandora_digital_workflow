@@ -539,8 +539,10 @@ function islandora_digital_workflow_convert_digitization_request_to_batch(array 
   $confirm_mapping_form = array();
   $confirm_mapping_form['nothing'] = array(
     '#type' => 'item',
-    '#markup' => '<div class="messages warning">' . $return_to_submission_link . '</div>' .
-      ((count($mappings) > 0) ?
+    '#markup' => theme('islandora_digital_workflow_messages_div', array(
+      'message_type' => 'warning',
+      'message' => $return_to_submission_link,
+    )) . ((count($mappings) > 0) ?
         '<div class="big_font bad">' .
           t('<b>THIS CAN NOT BE UNDONE!</b><br>Are you SURE that you want to ' .
             'map this digitization request into a batch record?') .
