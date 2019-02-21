@@ -289,6 +289,7 @@ function islandora_digital_workflow_sync_node_to_items($batch_record, $node, $ba
       foreach ($item_file_sources as $csv_file_source) {
         islandora_digital_workflow_sync_batch_item_record($batch_record, $csv_file_source, $batch_item_identifiers_to_transaction_ids, $alternative_uid);
       }
+      islandora_digital_workflow_update_batch_record_progress($batch_record);
     }
   }
 }
@@ -378,6 +379,7 @@ function islandora_digital_workflow_sync_batch_item_record($batch_record, $csv_f
       islandora_digital_workflow_check_trigger_stage_change($timestamp_transaction_id['transaction_id']);
     }
   }
+  islandora_digital_workflow_calculate_item_progress_filedetails($batch_item_id, $batch_record);
 }
 
 /**

@@ -60,6 +60,7 @@ function islandora_digital_workflow_actual_utilities_form($form, &$form_state) {
  * Helper function that will:
  *   1. scan all batch item folders
  *   2. send all results to islandora_digital_workflow_update_item_file_data
+ * (see islandora_digital_workflow_recalc_batch_files()).
  * so that the records can be updated.
  *
  * @return array

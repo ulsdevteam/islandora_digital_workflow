@@ -1186,13 +1186,6 @@ function islandora_digital_workflow_update_batch_item_record($batch_item_id, $up
     }
   }
 
-  // Get the current working directory path for the item to pass on to the
-  // calculate function.
-  $item_working_item_path = (($update_working_item_path) ? $update_working_item_path : $current_working_item_path);
-  // Call the function that will update the calculated values for item_progress, file_count, and file_size
-  islandora_digital_workflow_calculate_item_progress_filedetails($batch_item_id, $batch_record, $item_working_item_path);
-  islandora_digital_workflow_update_batch_record_progress($batch_record);
-
   return $results;
 }
 
@@ -1203,50 +1196,50 @@ function islandora_digital_workflow_update_batch_item_record($batch_item_id, $up
  *   The batch_item_id of the item for which to calculate progress,
  * @param array $batch_record
  *   The batch record array that the item belongs to.
- * @param string $item_working_item_path
- *   The working directory that the item uses for the digital items.
  */
-function islandora_digital_workflow_calculate_item_progress_filedetails($batch_item_id, $batch_record, $item_working_item_path)  {
-  $item_record_transactions = islandora_digital_workflow_get_batch_item_transactions($batch_item_id, $batch_record['nid'], $batch_record['batch_id']);
-  $required_batch_actions = islandora_digital_workflow_get_required_batch_actions($batch_record['batch_id']);
-  $item_record_results = islandora_digital_workflow_get_batch_item_record($batch_item_id);
-  $batch_item_obj = array_pop($item_record_results);
-  // Start with the easiest assumption... the item is new:
-  $progress = 'New';
+function islandora_digital_workflow_calculate_item_progress_filedetails($batch_item_id, $batch_record)  {
+  if (!is_null($batch_item_id)) {
+    $item_record_transactions = islandora_digital_workflow_get_batch_item_transactions($batch_item_id, $batch_record['nid'], $batch_record['batch_id']);
+    $required_batch_actions = islandora_digital_workflow_get_required_batch_actions($batch_record['batch_id']);
+    $item_record_results = islandora_digital_workflow_get_batch_item_record($batch_item_id);
+    $batch_item_obj = array_pop($item_record_results);
+    // Start with the easiest assumption... the item is new:
+    $progress = 'New';
 
-  // Are there any actions for this item?  If so, then consider it "In Progress".
-  if (is_array($item_record_transactions) && count($item_record_transactions) > 1) {
-    $progress = 'In Progress';
-  }
-  // Now, if it is not new, we must see if it is ready for ingest:
-  $item_ready_for_ingest = islandora_digital_workflow_item_ingest_prerequisites_all_done($item_record_transactions, $required_batch_actions);
-  $progress = ($item_ready_for_ingest) ? 'Prepared' : $progress;
+    // Are there any actions for this item?  If so, then consider it "In Progress".
+    if (is_array($item_record_transactions) && count($item_record_transactions) > 1) {
+      $progress = 'In Progress';
+    }
+    // Now, if it is not new, we must see if it is ready for ingest:
+    $item_ready_for_ingest = islandora_digital_workflow_item_ingest_prerequisites_all_done($item_record_transactions, $required_batch_actions);
+    $progress = ($item_ready_for_ingest) ? 'Prepared' : $progress;
 
-  // Now if it is ready for ingest, we should check to see whether or not it has
-  // been published.
-  $item_done = FALSE;
-  foreach ($item_record_transactions as $item_transaction_object) {
-    $item_done |= ($item_transaction_object->action_id  == IDW_PUBLISH_OBJECT);
-  }
+    // Now if it is ready for ingest, we should check to see whether or not it has
+    // been published.
+    $item_done = FALSE;
+    foreach ($item_record_transactions as $item_transaction_object) {
+      $item_done |= ($item_transaction_object->action_id  == IDW_PUBLISH_OBJECT);
+    }
 
-  // There may be the action_id that the object is ingested / done, but we may want to
-  // check whether or not the islandora object behind that item ACTUALLY does exist.
-  if ($item_done) {
-    $namespace = islandora_digital_workflow_get_ingest_namespace($batch_record);
-    $pid = ($batch_item_obj->assigned_pid <> '') ? $batch_item_obj->assigned_pid : $namespace . $batch_item_obj->identifier;
-    $islandora_object = islandora_object_load($pid);
-    $item_done |= (is_object($islandora_object));
+    // There may be the action_id that the object is ingested / done, but we may want to
+    // check whether or not the islandora object behind that item ACTUALLY does exist.
+    if ($item_done) {
+      $namespace = islandora_digital_workflow_get_ingest_namespace($batch_record);
+      $pid = ($batch_item_obj->assigned_pid <> '') ? $batch_item_obj->assigned_pid : $namespace . $batch_item_obj->identifier;
+      $islandora_object = islandora_object_load($pid);
+      $item_done |= (is_object($islandora_object));
+    }
+    $progress = ($item_done) ? 'Completed' : $progress;
+    if ($progress <> $batch_item_obj->progress) {
+      $set_fields = array('progress' => $progress);
+      db_update('islandora_digital_workflow_batch_items')
+        ->condition('batch_item_id', $batch_item_id)
+        ->fields($set_fields)
+        ->execute();
+    }
+    islandora_digital_workflow_recalc_batch_files($batch_record, $output_contents, $output_footer, $batch_item_id);
+    islandora_digital_workflow_update_batch_record_progress($batch_record);
   }
-  $progress = ($item_done) ? 'Completed' : $progress;
-  if ($progress <> $batch_item_obj->progress) {
-    $set_fields = array('progress' => $progress);
-    db_update('islandora_digital_workflow_batch_items')
-      ->condition('batch_item_id', $batch_item_id)
-      ->fields($set_fields)
-      ->execute();
-  }
-  islandora_digital_workflow_recalc_batch_files($batch_record, $output_contents, $output_footer, $batch_item_id);
-  islandora_digital_workflow_update_batch_record_progress($batch_record);
 }
 
 /**
@@ -1640,12 +1633,7 @@ function islandora_digital_workflow_insert_transactions_record($action_id, $batc
       $batch_item_obj = array_pop($item_record_results);
       $batch_record = islandora_digital_workflow_get_batch_record_by_batch_id(NULL, $batch_item_id);
       // Before exiting, this can cause the "progress" of an item to change
-      $item_working_item_path = islandora_digital_workflow_batch_path($batch_record, 'working') .
-          '/' . $batch_item_obj->identifier;
-      if (!file_exists($item_working_item_path)) {
-        mkdir($item_working_item_path);
-      }
-      islandora_digital_workflow_calculate_item_progress_filedetails($batch_item_id, $batch_record, $item_working_item_path);
+      islandora_digital_workflow_calculate_item_progress_filedetails($batch_item_id, $batch_record);
     }
 
     return $transaction_id;
