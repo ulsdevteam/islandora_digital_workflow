@@ -1321,16 +1321,24 @@ function islandora_digital_workflow_get_batch_actions() {
  *
  * @param integer $workflow_sequence_id
  *   The workflow sequence id value for the batch in question.
+ * @param boolean $description_only
+ *   Optional - when set to FALSE, the returned values will be an array that
+ * contains all field data for the actions, else the return value is just
+ * the descriptions for each action.
  * @return mixed
- *   Either returns an array of actions record objects or NULL if it cannot be found.
+ *   Either returns an array of actions record objects or NULL if it cannot be
+ * found.  The return array structure depends on the optional $description_only
+ * parameter -- when FALSE, the return for each action_id contains an array
+ * of the entire sequence record.
  */
-function islandora_digital_workflow_get_batch_items_actions($workflow_sequence_id = 0) {
+function islandora_digital_workflow_get_batch_items_actions($workflow_sequence_id = 0, $description_only = TRUE) {
   // If no model is provided, display the sequence_action for the default
   // batch_item record.
   $query = db_select('islandora_digital_workflow_actions', 'ba')
       ->fields('ba')
       ->condition('ba.is_batch_action', 0);
   $query->join('islandora_digital_workflow_sequence_actions', 'sa', 'sa.action_id = ba.action_id');
+  $query->addField('sa', 'order', 'sequence_order');
   $query->orderBy('sa.order');
   $query->join('islandora_digital_workflow_sequence', 's', 's.workflow_sequence_id = sa.workflow_sequence_id');
   $query->fields('s', array('name'));
@@ -1345,7 +1353,8 @@ function islandora_digital_workflow_get_batch_items_actions($workflow_sequence_i
 
   $options = array('' => 'Select an action');
   foreach ($rows as $i => $row) {
-    $options[$row->action_id] = $row->description;
+    $options[$row->action_id] = (($description_only) ? $row->description :
+        (array)$row);
   }
   return $options;
 }
@@ -2363,5 +2372,50 @@ function islandora_digital_workflow_get_webform_componentdef_extra($cid, $type =
   }
   else {
     return NULL;
+  }
+}
+
+/**
+ * A function that will check a given workflow sequence for the "Ingest item
+ * into repository" and "Publish the item" actions - and add them if they do
+ * not exist.
+ *
+ * @param integer $workflow_sequence_id
+ *   The identifier for a given workflow sequence.
+ */
+function islandora_digital_workflow_workflow_autofix_sequence($workflow_sequence_id) {
+  $batch_item_sequence_actions = islandora_digital_workflow_get_batch_items_actions($workflow_sequence_id, FALSE);
+  $found_ingest_action = $found_publish_action = FALSE;
+  $publish_action_sequence_order = 0;
+  foreach ($batch_item_sequence_actions as $action_id => $sequence_action_arr) {
+    if ($action_id == IDW_PUBLISH_OBJECT) {
+      $publish_action_sequence_order = $sequence_action_arr['sequence_order'];
+    }
+    $found_ingest_action |= ($action_id == IDW_ACTION_SYSTEM_INGEST);
+    $found_publish_action |= ($action_id == IDW_PUBLISH_OBJECT);
+  }
+  if (!$found_ingest_action) {
+    $fields = array(
+        'workflow_sequence_id' => $workflow_sequence_id,
+        'action_id' => IDW_ACTION_SYSTEM_INGEST,
+        '`order`' => ($publish_action_sequence_order - 1),
+        'is_required' => 1,
+    );
+    $inserted = db_insert('islandora_digital_workflow_sequence_actions')
+      ->fields($fields)
+      ->execute();
+    drupal_set_message(t('The "Ingest item into repository" action was added automatically.'));
+  }
+  if (!$found_publish_action) {
+    $fields = array(
+        'workflow_sequence_id' => $workflow_sequence_id,
+        'action_id' => IDW_PUBLISH_OBJECT,
+        '`order`' => 10,
+        'is_required' => 1,
+    );
+    $inserted = db_insert('islandora_digital_workflow_sequence_actions')
+      ->fields($fields)
+      ->execute();
+    drupal_set_message(t('The "Publish the item" action was added automatically.'));
   }
 }

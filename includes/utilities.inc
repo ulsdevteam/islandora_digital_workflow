@@ -3730,7 +3730,7 @@ function islandora_digital_workflow_publish_object($batch_item_id) {
   if (is_object($islandora_object)) {
     // Remove any Collections relationships for the object
     $islandora_object->relationships->remove(FEDORA_RELS_EXT_URI, 'isMemberOfCollection', NULL);
-    if (variable_get('islandora_digital_workflow_use_isMemberOfSite', 0)) {
+    if (variable_get('islandora_digital_workflow_use_reviewCollections', 0)) {
       $s_ns = variable_get('islandora_memberofsite_namespace', 'http://digital.library.pitt.edu/ontology/relations#');
       $islandora_object->relationships->remove($s_ns, 'isMemberOfSite', NULL);
     }
@@ -3745,12 +3745,16 @@ function islandora_digital_workflow_publish_object($batch_item_id) {
     }
 
   }
-  // Add relationships to the Collection/s if batch has values.
-  $collections = trim($batch_record['mapto_collections']);
-  if ($collections <> '') {
-    $collections_arr = explode(",", $collections);
-    foreach ($collections_arr as $collection) {
-      $islandora_object->relationships->add(FEDORA_RELS_EXT_URI, 'isMemberOfCollection', $collection);
+  // This is only needed if the configuration is using review collections -- else
+  // the objects should already be related to the intended collections.
+  if (variable_get('islandora_digital_workflow_use_reviewCollections', 0)) {
+    // Add relationships to the Collection/s if batch has values.
+    $collections = trim($batch_record['mapto_collections']);
+    if ($collections <> '') {
+      $collections_arr = explode(",", $collections);
+      foreach ($collections_arr as $collection) {
+        $islandora_object->relationships->add(FEDORA_RELS_EXT_URI, 'isMemberOfCollection', $collection);
+      }
     }
   }
 }

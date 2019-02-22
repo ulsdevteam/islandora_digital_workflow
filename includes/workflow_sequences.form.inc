@@ -481,7 +481,9 @@ function islandora_digital_workflow_workflow_sequence_edit_submit($form, &$form_
 function islandora_digital_workflow_workflow_sequence_actions_form(array $form, array &$form_state, $workflow_sequence_id) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
-
+  // This call will add the "Ingest item into repository" and "Publish the item"
+  // actions to the sequence if they are not already in the workflow sequence.
+  islandora_digital_workflow_workflow_autofix_sequence($workflow_sequence_id);
   @list($workflow_sequence_id, $model) = explode('|', $workflow_sequence_id);
   $workflow_sequence_actions = islandora_digital_workflow_get_workflow_sequence_actions();
   $workflow_model_sequences = islandora_digital_workflow_get_workflow_model_sequences();
@@ -568,6 +570,7 @@ function islandora_digital_workflow_workflow_sequence_actions_form(array $form, 
       '#default_value' => $model,
     ),
   );
+  $disable_remove_actions = array(IDW_ACTION_SYSTEM_INGEST, IDW_PUBLISH_OBJECT);
   if (array_key_exists($workflow_sequence_id, $workflow_sequence_actions)) {
     foreach ($workflow_sequence_actions[$workflow_sequence_id] as $i => $sequence_array) {
       $form['wrapper']['rows'][$sequence_array['action_id']] = array(
@@ -610,6 +613,20 @@ function islandora_digital_workflow_workflow_sequence_actions_form(array $form, 
           '#name' => 'action_id-' . $sequence_array['action_id'],
         ),
       );
+      if (!(array_search($sequence_array['action_id'], $disable_remove_actions) === FALSE)) {
+        $form['wrapper']['rows'][$sequence_array['action_id']]['is_required']['#attributes'] = array(
+          'readonly' => 'readonly',
+          'disabled' => 'disabled'
+        );
+        $form['wrapper']['rows'][$sequence_array['action_id']]['is_ingest_prerequisite']['#attributes'] = array(
+          'readonly' => 'readonly',
+          'disabled' => 'disabled'
+        );
+        $form['wrapper']['rows'][$sequence_array['action_id']]['op']['#attributes'] = array(
+          'readonly' => 'readonly', 
+          'disabled' => 'disabled'
+        );
+      }
     }
   }
   else {
@@ -1167,7 +1184,7 @@ function islandora_digital_workflow_actions_edit_form(array $form, array &$form_
       '#default_value' => $action_id,
   );
 
-  if ($action_record['extra_info']) {
+  if ($action_id && $action_record['extra_info']) {
     drupal_set_message($action_record['extra_info'], 'message_info');
   }
 
@@ -1257,7 +1274,8 @@ function islandora_digital_workflow_actions_edit_form(array $form, array &$form_
   // Disable the action name edit box if this action is one of the special system
   // actions - and display a message.
   $system_action_names = array('ingest', 'system-made-derivatives', 'problem', 'all-ingest');
-  if (!(array_search($action_name, $system_action_names) === FALSE) || ($action_record['is_system_action'])) {
+  if ($action_id && 
+      (!(array_search($action_name, $system_action_names) === FALSE) || ($action_record['is_system_action']))) {
     $form['name_desc_wrapper']['#attributes'] = $read_only_att;
     $form['name_desc_wrapper']['name']['#description'] = '<em>' .
         'This action is a system action and cannot be renamed.</em>  ' .
