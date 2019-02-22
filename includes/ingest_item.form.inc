@@ -245,7 +245,7 @@ function islandora_digital_workflow_make_drush_prepare_statement($batch_item_obj
   // Switch all collections over to use the "_review" instances of the
   // collections -- when the object is set to "Publish the item", then the
   // relationship to the intended collections will be set.
-  if (variable_get('islandora_digital_workflow_use_isMemberOfSite', 0)) {
+  if (variable_get('islandora_digital_workflow_use_reviewCollections', 0)) {
     $parent = $batch_record['mapto_collections'];
     $collections_arr = explode(",", $parent);
     $review_collections = array();
