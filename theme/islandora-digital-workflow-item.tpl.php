@@ -91,7 +91,7 @@
   <h3>Item Details</h3>
   <div class="lookup_result oddrow">
       <h4>Progress:
-      <?php foreach (array('New', 'In Progress', 'Prepared', 'Completed') as $progress_step) : ?>
+      <?php foreach (array('New', 'In Progress', 'Prepared', 'Ingested', 'Completed') as $progress_step) : ?>
           <span class="progress_<?php print (($item->progress == $progress_step) ?
             strtolower(str_replace(" ", "_", $item->progress)) : "na"); ?>"><?php print $progress_step; ?></span>
           <?php print (($progress_step <> 'Completed') ? ' | ' : ''); ?>

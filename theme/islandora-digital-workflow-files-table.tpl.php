@@ -31,7 +31,7 @@
             <?php endif; ?>
             <b>Batch:</b> <b><?php print (isset($folder['nid']) ?  l($folder['item_name'], '/node/' . $folder['nid']): $folder['item_name']); ?></b> &raquo;
                 <?php if (array_key_exists('batch_record', $folder)): ?>
-                  <?php foreach (array('New', 'In Progress', 'Prepared', 'Completed') as $progress_step) : ?>
+                  <?php foreach (array('New', 'In Progress', 'Prepared', 'Ingested', 'Completed') as $progress_step) : ?>
                     <span class="progress_<?php print (($folder['batch_record']->progress == $progress_step) ?
                       strtolower(str_replace(" ", "_", $folder['batch_record']->progress)) : "na"); ?>"><?php print $progress_step; ?></span>
                     <?php print (($progress_step <> 'Completed') ? ' | ' : ''); ?>

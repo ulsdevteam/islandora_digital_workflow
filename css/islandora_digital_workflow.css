@@ -1087,6 +1087,9 @@ td.slide-cross {
 .progress_prepared {
     color: blue;
 }
+.progress_ingested {
+    color: #269;
+}
 .progress_completed {
     color: green;
 }

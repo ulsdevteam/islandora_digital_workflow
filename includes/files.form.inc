@@ -30,8 +30,11 @@ function islandora_digital_workflow_files($node) {
 
   $batch_name = $node->title;
   $batch_record = islandora_digital_workflow_get_batch_record_by_nid($node->nid);
+  $batch_items = islandora_digital_workflow_get_batch_items_by_nid($batch_record['nid']);
   $batch_description_markup = theme('islandora_digital_workflow_batch_description', array(
     'batch_record' => $batch_record,
+    'can_ingest_all' => islandora_digital_workflow_can_ingest_all($batch_items),
+    'can_publish_all' => islandora_digital_workflow_can_publish_all($batch_items),
     'batch_mapped_from_webformsubmission' => islandora_digital_workflow_get_webformsubmission($batch_record['webform_submission_sid']),
   ));
   $file_records = islandora_digital_workflow_get_batch_files_by_nid($node->nid);

@@ -3758,3 +3758,38 @@ function islandora_digital_workflow_publish_object($batch_item_id) {
     }
   }
 }
+
+
+function islandora_digital_workflow_can_ingest_all($batch_items) {
+  $can_ingest = (count($batch_items) > 0);
+  foreach ($batch_items as $batch_item) {
+    $can_ingest &= ($batch_item->progress == 'Prepared');
+  }
+  return $can_ingest;
+}
+
+function islandora_digital_workflow_can_publish_all($batch_items) {
+  $can_publish = (count($batch_items) > 0);
+  foreach ($batch_items as $batch_item) {
+    $can_publish &= ($batch_item->progress == 'Ingested');
+  }
+  return $can_publish;
+}
+
+function islandora_digital_workflow_item_ingested($batch_item_object, $batch_record, $item_record_transactions = NULL) {
+  $retval = FALSE;
+  if (is_object($batch_item_object)) {
+    $pid = ($batch_item_object->assigned_pid <> '') ? $batch_item_object->assigned_pid : $batch_record['namespace'] . $batch_item_object->identifier;
+    $islandora_object = islandora_object_load($pid);
+    module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
+    if (is_null($item_record_transactions)) {
+      $item_record_transactions = islandora_digital_workflow_get_batch_item_transactions($batch_item_object->batch_item_id, $batch_record['nid'], $batch_record['batch_id']);
+    }
+    $published_already = FALSE;
+    foreach ($item_record_transactions as $transaction) {
+      $published_already |= ($transaction->action_id == IDW_PUBLISH_OBJECT);
+    }
+    $retval = (is_object($islandora_object) && !$published_already);
+  }
+  return $retval;
+}

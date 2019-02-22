@@ -64,9 +64,11 @@ function islandora_digital_workflow_delete_batch_items_form(array $form, array &
     drupal_set_message(t('A batch record matching the provided batch_item_id value "@batch_item_id" does not exist and can not be deleted.',
             array('@batch_item_id' => $batch_item_id)));
   }
-
+  $batch_items = islandora_digital_workflow_get_batch_items_by_nid($batch_record['nid']);
   $batch_description_markup = theme('islandora_digital_workflow_batch_description', array(
     'batch_record' => $batch_record,
+    'can_ingest_all' => islandora_digital_workflow_can_ingest_all($batch_items),
+    'can_publish_all' => islandora_digital_workflow_can_publish_all($batch_items),
     'batch_mapped_from_webformsubmission' => islandora_digital_workflow_get_webformsubmission($batch_record['webform_submission_sid']),
   ));
 

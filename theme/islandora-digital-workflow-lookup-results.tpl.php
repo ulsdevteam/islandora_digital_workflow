@@ -68,5 +68,6 @@
         </span>
     </div>
     <?php } ?>
-<br style="clear:both" />
+<br clases="break_float" />
 </div>
+<!-- end of lookup form -->

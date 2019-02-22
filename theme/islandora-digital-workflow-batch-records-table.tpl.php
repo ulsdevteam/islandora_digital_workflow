@@ -31,7 +31,7 @@
           <fieldset class="collapsible collapsed straight-edge" id="box_<?php print str_replace(" ", "-", $batch_record->batch_id); ?>_<?php print $table_title; ?>" >
           <!-- <div class="lookup_result_indent"> -->
               <legend><span class="fieldset-legend"><b><?php print $batch_record->batch_name; ?></b> &raquo;
-                <?php foreach (array('New', 'In Progress', 'Prepared', 'Completed') as $progress_step) : ?>
+                <?php foreach (array('New', 'In Progress', 'Prepared', 'Ingested', 'Completed') as $progress_step) : ?>
                     <span class="progress_<?php print (($batch_record->progress == $progress_step) ?
                       strtolower(str_replace(" ", "_", $batch_record->progress)) : "na"); ?>"><?php print $progress_step; ?></span>
                     <?php print (($progress_step <> 'Completed') ? ' | ' : ''); ?>

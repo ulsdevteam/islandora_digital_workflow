@@ -32,9 +32,12 @@ function islandora_digital_workflow_batch_items() {
   $transactions_form = drupal_get_form('islandora_digital_workflow_batch_items_form', $node);
   $add_item_form = drupal_get_form('islandora_digital_workflow_add_item_form', $node);
   $add_items_form = drupal_get_form('islandora_digital_workflow_add_items_form', $node);
+  $batch_items = islandora_digital_workflow_get_batch_items_by_nid($batch_record['nid']);
   $markup = $lookup_form_markup .
       theme('islandora_digital_workflow_batch_description', array(
         'batch_record' => $batch_record,
+        'can_ingest_all' => islandora_digital_workflow_can_ingest_all($batch_items),
+        'can_publish_all' => islandora_digital_workflow_can_publish_all($batch_items),
         'batch_mapped_from_webformsubmission' => islandora_digital_workflow_get_webformsubmission($batch_record['webform_submission_sid']),
       )) .
       drupal_render($add_item_form) .

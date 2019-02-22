@@ -407,7 +407,7 @@ function islandora_digital_workflow_schema() {
       'progress' => array(
         'description' => t('The progress for the individual object'),
         'type' => 'varchar',
-        // possible values "New", "In Progress", "Prepared", "Completed"
+        // possible values "New", "In Progress", "Prepared", "Ingested", "Completed"
         'default' => 'New',
         'length' => 11,
         'not null' => FALSE,
@@ -509,7 +509,7 @@ function islandora_digital_workflow_schema() {
       'progress' => array(
         'description' => t('The progress for the individual object'),
         'type' => 'varchar',
-        // possible values "New", "In Progress", "Prepared", "Completed"
+        // possible values "New", "In Progress", "Prepared", "Ingested", "Completed"
         'default' => 'New',
         'length' => 11,
         'not null' => FALSE,

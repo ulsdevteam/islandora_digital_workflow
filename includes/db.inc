@@ -1214,11 +1214,15 @@ function islandora_digital_workflow_calculate_item_progress_filedetails($batch_i
     $item_ready_for_ingest = islandora_digital_workflow_item_ingest_prerequisites_all_done($item_record_transactions, $required_batch_actions);
     $progress = ($item_ready_for_ingest) ? 'Prepared' : $progress;
 
+    // After it is prepared, it could be ingested now.
+    $item_ingested = islandora_digital_workflow_item_ingested($batch_item_obj, $batch_record, $item_record_transactions);
+    $progress = ($item_ingested) ? 'Ingested' : $progress;
+
     // Now if it is ready for ingest, we should check to see whether or not it has
     // been published.
     $item_done = FALSE;
     foreach ($item_record_transactions as $item_transaction_object) {
-      $item_done |= ($item_transaction_object->action_id  == IDW_PUBLISH_OBJECT);
+      $item_done |= FALSE; //($item_transaction_object->action_id  == IDW_PUBLISH_OBJECT);
     }
 
     // There may be the action_id that the object is ingested / done, but we may want to

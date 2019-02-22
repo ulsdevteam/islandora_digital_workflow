@@ -739,6 +739,8 @@ function islandora_digital_workflow_theme() {
     'islandora_digital_workflow_batch_description' => array(
       'variables' => array(
         'batch_record' => array(),
+        'can_ingest_all' => FALSE,
+        'can_publish_all' => FALSE,
         'batch_mapped_from_webformsubmission' => array(),
       ),
       'template' => 'theme/islandora-digital-workflow-batch-description',
@@ -1192,7 +1194,6 @@ function islandora_digital_workflow_page_alter(&$page) {
       array_key_exists('#theme', $page['content']['system_main']) && 
       array_key_exists('#submission_information', $page['content']['system_main']) &&
       $page['content']['system_main']['#theme'] == 'webform_submission_page') {
-
     $nid = arg(1);
     $sid = arg(3);
     $webform_digitization_requests = variable_get('islandora_digitization_requests_webform_forms', array());
@@ -1237,6 +1238,34 @@ function islandora_digital_workflow_page_alter(&$page) {
                 'islandora/islandora_digital_workflow/map_digitization_request_to_batch/' . $nid . '/' . $sid) .
             '</div>' . $page['content']['system_main']['#submission_information'],
           ));
+      }
+    }
+  }
+  elseif (array_key_exists('content', $page) && array_key_exists('system_main', $page['content'])) {
+    // Add the batch_description content to the top of the "Edit Batch Record" page.
+    $item = menu_get_item();
+    if ($item['path'] == 'node/%' || $item['path'] == 'node/%/batch') {
+      $nid = arg(1);
+      $node = node_load($nid);
+      module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
+      module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
+      if (is_object($node) && $node->type == 'workflow_batch') {
+        $batch_record = islandora_digital_workflow_get_batch_record_by_nid($nid);
+        $batch_items = islandora_digital_workflow_get_batch_items_by_nid($batch_record['nid']);
+        $batch_description_markup = theme('islandora_digital_workflow_batch_description', array(
+          'batch_record' => $batch_record,
+          'can_ingest_all' => islandora_digital_workflow_can_ingest_all($batch_items),
+          'can_publish_all' => islandora_digital_workflow_can_publish_all($batch_items),
+          'batch_mapped_from_webformsubmission' => islandora_digital_workflow_get_webformsubmission($batch_record['webform_submission_sid']),
+        ));
+        // This insertion is a bit of a hack -- but safe and easier than inserting
+        // this into the actual batch edit code.
+        if (array_key_exists('main', $page['content']['system_main']) &&
+            array_key_exists('#markup', $page['content']['system_main']['main'])) {
+          $page['content']['system_main']['main']['#markup'] = 
+              str_replace('<form enctype=', $batch_description_markup . "\n" .
+                  '<form enctype=', $page['content']['system_main']['main']['#markup']);
+        }
       }
     }
   }

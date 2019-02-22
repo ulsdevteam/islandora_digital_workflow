@@ -204,10 +204,10 @@ ignored_filename_*
     ),
     'reviewCollections' => array(
       '#type' => 'item',
-      '#title' => t('Batch "isMemberOfSite" property'),
+      '#title' => t('Review collections?'),
       'use_reviewCollections' => array(
         '#type' => 'checkbox',
-        '#title' => 'Use the "Review collections"',
+        '#title' => 'Use "Review collections"?',
         '#description' => 'When this is checked and objects are ingested, they ' .
           'related to clones of the selected collections so that they may be ' .
           'reviewed in the Islandora user interface before they are published.',
