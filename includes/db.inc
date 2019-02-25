@@ -803,7 +803,7 @@ function islandora_digital_workflow_get_batch_item_transactions($batch_item_id, 
          'LEFT OUTER JOIN islandora_digital_workflow_problem_items p ON bt.transaction_id = p.transaction_id ' .
          'LEFT OUTER JOIN users users ON bt.drupal_uid = users.uid ' .
          'INNER JOIN islandora_digital_workflow_actions a ON a.action_id = bt.action_id ' .
-         'WHERE  (bt.batch_item_id = ' . $batch_item_id . ' AND p.problem_resolved_timestamp IS NULL) ' .
+         'WHERE  (bt.batch_item_id = ' . (0 + $batch_item_id) . ' AND p.problem_resolved_timestamp IS NULL) ' .
          'UNION SELECT bt.timestamp AS `timestamp`, bt.transaction_id AS transaction_id, ' .
          'users.uid AS uid, users.name AS name, a.description AS description, ' .
          'a.action_id AS action_id, a.name AS action_name, a.is_batch_action AS is_batch_action, p.problem_notes ' .
@@ -811,7 +811,7 @@ function islandora_digital_workflow_get_batch_item_transactions($batch_item_id, 
          'LEFT OUTER JOIN islandora_digital_workflow_problem_items p ON bt.transaction_id = p.transaction_id ' .
          'LEFT OUTER JOIN users users ON bt.drupal_uid = users.uid ' .
          'INNER JOIN islandora_digital_workflow_actions a ON a.action_id = bt.action_id ' .
-         'WHERE  (bt.batch_id = ' . $batch_id . ' AND p.problem_resolved_timestamp IS NULL) ' .
+         'WHERE  (bt.batch_id = ' . (0 + $batch_id) . ' AND p.problem_resolved_timestamp IS NULL) ' .
          'ORDER BY `timestamp` ASC';
 
   $results = db_query($sql);
