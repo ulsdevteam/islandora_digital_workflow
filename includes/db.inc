@@ -913,55 +913,58 @@ function islandora_digital_workflow_get_batch_files_by_nid($nid) {
 function islandora_digital_workflow_get_batch_items_by_nid($nid) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
 
-  $required_batch_actions = islandora_digital_workflow_get_required_batch_actions(NULL, $nid);
-  // Due to the nature of this query and how stubborn the db_select is with creating
-  // a LEFT JOIN query that uses GROUP BY and GROUP_CONCAT to display the needed
-  // field values, this is much MUCH MUCH easier to write out as a SQL statement.
-  $query = db_query('SELECT bi.identifier, bi.title, bi.islandora_model, bi.filename,
-    \'\' as `ready_for`,
-    (SELECT description FROM islandora_digital_workflow_actions wfa
-     JOIN islandora_digital_workflow_transactions wft ON (wft.action_id = wfa.action_id)
-     WHERE wft.transaction_id = MAX(bt.transaction_id)) as `last_action`,
-    (MAX(bt.timestamp)) as `when`,
-    GROUP_CONCAT(DISTINCT a.name) as `transaction_actions`,
-    GROUP_CONCAT(DISTINCT a.action_id) as `transaction_action_ids`,
-    bi.progress, bi.batch_item_id
-FROM islandora_digital_workflow_batch b
-JOIN islandora_digital_workflow_batch_items bi ON b.batch_id = bi.batch_id
-LEFT JOIN islandora_digital_workflow_transactions bt ON (bi.batch_item_id = bt.batch_item_id OR bi.batch_id = bt.batch_id)
-LEFT JOIN islandora_digital_workflow_actions a ON a.action_id = bt.action_id
-WHERE b.nid = ' . $nid . '
-GROUP BY bi.batch_item_id
-ORDER BY bi.batch_item_id ASC, bt.`timestamp` DESC');
-  $rows = $query->fetchAll();
-  // Loop through and calculate values for master_filename_basename by using the
-  // pathinfo ~ basename element.
-  foreach ($rows as $index => $row) {
-    $filename_pathinfo = pathinfo($row->filename);
-    $rows[$index]->master_filename_basename = $filename_pathinfo['basename'];
-    // Need to put the action_ids together with the transaction descriptions...
-    // - it is easier on the server than running subsequent queries to get these.
-    $actions = explode(",", $row->transaction_actions);
-    $action_ids = explode(",", $row->transaction_action_ids);
-    $transactions = $transaction_action_ids_array = $transaction_actions_array = array();
-    foreach ($action_ids as $k => $v) {
-      $transaction_action_ids_array[$v] = $v;
-      $transaction_actions_array[$v] = $actions[$k];
-    }
-    // Also, put these in order - and insert an empty transaction for any that
-    // are not set for the item.
-    $i = 1;
-    foreach ($required_batch_actions as $required_batch_action) {
-      $required_action_id = $required_batch_action['action_id'];
-      $exploded_key = (!array_search($required_action_id, $transaction_action_ids_array) === FALSE) ? array_search($required_action_id, $transaction_action_ids_array) : FALSE;
-      $transactions[$i] = (!$exploded_key === FALSE) ?
-        $transaction_actions_array[$exploded_key] : '';
-      $i++;
-    }
+  $rows = array();
+  if ($nid) {
+    $required_batch_actions = islandora_digital_workflow_get_required_batch_actions(NULL, $nid);
+    // Due to the nature of this query and how stubborn the db_select is with creating
+    // a LEFT JOIN query that uses GROUP BY and GROUP_CONCAT to display the needed
+    // field values, this is much MUCH MUCH easier to write out as a SQL statement.
+    $query = db_query('SELECT bi.identifier, bi.title, bi.islandora_model, bi.filename,
+      \'\' as `ready_for`,
+      (SELECT description FROM islandora_digital_workflow_actions wfa
+       JOIN islandora_digital_workflow_transactions wft ON (wft.action_id = wfa.action_id)
+       WHERE wft.transaction_id = MAX(bt.transaction_id)) as `last_action`,
+      (MAX(bt.timestamp)) as `when`,
+      GROUP_CONCAT(DISTINCT a.name) as `transaction_actions`,
+      GROUP_CONCAT(DISTINCT a.action_id) as `transaction_action_ids`,
+      bi.progress, bi.batch_item_id
+  FROM islandora_digital_workflow_batch b
+  JOIN islandora_digital_workflow_batch_items bi ON b.batch_id = bi.batch_id
+  LEFT JOIN islandora_digital_workflow_transactions bt ON (bi.batch_item_id = bt.batch_item_id OR bi.batch_id = bt.batch_id)
+  LEFT JOIN islandora_digital_workflow_actions a ON a.action_id = bt.action_id
+  WHERE b.nid = ' . $nid . '
+  GROUP BY bi.batch_item_id
+  ORDER BY bi.batch_item_id ASC, bt.`timestamp` DESC');
+    $rows = $query->fetchAll();
+    // Loop through and calculate values for master_filename_basename by using the
+    // pathinfo ~ basename element.
+    foreach ($rows as $index => $row) {
+      $filename_pathinfo = pathinfo($row->filename);
+      $rows[$index]->master_filename_basename = $filename_pathinfo['basename'];
+      // Need to put the action_ids together with the transaction descriptions...
+      // - it is easier on the server than running subsequent queries to get these.
+      $actions = explode(",", $row->transaction_actions);
+      $action_ids = explode(",", $row->transaction_action_ids);
+      $transactions = $transaction_action_ids_array = $transaction_actions_array = array();
+      foreach ($action_ids as $k => $v) {
+        $transaction_action_ids_array[$v] = $v;
+        $transaction_actions_array[$v] = $actions[$k];
+      }
+      // Also, put these in order - and insert an empty transaction for any that
+      // are not set for the item.
+      $i = 1;
+      foreach ($required_batch_actions as $required_batch_action) {
+        $required_action_id = $required_batch_action['action_id'];
+        $exploded_key = (!array_search($required_action_id, $transaction_action_ids_array) === FALSE) ? array_search($required_action_id, $transaction_action_ids_array) : FALSE;
+        $transactions[$i] = (!$exploded_key === FALSE) ?
+          $transaction_actions_array[$exploded_key] : '';
+        $i++;
+      }
 
-    $rows[$index]->transactions = $transactions;
+      $rows[$index]->transactions = $transactions;
+    }
+    islandora_digital_workflow_calculate_ready_for($rows, $nid);
   }
-  islandora_digital_workflow_calculate_ready_for($rows, $nid);
   return $rows;
 }
 
