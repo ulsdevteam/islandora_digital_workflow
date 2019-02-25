@@ -100,7 +100,8 @@ function islandora_digital_workflow_create_batch_record_by_form($form_state, $no
     $batch_name = $form_state['values']['batch_name'];
     $batch_record = islandora_digital_workflow_get_batch_record_by_name($batch_name);
 
-    $uploaded_batch_items_file = ($batch_items_filename) ? file_get_contents(drupal_realpath($batch_items_filename)) : FALSE;
+    $filename = drupal_realpath($batch_items_filename);
+    $uploaded_batch_items_file = ($batch_items_filename) ? (file_exists($filename) && file_get_contents($filename)) : FALSE;
     $batch_request_date = ((array_key_exists('is_batch_request', $form_state['values'])) && ($form_state['values']['is_batch_request'] == 1) ?
         strtotime($form_state['values']['batch_request_due_date']['year'] . '/' .
           $form_state['values']['batch_request_due_date']['month'] . '/' .
@@ -3759,7 +3760,14 @@ function islandora_digital_workflow_publish_object($batch_item_id) {
   }
 }
 
-
+/**
+ * This will determine whether or not a batch can have all of its items ingested.
+ *
+ * @param array $batch_items
+ *   An array of batch_item objects.
+ * @return boolean
+ *   Whether or not all of the batch items can be ingested.
+ */
 function islandora_digital_workflow_can_ingest_all($batch_items) {
   $can_ingest = (count($batch_items) > 0);
   foreach ($batch_items as $batch_item) {
@@ -3768,6 +3776,14 @@ function islandora_digital_workflow_can_ingest_all($batch_items) {
   return $can_ingest;
 }
 
+/**
+ * This will determine whether or not a batch can have all of its items published.
+ *
+ * @param array $batch_items
+ *   An array of batch_item objects.
+ * @return boolean
+ *   Whether or not all of the batch items can be published.
+ */
 function islandora_digital_workflow_can_publish_all($batch_items) {
   $can_publish = (count($batch_items) > 0);
   foreach ($batch_items as $batch_item) {
@@ -3776,6 +3792,13 @@ function islandora_digital_workflow_can_publish_all($batch_items) {
   return $can_publish;
 }
 
+/**
+ *
+ * @param type $batch_item_object
+ * @param type $batch_record
+ * @param type $item_record_transactions
+ * @return type
+ */
 function islandora_digital_workflow_item_ingested($batch_item_object, $batch_record, $item_record_transactions = NULL) {
   $retval = FALSE;
   if (is_object($batch_item_object)) {

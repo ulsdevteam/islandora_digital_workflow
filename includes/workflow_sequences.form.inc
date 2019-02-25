@@ -1350,6 +1350,7 @@ function islandora_digital_workflow_actions_edit_form_submit(array $form, array 
       'description' => is_null($form_state['input']['description']) ? $form_state['values']['description'] : $form_state['input']['description'],
       'glyph' => is_null($form_state['input']['glyph_selector']) ? $form_state['values']['glyph_selector'] : $form_state['input']['glyph_selector'],
       'is_batch_action' => is_null($form_state['input']['is_batch_action']) ? $form_state['values']['is_batch_action'] : $form_state['input']['is_batch_action'],
+      'extra_info' => '',
       'stage_taxonomy_tid' => (!(array_key_exists('stage_taxonomy_tid', $form_state['input'])) || is_null($form_state['input']['stage_taxonomy_tid'])) ? $form_state['values']['stage_taxonomy_tid'] : $form_state['input']['stage_taxonomy_tid'],
       'is_triggered_by_single_item' => (!(array_key_exists('is_triggered_by_single_item', $form_state['input'])) || is_null($form_state['input']['is_triggered_by_single_item'])) ? $form_state['values']['is_triggered_by_single_item'] : $form_state['input']['is_triggered_by_single_item'],
       'stage_taxonomy_tid_rm' => (!(array_key_exists('stage_taxonomy_tid_rm', $form_state['input'])) || is_null($form_state['input']['stage_taxonomy_tid_rm'])) ? $form_state['values']['stage_taxonomy_tid_rm'] : $form_state['input']['stage_taxonomy_tid_rm'],

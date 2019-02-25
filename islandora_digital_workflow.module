@@ -199,6 +199,21 @@ function islandora_digital_workflow_menu() {
       'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_DELETE_ITEMS),
       'file' => 'includes/delete_batch_items.form.inc',
     ),
+    'islandora/islandora_digital_workflow/ingest_all/%' => array(
+      'title' => t('Islandora Digital Workflow - Ingest All Items for Batch'),
+      'type' => MENU_NORMAL_ITEM,
+      'page callback' => array('islandora_digital_workflow_ingest_all_batch'),
+      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW),
+      'file' => 'includes/ingest_item.form.inc',
+    ),
+    'islandora/islandora_digital_workflow/publish_all/%' => array(
+      'title' => t('Islandora Digital Workflow - Publish All Items for Batch'),
+      'type' => MENU_NORMAL_ITEM,
+      'page callback' => array('islandora_digital_workflow_publish_all_batch'),
+      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW),
+      'file' => 'includes/publish_item.form.inc',
+    ),
+
     // A handler to serve up a download of CSV templates.
     'islandora/islandora_digital_workflow/csv_template/%' => array(
       'type' => MENU_NORMAL_ITEM,
@@ -295,6 +310,14 @@ function islandora_digital_workflow_menu() {
       'page arguments' => array('islandora_digital_workflow_ingest_item', 3),
       'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_INGEST_ITEMS),
       'file' => 'includes/ingest_item.form.inc',
+    ),
+    'islandora/islandora_digital_workflow/publish_item/%' => array(
+      'title' => t('Islandora Digital Workflow - Publish Item'),
+      'type' => MENU_NORMAL_ITEM,
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('islandora_digital_workflow_publish_item', 3),
+      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_INGEST_ITEMS),
+      'file' => 'includes/publish_item.form.inc',
     ),
     'node/%node/sync_batch_items' => array(
       'title' => t('Sync Batch Items'),

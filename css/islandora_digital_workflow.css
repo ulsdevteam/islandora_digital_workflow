@@ -342,6 +342,18 @@ textarea.indent-item {
     width: 20%;
 }
 
+.batch-description .progress_div {
+    display: inline-block;
+    float: left;
+    font-weight: bold;
+}
+
+.progress_div span {
+    padding: 0 4px;
+    background-color: #F8F8F8;
+    border: 1px solid #D8D8D8;
+}
+
 .required_action, .optional_action {
     padding-left: 4px;
     line-height: 25px;
@@ -993,7 +1005,7 @@ td.slide-cross {
 }
 
 .break_float {
-    clear:both;
+    clear: both;
 }
 
 .indented_ul {
