@@ -12,39 +12,42 @@ Before implementing any workflow tool, the capabilities of that tool should be m
 
 ### Core Workflow Abilities:
  The handling of batches of related objects through a workflow is important and the table below details a lot of the core functionality that should be supported when converting these objects into digital files with the intent of ultimately ingesting them into Islandora.  Below is the basic functionality of the **Islandora Digital Workflow**.
-- **Work with batches**
+- **Work with digitization requests**
+	- Requires islandora_digitization_requests and webform modules to be installed
+	- integrate digitization requests into the workflow by marking the availble webforms as digtiization requests.  Workflow configuration would allow for individual mapping between the webform fields to workflow batch fields, which fields are searchable, and even specific mapping between each multi-select prompt that might be mapped to the islandora_model field so that multiple "islandora_model-specific" batches would be generated.
+- **Work with batches** - since batches of objects are carried through the workflow, they are assumed to be grouped together for a reason.  This module assumes that all items would represent the same islandora model, be related to the same collection/s and site/s (if using isMemberOfSite), and have similar batch default values (see "Collect batch level object metadata" below)
 	- Create batches
 	- Edit batch information
 	- Delete batches
-	- Hide completed batches
-- **Identify progress on batch**
-	- Stage in process
-		- In DRL for scanning
-		- Check-in complete
-		- Scanning complete
-		- QC/Structural metadata complete (as appropriate)
-		- Ingest complete
-		- Check out of DRL
-- **Test and/or assign identifiers**
-	- Old system tested to make sure that an object or batch with matching id didn’t exist
-	- If system could assign PIDS, that might be preferable. 
-	- Objects may have source ids (accession numbers, barcodes, etc.) to help DRL with identification.  DRL uses barcode reader for check-in and scanning processes, so that might be a challenge?
+	- Hide completed batches (not implemented)
 - **Collect batch metadata**
 	 - Description of batch
 	 - Sequence (sets the actions for batch)
 	 - Scanning specifications, including condition and handling information, resolution, page edge/blanks/editing, color targets, color, structural metadata requirements, etc. 
 	 - Associated voyager bib id/ EAD id, as appropriate (used to link the objects with the appropriate metadata files (??)
-- **Collect batch level object metadata**
-	 - Similar objects in batches, should be optional
+- **Collect batch level object metadata** - Similar objects in batches, optional field values that would be used for the metadata of all items in the batch.  When items are generated from CSV the batch default field value is only used if a row's value for that field is not provided.  When items are generated from a MARC collection or EAD file (not implemented yet), the batch default field value will overwrite or insert that value in the item's metadata.
 	 - Rights, publication, rights holder, permission notes
 	 - Depositor
 	 - Default typeOfResource
 	 - Default genre
-- **Collect collection/site information**
-	 - Should be the same for all items in a batch.
-- **Entering object level metadata for serials (other use cases?)**
+- **Collect collection/site information** - is used for all items in a batch
+	 - If the configuration is set to "Use review collections", objects that are ingested are first related to review collections which are clones of the intended collection.  After the objects have been reviewed, the user would "Publish the item" in order to add the objects to the intended collection.  If "Use review collections" is not configured, objects would be ingested directly to the public-facing web.
+	 - Objects can be related to sites.  The configuration options to "Assign PID values" and "Use the isMemberOfSite property?" require using the ulsdevteam forks of various *_batch modules (see "Islandora Batch Ingest Modules" above for more information)
+- **Identify progress on batch**
+	- Stage in process
+		- physical objects are "in process" for scanning
+		- Check-in complete
+		- Scanning complete
+		- QC/Structural metadata complete (as appropriate)
+		- Ingest complete
+		- Check out of physical objects signifying that they can be returned or stored because there is no further need of them
+- **Test and/or assign identifiers**
+	- Old system tested to make sure that an object or batch with matching id didn’t exist
+	- If system could assign PIDS, that might be preferable. 
+	- Objects may have source ids (accession numbers, barcodes, etc.) to help the users who are scanning the content with identification.  They use a barcode reader for check-in and scanning processes, so that might be a challenge?
+- **Entering object level metadata for serials (other use cases?)** (not implemented)
 	 - Empty batch is made and serial object metadata is created at the time of scanning. 
-- **Other Metadata? Do we want to continue tracking the following in this system?**
+- **Other Metadata? Do we want to continue tracking the following in this system?** (future considerations)
 	 - Property Owner
 	 - Priority information
 	 - All metadata related to requests
@@ -112,4 +115,3 @@ This section needs to be written.
 Written by [Willow Gillingham](https://github.com/bgilling) for the [University of Pittsburgh](http://www.pitt.edu).  Copyright (c) University of Pittsburgh.
 
 Released under a license of GPL v2 or later.
-
