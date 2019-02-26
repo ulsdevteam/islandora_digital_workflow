@@ -3769,6 +3769,9 @@ function islandora_digital_workflow_publish_object($batch_item_id) {
  *   Whether or not all of the batch items can be ingested.
  */
 function islandora_digital_workflow_can_ingest_all($batch_items) {
+  if (!(user_access(ISLANDORA_DIGITAL_WORKFLOW_INGEST_ITEMS))) {
+    return FALSE;
+  }
   $can_ingest = (count($batch_items) > 0);
   foreach ($batch_items as $batch_item) {
     $can_ingest &= ($batch_item->progress == 'Prepared');
@@ -3785,6 +3788,9 @@ function islandora_digital_workflow_can_ingest_all($batch_items) {
  *   Whether or not all of the batch items can be published.
  */
 function islandora_digital_workflow_can_publish_all($batch_items) {
+  if (!(user_access(ISLANDORA_DIGITAL_WORKFLOW_PUBLISH_ITEMS))) {
+    return FALSE;
+  }
   $can_publish = (count($batch_items) > 0);
   foreach ($batch_items as $batch_item) {
     $can_publish &= ($batch_item->progress == 'Ingested');

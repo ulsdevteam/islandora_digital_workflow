@@ -45,6 +45,7 @@ define('ISLANDORA_DIGITAL_WORKFLOW_EDIT_DELETE_TRANSACTIONS', 'digital workflow 
 define('ISLANDORA_DIGITAL_WORKFLOW_UPDATE_ITEMS', 'digital workflow update items');
 define('ISLANDORA_DIGITAL_WORKFLOW_DASHBOARD_VIEW_PROBLEMS', 'digital workflow dashboard view problems');
 define('ISLANDORA_DIGITAL_WORKFLOW_INGEST_ITEMS', 'digital workflow ingest items');
+define('ISLANDORA_DIGITAL_WORKFLOW_PUBLISH_ITEMS', 'digital workflow publish items');
 define('ISLANDORA_DIGITAL_WORKFLOW_MANAGE_SEQUENCES', 'digital workflow manage sequences');
 define('ISLANDORA_DIGITAL_WORKFLOW_VIEW_EXTRA_INFO', 'digital workflow view extra info');
 define('ISLANDORA_DIGITAL_WORKFLOW_RUN_REPORTS', 'digital workflow run reports');
@@ -210,7 +211,7 @@ function islandora_digital_workflow_menu() {
       'title' => t('Islandora Digital Workflow - Publish All Items for Batch'),
       'type' => MENU_NORMAL_ITEM,
       'page callback' => array('islandora_digital_workflow_publish_all_batch'),
-      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW),
+      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_PUBLISH_ITEMS),
       'file' => 'includes/publish_item.form.inc',
     ),
 
@@ -316,7 +317,7 @@ function islandora_digital_workflow_menu() {
       'type' => MENU_NORMAL_ITEM,
       'page callback' => 'drupal_get_form',
       'page arguments' => array('islandora_digital_workflow_publish_item', 3),
-      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_INGEST_ITEMS),
+      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_PUBLISH_ITEMS),
       'file' => 'includes/publish_item.form.inc',
     ),
     'node/%node/sync_batch_items' => array(
@@ -485,6 +486,10 @@ function islandora_digital_workflow_permission() {
     ISLANDORA_DIGITAL_WORKFLOW_INGEST_ITEMS => array(
       'title' => t('Ingest Batch Items'),
       'description' => t('User can ingest the fedora objects for batch items'),
+    ),
+    ISLANDORA_DIGITAL_WORKFLOW_PUBLISH_ITEMS => array(
+      'title' => t('Publish Batch Items'),
+      'description' => t('User can publish the fedora objects for batch items'),
     ),
     ISLANDORA_DIGITAL_WORKFLOW_MANAGE_SEQUENCES => array(
       'title' => t('Manage Workflow Sequences'),
