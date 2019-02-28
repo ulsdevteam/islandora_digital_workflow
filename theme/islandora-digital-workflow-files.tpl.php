@@ -55,7 +55,6 @@
       <?php } ?>
     </table>
     <?php endif; ?>
-
     <?php if (count($found_files) > 0) : ?>
     <h3>Working Files</h3>
     <p>The batch folder "<?php print $batch_path; ?>" contains the following files.
@@ -78,15 +77,19 @@
           <th>Filename</th>
           <th class="numeric">Size (bytes)</th>
         </tr>
-        <?php foreach ($found_files as $filename => $file_info) { ?>
-        <?php if ($last_path <> $file_info['scan_path']) { $last_path =  $file_info['scan_path']; } ?>
-        <?php $total_size += $file_info['filesize']; ?>
+
+        <?php $items_found_files = $found_files[$item->identifier]; ?>
+        <?php foreach ($items_found_files as $filename => $file_info) { ?>
+          <?php if (strstr($file_info['scan_path'], '/' . $item->identifier . '/')) : ?>
+            <?php if ($last_path <> $file_info['scan_path']) { $last_path =  $file_info['scan_path']; } ?>
+            <?php $total_size += $file_info['filesize']; ?>
             <?php $toggle = !$toggle; ?>
-        <tr class="<?php print (($toggle) ? 'evenrow' : 'oddrow') .
-            (($file_info['class'] <> '') ? ' ' . $file_info['class'] : ''); ?>">
-          <td><?php print $filename; ?></td>
-          <td class="numeric"><?php print number_format($file_info['filesize']); ?></td>
-        </tr>
+            <tr class="<?php print (($toggle) ? 'evenrow' : 'oddrow') .
+              (($file_info['class'] <> '') ? ' ' . $file_info['class'] : ''); ?>">
+            <td><?php print $filename; ?></td>
+            <td class="numeric"><?php print number_format($file_info['filesize']); ?></td>
+          </tr>
+          <?php endif; ?>
         <?php } ?>
       </table>
     </div>

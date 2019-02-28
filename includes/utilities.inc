@@ -1711,13 +1711,15 @@ function islandora_digital_workflow_scan_files($scan_path,  $file_masks = array(
   // should always filter out the "*.xml" files even if it is not referenced
   // in the ingore_filnames filters.
   $ignore_filenames = variable_get('islandora_digital_workflow_ingest_ignore_filenames', array('*.xml'));
-  $filters = array_flip(explode("\n", trim($ignore_filenames)));
-  foreach ($filters as $key => $value) {
-    $filters[$key] = $key;
+  $raw_filters = array_flip(explode("\n", trim($ignore_filenames)));
+  $filters = array();
+  foreach ($raw_filters as $key => $value) {
+    $filters[trim($key)] = trim($key);
     if ($key == '') {
       unset($filters['']);
     }
   }
+
   // Join together the $filters and the $file_masks['discard_filemasks']
   if ($all_files) {
     $file_masks_and_filters['discard_filemasks'] = array();
@@ -1730,6 +1732,12 @@ function islandora_digital_workflow_scan_files($scan_path,  $file_masks = array(
     $file_masks_and_filters['keep_filemasks'] =  (array_key_exists('keep_filemasks', $file_masks) && is_array($file_masks['keep_filemasks'])) ?
       $file_masks['keep_filemasks']
       : array('*' => '*');
+    // if there is something in the discard filter that also appears in the keep filemasks, get rid of that.
+    foreach ($file_masks_and_filters['discard_filemasks'] as $discard_pattern => $v) {
+      if (!(array_key_exists($discard_pattern, $file_masks_and_filters['keep_filemasks']) === FALSE)) {
+        unset($file_masks_and_filters['keep_filemasks'][$discard_pattern]);
+      }
+    }
   }
   foreach ($files as $folder => $folder_files) {
     if (is_array($folder_files)) {
@@ -1748,11 +1756,12 @@ function islandora_digital_workflow_scan_files($scan_path,  $file_masks = array(
 
   // loop through the found files just before returning them (because the
   // recursion above is needed).
-  foreach ($ret_arr as $file => $arr)
+  foreach ($ret_arr as $file => $arr) {
     if (!(islandora_digital_workflow_filemask_comparison($file, $file_masks_and_filters))) {
       // remove that file from the list
       unset($ret_arr[$file]);
     }
+  }
 
   return $ret_arr;
 }
@@ -3350,7 +3359,11 @@ function islandora_digital_workflow_marc_mods_arr_to_item_file_sources($batch_re
  * @return string
  */
 function islandora_digital_workflow_filemask_match($file, $filemask) {
+
   $d = ($file == '0001.thumb.jpg' && $filemask == '*.thumb.jpg');
+  if ($file == $filemask) {
+    return TRUE;
+  }
   if ($filemask == '*') {
     return TRUE;
   }
@@ -3385,10 +3398,9 @@ function islandora_digital_workflow_filemask_match($file, $filemask) {
  */
 function islandora_digital_workflow_filemask_comparison($file, $filemasks) {
   $discard = FALSE;
-  if ((array_key_exists('discard_filenames', $filemasks) === FALSE)) {
+  if ((array_key_exists('discard_filemasks', $filemasks) === FALSE)) {
     $filemasks['discard_filemasks'] = $filemasks;
   }
-
   foreach ($filemasks['discard_filemasks'] as $discard_mask => $discard_filemask_name) {
     if (!$discard) {
       $discard = islandora_digital_workflow_filemask_match($file, $discard_mask);

@@ -55,7 +55,7 @@ function islandora_digital_workflow_files($node) {
     foreach ($file_records as $idx => $item) {
       $item_working_path = $batch_path . '/' . $item->identifier . '/' . islandora_digital_workflow_object_subfolder_name($item->islandora_model, $batch_record);
       $item_files = islandora_digital_workflow_scandir_paged_content_files($item_working_path, FALSE);
-      $found_files += $item_files;
+      $found_files[$item->identifier] = $item_files;
     }
     // $found_files = islandora_digital_workflow_scandir_paged_content_files($batch_path);
     // Loop through the $file_records and see which ones are missing from the file system
