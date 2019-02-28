@@ -1075,13 +1075,19 @@ function islandora_digital_workflow_insert_islandora_digital_workflow_actions() 
     IDW_ACTION_SCAN => array(
       'name' => 'scan',
       'description' => t('Scan the item'),
-      'extra_info' => t('blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah'),
+      'extra_info' => t('When the user adds this action to an item, the related delivery files are copied to the working folder and structured in preparation for Islandora ingest.'),
       'glyph' => 'images/scan-the-item_20.png',
     ),
-    IDW_ACTION_SYSTEM_INGEST => array(
-      'name' => 'ingest',
-      'description' => t('Ingest item into repository'),
-      'extra_info' => t('extra info related to an item being ingested'),
+    IDW_ACTION_USER_INGEST => array(
+      'name' => 'user-ingest',
+      'description' => t('User queues the item for ingest by the system'),
+      'extra_info' => t('This action is added by the user when the item is at the point in time for it to be ingested.'),
+      'glyph' => 'images/ingest-item-into-repository_20.png',
+    ),
+    IDW_ACTION_SYSTEM_INGESTED => array(
+      'name' => 'system-ingest',
+      'description' => t('System has ingested item into repository'),
+      'extra_info' => t('This action is set by the system at the point in time when the object has been ingested by the `islandora_batch` module.'),
       'glyph' => 'images/ingest-item-into-repository_20.png',
       'is_system_action' => 1,
     ),
@@ -1105,7 +1111,7 @@ function islandora_digital_workflow_insert_islandora_digital_workflow_actions() 
     IDW_ACTION_SYSTEM_MADE_DERIVATIVES => array(
       'name' => 'system-made-derivatives',
       'description' => t('System made derivatives'),
-      'extra_info' => t('extra info related to system derivative creation'),
+      'extra_info' => t('This action is set by the system at the point in time when the derivative creation has been completed for the object.'),
       'glyph' => 'images/system-made-derivatives_20.png',
       'is_system_action' => 1,
     ),
@@ -1117,7 +1123,7 @@ function islandora_digital_workflow_insert_islandora_digital_workflow_actions() 
     IDW_ACTION_PROBLEM => array(
       'name' => 'problem',
       'description' => t('Problem with scan'),
-      'extra_info' => t('extra info related to Problem action'),
+      'extra_info' => t('A special optional action that will prompt the user for notes related to the problem (with the scan) and can be resolved by using the "Sync files" operation which replaces the item\'s files with updated delivery files.'),
       'glyph' => 'images/problem_20.png',
       'stage_taxonomy_tid' => $problem_tid,
       'is_triggered_by_single_item' => 1,

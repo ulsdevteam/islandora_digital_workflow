@@ -84,6 +84,18 @@
   </div>
   <?php endif; ?>
 
+  <?php if ($can_publish): ?>
+    <?php if ($item->progress == 'Ingested') : ?>
+    <div class="messages message_info good">
+        <p><b>All requirements are completed.</b>
+        </p><p>Publish this item now:
+            <a href="/islandora/islandora_digital_workflow/publish_item/<?php print urlencode($item->batch_item_id); ?>"><?php print $item->identifier; ?></a>.</p>
+      </div>
+    <?php endif; ?>
+    </div>
+  </div>
+  <?php endif; ?>
+
   <?php if ($description_markup): ?>
     <?php print $description_markup; ?>
   <?php endif; ?>

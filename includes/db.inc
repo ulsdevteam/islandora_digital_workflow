@@ -2392,27 +2392,43 @@ function islandora_digital_workflow_get_webform_componentdef_extra($cid, $type =
  */
 function islandora_digital_workflow_workflow_autofix_sequence($workflow_sequence_id) {
   $batch_item_sequence_actions = islandora_digital_workflow_get_batch_items_actions($workflow_sequence_id, FALSE);
-  $found_ingest_action = $found_publish_action = FALSE;
+  $found_user_ingest_action = $found_system_ingest_action = $found_publish_action = FALSE;
   $publish_action_sequence_order = 0;
   foreach ($batch_item_sequence_actions as $action_id => $sequence_action_arr) {
     if ($action_id == IDW_PUBLISH_OBJECT) {
       $publish_action_sequence_order = $sequence_action_arr['sequence_order'];
     }
-    $found_ingest_action |= ($action_id == IDW_ACTION_SYSTEM_INGEST);
+    $found_user_ingest_action |= ($action_id == IDW_ACTION_USER_INGEST);
+    $found_system_ingest_action |= ($action_id == IDW_ACTION_SYSTEM_INGESTED);
     $found_publish_action |= ($action_id == IDW_PUBLISH_OBJECT);
   }
-  if (!$found_ingest_action) {
+  // IDW_ACTION_USER_INGEST : User queues the item for ingest by the system.
+  if (!$found_system_ingest_action) {
     $fields = array(
         'workflow_sequence_id' => $workflow_sequence_id,
-        'action_id' => IDW_ACTION_SYSTEM_INGEST,
+        'action_id' => IDW_ACTION_USER_INGEST,
+        '`order`' => ($publish_action_sequence_order - 2),
+        'is_required' => 1,
+    );
+    $inserted = db_insert('islandora_digital_workflow_sequence_actions')
+      ->fields($fields)
+      ->execute();
+    drupal_set_message(t('The "User queues the item for ingest by the system" action was added automatically.'));
+  }
+  // IDW_ACTION_SYSTEM_INGESTED : System has ingested item into repository.
+  if (!$found_system_ingest_action) {
+    $fields = array(
+        'workflow_sequence_id' => $workflow_sequence_id,
+        'action_id' => IDW_ACTION_SYSTEM_INGESTED,
         '`order`' => ($publish_action_sequence_order - 1),
         'is_required' => 1,
     );
     $inserted = db_insert('islandora_digital_workflow_sequence_actions')
       ->fields($fields)
       ->execute();
-    drupal_set_message(t('The "Ingest item into repository" action was added automatically.'));
+    drupal_set_message(t('The "System has ingested item into repository" action was added automatically.'));
   }
+  // IDW_PUBLISH_OBJECT : Publish the item.
   if (!$found_publish_action) {
     $fields = array(
         'workflow_sequence_id' => $workflow_sequence_id,

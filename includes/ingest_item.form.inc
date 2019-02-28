@@ -21,15 +21,65 @@ function islandora_digital_workflow_ingest_all_batch(array $form, array &$form_s
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
 
+  $batch_record = islandora_digital_workflow_get_batch_record_by_batch_id($batch_id);
+  $batch_items = islandora_digital_workflow_get_batch_items_by_nid($batch_record['nid']);
+  $batch_description_markup = theme('islandora_digital_workflow_batch_description', array(
+    'batch_record' => $batch_record,
+    'can_ingest_all' => islandora_digital_workflow_can_ingest_all($batch_items),
+    'can_publish_all' => islandora_digital_workflow_can_publish_all($batch_items),
+    'batch_mapped_from_webformsubmission' => islandora_digital_workflow_get_webformsubmission($batch_record['webform_submission_sid']),
+  ));
+  $form = array(
+    'confirm-message' => array(
+      '#type' => 'item',
+      '#markup' => $batch_description_markup .
+        '<b>Clicking this button will start the ingest process for ' .
+        'all ' . count($batch_items) . ' items in the batch.  Are you sure that ' .
+        'you want to ingest "' . $batch_record['batch_name'] . '" now?</b><br>',
+    ),
+    'submit' => array(
+      '#type' => 'submit',
+      '#value' => t('Ok'),
+    ),
+    'cancel' => array(
+      '#type' => 'submit',
+      '#prefix' => '&nbsp; ',
+      '#value' => t('Cancel'),
+    ),
+    'batch_id' => array(
+      '#type' => 'hidden',
+      '#default_value' => $batch_id,
+    )
+  );
+  return $form;
+}
+
+function islandora_digital_workflow_ingest_all_batch_submit(array $form, array &$form_state) {
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
+  $batch_id = $form_state['values']['batch_id'];
+
+  $batch_record = islandora_digital_workflow_get_batch_record_by_batch_id($batch_id);
+  $batch_items = islandora_digital_workflow_get_batch_items_by_nid($batch_record['nid']);
+  // This is for when the user has submitted that they do want to ingest all.
   $success = TRUE;
   $batch_record = islandora_digital_workflow_get_batch_record_by_batch_id($batch_id);
   $items = islandora_digital_workflow_get_batch_items_by_nid($batch_record['nid']);
   if (count($items) > 0) {
     foreach ($items as $item) {
+      drupal_set_message('ingesting batch_item_id = ' . $item->batch_item_id);
       $success |= islandora_digital_workflow_do_ingest_item($item->batch_item_id, $batch_record);
     }
   }
-  return $success;
+  if (!$success) {
+    drupal_set_message('There was a problem attempting to ingest at least one ' .
+        'of the items.  Batch name "' . $batch_record['batch_name'] . '".');
+  }
+  else {
+    drupal_set_message('Done ingesting all ' . count($batch_items) . ' items from ' .
+        '"' . $batch_record['batch_name'] . '".');
+  }
+  drupal_goto('node/' . $batch_record['nid']);
 }
 
 /**
@@ -153,7 +203,6 @@ function islandora_digital_workflow_do_ingest_item($batch_item_id, $batch_record
         'return_val' => $return_val,
     );
     exec($drush_prepare_command, $output, $return_val);
-
     // Try to ingest that set now too...
     $ingest_namespace = islandora_digital_workflow_get_ingest_namespace($batch_record);
     $ingest_namespace_nocolon = rtrim($ingest_namespace, ':');
@@ -296,4 +345,30 @@ function islandora_digital_workflow_make_drush_prepare_statement($batch_item_obj
   }
   $param_and_vals[] = 'target=' . $filepath;
   return $drush_command_prefix . ' ' . $batch_preprocessor . ' --' . implode(" --", $param_and_vals);
+}
+
+/**
+ * Helper function to lookup and return the correponding "batch_ingest" module
+ * for a content model.
+ *
+ * @param string $fedora_model
+ *   The name of a fedora model.
+ * @return string
+ *   When a model match is found, the name of the drush prepare command for the
+ * correponding "batch_ingest" module for that content model.
+ */
+function islandora_digital_workflow_get_preprocessor($fedora_model) {
+  // perhaps want to use this function call  islandora_digital_workflow_model_ingest_module_info
+  $mapping = array(
+      'islandora:sp_basic_image' => 'islandora_batch_preprocess',
+      'islandora:sp_large_image_cmodel' => 'islandora_batch_preprocess',
+      'islandora:findingAidCModel' => 'islandora_newspaper_batch_preprocess',
+      'islandora:bookCModel' => 'islandora_book_batch_preprocess',
+      'islandora:manuscriptCModel' => 'islandora_manuscript_batch_preprocess',
+      'islandora:newspaperCModel ' => 'islandora_newspaper_batch_preprocess',
+      'islandora:newspaperIssueCModel' => 'islandora_newspaper_batch_preprocess',
+      'islandora:sp_web_archive' => 'islandora_newspaper_batch_preprocess',
+  );
+  return (array_key_exists($fedora_model, $mapping) ? $mapping[$fedora_model] :
+    '');
 }

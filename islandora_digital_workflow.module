@@ -13,7 +13,7 @@ define('IDW_BATCH_PRIORITY_TAXONOMY_MACHINE_NAME', 'workflow_batch_priority_voca
 // Action constants.
 define('IDW_ACTION_CHECK_IN', 1);
 define('IDW_ACTION_SCAN', 2);
-define('IDW_ACTION_SYSTEM_INGEST', 3);
+define('IDW_ACTION_SYSTEM_INGESTED', 3);
 define('IDW_ACTION_CHECK_OUT', 4);
 define('IDW_ACTION_RESCANNED', 5);
 define('IDW_ACTION_CHECK_PHYSICAL_ITEMS', 6);
@@ -25,6 +25,7 @@ define('IDW_ACTION_MODS_RECORD_COMPLETED', 11);
 define('IDW_ACTION_METADATA_PASS_QC', 12);
 define('IDW_ACTION_METADATA_FAIL_QC', 13);
 define('IDW_PUBLISH_OBJECT', 14);
+define('IDW_ACTION_USER_INGEST', 15);
 define('IDW_BATCH_ACTION_INACTIVE', 1001);
 
 // Permissions -- NOTE: there are additional permission constants defined in
@@ -200,21 +201,6 @@ function islandora_digital_workflow_menu() {
       'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_DELETE_ITEMS),
       'file' => 'includes/delete_batch_items.form.inc',
     ),
-    'islandora/islandora_digital_workflow/ingest_all/%' => array(
-      'title' => t('Islandora Digital Workflow - Ingest All Items for Batch'),
-      'type' => MENU_NORMAL_ITEM,
-      'page callback' => array('islandora_digital_workflow_ingest_all_batch'),
-      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW),
-      'file' => 'includes/ingest_item.form.inc',
-    ),
-    'islandora/islandora_digital_workflow/publish_all/%' => array(
-      'title' => t('Islandora Digital Workflow - Publish All Items for Batch'),
-      'type' => MENU_NORMAL_ITEM,
-      'page callback' => array('islandora_digital_workflow_publish_all_batch'),
-      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_PUBLISH_ITEMS),
-      'file' => 'includes/publish_item.form.inc',
-    ),
-
     // A handler to serve up a download of CSV templates.
     'islandora/islandora_digital_workflow/csv_template/%' => array(
       'type' => MENU_NORMAL_ITEM,
@@ -317,6 +303,22 @@ function islandora_digital_workflow_menu() {
       'type' => MENU_NORMAL_ITEM,
       'page callback' => 'drupal_get_form',
       'page arguments' => array('islandora_digital_workflow_publish_item', 3),
+      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_PUBLISH_ITEMS),
+      'file' => 'includes/publish_item.form.inc',
+    ),
+    'islandora/islandora_digital_workflow/ingest_all/%' => array(
+      'title' => t('Islandora Digital Workflow - Ingest All Items for Batch'),
+      'type' => MENU_NORMAL_ITEM,
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('islandora_digital_workflow_ingest_all_batch', 3),
+      'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW),
+      'file' => 'includes/ingest_item.form.inc',
+    ),
+    'islandora/islandora_digital_workflow/publish_all/%' => array(
+      'title' => t('Islandora Digital Workflow - Publish All Items for Batch'),
+      'type' => MENU_NORMAL_ITEM,
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('islandora_digital_workflow_publish_all_batch', 3),
       'access arguments' => array(ISLANDORA_DIGITAL_WORKFLOW_PUBLISH_ITEMS),
       'file' => 'includes/publish_item.form.inc',
     ),
@@ -639,6 +641,7 @@ function islandora_digital_workflow_theme() {
         'drush_log_entries' => array(),
         'pid' => '',
         'can_ingest' => FALSE,
+        'can_publish' => FALSE,
         'ingested_links' => '',
         'working_directory' => '',
         'delivery_directory' => '',
@@ -841,7 +844,7 @@ function islandora_digital_workflow_islandora_object_ingested(AbstractObject $ob
     $batch_ids = islandora_digital_workflow_get_batch_record_by_items_identifier($identifier);
     if (is_array($batch_ids) && array_key_exists(0, $batch_ids) && is_object($batch_ids[0])) {
       $batch_id_obj = $batch_ids[0];
-      islandora_digital_workflow_insert_transactions_record(IDW_ACTION_SYSTEM_INGEST, $batch_id_obj->batch_id, NULL);
+      islandora_digital_workflow_insert_transactions_record(IDW_ACTION_SYSTEM_INGESTED, $batch_id_obj->batch_id, NULL);
     }
   }
 }
@@ -1017,7 +1020,7 @@ function theme_islandora_digital_workflow_workflow_sequence_actions_form($variab
   $this_action_id = $sequence_has_publish_action = $sequence_has_ingest_action = $actions_after_ingest_action_are_prerequisites = FALSE;
   foreach (element_children($form['wrapper']['rows']) as $action_id) {
     $this_action_id = $action_id;
-    $sequence_has_ingest_action |= ($action_id == IDW_ACTION_SYSTEM_INGEST);
+    $sequence_has_ingest_action |= ($action_id == IDW_ACTION_SYSTEM_INGESTED);
     $sequence_has_publish_action |= ($action_id == IDW_PUBLISH_OBJECT);
     $action_record = islandora_digital_workflow_get_action($action_id);
     $form['wrapper']['rows'][$action_id]['weight']['#attributes']['class'] = array('rows-order-weight');
@@ -1103,11 +1106,10 @@ function islandora_digital_workflow_islandora_batch_process_finished($sets) {
       $queued_items = islandora_batch_get_queued_items_for_set($set);
 
       foreach ($queued_items as $ingested_pid) {
-        // ingested_pid = ' . print_r($ingested_pid, true).
         $ingested_object = islandora_object_load($ingested_pid);
         if (is_object($ingested_object)) {
           // Update the batch status record for the matching batch record for this set's $ingested_pid.
-          islandora_digital_workflow_set_status_for_pid($ingested_object, IDW_ACTION_SYSTEM_INGEST);
+          islandora_digital_workflow_set_status_for_pid($ingested_object, IDW_ACTION_SYSTEM_INGESTED);
         }
         else {
           $variables = array('@ingested_pid' => $ingested_pid, '@set' => $set);

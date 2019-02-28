@@ -24,8 +24,12 @@
             strtolower(str_replace(" ", "_", $batch_record['progress'])) : "na"); ?>"><?php print $progress_step; ?></span>
           <?php print (($progress_step <> 'Completed') ? ' &rsaquo; ' : ''); ?>
       <?php endforeach; ?>
-    <?php if ($can_ingest_all): ?> | <a href="#">INGEST ALL ITEMS</a><?php endif; ?>
-    <?php if ($can_publish_all): ?> | <a href="#">PUBLISH ALL ITEMS</a><?php endif; ?>
+    <?php if ($can_ingest_all && (arg(2) <> 'ingest_all')): ?> |
+      <a href="/islandora/islandora_digital_workflow/ingest_all/<?php print $batch_record['batch_id'];?>">INGEST ALL ITEMS</a>
+    <?php endif; ?>
+    <?php if ($can_publish_all && (arg(2) <> 'publish_all')): ?> |
+      <a href="/islandora/islandora_digital_workflow/publish_all/<?php print $batch_record['batch_id'];?>">PUBLISH ALL ITEMS</a>
+    <?php endif; ?>
     </div>
     <br class="break_float">
     <label>Batch description:</label> <?php print $batch_record['batch_description']; ?>

@@ -153,29 +153,3 @@ function islandora_digital_workflow_do_publish_item($batch_item_id, $batch_recor
   }
   return TRUE;
 }
-
-/**
- * Helper function to lookup and return the correponding "batch_ingest" module
- * for a content model.
- *
- * @param string $fedora_model
- *   The name of a fedora model.
- * @return string
- *   When a model match is found, the name of the drush prepare command for the
- * correponding "batch_ingest" module for that content model.
- */
-function islandora_digital_workflow_get_preprocessor($fedora_model) {
-  // perhaps want to use this function call  islandora_digital_workflow_model_ingest_module_info
-  $mapping = array(
-      'islandora:sp_basic_image' => 'islandora_batch_preprocess',
-      'islandora:sp_large_image_cmodel' => 'islandora_batch_preprocess',
-      'islandora:findingAidCModel' => 'islandora_newspaper_batch_preprocess',
-      'islandora:bookCModel' => 'islandora_book_batch_preprocess',
-      'islandora:manuscriptCModel' => 'islandora_manuscript_batch_preprocess',
-      'islandora:newspaperCModel ' => 'islandora_newspaper_batch_preprocess',
-      'islandora:newspaperIssueCModel' => 'islandora_newspaper_batch_preprocess',
-      'islandora:sp_web_archive' => 'islandora_newspaper_batch_preprocess',
-  );
-  return (array_key_exists($fedora_model, $mapping) ? $mapping[$fedora_model] :
-    '');
-}

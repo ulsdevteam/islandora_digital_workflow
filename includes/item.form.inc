@@ -171,7 +171,7 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
 
   $ingested = FALSE;
   foreach ($item_record_transactions as $item_record_transaction) {
-    $ingested |= ($item_record_transaction->action_id == IDW_ACTION_SYSTEM_INGEST);
+    $ingested |= ($item_record_transaction->action_id == IDW_ACTION_SYSTEM_INGESTED);
   }
 
   // Get the Workflow sequences data -- to be able to compare the max_timestamp
@@ -240,6 +240,7 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
   $can_ingest = (user_access(ISLANDORA_DIGITAL_WORKFLOW_INGEST_ITEMS) &&
       (is_array($required_batch_actions)) &&
       islandora_digital_workflow_item_ingest_prerequisites_all_done($item_record_transactions, $required_batch_actions));
+  $can_publish = (user_access(ISLANDORA_DIGITAL_WORKFLOW_PUBLISH_ITEMS) && $item->progress == 'Ingested');
   return $lookup_form_markup .
       theme('islandora_digital_workflow_item', array(
         'batch_record' => $batch_record,
@@ -254,6 +255,7 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
         'drush_log_entries' => $drush_log_entries,
         'pid' => $pid,
         'can_ingest' => $can_ingest,
+        'can_publish' => $can_publish,
         'ingested_links' => $ingested_links,
         'working_directory' => $item_working_path,
         'delivery_directory' => $item_delivery_path,

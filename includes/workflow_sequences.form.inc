@@ -570,7 +570,7 @@ function islandora_digital_workflow_workflow_sequence_actions_form(array $form, 
       '#default_value' => $model,
     ),
   );
-  $disable_remove_actions = array(IDW_ACTION_SYSTEM_INGEST, IDW_PUBLISH_OBJECT);
+  $disable_remove_actions = array(IDW_ACTION_USER_INGEST, IDW_ACTION_SYSTEM_INGESTED, IDW_PUBLISH_OBJECT);
   if (array_key_exists($workflow_sequence_id, $workflow_sequence_actions)) {
     foreach ($workflow_sequence_actions[$workflow_sequence_id] as $i => $sequence_array) {
       $form['wrapper']['rows'][$sequence_array['action_id']] = array(

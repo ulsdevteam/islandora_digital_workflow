@@ -39,8 +39,12 @@ and open the template in the editor.
     background: url("../images/scan-the-item_20.png") 0px 0px no-repeat !important;
 }
 
-.transaction_action_ingest {
+.transaction_action_user_ingest {
     background: url("../images/ingest-item-into-repository_20.png") 0px 0px no-repeat !important;
+}
+
+.transaction_action_system_ingested {
+    background: url("../images/system-ingested-item-into-repository_20.png") 0px 0px no-repeat !important;
 }
 
 .transaction_action_mods_record_updated {
@@ -117,7 +121,8 @@ body tr {
 div.transaction_action_check_in,
 div.transaction_action_scan,
 div.transaction_action_check_out,
-div.transaction_action_ingest,
+div.transaction_action_user_ingest,
+div.transaction_action_system_ingested,
 div.transaction_action_rescan,
 div.transaction_action_system_made_derivatives,
 div.transaction_action_check_physical_items,

@@ -101,7 +101,7 @@ function islandora_digital_workflow_create_batch_record_by_form($form_state, $no
     $batch_record = islandora_digital_workflow_get_batch_record_by_name($batch_name);
 
     $filename = drupal_realpath($batch_items_filename);
-    $uploaded_batch_items_file = ($batch_items_filename) ? (file_exists($filename) && file_get_contents($filename)) : FALSE;
+    $uploaded_batch_items_file = ($batch_items_filename && file_exists($filename)) ? file_get_contents($filename) : FALSE;
     $batch_request_date = ((array_key_exists('is_batch_request', $form_state['values'])) && ($form_state['values']['is_batch_request'] == 1) ?
         strtotime($form_state['values']['batch_request_due_date']['year'] . '/' .
           $form_state['values']['batch_request_due_date']['month'] . '/' .
@@ -3272,7 +3272,7 @@ function islandora_digital_workflow_mrc_results_as_array($mrc_results_arr) {
  * @return array
  *   An array of temporary filenames that store the MARC and MODS files.
  */
-function islandora_digital_workflow_marc_mods_arr_to_item_file_sources($batch_record, $marc_and_mods_records) {
+function islandora_digital_workflow_marc_mods_arr_to_item_file_sources($batch_record, &$marc_and_mods_records) {
   $item_file_sources = array();
   $batch_path = islandora_digital_workflow_batch_path($batch_record, 'working');
   foreach ($marc_and_mods_records as $idx => $marc_mods_arr) {
@@ -3281,6 +3281,7 @@ function islandora_digital_workflow_marc_mods_arr_to_item_file_sources($batch_re
     if (file_exists($marc_mods_arr['MARC'])) {
       $use_identifier = 'item_' . str_pad((1 + $idx), 4, '0', STR_PAD_LEFT);
     }
+    $marc_mods_arr['identifier'] = $use_identifier;
 
     $batch_item_id = islandora_digital_workflow_get_batch_item_id_by_identifier($use_identifier, $batch_record['batch_id'], FALSE);
     $item_is_paged = islandora_digital_workflow_item_is_paged_content($batch_item_id, $batch_record);
@@ -3288,7 +3289,7 @@ function islandora_digital_workflow_marc_mods_arr_to_item_file_sources($batch_re
 
     $model = (is_object($batch_item_object) ? $batch_item_object->islandora_model : $batch_record['islandora_model']);
     $subfolder_name = ($item_is_paged ? '/' . islandora_digital_workflow_object_subfolder_name($model, $batch_record) : '');
-    $item_path = $batch_path . '/' . $bib_id;
+    $item_path = $batch_path . '/' . $marc_mods_arr['identifier'];
     $item_subfolder_path = $item_path . $subfolder_name;
     if (!file_exists($item_path)) {
       $call = mkdir($item_path);
@@ -3799,16 +3800,29 @@ function islandora_digital_workflow_can_publish_all($batch_items) {
 }
 
 /**
+ * Whether or not a batch_item has been ingested.
  *
- * @param type $batch_item_object
- * @param type $batch_record
- * @param type $item_record_transactions
- * @return type
+ * Code will check to see whether or not there is an Islandora object that
+ * matches the identifier PID value for a batch item object.
+ *
+ * @todo Only check by assigned_pid if the configuration is using the "Assign
+ *   PID values" variable_get('islandora_digital_workflow_assign_PIDs', 0)
+ *   else, query Solr for the object that matches the identifier within the
+ *   MODS field.
+ *
+ * @param object $batch_item_object
+ *   A batch item object.
+ * @param array $batch_record
+ *   A batch record.
+ * @param array $item_record_transactions
+ *   Optional array of item record transactions objects
+ * @return boolean
+ *   Whether or not the batch item has been ingested to Islandora.
  */
 function islandora_digital_workflow_item_ingested($batch_item_object, $batch_record, $item_record_transactions = NULL) {
   $retval = FALSE;
   if (is_object($batch_item_object)) {
-    $pid = ($batch_item_object->assigned_pid <> '') ? $batch_item_object->assigned_pid : $batch_record['namespace'] . $batch_item_object->identifier;
+    $pid = ($batch_item_object->assigned_pid <> '') ? $batch_item_object->assigned_pid : $batch_record['ingest_namespace'] . $batch_item_object->identifier;
     $islandora_object = islandora_object_load($pid);
     module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
     if (is_null($item_record_transactions)) {
