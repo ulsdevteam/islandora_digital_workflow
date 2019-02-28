@@ -3068,8 +3068,13 @@ function islandora_digital_workflow_copy_delivery_files($batch_item_id, $is_prob
   if ($item_is_paged) {
     module_load_include('inc', 'islandora_digital_workflow', 'includes/file_utilities');
     $batch_record = islandora_digital_workflow_get_batch_record_by_batch_id($batch_item_obj->batch_id);
+    $item_working_root = islandora_digital_workflow_batch_path($batch_record, 'working') . '/' . $batch_item_obj->identifier;
+    if (!file_exists($item_working_root)) {
+      mkdir($item_working_root);
+    }
     $subfolder_name = ($item_is_paged ? '/' . islandora_digital_workflow_object_subfolder_name($batch_item_obj->islandora_model) : '');
-    $item_working_folder = islandora_digital_workflow_batch_path($batch_record, 'working') . '/' . $batch_item_obj->identifier  . $subfolder_name;
+    $item_working_folder = $item_working_root  . $subfolder_name;
+
     // Scan the source folder - and copy over all page resources
     $item_folder = islandora_digital_workflow_get_item_delivery_filename($batch_item_obj);
     // Use the value that is passed as a parameter if it exists, else fall back to
