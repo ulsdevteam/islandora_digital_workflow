@@ -1626,7 +1626,7 @@ function islandora_digital_workflow_insert_transactions_record($action_id, $batc
           'action_id' => $action_id,
           'batch_id' => $batch_id,
           'batch_item_id' => $batch_item_id,
-          'drupal_uid' => ($alternative_uid) ? $alternative_uid : $user->uid,
+          'drupal_uid' => (!is_null($alternative_uid)) ? $alternative_uid : $user->uid,
         ))
         ->execute();
     // check to see if this specific change will trigger any transaction Stage changes

@@ -150,7 +150,7 @@ ignored_filename_*
 *_ignored_filenames
 *_ignored_filenames_*
 ??_ignored_filenames'),
-        '#default_value' =>  variable_get('islandora_digital_workflow_ingest_ignore_filenames'),
+        '#default_value' => variable_get('islandora_digital_workflow_ingest_ignore_filenames'),
         '#description' => t('List filenames or wildcard filenames (supports *, ? ' .
             'characters) <b>ONE per line</b> that the ingest process should ignore ' .
             'when preparing the item files that exist in the batch folder for ingest.' .
