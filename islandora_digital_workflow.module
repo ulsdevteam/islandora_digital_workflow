@@ -1017,9 +1017,10 @@ function theme_islandora_digital_workflow_workflow_sequence_actions_form($variab
   $form = $variables['form'];
   $sequence_id = 9999;
   $rows = array();
-  $this_action_id = $sequence_has_publish_action = $sequence_has_ingest_action = $actions_after_ingest_action_are_prerequisites = FALSE;
+  $this_action_id = $sequence_has_publish_action = $sequence_has_user_ingest_action = $sequence_has_ingest_action = $actions_after_ingest_action_are_prerequisites = FALSE;
   foreach (element_children($form['wrapper']['rows']) as $action_id) {
     $this_action_id = $action_id;
+    $sequence_has_user_ingest_action |= ($action_id == IDW_ACTION_USER_INGEST);
     $sequence_has_ingest_action |= ($action_id == IDW_ACTION_SYSTEM_INGESTED);
     $sequence_has_publish_action |= ($action_id == IDW_PUBLISH_OBJECT);
     $action_record = islandora_digital_workflow_get_action($action_id);

@@ -175,10 +175,15 @@ function islandora_digital_workflow_ingest_item_submit(array $form, array &$form
  * @return boolean
  *   Success / failure of the prepare call.
  */
-function islandora_digital_workflow_do_ingest_item($batch_item_id, $batch_record = NULL) {
+function islandora_digital_workflow_do_ingest_item($batch_item_id, $batch_record = NULL, $do_add_transaction = TRUE) {
   global $user;
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
+
+  // Add the transaction that the user has queued the item for ingest.
+  if ($do_add_transaction) {
+    islandora_digital_workflow_insert_transactions_record(IDW_ACTION_USER_INGEST, NULL, $batch_item_id);
+  }
 
   // Get the batch item record -- see what type of object that is
   $batch_item_arr = islandora_digital_workflow_get_batch_item_record($batch_item_id);

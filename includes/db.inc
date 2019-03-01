@@ -1635,22 +1635,27 @@ function islandora_digital_workflow_insert_transactions_record($action_id, $batc
         'batch_id' => $batch_id,
         'batch_item_id' => $batch_item_id,
       ));
-  
+    $batch_record = NULL;
     if ($action_id == IDW_ACTION_PROBLEM) {
       islandora_digital_workflow_set_problem_record($transaction_id, ($alternative_uid) ? $alternative_uid : $user->uid, $problem_notes);
     } elseif ($action_id == IDW_ACTION_SCAN && !is_null($batch_item_id)) {
       islandora_digital_workflow_copy_delivery_files($batch_item_id, FALSE, NULL);
     } elseif ($action_id == IDW_PUBLISH_OBJECT) {
       islandora_digital_workflow_publish_object($batch_item_id);
-    }
-
-    if (!is_null($batch_item_id)) {
+    } elseif ($action_id == IDW_ACTION_USER_INGEST && !is_null($batch_item_id)) {
       $item_record_results = islandora_digital_workflow_get_batch_item_record($batch_item_id);
       $batch_item_obj = array_pop($item_record_results);
       $batch_record = islandora_digital_workflow_get_batch_record_by_batch_id(NULL, $batch_item_id);
-      // Before exiting, this can cause the "progress" of an item to change
-      islandora_digital_workflow_calculate_item_progress_filedetails($batch_item_id, $batch_record);
+      islandora_digital_workflow_do_ingest_item($batch_item_id, NULL, FALSE);
     }
+
+    if (!is_null($batch_item_id) && is_null($batch_record)) {
+      $item_record_results = islandora_digital_workflow_get_batch_item_record($batch_item_id);
+      $batch_item_obj = array_pop($item_record_results);
+      $batch_record = islandora_digital_workflow_get_batch_record_by_batch_id(NULL, $batch_item_id);
+    }
+    // Before exiting, this can cause the "progress" of an item to change
+    islandora_digital_workflow_calculate_item_progress_filedetails($batch_item_id, $batch_record);
 
     return $transaction_id;
   }
@@ -2403,7 +2408,7 @@ function islandora_digital_workflow_workflow_autofix_sequence($workflow_sequence
     $found_publish_action |= ($action_id == IDW_PUBLISH_OBJECT);
   }
   // IDW_ACTION_USER_INGEST : User queues the item for ingest by the system.
-  if (!$found_system_ingest_action) {
+  if (!$found_user_ingest_action) {
     $fields = array(
         'workflow_sequence_id' => $workflow_sequence_id,
         'action_id' => IDW_ACTION_USER_INGEST,

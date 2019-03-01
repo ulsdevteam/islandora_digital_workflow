@@ -889,12 +889,15 @@ function islandora_digital_workflow_validate_csv($batch_items_filename) {
  *
  * @param string $csv_file
  *   Filename pointing to the CSV file.
+ * @param boolean $key_is_fieldnames
+ *   Optional - whether or not the key for the array should be returning the data
+ * with the specific field's fieldname for the array key.
  * @return array
  *   The array contains two keys that each contain an array of values:
  *     ('header' => $file_header, 'rows' => $file_rows).
  * @throws Exception
  */
-function islandora_digital_workflow_csv_file_as_array($csv_file, $key_is_fielnames = FALSE) {
+function islandora_digital_workflow_csv_file_as_array($csv_file, $key_is_fieldnames = FALSE) {
   $file_rows = $file_header = array();
   if (file_exists($csv_file)) {
     $row = 0;
@@ -903,10 +906,13 @@ function islandora_digital_workflow_csv_file_as_array($csv_file, $key_is_fielnam
         while (($data = fgetcsv($handle)) !== FALSE) {
           $row++;
           if ($row > 1) {
-            if ($key_is_fielnames) {
+            if ($key_is_fieldnames) {
               $tmp_data = array();
               foreach ($file_header as $index => $fieldname) {
-                $tmp_data[$fieldname] = $data[$index];
+                // Make sure that the fieldname exists.
+                if ($fieldname) {
+                  $tmp_data[$fieldname] = $data[$index];
+                }
               }
               $file_rows[] = $tmp_data;
             }
