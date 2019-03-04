@@ -207,7 +207,12 @@ function islandora_digital_workflow_do_ingest_item($batch_item_id, $batch_record
         'output' => serialize(array('output' => 'There was an exception when this command was called.')),
         'return_val' => $return_val,
     );
-    exec($drush_prepare_command, $output, $return_val);
+    // Call switched from exec() to passthru() so that the web server is given
+    // control right after issuing the ingest command... as a result, there
+    // can not be any debug output value for ingest prepare calls.
+    //   exec($drush_prepare_command, $output, $return_val);
+    passthru($drush_prepare_command, $return_val);
+    $output = '';
     // Try to ingest that set now too...
     $ingest_namespace = islandora_digital_workflow_get_ingest_namespace($batch_record);
     $ingest_namespace_nocolon = rtrim($ingest_namespace, ':');
@@ -217,8 +222,12 @@ function islandora_digital_workflow_do_ingest_item($batch_item_id, $batch_record
     if ($set) {
       $this_domain = 'http://' . $_SERVER['HTTP_HOST'];
       $ingest_set_drush_command = 'drush -v -u ' . $user->uid . ' --uri=' . $this_domain . ' islandora_batch_ingest --ingest_set=' . $set;
-      exec($ingest_set_drush_command, $ingest_set_output, $ingest_set_return_var);
 
+      // As above, the call has been changed from exec() to passthru() - no
+      // debug output is possible.
+      //  exec($ingest_set_drush_command, $ingest_set_output, $ingest_set_return_var);
+      passthru($ingest_set_drush_command, $return_val);
+      $ingest_set_output = '';
       $ingest_set_fields = $fields;
       $ingest_set_fields['output'] = serialize($ingest_set_output);
       $ingest_set_fields['return_val'] = $ingest_set_return_var;
