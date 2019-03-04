@@ -37,6 +37,7 @@ function islandora_digital_workflow_create_batch() {
   $batch_description_markup = (is_array($batch_record)) ?
     theme('islandora_digital_workflow_batch_description', array(
       'batch_record' => $batch_record,
+      'collection_review_links' => islandora_digital_workflow_collection_review_links($batch_record),
       'can_ingest_all' => islandora_digital_workflow_can_ingest_all($batch_items),
       'can_publish_all' => islandora_digital_workflow_can_publish_all($batch_items),
       'batch_mapped_from_webformsubmission' => ($batch_record['webform_submission_sid'] ? islandora_digital_workflow_get_webformsubmission($batch_record['webform_submission_sid']) : ''),

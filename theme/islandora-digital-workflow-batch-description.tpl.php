@@ -9,6 +9,7 @@
  *
  * Variables available:
  * - $batch_record => array(),
+ * - $collection_review_links = array(),
  * - can_ingest_all => whether or not the entire batch can be ingested,
  * - can_publish_all => whether or not the entire batch can be published,
  * - batch_mapped_from_webformsubmission => webform submission object
@@ -32,6 +33,14 @@
     <?php endif; ?>
     </div>
     <br class="break_float">
+    <?php if ($collection_review_links && is_array($collection_review_links) && count($collection_review_links) > 0) : ?>
+    <div class="progress_div">
+        <b><?php print (variable_get('islandora_digital_workflow_use_reviewCollections', 0) ? 'Review ' : ''); ?>Collection/s:</b>
+        <ul><li><?php print implode("</li><li>", $collection_review_links); ?></li><ul>
+    </div>
+    <br class="break_float">
+    <?php endif; ?>
+
     <label>Batch description:</label> <?php print $batch_record['batch_description']; ?>
     <?php if ($batch_mapped_from_webformsubmission) : ?>
     <br><label>Submission: </label> <a class="link_open_new_tab" title="link opens in separate tab" target="_blank" href="/node/<?php print $batch_mapped_from_webformsubmission->nid; ?>/submission/<?php print $batch_mapped_from_webformsubmission->sid; ?>">"<?php print $batch_mapped_from_webformsubmission->title; ?>" #<?php print $batch_mapped_from_webformsubmission->sid; ?></a>

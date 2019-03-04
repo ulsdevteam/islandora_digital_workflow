@@ -3895,3 +3895,55 @@ function islandora_digital_workflow_item_ingested($batch_item_object, $batch_rec
   }
   return $retval;
 }
+
+/**
+ * This will return an array of links that point to the collection/s related
+ * to any given batch record... one link for each collection value.
+ *
+ * Additionally, when the workflow configuration option is set to "Use Review
+ * Collections" the PID values behind these links will be to the review (cloned)
+ * collections of their intended collections.
+ *
+ * @param array $batch_record
+ *   An associative array of batch values.
+ * @return array
+ *   An array of HTML links.
+ */
+function islandora_digital_workflow_collection_review_links($batch_record) {
+  $using_review_collections = variable_get('islandora_digital_workflow_use_reviewCollections', 0);
+  $links = array();
+  $collections = $batch_record['mapto_collections'];
+  $collections_arr = explode(",", $collections);
+  foreach ($collections_arr as $collection_pid) {
+    $collection_pid = ($using_review_collections) ? $collection_pid . '_review' : $collection_pid;
+    $collection_object = islandora_object_load($collection_pid);
+    if (is_object($collection_object)) {
+      $links[] = islandora_digital_workflow_collection_link($collection_object);
+    } else {
+      $links[] = $collection_pid;
+    }
+  }
+  return $links;
+}
+
+/**
+ * This will return a link to a collection object.  The link value can potentially
+ * be altered by a call to drupal_alter when there is a function written such as
+ * YOURMODULE_islandora_digital_workflow_collection_links_alter().
+ *
+ * @param type $collection_object
+ * @return type
+ */
+function islandora_digital_workflow_collection_link($collection_object) {
+  $context = array(
+    'collection_object' => $collection_object
+  );
+  $link = l($collection_object->label, 'islandora/object/' . $context['collection_object']->id) . ' (' . $context['collection_object']->id . ')';
+
+  // This call can change the value of the $link that is returned.  If any module
+  // needs to provide a different link to a collection, it would have to code
+  // a hook to the yourmodule_islandora_digital_workflow_collection_links_alter
+  drupal_alter('islandora_digital_workflow_collection_links', $link, $context);
+
+  return $link;
+}
