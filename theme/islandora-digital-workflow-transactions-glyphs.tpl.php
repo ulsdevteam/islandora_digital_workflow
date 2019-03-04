@@ -36,8 +36,8 @@
               $transaction_action['batch_action_name'] : $transaction_action;
 
       $required_class = (is_array($transaction_action) &&
-          array_key_exists('is_required', $transaction_action)) ?
-              ($transaction_action['is_required'] == 1 ? ' required_action' : ' optional_action') : '';
+          array_key_exists('is_publish_prerequisite', $transaction_action)) ?
+              ($transaction_action['is_publish_prerequisite'] == 1 ? ' required_action' : ' optional_action') : '';
       if (is_array($transaction_action) && array_key_exists('class_name', $transaction_action)) {
         $class_name = $transaction_action['class_name'];
       }

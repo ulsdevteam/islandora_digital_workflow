@@ -66,7 +66,7 @@ function islandora_digital_workflow_sequences() {
     }
     foreach ($this_workflow_sequence_actions as $action_record_array) {
       $model_of_this_action = (isset($action_record_array['islandora_model']) ? $action_record_array['islandora_model'] : '');
-      $class = (isset($action_record_array['is_required']) ? 'required_action' : 'optional_action');
+      $class = (isset($action_record_array['is_publish_prerequisite']) ? 'required_action' : 'optional_action');
       $glyph_class = islandora_digital_workflow_glyph_class($action_record_array['action_name']);
       $li_markup = '<li class="' . $glyph_class . ' ' . $class . '">' . (isset($action_record_array['action_description']) ?
               $action_record_array['action_description'] : '[action description missing]') . '</li>';
@@ -586,9 +586,9 @@ function islandora_digital_workflow_workflow_sequence_actions_form(array $form, 
           '#type' => 'hidden',
           '#default_value' => $sequence_array['action_name'],
         ),
-        'is_required' => array(
+        'is_publish_prerequisite' => array(
           '#type' => 'checkbox',
-          '#default_value' => $sequence_array['is_required'],
+          '#default_value' => $sequence_array['is_publish_prerequisite'],
         ),
         'is_ingest_prerequisite' => array(
           '#type' => 'checkbox',
@@ -614,7 +614,7 @@ function islandora_digital_workflow_workflow_sequence_actions_form(array $form, 
         ),
       );
       if (!(array_search($sequence_array['action_id'], $disable_remove_actions) === FALSE)) {
-        $form['wrapper']['rows'][$sequence_array['action_id']]['is_required']['#attributes'] = array(
+        $form['wrapper']['rows'][$sequence_array['action_id']]['is_publish_prerequisite']['#attributes'] = array(
           'readonly' => 'readonly',
           'disabled' => 'disabled'
         );
@@ -726,7 +726,7 @@ function islandora_digital_workflow_workflow_sequence_actions_form_submit($form,
         'action_id' => $form_state['values']['wrapper']['add_new_item_action'],
         'action_name' => $all_actions[$form_state['values']['wrapper']['add_new_item_action']]['name'],
         'workflow_sequence_id' => $workflow_sequence_id,
-        'is_required' => 0,
+        'is_publish_prerequisite' => 0,
         'is_ingest_prerequisite' => 0,
         'weight' => 10,
     );
@@ -741,7 +741,7 @@ function islandora_digital_workflow_workflow_sequence_actions_form_submit($form,
         'action_id' => $form_state['values']['batch_wrapper']['add_new_batch_action'],
         'action_name' => $all_actions[$form_state['values']['batch_wrapper']['add_new_batch_action']]['name'],
         'workflow_sequence_id' => $workflow_sequence_id,
-        'is_required' => 0,
+        'is_publish_prerequisite' => 0,
         'is_ingest_prerequisite' => 0,
         'weight' => 10,
     );
@@ -772,13 +772,13 @@ function islandora_digital_workflow_workflow_sequence_actions_form_submit($form,
     foreach ($form_state['values']['wrapper']['rows'] as $id => $item) {
       if ($item['action_id'] <> $remove_item_action_id) {
         $replaced = db_query('REPLACE INTO {islandora_digital_workflow_sequence_actions} ' .
-                '(workflow_sequence_id, action_id, islandora_model, is_required, ' .
+                '(workflow_sequence_id, action_id, islandora_model, is_publish_prerequisite, ' .
                 'is_ingest_prerequisite, `order`) ' .
-                'VALUES (:workflow_sequence_id, :action_id, :islandora_model, :is_required, ' .
+                'VALUES (:workflow_sequence_id, :action_id, :islandora_model, :is_publish_prerequisite, ' .
                 ':is_ingest_prerequisite, :weight)',
           array(
               ':weight' => $item['weight'],
-              ':is_required' => $item['is_required'],
+              ':is_publish_prerequisite' => $item['is_publish_prerequisite'],
               ':is_ingest_prerequisite' => $item['is_ingest_prerequisite'],
               ':workflow_sequence_id' => $workflow_sequence_id,
               ':action_id' => $item['action_id'],

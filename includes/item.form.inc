@@ -346,7 +346,7 @@ function islandora_digital_workflow_transaction_action_objects($merged_item_reco
   if (count($return_array) < 1) {
     $stub_entry = new stdClass();
     $stub_entry->timestamp = '';
-    $stub_entry->transaction_id = (($required_batch_action['is_required']) ? -1 : 0);
+    $stub_entry->transaction_id = (($required_batch_action['is_publish_prerequisite']) ? -1 : 0);
     $stub_entry->action_name = $required_batch_action['batch_action_name'];
     $stub_entry->description = $required_batch_action['batch_action_description'];
     $stub_entry->glyph_class =  islandora_digital_workflow_glyph_class($stub_entry->action_name);

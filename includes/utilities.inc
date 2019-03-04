@@ -2322,6 +2322,42 @@ function islandora_digital_workflow_item_ingest_prerequisites_all_done($item_rec
 }
 
 /**
+ * Will determine whether or not all of the "Publish prerequisite" actions are
+ * completed for a set of transactions.
+ *
+ * @param array $item_record_transactions
+ *   Array of objects that detail each transaction for the item.
+ * @param array $required_batch_actions
+ *   Array of objects that relate to the workflow sequence of the item's
+ * related batch.
+ * @return boolean
+ *   TRUE if all required actions for the objects' workflow sequence are completed.
+ */
+function islandora_digital_workflow_item_publish_prerequisites_all_done($item_record_transactions, $required_batch_actions) {
+  // To see if all actions are done, loop through all of the item actions to see
+  // if any of these are "stub transaction" objects that are needed to indicate
+  // any required actions on the item that have not been completed.
+  $retval = TRUE;
+  // Make an array of the required_batch_actions that are set to is_ingest_prerequisite.
+  $publish_prerequisite_ids = $item_action_ids = array();
+  foreach ($required_batch_actions as $required_batch_action) {
+    if ($required_batch_action['is_publish_prerequisite']) {
+      $publish_prerequisite_ids[] = $required_batch_action['action_id'];
+    }
+  }
+  foreach ($item_record_transactions as $transaction_obj) {
+    if ($transaction_obj->transaction_id > -1) {
+      $item_action_ids[$transaction_obj->action_id] = $transaction_obj->action_id;
+    }
+  }
+
+  foreach ($publish_prerequisite_ids as $required_action_id) {
+    $retval &= !(array_search($required_action_id, $item_action_ids) === FALSE);
+  }
+  return $retval;
+}
+
+/**
  * Is the action_id a batch_action or an item_action?
  *
  * @param integer $action_record

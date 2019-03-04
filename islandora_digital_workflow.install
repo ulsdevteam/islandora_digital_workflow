@@ -771,7 +771,7 @@ function islandora_digital_workflow_schema() {
         'unsigned' => FALSE,
         'not null' => TRUE,
       ),
-      'is_required' => array(
+      'is_publish_prerequisite' => array(
         'type' => 'int',
         'size' => 'tiny',
         'default' => 0,

@@ -577,16 +577,17 @@ function islandora_digital_workflow_update_batch_transaction($transaction_id, $a
     ->execute();
   // check to see if this specific change will trigger any transaction Stage changes
   islandora_digital_workflow_check_trigger_stage_change($transaction_id);
-
-  return $updated;
+  // It seems that the code should handle adding the Problem transaction.
   if ($action_id == IDW_ACTION_PROBLEM) {
     islandora_digital_workflow_set_problem_record($transaction_id, $user->uid, $problem_notes);
   }
+
+  return $updated;
 }
 
 /**
- *
- * (see: islandora_digital_workflow_insert_transactions_record)
+ * This will potentially add a workflow stage to a batch node when item actions
+ * are added. (see: islandora_digital_workflow_insert_transactions_record)
  *
  * @param integer $transaction_id
  *   The transaction_id of the transaction that was just added (see:
@@ -1621,6 +1622,33 @@ function islandora_digital_workflow_insert_transactions_record($action_id, $batc
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
   global $user;
   if (!is_null($batch_id) || !is_null($batch_item_id)) {
+    // Might need these objects / arrays later...
+    if (!is_null($batch_item_id)) {
+      $item_record_results = islandora_digital_workflow_get_batch_item_record($batch_item_id);
+      $batch_item_obj = array_pop($item_record_results);
+      $batch_record = islandora_digital_workflow_get_batch_record_by_batch_id(NULL, $batch_item_id);
+    }
+    // First, check whether or not this action is the "Publish object" action -
+    // which requires all of the "is_publish_prerequisite" actions to exist on
+    // the item already... else display a failure message and return FALSE.
+    if ($action_id == IDW_PUBLISH_OBJECT && is_object($batch_item_obj)) {
+      $item_record_transactions = islandora_digital_workflow_get_batch_item_transactions($batch_item_id, $batch_record['nid'], $batch_item_obj->batch_id);
+      $required_batch_actions = islandora_digital_workflow_get_required_batch_actions($batch_record['batch_id']);
+      // Are there any actions for this item?  If so, then consider it "In Progress".
+      if (is_array($item_record_transactions) && count($item_record_transactions) > 1) {
+        $progress = 'In Progress';
+      }
+      // Now, if it is not new, we must see if it is ready for publish:
+      if (!$item_ready_for_publish = islandora_digital_workflow_item_publish_prerequisites_all_done($item_record_transactions, $required_batch_actions)) {
+        drupal_set_message(t('The "Publish object" action could not be added to ' .
+            'to the current item @item_identifier "<i>@item_title</i>".', array(
+                '@item_title' => $batch_item_obj->title,
+                '@item_identifier' => $batch_item_obj->identifier,
+            )), 'warning');
+        return FALSE;
+      }
+    }
+
     $transaction_id = db_insert('islandora_digital_workflow_transactions')
         ->fields(array(
           'action_id' => $action_id,
@@ -1643,15 +1671,10 @@ function islandora_digital_workflow_insert_transactions_record($action_id, $batc
     } elseif ($action_id == IDW_PUBLISH_OBJECT) {
       islandora_digital_workflow_publish_object($batch_item_id);
     } elseif ($action_id == IDW_ACTION_USER_INGEST && !is_null($batch_item_id)) {
-      $item_record_results = islandora_digital_workflow_get_batch_item_record($batch_item_id);
-      $batch_item_obj = array_pop($item_record_results);
-      $batch_record = islandora_digital_workflow_get_batch_record_by_batch_id(NULL, $batch_item_id);
       islandora_digital_workflow_do_ingest_item($batch_item_id, NULL, FALSE);
     }
 
     if (!is_null($batch_item_id) && is_null($batch_record)) {
-      $item_record_results = islandora_digital_workflow_get_batch_item_record($batch_item_id);
-      $batch_item_obj = array_pop($item_record_results);
       $batch_record = islandora_digital_workflow_get_batch_record_by_batch_id(NULL, $batch_item_id);
     }
     // Before exiting, this can cause the "progress" of an item to change
@@ -1721,7 +1744,7 @@ function islandora_digital_workflow_get_required_batch_actions($batch_id = NULL,
   $query->join('islandora_digital_workflow_sequence', 'ws', 'b.workflow_sequence_id = ws.workflow_sequence_id');
   $query->fields('ws', array('name', 'workflow_sequence_id', 'is_mixed'));
   $query->join('islandora_digital_workflow_sequence_actions', 'wsa', 'ws.workflow_sequence_id = wsa.workflow_sequence_id');
-  $query->fields('wsa', array('is_required', 'is_ingest_prerequisite', 'islandora_model'));
+  $query->fields('wsa', array('is_publish_prerequisite', 'is_ingest_prerequisite', 'islandora_model'));
   $query->addField('wsa', 'order', 'action_order');
   $query->join('islandora_digital_workflow_actions', 'wa', 'wsa.action_id = wa.action_id');
   $query->fields('wa', array('description', 'action_id'));
@@ -1742,7 +1765,7 @@ function islandora_digital_workflow_get_required_batch_actions($batch_id = NULL,
         'batch_id' => $row->batch_id,
         'batch_action_name' => $row->action_name,
         'batch_action_description' => $row->description,
-        'is_required' => $row->is_required,
+        'is_publish_prerequisite' => $row->is_publish_prerequisite,
         'is_ingest_prerequisite' => $row->is_ingest_prerequisite,
         'islandora_model' => $row->islandora_model,
         'sequence_name' => $row->name,
@@ -2413,7 +2436,7 @@ function islandora_digital_workflow_workflow_autofix_sequence($workflow_sequence
         'workflow_sequence_id' => $workflow_sequence_id,
         'action_id' => IDW_ACTION_USER_INGEST,
         '`order`' => ($publish_action_sequence_order - 2),
-        'is_required' => 1,
+        'is_publish_prerequisite' => 1,
     );
     $inserted = db_insert('islandora_digital_workflow_sequence_actions')
       ->fields($fields)
@@ -2426,7 +2449,7 @@ function islandora_digital_workflow_workflow_autofix_sequence($workflow_sequence
         'workflow_sequence_id' => $workflow_sequence_id,
         'action_id' => IDW_ACTION_SYSTEM_INGESTED,
         '`order`' => ($publish_action_sequence_order - 1),
-        'is_required' => 1,
+        'is_publish_prerequisite' => 1,
     );
     $inserted = db_insert('islandora_digital_workflow_sequence_actions')
       ->fields($fields)
@@ -2439,7 +2462,7 @@ function islandora_digital_workflow_workflow_autofix_sequence($workflow_sequence
         'workflow_sequence_id' => $workflow_sequence_id,
         'action_id' => IDW_PUBLISH_OBJECT,
         '`order`' => 10,
-        'is_required' => 1,
+        'is_publish_prerequisite' => 0,
     );
     $inserted = db_insert('islandora_digital_workflow_sequence_actions')
       ->fields($fields)

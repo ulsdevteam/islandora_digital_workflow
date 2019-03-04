@@ -1040,8 +1040,8 @@ function theme_islandora_digital_workflow_workflow_sequence_actions_form($variab
         array('class' => array('slide-cross')),
         drupal_render($form['wrapper']['rows'][$action_id]['action_id']),
         drupal_render($form['wrapper']['rows'][$action_id]['action_description']),
-        drupal_render($form['wrapper']['rows'][$action_id]['is_required']),
         drupal_render($form['wrapper']['rows'][$action_id]['is_ingest_prerequisite']),
+        drupal_render($form['wrapper']['rows'][$action_id]['is_publish_prerequisite']),
         drupal_render($form['wrapper']['rows'][$action_id]['weight']),
         drupal_render($form['wrapper']['rows'][$action_id]['op']),
       ),
@@ -1075,14 +1075,16 @@ function theme_islandora_digital_workflow_workflow_sequence_actions_form($variab
       'message' => 'No actions that are set as "Ingest Prerequisite" can appear after the "Ingest object" action.'));
   }
 
-  $header = array('', '', t('Action'), t('Required?'), t('Ingest Prerequisite?'), t('Weight'), t('Operations'));
+  $header = array('', '', t('Action'), t('Ingest Prerequisite?'), t('Publish Prerequisite?'), t('Weight'), t('Operations'));
   $output = $prefix_message . '<p>Actions that are set to be <b>Required</b> ' .
     'will make any items that use this action in their workflow sequence to not ' .
     'be "<span class="progress_completed">Completed</span>" until all of the ' .
     'actions in its sequence have been added.</p>' .
     '<p>When a workflow sequence uses an action that is set to be an ' .
     '<b>Ingest Prerequisite</b>, the item can not be ingested until all ' .
-    'of these have been added.</p>' .
+    'of these have been added.  Likewise, for actions that are set to be ' .
+    '<b>Publish Prerequisite</b>, the item can not be published until all ' .
+    'actions that are publish prerequisites have been completed.</p>' .
     theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => array('id' => 'rows-order-' . $sequence_id)));
   $output .= drupal_render_children($form);
 
