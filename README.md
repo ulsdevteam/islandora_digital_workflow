@@ -111,6 +111,47 @@ For information on configuring custom Workflow Actions or defining Workflow Sequ
 ## Batch tracking, stats, and Stages explained
 This section needs to be written.
 
+### Islandora Digital Workflow Dashboard
+<img src="https://user-images.githubusercontent.com/19391126/53822705-420a3c00-3f3e-11e9-8a65-3b14f09890a3.png" width="400" />
+
+### dashboard status boxes for items needing actions
+<img src="https://user-images.githubusercontent.com/19391126/53822867-92819980-3f3e-11e9-9a1a-d10a5068901c.png" width="400" />
+
+### Batch node View
+<img src="https://user-images.githubusercontent.com/19391126/53822996-d70d3500-3f3e-11e9-8ca3-b8580673df92.png" width="400" />
+
+### Batch node Edit
+<img src="https://user-images.githubusercontent.com/19391126/53823081-0a4fc400-3f3f-11e9-95ba-e32edacecea6.png" width="400" />
+
+### "Batch Files" tab (top)
+<img src="https://user-images.githubusercontent.com/19391126/53823260-661a4d00-3f3f-11e9-88c6-f5ba510befc5.png" width="400" />
+
+### "Batch Files" tab (bottom)
+<img src="https://user-images.githubusercontent.com/19391126/53823277-716d7880-3f3f-11e9-8d2a-507bb9498cb3.png" width="400" />
+
+### "Batch Items" tab
+<img src="https://user-images.githubusercontent.com/19391126/53823338-9366fb00-3f3f-11e9-9b37-fedce3ac6af0.png" width="400" />
+
+### "Batch Items" - add/remove transaction to multiple items)
+<img src="https://user-images.githubusercontent.com/19391126/53823485-e2ad2b80-3f3f-11e9-8d7d-57fb80b3eb65.png" width="400" />
+
+### "Batch Transactions"
+<img src="https://user-images.githubusercontent.com/19391126/53823604-2011b900-3f40-11e9-8473-c31e67f9d592.png" width="400" />
+
+### Search interface
+The search will look in all batch string fields as well as whichever Digitization Requests that are configured and has fields configured to be searchable.
+<img src="https://user-images.githubusercontent.com/19391126/53823906-b5ad4880-3f40-11e9-92ae-104417976488.png" width="400" />
+
+### Batch Item - details (top)
+<img src="https://user-images.githubusercontent.com/19391126/53824174-5a2f8a80-3f41-11e9-94b2-18264ecbc067.png" width="400" />
+
+### Batch Item - transactions (middle)
+<img src="https://user-images.githubusercontent.com/19391126/53824279-92cf6400-3f41-11e9-96d9-6ba81a194692.png" width="400" />
+
+### Batch Item - files & drush debug (bottom)
+<img src="https://user-images.githubusercontent.com/19391126/53824365-c9a57a00-3f41-11e9-915d-59ade0a6c816.png" width="400" />
+
+
 ## Author / License
 Written by [Willow Gillingham](https://github.com/bgilling) for the [University of Pittsburgh](http://www.pitt.edu).  Copyright (c) University of Pittsburgh.
 
