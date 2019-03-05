@@ -15,6 +15,8 @@ Before implementing any workflow tool, the capabilities of that tool should be m
 - **Work with digitization requests**
 	- Requires islandora_digitization_requests and webform modules to be installed
 	- integrate digitization requests into the workflow by marking the availble webforms as digtiization requests.  Workflow configuration would allow for individual mapping between the webform fields to workflow batch fields, which fields are searchable, and even specific mapping between each multi-select prompt that might be mapped to the islandora_model field so that multiple "islandora_model-specific" batches would be generated.
+- **Custom Actions, Taxonomy Stages, and Workflow Sequences**
+	- Custom actions may be defined to be added per item or at a batch level -- the action could be an "Ingest Prerequisite", or a "Publish Prerequisite" or both, it could trigger a batch stage change (for example to add "Scanned" or "In Processing" taxonomy tag to a batch when the "Item scanned" action is assigned to a single items or all items in the batch.  For more information, please refer to the ["Workflow Sequences and Workflow Actions" documentation](docs/WorkflowActionSequence.md).
 - **Work with batches** - since batches of objects are carried through the workflow, they are assumed to be grouped together for a reason.  This module assumes that all items would represent the same islandora model, be related to the same collection/s and site/s (if using isMemberOfSite), and have similar batch default values (see "Collect batch level object metadata" below)
 	- Create batches
 	- Edit batch information
@@ -69,7 +71,7 @@ The Islandora Digital Workflow module relies on some other modules in order to b
  - [Rules](https://git.drupal.org/project/rules.git)
  - [Islandora METS Editor](https://github.com/ulsdevteam/islandora_mets_editor.git) To provide a way to create, edit, manage METS files in Islandora.
  - [Islandora MARC XML](https://github.com/Islandora/islandora_marcxml) An Islandora module which performs transformations between MODS and MARCXML.  When present, the configuration will add the transforms to the "MARC to MODS Transform" selection choices.
- - [Islandora Digitization Requests](https://github.com/ulsdevteam/islandora_digitization_requests.git) A module that allow for the creation of Webforms and the other to allow use of these to handle Digitization Request submissions.  For more information on how this works with the Islandora Digital Workflow, please see [DigitizationRequests.md](docs/DigitizationRequests.md).
+ - [Islandora Digitization Requests](https://github.com/ulsdevteam/islandora_digitization_requests.git) A module that allow for the creation of Webforms and the other to allow use of these to handle Digitization Request submissions.  For more information on how this works with the Islandora Digital Workflow, please see the ["Digitization Requests" documentation](docs/DigitizationRequests.md).
 
 **Islandora Batch Ingest Modules** 
 In order to batch ingest Islandora models, they each require a specific module to be installed.  Additionally, the ability to assign PID value for objects as they ingest as well as to add the "isMemberOfSite" relationship would require the ulsdevteam instance of each module.  The configuration page provides links to download and install each of the required modules.  These are:
@@ -102,10 +104,8 @@ One important note about the reports.  Since this uses the Forena reporting syst
 ***NOTE:**  even though permissions exist for **all islandora models**, the "Supported Models" settings within the Islandora Digital Workflow limit the total set of object models that could ever appearing within the various parts of the interface before consideration of the user permissions.*
 
 # Configuration
-### Actions
-This section needs to be written.
-### Workflow Sequences
-This section needs to be written.
+### Configuring "Workflow Sequences" and "Workflow Actions"
+For information on configuring custom Workflow Actions or defining Workflow Sequences, please refer to the ["Workflow Sequences and Workflow Actions" documentation](docs/WorkflowSequences.md).
 
 # Usage
 ## Batch tracking, stats, and Stages explained

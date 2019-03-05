@@ -1641,7 +1641,9 @@ function islandora_digital_workflow_insert_transactions_record($action_id, $batc
       // Now, if it is not new, we must see if it is ready for publish:
       if (!$item_ready_for_publish = islandora_digital_workflow_item_publish_prerequisites_all_done($item_record_transactions, $required_batch_actions)) {
         drupal_set_message(t('The "Publish object" action could not be added to ' .
-            'to the current item @item_identifier "<i>@item_title</i>".', array(
+            'to the current item @item_identifier "<i>@item_title</i>" because ' .
+            'there are required actions remaining in the sequence that are ' .
+            'marked as "Is Publish Prerequisite".', array(
                 '@item_title' => $batch_item_obj->title,
                 '@item_identifier' => $batch_item_obj->identifier,
             )), 'warning');
