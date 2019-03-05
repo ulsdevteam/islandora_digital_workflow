@@ -100,6 +100,7 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
 
     $_POST['filename'] = (!$is_paged_content) ? $filename_folder . $_POST['filename'] : '';
     $records_updated = islandora_digital_workflow_update_batch_item_record($batch_item_id, $_POST, $original_values);
+    islandora_digital_workflow_calculate_item_progress_filedetails($batch_item_id, $batch_record);
     if ($records_updated) {
       $mods_file_changed = (trim($original_values->mods) <> trim($_POST['mods']));
       $marc_file_changed = ($is_paged_content && (trim($original_values->marc) <> trim($_POST['marc'])));

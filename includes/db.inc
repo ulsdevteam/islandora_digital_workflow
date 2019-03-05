@@ -1673,6 +1673,7 @@ function islandora_digital_workflow_insert_transactions_record($action_id, $batc
     } elseif ($action_id == IDW_PUBLISH_OBJECT) {
       islandora_digital_workflow_publish_object($batch_item_id);
     } elseif ($action_id == IDW_ACTION_USER_INGEST && !is_null($batch_item_id)) {
+      module_load_include('inc', 'islandora_digital_workflow', 'includes/ingest_item.form');
       islandora_digital_workflow_do_ingest_item($batch_item_id, NULL, FALSE);
     }
 
@@ -2291,8 +2292,8 @@ function islandora_digital_workflow_update_batch_record_progress($batch_record =
   $batch_items = islandora_digital_workflow_get_batch_items_by_nid($batch_record['nid']);
   // Go in the reverse order of possible progress values.
   if (!($set_batch_progress_to = islandora_digital_workflow_batch_items_all_same_progress($batch_items, t('Completed'), array()))) {
-    if (!($set_batch_progress_to = islandora_digital_workflow_batch_items_all_same_progress($batch_items, t('Prepared'), array(t('Completed'))))) {
-      if (!($set_batch_progress_to = islandora_digital_workflow_batch_items_all_same_progress($batch_items, t('In Progress'), array(t('Prepared'), t('Completed'))))) {
+    if (!($set_batch_progress_to = islandora_digital_workflow_batch_items_all_same_progress($batch_items, t('Prepared'), array(t('Ingested'), t('Completed'))))) {
+      if (!($set_batch_progress_to = islandora_digital_workflow_batch_items_all_same_progress($batch_items, t('In Progress'), array(t('Prepared'), t('Ingested'), t('Completed'))))) {
         $set_batch_progress_to = t('New');
       }
     }
@@ -2328,7 +2329,7 @@ function islandora_digital_workflow_batch_items_all_same_progress($batch_items, 
   // Start off with a TRUE -- will be FALSE when there are no items in the array.
   $all_same = (is_array($batch_items) && (count($batch_items) > 0));
   $check_for_progress_array[] = $check_for_progress;
-  foreach ($batch_items as $item_obj) {
+  foreach ($batch_items as $key => $item_obj) {
     $all_same &= (!(array_search($item_obj->progress, $check_for_progress_array) === FALSE));
   }
   return (!$all_same) ? '' : $check_for_progress;
