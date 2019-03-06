@@ -158,7 +158,12 @@ span.transaction_action_reserved_action_spacer {
 }
 
 .action_glyph_previews .padright {
-    padding-right: 10px;
+    padding-right: 6px;
+    border-right: 2px solid #eee;
+}
+
+.larger_glyph.action_glyph_previews .padright {
+    border-right: none;
 }
 
 .action_glyph_previews .padleft, .left_padded {
@@ -320,7 +325,7 @@ textarea.indent-item {
 }
 
 #islandora-digital-workflow-batch-defaults label {
-    color: #666;
+    color: #447;
     margin-bottom: 4px;
     float: left;
     width: 30%;
@@ -414,10 +419,12 @@ div.form-disabled label.enabled_text {
     border-bottom: none !important;
 }
 
-.small_lt_text {
-    color: #888;
+.small_text, .small_lt_text {
     font-size: small;
     line-height: 0.85em;
+}
+.small_lt_text {
+    color: #888;
 }
 
 .good {
@@ -693,7 +700,7 @@ a .highlighted {
 .lookup_result_square {
     border: 1px solid #CCC;
     margin-bottom: 0;
-    padding-bottom: 0;
+    padding-bottom: 1.5em;
 }
 
 .lookup_result {
@@ -800,9 +807,9 @@ tr.spaceUnder>td {
 }
 
 .lookup_result_square ul, .lookup_result ul {
-    margin-top: 2px;
-    list-style: none inside none;
+    list-style: none inside none !important;
     padding-left: 10px;
+    margin: 0.25em 0 0.85em 1.5em;
 }
 .lookup_result_square ul li, .lookup_result ul li {
     background-position: 0px 2px;
@@ -962,7 +969,7 @@ ul.admin-links {
 }
 
 .td_wide_normal {
-    width: 100px;
+    width: 140px;
 }
 .td_wide_180 {
     width: 180px;
@@ -1099,7 +1106,7 @@ td.slide-cross {
     color: #BBB;
 }
 .progress_in_process {
-    color: #666;
+    color: #447;
 }
 .progress_prepared {
     color: blue;

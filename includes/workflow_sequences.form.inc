@@ -1066,6 +1066,7 @@ function islandora_digital_workflow_actions_form(array $form, array &$form_state
             $trigger_add_stage,
             $trigger_remove_stage,
         ),
+        'no_striping' => TRUE,
         'class' => array((isset($action_record_array['extra_info']) && $action_record_array['extra_info']) ? 'nonborderbottom' : ''),
     );
     if (islandora_digital_workflow_is_batch_action($action_record_array)) {
@@ -1084,13 +1085,14 @@ function islandora_digital_workflow_actions_form(array $form, array &$form_state
             'class' => array('small_lt_text'),
           ),
         ),
+        'no_striping' => TRUE,
       );
     }
   }
   $markup_batch_actions[] = array(
       'data' => array(
           array('data' => '<div class="transaction_action_unconfigured_reserved_action">&nbsp;</div>' . 
-            '<a href="/admin/islandora/islandora_digital_workflow/workflow_sequence_actions/add">Add new batch action</a><div class="admin_links">' . 
+            '<a href="/admin/islandora/islandora_digital_workflow/workflow_sequence_actions/add">New batch action</a><div class="admin_links">' .
             '<a href="/admin/islandora/islandora_digital_workflow/workflow_sequence_actions/add" title="Add"><div class="add_20">&nbsp;</div></a></div>'),
           '&nbsp;',
           '',
@@ -1101,7 +1103,7 @@ function islandora_digital_workflow_actions_form(array $form, array &$form_state
   $markup_item_actions[] = array(
       'data' => array(
           array('data' => '<div class="transaction_action_unconfigured_reserved_action">&nbsp;</div>' . 
-            '<a href="/admin/islandora/islandora_digital_workflow/workflow_sequence_actions/add">Add new item action</a><div class="admin_links">' . 
+            '<a href="/admin/islandora/islandora_digital_workflow/workflow_sequence_actions/add">New item action</a><div class="admin_links">' .
             '<a href="/admin/islandora/islandora_digital_workflow/workflow_sequence_actions/add" title="Add"><div class="add_20">&nbsp;</div></a></div>'),
           '&nbsp;',
           '',

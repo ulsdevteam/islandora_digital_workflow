@@ -393,7 +393,8 @@ function islandora_digital_workflow_batch_items_form(array $form, array &$form_s
         strtolower(str_replace(" ", "_", $item->progress)) . '">' . $item->progress . '</span>',
       t('Ready for') => '<span class="small_font">' . $item->ready_for . '</span>',
       t('Last action') => '<span class="small_font">' . $item->last_action . '</span>',
-      t('When') => '<span class="small_font">' . $item->when . '</span>',
+      t('When') => '<span class="small_font">' . $item->when . '</span><br>' . 
+        '<span class="small_lt_text">' . islandora_digital_workflow_timeago_from_timestamp($item->when) . '</span>',
     );
   }
   $items_header = array(

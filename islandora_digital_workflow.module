@@ -1082,10 +1082,10 @@ function theme_islandora_digital_workflow_workflow_sequence_actions_form($variab
     'be "<span class="progress_completed">Completed</span>" until all of the ' .
     'actions in its sequence have been added.</p>' .
     '<p>When a workflow sequence uses an action that is set to be an ' .
-    '<b>Ingest Prerequisite</b>, the item can not be ingested until all ' .
-    'of these have been added.  Likewise, for actions that are set to be ' .
-    '<b>Publish Prerequisite</b>, the item can not be published until all ' .
-    'actions that are publish prerequisites have been completed.</p>' .
+    '<b>Ingest Prerequisite</b>, the item can not be ingested until all of ' .
+    'the "Ingest Prerequisite actions" have occurred.  Likewise, for actions ' .
+    'that are set to be a <b>Publish Prerequisite</b>, the item can not be ' .
+    'published until all of the "Publish Prerequisite actions" have been completed.</p>' .
     theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => array('id' => 'rows-order-' . $sequence_id)));
   $output .= drupal_render_children($form);
 
