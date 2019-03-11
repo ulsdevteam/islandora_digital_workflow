@@ -142,11 +142,7 @@ function islandora_digital_workflow_do_publish_item($batch_item_id, $batch_recor
   $publish_set_fields = NULL;
   try {
     $had_exception = FALSE;
-  
-    $ingest_namespace = islandora_digital_workflow_get_ingest_namespace($batch_record);
-    $ingest_namespace_nocolon = rtrim($ingest_namespace, ':');
-    $item_assign_pid = (isset($batch_item_object->assigned_pid) && $batch_item_object->assigned_pid <> '') ? $batch_item_object->assigned_pid :
-            $ingest_namespace_nocolon . ':' . trim($batch_item_object->identifier);
+    islandora_digital_workflow_publish_object($batch_item_id);
   }
   catch (Exception $ex) {
     $had_exception = TRUE;

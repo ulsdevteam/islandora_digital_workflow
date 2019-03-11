@@ -60,8 +60,6 @@ function islandora_digital_workflow_ingest_all_batch_submit(array $form, array &
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
   $batch_id = $form_state['values']['batch_id'];
 
-  $batch_record = islandora_digital_workflow_get_batch_record_by_batch_id($batch_id);
-  $batch_items = islandora_digital_workflow_get_batch_items_by_nid($batch_record['nid']);
   // This is for when the user has submitted that they do want to ingest all.
   $success = TRUE;
   $batch_record = islandora_digital_workflow_get_batch_record_by_batch_id($batch_id);
@@ -77,7 +75,7 @@ function islandora_digital_workflow_ingest_all_batch_submit(array $form, array &
         'of the items.  Batch name "' . $batch_record['batch_name'] . '".');
   }
   else {
-    drupal_set_message('Done ingesting all ' . count($batch_items) . ' items from ' .
+    drupal_set_message('Done ingesting all ' . count($items) . ' items from ' .
         '"' . $batch_record['batch_name'] . '".');
   }
   drupal_goto('node/' . $batch_record['nid']);
@@ -185,72 +183,73 @@ function islandora_digital_workflow_do_ingest_item($batch_item_id, $batch_record
   if ($do_add_transaction) {
     islandora_digital_workflow_insert_transactions_record(IDW_ACTION_USER_INGEST, NULL, $batch_item_id);
   }
-
-  // Get the batch item record -- see what type of object that is
-  $batch_item_arr = islandora_digital_workflow_get_batch_item_record($batch_item_id);
-  $batch_item_object = array_pop($batch_item_arr);
-  if (is_null($batch_record)) {
-    $batch_record = islandora_digital_workflow_get_batch_record_by_batch_id($batch_item_object->batch_id);
-  }
-  $drush_prepare_command = islandora_digital_workflow_make_drush_prepare_statement($batch_item_object, $batch_record);
-
-  $output = array();
-  $return_val = 1;
-  $ingest_set_fields = NULL;
-  try {
-    $had_exception = FALSE;
-    // Now, make the array of field values that will be saved
-    $fields = array(
-        'batch_id' => $batch_item_object->batch_id,
-        'batch_item_id' => $batch_item_id,
-        'drupal_uid' => $user->uid,
-        'drush_command' => $drush_prepare_command,
-        'output' => serialize(array('output' => 'There was an exception when this command was called.')),
-        'return_val' => $return_val,
-    );
-    // Call switched from exec() to passthru() so that the web server is given
-    // control right after issuing the ingest command... as a result, there
-    // can not be any debug output value for ingest prepare calls.
-    //   exec($drush_prepare_command, $output, $return_val);
-    passthru($drush_prepare_command, $return_val);
-    $output = '';
-    // Try to ingest that set now too...
-    $ingest_namespace = islandora_digital_workflow_get_ingest_namespace($batch_record);
-    $ingest_namespace_nocolon = rtrim($ingest_namespace, ':');
-    $item_assign_pid = (isset($batch_item_object->assigned_pid) && $batch_item_object->assigned_pid <> '') ? $batch_item_object->assigned_pid :
-            $ingest_namespace_nocolon . ':' . trim($batch_item_object->identifier);
-    $set = islandora_digital_workflow_get_set($item_assign_pid);
-    if ($set) {
-      $this_domain = 'http://' . $_SERVER['HTTP_HOST'];
-      $ingest_set_drush_command = 'drush -v -u ' . $user->uid . ' --uri=' . $this_domain . ' islandora_batch_ingest --ingest_set=' . $set;
-
-      // As above, the call has been changed from exec() to passthru() - no
-      // debug output is possible.
-      //  exec($ingest_set_drush_command, $ingest_set_output, $ingest_set_return_var);
-      passthru($ingest_set_drush_command, $return_val);
-      $ingest_set_output = '';
-      $ingest_set_fields = $fields;
-      $ingest_set_fields['output'] = serialize($ingest_set_output);
-      $ingest_set_fields['return_val'] = $ingest_set_return_var;
+  else {
+    // Get the batch item record -- see what type of object that is
+    $batch_item_arr = islandora_digital_workflow_get_batch_item_record($batch_item_id);
+    $batch_item_object = array_pop($batch_item_arr);
+    if (is_null($batch_record)) {
+      $batch_record = islandora_digital_workflow_get_batch_record_by_batch_id($batch_item_object->batch_id);
     }
-  }
-  catch (Exception $ex) {
-    $had_exception = TRUE;
-  }
-  $fields['output'] = serialize($output);
-  $fields['return_val'] = $return_val;
-  db_insert('islandora_digital_workflow_drush_log')
-      ->fields($fields)
-      ->execute();
-  if (!is_null($ingest_set_fields)) {
-    // The set was also ingested -- add the record for that as well.
+    $drush_prepare_command = islandora_digital_workflow_make_drush_prepare_statement($batch_item_object, $batch_record);
+
+    $output = array();
+    $return_val = 1;
+    $ingest_set_fields = NULL;
+    try {
+      $had_exception = FALSE;
+      // Now, make the array of field values that will be saved
+      $fields = array(
+          'batch_id' => $batch_item_object->batch_id,
+          'batch_item_id' => $batch_item_id,
+          'drupal_uid' => $user->uid,
+          'drush_command' => $drush_prepare_command,
+          'output' => serialize(array('output' => 'There was an exception when this command was called.')),
+          'return_val' => $return_val,
+      );
+      // Call switched from exec() to passthru() so that the web server is given
+      // control right after issuing the ingest command... as a result, there
+      // can not be any debug output value for ingest prepare calls.
+      //   exec($drush_prepare_command, $output, $return_val);
+      passthru($drush_prepare_command, $return_val);
+      $output = '';
+      // Try to ingest that set now too...
+      $ingest_namespace = islandora_digital_workflow_get_ingest_namespace($batch_record);
+      $ingest_namespace_nocolon = rtrim($ingest_namespace, ':');
+      $item_assign_pid = (isset($batch_item_object->assigned_pid) && $batch_item_object->assigned_pid <> '') ? $batch_item_object->assigned_pid :
+              $ingest_namespace_nocolon . ':' . trim($batch_item_object->identifier);
+      $set = islandora_digital_workflow_get_set($item_assign_pid);
+      if ($set) {
+        $this_domain = 'http://' . $_SERVER['HTTP_HOST'];
+        $ingest_set_drush_command = 'drush -v -u ' . $user->uid . ' --uri=' . $this_domain . ' islandora_batch_ingest --ingest_set=' . $set;
+
+        // As above, the call has been changed from exec() to passthru() - no
+        // debug output is possible.
+        //  exec($ingest_set_drush_command, $ingest_set_output, $ingest_set_return_var);
+        passthru($ingest_set_drush_command, $return_val);
+        $ingest_set_output = '';
+        $ingest_set_fields = $fields;
+        $ingest_set_fields['output'] = serialize($ingest_set_output);
+        $ingest_set_fields['return_val'] = $ingest_set_return_var;
+      }
+    }
+    catch (Exception $ex) {
+      $had_exception = TRUE;
+    }
+    $fields['output'] = serialize($output);
+    $fields['return_val'] = $return_val;
     db_insert('islandora_digital_workflow_drush_log')
-        ->fields($ingest_set_fields)
+        ->fields($fields)
         ->execute();
-  }
-  if (($return_val == -1 || $return_val == 255) || $had_exception) {
-    drupal_set_message(t('There was an error calling the drush command : @drush_command.', array('@drush_command' => $drush_prepare_command)), 'error');
-    return FALSE;
+    if (!is_null($ingest_set_fields)) {
+      // The set was also ingested -- add the record for that as well.
+      db_insert('islandora_digital_workflow_drush_log')
+          ->fields($ingest_set_fields)
+          ->execute();
+    }
+    if (($return_val == -1 || $return_val == 255) || $had_exception) {
+      drupal_set_message(t('There was an error calling the drush command : @drush_command.', array('@drush_command' => $drush_prepare_command)), 'error');
+      return FALSE;
+    }
   }
   return TRUE;
 }
