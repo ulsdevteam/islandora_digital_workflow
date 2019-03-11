@@ -45,25 +45,31 @@
                     </tr>
                 </tbody>
                 <tbody>
-                    <tr>
+                    <tr class="progress_new">
                         <th><span class="nobold"> &nbsp;"New" items</span></th>
                         <td>{progress_new_count}</td>
                     </tr>
                 </tbody>
                 <tbody>
-                    <tr>
+                    <tr class="progress_in_progress">
                         <th><span class="nobold"> &nbsp;"In Progress" items</span></th>
                         <td>{progress_in_progress_count}</td>
                     </tr>
                 </tbody>
                 <tbody>
-                    <tr>
+                    <tr class="progress_prepared">
                         <th><span class="nobold"> &nbsp;"Prepared" items</span></th>
                         <td>{progress_prepared_count}</td>
                     </tr>
                 </tbody>
                 <tbody>
-                    <tr>
+                    <tr class="progress_ingested">
+                        <th><span class="nobold"> &nbsp;"Ingested" items</span></th>
+                        <td>{progress_ingested_count}</td>
+                    </tr>
+                </tbody>
+                <tbody>
+                    <tr class="progress_completed">
                         <th><span class="nobold"> &nbsp;"Completed" items</span></th>
                         <td>{progress_completed_count}</td>
                     </tr>
