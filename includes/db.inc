@@ -1549,12 +1549,15 @@ function islandora_digital_workflow_get_batch_item_id_by_identifier($identifier,
  * This will return the batch_item_id values of records that have a given
  * `assigned_pid` value.
  *
+ * There *should* only ever be one record returned for this query, but due to
+ * the fact that multiple batches could have the same identifier, this code
+ * returns all rows.  This needs to return all of the references because it is
+ * only called from the "datastream ingested" hook and needs to set the
+ * "system ingested" transaction for the item/s behind that object.
+ *
  * @param string $assigned_pid
  *   The `assigned_pid` value of an islandora_digital_workflow_batch_item record.
- * This should be distinct based on assumptions, but there could be more than
- * one record with the same final `assigned_pid` value, and this should return
- * all of the references because this is only called from the "datastream ingested"
- * hook which is only trying to set a transaction for that item/s.
+ *
  * @return integer
  *   The batch_item_id value of the record that matches the "assigned_pid" value
  * of a record.

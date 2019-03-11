@@ -838,14 +838,14 @@ function islandora_digital_workflow_islandora_object_ingested(AbstractObject $ob
   if (variable_get('islandora_digital_workflow_handle_islandora_hook', 0) < 1) {
     return;
   }
-  module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
-  $pid = $object->id;
-  @list($ns, $identifier) = explode(":", $pid, 2);
-  if ($identifier) {
-    $batch_ids = islandora_digital_workflow_get_batch_record_by_items_identifier($identifier);
-    if (is_array($batch_ids) && array_key_exists(0, $batch_ids) && is_object($batch_ids[0])) {
-      $batch_id_obj = $batch_ids[0];
-      islandora_digital_workflow_insert_transactions_record(IDW_ACTION_SYSTEM_INGESTED, $batch_id_obj->batch_id, NULL, 0);
+  if (is_object($object)) {
+    module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
+    $pid = $object->id;
+    $batch_item_ids = islandora_digital_workflow_get_batch_item_ids_by_assigned_pid($pid);
+    if (is_array($batch_item_ids)) {
+      foreach ($batch_item_ids as $batch_item_id) {
+        islandora_digital_workflow_insert_transactions_record(IDW_ACTION_SYSTEM_INGESTED, $batch_item_id, NULL, 0);
+      }
     }
   }
 }

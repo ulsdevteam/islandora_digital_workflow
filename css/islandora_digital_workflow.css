@@ -592,6 +592,15 @@ table.report tr {
     width: 100%;
 }
 
+
+tr.oddrow {
+    background-color: #F2F2F2 !important;
+}
+
+tr.evenrow {
+    background-color: white !important;
+}
+
 table.report tr.oddrow td textarea, table.report tr.oddrow, .report_table fieldset.oddrow, .report_table table tr.oddrow {
     background-color: #F2F2F2;
 }
