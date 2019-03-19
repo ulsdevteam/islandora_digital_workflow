@@ -2165,6 +2165,7 @@ function islandora_digital_workflow_get_debug_record($id_value, $id_fieldname, $
 function islandora_digital_workflow_delete_batch_item($batch_item_id) {
   // First, get the current item record if it exists and try to purge the files
   // that it was using.
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
   $batch_item_record_arr = islandora_digital_workflow_get_batch_item_record($batch_item_id);
   if (is_array($batch_item_record_arr)) {
     $batch_item_record_obj = array_pop($batch_item_record_arr);

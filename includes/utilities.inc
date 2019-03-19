@@ -585,7 +585,7 @@ function islandora_digital_workflow_batch_path($batch_record, $which_path = 'del
       is_object($batch_record[0])) {
     $batch_record = islandora_digital_workflow_get_batch_record_by_batch_id($batch_record[0]->batch_id);
   }
-  if (!is_array($batch_record) || !array_key_exists('batch_name', $batch_record)) {
+  if (is_array($batch_record) && !array_key_exists('batch_name', $batch_record)) {
     drupal_set_message(t('The batch path could not be determined.  Either the values are missing or ' .
             'there is no value for the batch "Name" (batch_name field) yet.'), 'warning');
     return '';
@@ -3116,10 +3116,10 @@ function islandora_digital_workflow_copy_delivery_files($batch_item_id, $is_prob
   }
   $sanitized_delivery_filename = islandora_digital_workflow_get_item_delivery_filename($batch_item_obj);
   $exists = FALSE;
+  $batch_record = islandora_digital_workflow_get_batch_record_by_batch_id($batch_item_obj->batch_id);
+  $item_working_root = islandora_digital_workflow_batch_path($batch_record, 'working') . '/' . $batch_item_obj->identifier;
   if ($item_is_paged) {
     module_load_include('inc', 'islandora_digital_workflow', 'includes/file_utilities');
-    $batch_record = islandora_digital_workflow_get_batch_record_by_batch_id($batch_item_obj->batch_id);
-    $item_working_root = islandora_digital_workflow_batch_path($batch_record, 'working') . '/' . $batch_item_obj->identifier;
     if (!file_exists($item_working_root)) {
       mkdir($item_working_root);
     }
@@ -3141,7 +3141,8 @@ function islandora_digital_workflow_copy_delivery_files($batch_item_id, $is_prob
     $copied_to_location = 'the item subfolder under the batch\'s working directory';
   }
   else {
-    $working_filename = $batch_item_obj->filename;
+    $filename_pathinfo = pathinfo($batch_item_obj->filename);
+    $working_filename = $item_working_root . '/OBJ.' . $filename_pathinfo['extension'];
     $item_working_folder = $working_filename;
     $exists = (file_exists($sanitized_delivery_filename));
     $copied = ($exists && !is_dir($sanitized_delivery_filename)) ? copy($sanitized_delivery_filename, $working_filename) : FALSE;
