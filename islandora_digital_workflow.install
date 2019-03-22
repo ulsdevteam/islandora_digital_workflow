@@ -1115,6 +1115,11 @@ function islandora_digital_workflow_insert_islandora_digital_workflow_actions() 
       'glyph' => 'images/system-made-derivatives_20.png',
       'is_system_action' => 1,
     ),
+    IDW_ACTION_METS_CREATED => array(
+      'name' => 'mets-created',
+      'description' => t('METS created (structural metadata file)'),
+      'glyph' => 'images/mets-created_20.png',
+    ),
     // this will also trigger insertion of a record into the
     // islandora_digital_workflow_problem_items table.  The presence of these
     // records in any batch will not cause it to fail -- instead, checking

@@ -79,6 +79,10 @@ and open the template in the editor.
     background: url("../images/system-made-derivatives_20.png") 0px 0px no-repeat !important;
 }
 
+.transaction_action_mets_created {
+    background: url("../images/mets-created_20.png") 0px 0px no-repeat !important;
+}
+
 .transaction_action_check_out {
     background: url("../images/check-out-physical-item_20.png") 0px 0px no-repeat !important;
 }
@@ -126,6 +130,7 @@ div.transaction_action_system_ingested,
 div.transaction_action_rescan,
 div.transaction_action_system_made_derivatives,
 div.transaction_action_check_physical_items,
+div.transaction_action_mets_created,
 
 div.transaction_action_spacer,
 div.transaction_action_inactive,

@@ -26,6 +26,7 @@ define('IDW_ACTION_METADATA_PASS_QC', 12);
 define('IDW_ACTION_METADATA_FAIL_QC', 13);
 define('IDW_PUBLISH_OBJECT', 14);
 define('IDW_ACTION_USER_INGEST', 15);
+define('IDW_ACTION_METS_CREATED', 16);
 define('IDW_BATCH_ACTION_INACTIVE', 1001);
 
 // Permissions -- NOTE: there are additional permission constants defined in

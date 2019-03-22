@@ -48,11 +48,16 @@ function islandora_digital_workflow_admin_form() {
       '#title' => t('Stages'),
       '#collapsible' => TRUE,
       '#collapsed' => FALSE,
-      'taxonomy_manage_link' => array(
+      '#description' => t('These terms use the Drupal core Taxonomy and should only ' .
+        'be changed by advanced users.'),
+
+      'taxonomy_manage_link_stage' => array(
         '#type' => 'item',
         '#title' => l(t('Islandora Digital Workflow Stage vocabulary'), 'admin/structure/taxonomy/workflow_stage_vocab'),
-        '#description' => t('These terms use the Drupal core Taxonomy and should only ' .
-          'be changed by advanced users.'),
+      ),
+      'taxonomy_manage_link_priorities' => array(
+        '#type' => 'item',
+        '#title' => l(t('Islandora Digital Workflow Priority vocabulary'), 'admin/structure/taxonomy/workflow_batch_priority_vocab'),
       ),
     ),
 
