@@ -28,12 +28,12 @@
     <?php else: ?>
         <td class="padright"><?php print $glyph_filename;?></td>
     <?php endif; ?>
-    <?php if ($toggle == 4): ?>
+    <?php if ($toggle == 5): ?>
     </tr>
     <?php endif; ?>
     <?php
     $toggle++;
-    if ($toggle == 4) { $toggle = 0; }
+    if ($toggle == 5) { $toggle = 0; }
     ?>
     <?php endforeach; ?>
     <?php if ($toggle): ?>

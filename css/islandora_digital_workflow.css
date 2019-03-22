@@ -163,8 +163,12 @@ span.transaction_action_reserved_action_spacer {
 }
 
 .action_glyph_previews .padright {
-    padding-right: 6px;
+    padding-right: 14px;
     border-right: 2px solid #eee;
+}
+
+.action_name_cell {
+    min-width: 23%;
 }
 
 .larger_glyph.action_glyph_previews .padright {
@@ -219,6 +223,19 @@ span.transaction_action_reserved_action_spacer {
 */
 #edit-item-actions, #edit-batch-actions {
     width: 96%;
+}
+
+.report_table table tr, tr.batch_action, tr.item_action, .item_action_box, #edit-glyph-selector table tr, #edit-item-actions table tr, #edit-batch-actions table tr, #islandora-digital-workflow-batch-items-form div table tr {
+    background-color: #FAFAFA;
+}
+
+#edit-glyph-selector table {
+    background-color: #FDFDFD;
+}
+
+.report_table table, #islandora-digital-workflow-workflow-sequence-actions-form table.sticky-table, #edit-glyph-selector table, #edit-item-actions table, #edit-batch-actions table, #islandora-digital-workflow-batch-items-form div table {
+    border: 1px solid #999;
+    box-shadow: 2px 2px 5px #555;
 }
 
 #edit-add-batch-action option[value="1"] { background:url(../images/make-batch-inactive_20.png) no-repeat;}
@@ -638,12 +655,10 @@ table.report tr.evenrow, .report_table table tr.evenrow {
 }
 
 tr.batch_action, div.batch_action {
-    background-color: #EFE5D7 !important;
     border-right: none !important;
     background-position: 27px 0 !important;
 }
 tr.item_action, div.item_action {
-    background-color: #DDDCE7 !important;
     background-position: 27px 0 !important;
 }
 

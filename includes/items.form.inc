@@ -464,7 +464,7 @@ function islandora_digital_workflow_batch_items_form(array $form, array &$form_s
       '#type' => 'fieldset',
       '#title' => t('Add / Remove Transactions'),
       '#collapsible' => TRUE,
-      '#collapsed' => TRUE,
+      '#collapsed' => FALSE,
   );
 
   // Add a "Delete Items" button if the user has permission to use it.

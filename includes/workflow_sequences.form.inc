@@ -1059,7 +1059,7 @@ function islandora_digital_workflow_actions_form(array $form, array &$form_state
     $arr = array(
         'data' => array(
             array(
-                'data' => '<div class="' . $glyph_class . '">&nbsp;</div> ' . $action_record_array['action_name'] . $admin_links, 'class' => array()
+                'data' => '<div class="' . $glyph_class . '">&nbsp;</div> ' . $action_record_array['action_name'] . $admin_links, 'class' => array('action_name_cell')
             ),
             $action_record_array['action_description'],
             ($action_record_array['is_system_action'] ? 'Yes' : 'No'),
