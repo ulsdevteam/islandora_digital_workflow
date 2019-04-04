@@ -3916,12 +3916,14 @@ function islandora_digital_workflow_collection_review_links($batch_record) {
   $collections = $batch_record['mapto_collections'];
   $collections_arr = explode(",", $collections);
   foreach ($collections_arr as $collection_pid) {
-    $collection_pid = ($using_review_collections) ? $collection_pid . '_review' : $collection_pid;
-    $collection_object = islandora_object_load($collection_pid);
-    if (is_object($collection_object)) {
-      $links[] = islandora_digital_workflow_collection_link($collection_object);
-    } else {
-      $links[] = $collection_pid;
+    if ($collection_pid) {
+      $collection_pid = ($using_review_collections) ? $collection_pid . '_review' : $collection_pid;
+      $collection_object = islandora_object_load($collection_pid);
+      if (is_object($collection_object)) {
+        $links[] = islandora_digital_workflow_collection_link($collection_object);
+      } else {
+        $links[] = $collection_pid;
+      }
     }
   }
   return $links;
