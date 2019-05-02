@@ -87,8 +87,11 @@ function islandora_digital_workflow_deleteDirectory($dir) {
 }
 
 /**
- * This copies the delivery files for paged content and resequences the files
- * according to their alphabetical sorting of source filenames.
+ * This copies the delivery files and resequences the files according to their
+ * alphabetical sorting of source filenames.  In the event of the item being
+ * paged, all of the files are coming from the source folder, but non-paged
+ * items have the master file in the batch folder and the metadata in the
+ * batch_item folder.
  *
  * Depending on the configuration, this may delete the file after it is copied.
  *
@@ -98,9 +101,11 @@ function islandora_digital_workflow_deleteDirectory($dir) {
  *   The configured "Incoming Delivery Directory" for the item.
  * @param string $item_working_folder
  *   The configured "Ingest Working Directory" for the item.
+ * @param object $batch_item_object
+ *   A batch item object.
  * @return boolean
  */
-function islandora_digital_workflow_copy_resequence_files($item_files, $item_folder, $item_working_folder, $batch_name = '') {
+function islandora_digital_workflow_copy_resequence_files($item_files, $item_folder, $item_working_folder, $batch_name = '', $batch_item_object = NULL) {
   $sorted_index = array();
   $copied = FALSE;
   $i = 1;
@@ -118,6 +123,7 @@ function islandora_digital_workflow_copy_resequence_files($item_files, $item_fol
     mkdir($item_working_folder);
   }
   ksort($sorted_index);
+  $item_is_paged = islandora_digital_workflow_item_is_paged_content($batch_item_object->batch_item_id);
   foreach ($sorted_index as $sequence_value => $item_file_arr) {
     $file_filename = $sorted_index[$sequence_value]['to'];
     $file_pathinfo = pathinfo($file_filename);
@@ -131,6 +137,17 @@ function islandora_digital_workflow_copy_resequence_files($item_files, $item_fol
       mkdir($item_sequence_folder);
     }
     $copied = copy($sorted_index[$sequence_value]['from'],  $item_sequence_folder . '/OBJ.' . $extension);
+    // if the item is non-paged, be sure to also copy the item's metadata files
+    // from the batch_item subfolder.
+    if (!$item_is_paged) {
+      $batch_item_file_pathinfo = pathinfo($batch_item_object->filename);
+      // since the batch_item object's filename points to the MASTER file, the
+      // filename is close to what the metadata file would be named.
+      if (array_key_exists('filename', $batch_item_file_pathinfo)) {
+        $metadata_file_location = $batch_item_file_pathinfo['dirname'] . '/' . $batch_item_file_pathinfo['filename'] . '.xml';
+        $copied &= copy($metadata_file_location, $item_sequence_folder . '/MODS.xml');
+      }
+    }
     if ($copied && (variable_get('islandora_digital_workflow_delete_delivery_files', 0))) {
       @unlink($sorted_index[$sequence_value]['from']);
     }

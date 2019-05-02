@@ -3136,7 +3136,7 @@ function islandora_digital_workflow_copy_delivery_files($batch_item_id, $is_prob
     // Call this with $all_files set to FALSE so that it uses the $model_filemasks
     // to get the correct files related to this item.
     $item_files = islandora_digital_workflow_scan_files($item_folder, $model_filemasks, FALSE);
-    $copied = islandora_digital_workflow_copy_resequence_files($item_files, $item_folder, $item_working_folder, $batch_record['batch_name']);
+    $copied = islandora_digital_workflow_copy_resequence_files($item_files, $item_folder, $item_working_folder, $batch_record['batch_name'], $batch_item_obj);
     $whatwas_copied_message = 'files were';
     $copied_to_location = 'the item subfolder under the batch\'s working directory';
   }
