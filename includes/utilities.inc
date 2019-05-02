@@ -3136,7 +3136,7 @@ function islandora_digital_workflow_copy_delivery_files($batch_item_id, $is_prob
     // Call this with $all_files set to FALSE so that it uses the $model_filemasks
     // to get the correct files related to this item.
     $item_files = islandora_digital_workflow_scan_files($item_folder, $model_filemasks, FALSE);
-    $copied = islandora_digital_workflow_copy_resequence_files($item_files, $item_folder, $item_working_folder, $batch_record['batch_name'], $batch_item_obj);
+    $copied = islandora_digital_workflow_copy_resequence_files($item_files, $item_folder, $item_working_folder, $batch_record['batch_name']);
     $whatwas_copied_message = 'files were';
     $copied_to_location = 'the item subfolder under the batch\'s working directory';
   }
@@ -3146,6 +3146,14 @@ function islandora_digital_workflow_copy_delivery_files($batch_item_id, $is_prob
     $item_working_folder = $working_filename;
     $exists = (file_exists($sanitized_delivery_filename));
     $copied = ($exists && !is_dir($sanitized_delivery_filename)) ? copy($sanitized_delivery_filename, $working_filename) : FALSE;
+
+      // since the batch_item object's filename points to the MASTER file, the
+      // filename is close to what the metadata file would be named.
+      if (array_key_exists('filename', $filename_pathinfo)) {
+        $metadata_file_location = $filename_pathinfo['dirname'] . '/' . $filename_pathinfo['filename'] . '.xml';
+        $copied &= copy($metadata_file_location, $item_working_root . '/MODS.xml');
+      }
+
     $whatwas_copied_message = 'file ' . $batch_item_obj->master_filename_basename . ' was';
     $copied_to_location = $working_filename;
   }
