@@ -3114,9 +3114,9 @@ function islandora_digital_workflow_copy_delivery_files($batch_item_id, $is_prob
         );
     return FALSE;
   }
-  $sanitized_delivery_filename = islandora_digital_workflow_get_item_delivery_filename($batch_item_obj);
   $exists = FALSE;
   $batch_record = islandora_digital_workflow_get_batch_record_by_batch_id($batch_item_obj->batch_id);
+  $sanitized_delivery_filename = islandora_digital_workflow_get_item_delivery_filename($batch_item_obj, $batch_record, $item_is_paged);
   $item_working_root = islandora_digital_workflow_batch_path($batch_record, 'working') . '/' . $batch_item_obj->identifier;
   if ($item_is_paged) {
     module_load_include('inc', 'islandora_digital_workflow', 'includes/file_utilities');
@@ -3196,7 +3196,7 @@ function islandora_digital_workflow_copy_delivery_files($batch_item_id, $is_prob
  *   Used to get the path to the batch's host path.
  * @return boolean
  */
-function islandora_digital_workflow_get_item_delivery_filename($batch_item, $batch_record = NULL) {
+function islandora_digital_workflow_get_item_delivery_filename($batch_item, $batch_record = NULL, $item_is_paged = FALSE) {
   // Only load the batch_record if the calling code passed batch_item as the object's
   // batch_item_id value.
   if (!is_object($batch_item)) {
@@ -3227,7 +3227,8 @@ function islandora_digital_workflow_get_item_delivery_filename($batch_item, $bat
   $target_filename = $batch_item->filename;
   $pathinfo = pathinfo($target_filename);
   $basename = (array_key_exists('basename', $pathinfo) ? (($pathinfo['basename'] <> '.') ? $pathinfo['basename'] : '') : '');
-  $item_path = $batch_path . '/' . $batch_item->identifier;
+
+  $item_path = ($item_is_paged) ? $batch_path . '/' . $batch_item->identifier : $batch_path;
   $delivery_filename = $item_path . '/' . $basename;
   $sanitized_delivery_filename = islandora_digital_workflow_filename_sanitize($delivery_filename);
   return $sanitized_delivery_filename;

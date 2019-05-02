@@ -525,7 +525,7 @@ function islandora_digital_workflow_schema() {
       'file_size' => array(
         'description' => t('The total size of the files related to this item (in bytes)'),
         'type' => 'int',
-        'size' => 'medium',
+        'size' => 'big',
         'unsigned' => TRUE,
         'default' => 0,
         'not null' => TRUE,

@@ -228,7 +228,10 @@
 
     <?php $toggle = FALSE;  $total_size = 0; ?>
     <h3>Delivery Files</h3>
-      <small class="small_lt_text"><b>Files location:</b> <?php print $delivery_directory; ?></small>
+      <small class="small_lt_text">
+          <b>Files location:</b> <?php print $delivery_directory; ?>
+          <?php print ($is_paged_content) ? '' : ' <i class="bad">For non-paged content, all delivery files are stored in the batch folder.</i>'; ?>
+      </small>
       <div class="text-report scroll-v-200">
         <table>
           <tr>

@@ -637,7 +637,7 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
               '@ext' => implode(", ", $extensions))) .
           (($batch_record && isset($batch_record['uploaded_batch_items_file']) && ($batch_record['uploaded_batch_items_file'] <> '')) ?
           t('<br>For CSV files ONLY, additional files may be ' .
-          'merged to add more items, using the "Add items" option on the batch\s ') .
+          'merged to add more items, using the "Add items" option on the batch\'s ') .
           l(t('"Batch Items" page'), 'node/' . $batch_record['nid'] . '/items') . '.</em>' : '') .
           ' | ' . l('Download CSV template (minimal)', 'islandora/islandora_digital_workflow/csv_template/minimal') .
           ' | ' . l('Download CSV template (full)', 'islandora/islandora_digital_workflow/csv_template/extended'),
