@@ -3118,11 +3118,13 @@ function islandora_digital_workflow_copy_delivery_files($batch_item_id, $is_prob
   $batch_record = islandora_digital_workflow_get_batch_record_by_batch_id($batch_item_obj->batch_id);
   $sanitized_delivery_filename = islandora_digital_workflow_get_item_delivery_filename($batch_item_obj, $batch_record, $item_is_paged);
   $item_working_root = islandora_digital_workflow_batch_path($batch_record, 'working') . '/' . $batch_item_obj->identifier;
+  // All contents types need a separate subfolder for the item.
+  if (!file_exists($item_working_root)) {
+    mkdir($item_working_root);
+  }
+
   if ($item_is_paged) {
     module_load_include('inc', 'islandora_digital_workflow', 'includes/file_utilities');
-    if (!file_exists($item_working_root)) {
-      mkdir($item_working_root);
-    }
     $subfolder_name = ($item_is_paged ? '/' . islandora_digital_workflow_object_subfolder_name($batch_item_obj->islandora_model) : '');
     $item_working_folder = $item_working_root  . $subfolder_name;
 
@@ -3147,13 +3149,12 @@ function islandora_digital_workflow_copy_delivery_files($batch_item_id, $is_prob
     $exists = (file_exists($sanitized_delivery_filename));
     $copied = ($exists && !is_dir($sanitized_delivery_filename)) ? copy($sanitized_delivery_filename, $working_filename) : FALSE;
 
-      // since the batch_item object's filename points to the MASTER file, the
-      // filename is close to what the metadata file would be named.
-      if (array_key_exists('filename', $filename_pathinfo)) {
-        $metadata_file_location = $filename_pathinfo['dirname'] . '/' . $filename_pathinfo['filename'] . '.xml';
-        $copied &= copy($metadata_file_location, $item_working_root . '/MODS.xml');
-      }
-
+    // since the batch_item object's filename points to the MASTER file, the
+    // filename is close to what the metadata file would be named.
+    if (array_key_exists('filename', $filename_pathinfo)) {
+      $metadata_file_location = $filename_pathinfo['dirname'] . '/' . $filename_pathinfo['filename'] . '.xml';
+      $copied &= copy($metadata_file_location, $item_working_root . '/MODS.xml');
+    }
     $whatwas_copied_message = 'file ' . $batch_item_obj->master_filename_basename . ' was';
     $copied_to_location = $working_filename;
   }
