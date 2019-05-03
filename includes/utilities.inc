@@ -3144,7 +3144,7 @@ function islandora_digital_workflow_copy_delivery_files($batch_item_id, $is_prob
   }
   else {
     $filename_pathinfo = pathinfo($batch_item_obj->filename);
-    $working_filename = $item_working_root . '/OBJ.' . $filename_pathinfo['extension'];
+    $working_filename = $item_working_root . '/' . $batch_item_obj->identifier . '.' . $filename_pathinfo['extension'];
     $item_working_folder = $working_filename;
     $exists = (file_exists($sanitized_delivery_filename));
     $copied = ($exists && !is_dir($sanitized_delivery_filename)) ? copy($sanitized_delivery_filename, $working_filename) : FALSE;
@@ -3153,7 +3153,7 @@ function islandora_digital_workflow_copy_delivery_files($batch_item_id, $is_prob
     // filename is close to what the metadata file would be named.
     if (array_key_exists('filename', $filename_pathinfo)) {
       $metadata_file_location = $filename_pathinfo['dirname'] . '/' . $filename_pathinfo['filename'] . '.xml';
-      $copied &= copy($metadata_file_location, $item_working_root . '/MODS.xml');
+      $copied &= copy($metadata_file_location, $item_working_root . '/' . $batch_item_obj->identifier . '.xml');
     }
     $whatwas_copied_message = 'file ' . $batch_item_obj->master_filename_basename . ' was';
     $copied_to_location = $working_filename;

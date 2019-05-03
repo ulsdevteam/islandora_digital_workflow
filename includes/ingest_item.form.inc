@@ -374,8 +374,8 @@ function islandora_digital_workflow_make_drush_prepare_statement($batch_item_obj
 function islandora_digital_workflow_get_preprocessor($fedora_model) {
   // perhaps want to use this function call  islandora_digital_workflow_model_ingest_module_info
   $mapping = array(
-      'islandora:sp_basic_image' => 'islandora_batch_preprocess',
-      'islandora:sp_large_image_cmodel' => 'islandora_batch_preprocess',
+      'islandora:sp_basic_image' => 'islandora_batch_scan_preprocess',
+      'islandora:sp_large_image_cmodel' => 'islandora_batch_scan_preprocess',
       'islandora:findingAidCModel' => 'islandora_newspaper_batch_preprocess',
       'islandora:bookCModel' => 'islandora_book_batch_preprocess',
       'islandora:manuscriptCModel' => 'islandora_manuscript_batch_preprocess',
