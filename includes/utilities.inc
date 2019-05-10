@@ -3238,6 +3238,9 @@ function islandora_digital_workflow_get_item_delivery_filename($batch_item, $bat
   $basename = (array_key_exists('basename', $pathinfo) ? (($pathinfo['basename'] <> '.') ? $pathinfo['basename'] : '') : '');
 
   $item_path = ($item_is_paged) ? $batch_path . '/' . $batch_item->identifier : $batch_path;
+  if (!file_exists($item_path)) {
+    mkdir($item_path);
+  }
   $delivery_filename = $item_path . '/' . $basename;
   $sanitized_delivery_filename = islandora_digital_workflow_filename_sanitize($delivery_filename);
   return $sanitized_delivery_filename;
@@ -3357,6 +3360,8 @@ function islandora_digital_workflow_marc_mods_arr_to_item_file_sources($batch_re
     $model = (is_object($batch_item_object) ? $batch_item_object->islandora_model : $batch_record['islandora_model']);
     $subfolder_name = ($item_is_paged ? '/' . islandora_digital_workflow_object_subfolder_name($model, $batch_record) : '');
     $item_path = $batch_path . '/' . $marc_mods_arr['identifier'];
+drupal_set_message('item_path = ' . $item_path);
+drupal_set_message('subfolder_name = ' . $subfolder_name);
     $item_subfolder_path = $item_path . $subfolder_name;
     if (!file_exists($item_path)) {
       $call = mkdir($item_path);
@@ -3762,12 +3767,20 @@ function islandora_digital_workflow_get_mods_title($mods_filename) {
       }
       $xpath = new DOMXPath($doc);
       $xpath->registerNamespace('d', 'http://www.loc.gov/mods/v3');
-      $results = $xpath->query('/d:mods/d:titleInfo/d:title');
+      // the titleInfo node must not have any attributes.
+      $results = $xpath->query('/d:mods/d:titleInfo[not(@*)]/d:title');
       $nodeValue = NULL;
       // the value coming from the XML usually has a bunch of extra spaces and potential line feeds
       foreach ($results as $result) {
-        $nodeValue = str_replace(array("\t", "\r", "\n"), "", trim($result->nodeValue));
+        $nodeValue = str_replace(array("\t", "\r", "\n"), "", trim(ucfirst($result->nodeValue)));
       }
+      $results = $xpath->query('/d:mods/d:titleInfo[not(@*)]/d:nonSort');
+      $nonSortNodeValue = '';
+      // the value coming from the XML usually has a bunch of extra spaces and potential line feeds
+      foreach ($results as $result) {
+        $nonSortNodeValue = str_replace(array("\t", "\r", "\n"), "", trim($result->nodeValue)) . ' ';
+      }
+      $nodeValue = $nonSortNodeValue . $nodeValue;
       while (strstr($nodeValue, "  ")) {
         $nodeValue = str_replace("  ", " ", $nodeValue);
       }
