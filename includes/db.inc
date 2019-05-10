@@ -1125,9 +1125,10 @@ function islandora_digital_workflow_update_batch_item_record($batch_item_id, $up
     // Compare the underlying MARC file to the value that is passed by $update_values --
     // and overwrite that file if needed.
     if (array_key_exists('marc', $update_values) && ($update_values['marc'] <> $original_values->marc)) {
-      $calculated_marc_filename = islandora_digital_workflow_filename_sanitize($original_values->filename, '.marc.xml');
-      $bytes_written = ($calculated_marc_filename) ?
-          file_put_contents($calculated_marc_filename, $update_values['marc']) : 0;
+      $calculated_marc_filename = $current_working_item_path . '/' .
+        islandora_digital_workflow_filename_sanitize($original_values->identifier, '.marc.xml');
+      $bytes_written = (($calculated_marc_filename) ?
+          file_put_contents($calculated_marc_filename, $update_values['marc']) : 0);
       if ($bytes_written <> strlen($update_values['marc'])) {
         drupal_set_message(t('There was a problem saving the updated MARC value to the file system at "') .
           $calculated_marc_filename . t('".  It may be a file permissions issue.'), 'error');
@@ -1137,7 +1138,8 @@ function islandora_digital_workflow_update_batch_item_record($batch_item_id, $up
     // Compare the underlying MODS file to the value that is passed by $update_values --
     // and overwrite that file if needed.
     if ($update_values['mods'] <> $original_values->mods) {
-      $calculated_mods_filename = islandora_digital_workflow_filename_sanitize($original_values->filename, '.mods.xml');
+      $calculated_mods_filename = $current_working_item_path . '/' .
+        islandora_digital_workflow_filename_sanitize($original_values->filename, '.mods.xml');
       $bytes_written = ($calculated_mods_filename) ?
           file_put_contents($calculated_mods_filename, $update_values['mods']) : 0;
       if ($bytes_written <> strlen($update_values['mods'])) {
