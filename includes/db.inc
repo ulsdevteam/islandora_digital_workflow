@@ -1228,7 +1228,7 @@ function islandora_digital_workflow_calculate_item_progress_filedetails($batch_i
     // been published.
     $item_done = FALSE;
     foreach ($item_record_transactions as $item_transaction_object) {
-      $item_done |= FALSE; //($item_transaction_object->action_id  == IDW_PUBLISH_OBJECT);
+      $item_done |= ($item_transaction_object->action_id  == IDW_PUBLISH_OBJECT);
     }
 
     // There may be the action_id that the object is ingested / done, but we may want to

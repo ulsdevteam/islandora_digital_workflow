@@ -3912,11 +3912,11 @@ function islandora_digital_workflow_item_ingested($batch_item_object, $batch_rec
     if (is_null($item_record_transactions)) {
       $item_record_transactions = islandora_digital_workflow_get_batch_item_transactions($batch_item_object->batch_item_id, $batch_record['nid'], $batch_record['batch_id']);
     }
-    $published_already = FALSE;
+    $ingested_action_exists = FALSE;
     foreach ($item_record_transactions as $transaction) {
-      $published_already |= ($transaction->action_id == IDW_PUBLISH_OBJECT);
+      $ingested_action_exists |= ($transaction->action_id == IDW_ACTION_SYSTEM_INGESTED);
     }
-    $retval = (is_object($islandora_object) && !$published_already);
+    $retval = (is_object($islandora_object) && $ingested_action_exists);
   }
   return $retval;
 }
