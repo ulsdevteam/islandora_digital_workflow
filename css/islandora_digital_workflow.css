@@ -981,15 +981,15 @@ ul.report-links li, ul.utility-links li, ul.admin-links li {
 }
 
 ul.report-links {
-    background: transparent url("../images/report.png") no-repeat 4px 4px;
+    background: white url("../images/report.png") no-repeat 4px 4px;
 }
 
 ul.utility-links {
-    background: transparent url("../images/utility.png") no-repeat 4px 4px;
+    background: white url("../images/utility.png") no-repeat 4px 4px;
 }
 
 ul.admin-links {
-    background: transparent url("../images/cog.png") no-repeat 4px 4px;
+    background: white url("../images/cog.png") no-repeat 4px 4px;
 }
 
 .double_space {

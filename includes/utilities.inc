@@ -1071,25 +1071,27 @@ function islandora_digital_workflow_models_table() {
   $readable_models = islandora_digital_workflow_get_reduced_readable_cmodels();
   $configured_models = $return_form_elements = array();
   $configured_supported_models = variable_get('islandora_digital_workflow_islandora_models', array());
-
   foreach ($readable_models as $cmodel => $model) {
     // Each model depends on a specific module in order to be able to ingest.
     // The models that are not supported should be disabled.
     $model_requirements = array();
     $model_requirements = islandora_digital_workflow_object_model_datastream_requirements($cmodel);
-
     $dsid_requirements_table_arr = array();
-    foreach ($model_requirements['required'] as $dsid => $ds_mime_and_id) {
-      $dsid_requirements_table_arr[] = '<span class="required_dsid" title="For &quot;' . $model . "&quot;, the " . $dsid . ' datastream derivative is required">' . $dsid . '</span>';
+    if (array_key_exists('required', $model_requirements)) {
+      foreach ($model_requirements['required'] as $dsid => $ds_mime_and_id) {
+        $dsid_requirements_table_arr[] = '<span class="required_dsid" title="For &quot;' . $model . "&quot;, the " . $dsid . ' datastream derivative is required">' . $dsid . '</span>';
+      }
+      foreach ($model_requirements['optional'] as $dsid => $ds_mime_and_id) {
+        $dsid_requirements_table_arr[] = '<span class="optional_dsid" title="For &quot;' . $model . "&quot;, the " . $dsid . ' datastream derivative is optional">' . $dsid . '</span>';
+      }
     }
-    foreach ($model_requirements['optional'] as $dsid => $ds_mime_and_id) {
-      $dsid_requirements_table_arr[] = '<span class="optional_dsid" title="For &quot;' . $model . "&quot;, the " . $dsid . ' datastream derivative is optional">' . $dsid . '</span>';
+    else {
+      $dsid_requirements_table_arr[] = '';
     }
     $dsid_requirements_table = '<p><b>Datastream requirements:</b> ' .
-            implode(" | ", $dsid_requirements_table_arr) . '</p></div>';
+            implode(" | ", $dsid_requirements_table_arr) . '</p>';
 
     $this_model_module_info = islandora_digital_workflow_model_ingest_module_info($cmodel);
-
     $title = ($this_model_module_info['exists']) ? $model : $model . ' (not installed)';
     $configured_models[$cmodel] = array(
       '#type' => 'checkbox',
@@ -1099,13 +1101,12 @@ function islandora_digital_workflow_models_table() {
       '#prefix' => '<div class="major-item">',
       '#suffix' => $dsid_requirements_table . '</div>',
     );
-    if ($this_model_module_info['git_branch'] <> '') {
-       $configured_models[$cmodel]['#suffix']  = '<div class="indent_small_text">' .
-           '<b>Module: </b>' . 
-           $this_model_module_info['uls_git_link'] .
-           ' <i>' . $this_model_module_info['git_branch'] . '</i>' .
-           $configured_models[$cmodel]['#suffix'];
-    }
+    $configured_models[$cmodel]['#suffix'] = '<div class="indent_small_text">' .
+      ($this_model_module_info['git_branch'] <> '') ?
+        '<b>Module: </b>' .
+        $this_model_module_info['uls_git_link'] .
+        ' <i>' . $this_model_module_info['git_branch'] . '</i>' .
+        $configured_models[$cmodel]['#suffix'] : '';
     if (!$this_model_module_info['exists']) {
       $configured_models[$cmodel]['#default_value'] = 0;
       drupal_set_message(t('The module is not installed that can ingest batches of @model ' .
@@ -1121,6 +1122,7 @@ function islandora_digital_workflow_models_table() {
     }
     $return_form_elements[str_replace(" ", "+", $model)] = $configured_models[$cmodel];
   }
+
   return $return_form_elements;
 }
 
@@ -1716,7 +1718,7 @@ function islandora_digital_workflow_scan_files($scan_path,  $file_masks = array(
   // filters set up in islandora_digital_workflow_ingest_ignore_filenames.  This
   // should always filter out the "*.xml" files even if it is not referenced
   // in the ingore_filnames filters.
-  $ignore_filenames = variable_get('islandora_digital_workflow_ingest_ignore_filenames', array('*.xml'));
+  $ignore_filenames = variable_get('islandora_digital_workflow_ingest_ignore_filenames', '*.xml');
   $raw_filters = array_flip(explode("\n", trim($ignore_filenames)));
   $filters = array();
   foreach ($raw_filters as $key => $value) {
@@ -3776,7 +3778,6 @@ function islandora_digital_workflow_get_mods_title($mods_filename) {
       }
       $results = $xpath->query('/d:mods/d:titleInfo[not(@*)]/d:nonSort');
       $nonSortNodeValue = '';
-      // the value coming from the XML usually has a bunch of extra spaces and potential line feeds
       foreach ($results as $result) {
         $nonSortNodeValue = str_replace(array("\t", "\r", "\n"), "", trim($result->nodeValue)) . ' ';
       }
