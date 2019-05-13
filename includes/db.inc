@@ -819,6 +819,7 @@ function islandora_digital_workflow_get_batch_item_transactions($batch_item_id, 
   $access_edit_transactions = user_access(ISLANDORA_DIGITAL_WORKFLOW_EDIT_DELETE_TRANSACTIONS);
   $rows = $results->fetchAll();
   foreach ($rows as $index => $row) {
+    $rows[$index]->action_id = $row->action_id;
     $rows[$index]->how_long_ago = islandora_digital_workflow_timeago_from_timestamp($row->timestamp);
     $rows[$index]->user_name = ($row->uid) ? l($row->name, 'user/' . $row->uid, array('attributes'=>array(
       'title' => 'link opens in separate tab',

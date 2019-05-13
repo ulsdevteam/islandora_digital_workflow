@@ -175,7 +175,37 @@
               <?php endif; ?>>
               <td>
                 <div class="<?php print $transaction_record->glyph_class; ?>">&nbsp;</div>
-                <?php print $transaction_record->description; ?>
+                <?php
+                // Some actions should be displayed as a link else print the action descriptoin.
+                switch ($transaction_record->action_id) {
+                  case IDW_ACTION_MODS_RECORD_COMPLETED:
+                    print l($transaction_record->description,
+                      'islandora/object/' . $pid . '/datastream/MODS/edit',
+                      array('attributes'=>array(
+                        'title' => 'link opens in separate tab',
+                        'class' => array('link_open_new_tab_tiny'),
+                        'target' => '_blank')));
+                    break;
+                  case IDW_ACTION_METS_CREATED:
+                  case IDW_ACTION_METADATA_FAIL_QC:
+                    if (module_exists('islandora_mets_editor')) {
+                      print l($transaction_record->description,
+                        'islandora/object/' . $pid . '/manage/mets_editor',
+                        array('attributes'=>array(
+                          'title' => 'link opens in separate tab',
+                          'class' => array('link_open_new_tab_tiny'),
+                          'target' => '_blank')));
+                    }
+                    else {
+                      print $transaction_record->description;
+                    }
+                    break;
+
+                  default:
+                    print $transaction_record->description;
+                    break;
+                  }
+                ?>
 
                 <?php if ($transaction_record->admin_links <> ''): ?>
                   <div class="admin_links">
