@@ -95,7 +95,7 @@ function islandora_digital_workflow_add_transactions_form(array $form, array &$f
       '#type' => 'hidden',
       '#value' => $batch_item_id,
   );
-  if ($action_id == IDW_ACTION_PROBLEM) {
+  if ($action_id == IDW_ACTION_PROBLEM || $action_id == IDW_ACTION_METADATA_FAIL_QC) {
     $form['problem_notes'] = array(
         '#type' => 'textarea',
         '#title' => 'Problem notes',
@@ -146,7 +146,8 @@ function islandora_digital_workflow_add_transactions_form_submit(array $form, ar
   $refer = $form_state['values']['refer'];
   $refer_url_parts = parse_url($refer);
   $action_record = islandora_digital_workflow_get_action($action_id);
-  $problem_notes = ($action_id == IDW_ACTION_PROBLEM) ? $form_state['values']['problem_notes'] : '';
+  $problem_notes = ($action_id == IDW_ACTION_PROBLEM || $action_id == IDW_ACTION_METADATA_FAIL_QC) ?
+      $form_state['values']['problem_notes'] : '';
   $nid = $form_state['values']['nid'];
 
 

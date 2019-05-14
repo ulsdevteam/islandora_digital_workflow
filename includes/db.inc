@@ -578,7 +578,7 @@ function islandora_digital_workflow_update_batch_transaction($transaction_id, $a
   // check to see if this specific change will trigger any transaction Stage changes
   islandora_digital_workflow_check_trigger_stage_change($transaction_id);
   // It seems that the code should handle adding the Problem transaction.
-  if ($action_id == IDW_ACTION_PROBLEM) {
+  if ($action_id == IDW_ACTION_PROBLEM || $action_id == IDW_ACTION_METADATA_FAIL_QC) {
     islandora_digital_workflow_set_problem_record($transaction_id, $user->uid, $problem_notes);
   }
 
@@ -686,10 +686,10 @@ function islandora_digital_workflow_check_trigger_stage_change($transaction_id =
 /**
  * Set the problem record related to the given transaction.
  *
- * This will check whether or not the supplied action is IDW_ACTION_PROBLEM....
- * and will also insert the data to the node (so that the
- * node for the entire batch is switched to "Problem" as well as to insert
- * an individual islandora_digital_workflow_problem_items record.
+ * This will check whether or not the supplied action is IDW_ACTION_PROBLEM or
+ * IDW_ACTION_METADATA_FAIL_QC.... and will also insert the data to the node (so
+ * that the node for the entire batch is switched to "Problem" as well as to
+ * insert an individual islandora_digital_workflow_problem_items record.
  *
  * @global object $user
  *   Drupal user object
@@ -819,7 +819,6 @@ function islandora_digital_workflow_get_batch_item_transactions($batch_item_id, 
   $access_edit_transactions = user_access(ISLANDORA_DIGITAL_WORKFLOW_EDIT_DELETE_TRANSACTIONS);
   $rows = $results->fetchAll();
   foreach ($rows as $index => $row) {
-    $rows[$index]->action_id = $row->action_id;
     $rows[$index]->how_long_ago = islandora_digital_workflow_timeago_from_timestamp($row->timestamp);
     $rows[$index]->user_name = ($row->uid) ? l($row->name, 'user/' . $row->uid, array('attributes'=>array(
       'title' => 'link opens in separate tab',
@@ -1161,13 +1160,18 @@ function islandora_digital_workflow_update_batch_item_record($batch_item_id, $up
       $update_working_item_path = str_replace($replace_from, $replace_to, $current_working_item_path);
       // Only try to rename those item folders that exist
       if (file_exists($current_delivery_item_path)) {
-        if (!rename($current_delivery_item_path, $update_delivery_item_path) ) {
+        module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
+        if (!islandora_digital_workflow_linux_copy_folder($current_delivery_item_path, $update_delivery_item_path)) {
+//        if (!copy($current_delivery_item_path, $update_delivery_item_path) ) {
           drupal_set_message(t('There was a problem renaming the "delivery folder" ' .
               'for the current item "@item_ident".  Check file permissions on the ' .
               'paths:<ul><li>@path</li><li>@to_path</li></ul>.', array(
                   '@path' => $current_delivery_item_path,
                   '@to_path' => $update_delivery_item_path,
                   '@item_ident' => $original_values->identifier)), 'error');
+        }
+        else {
+          islandora_digital_workflow_linux_rm_folder($current_delivery_item_path);
         }
       }
       if (file_exists($current_problems_item_path)) {
@@ -1672,7 +1676,7 @@ function islandora_digital_workflow_insert_transactions_record($action_id, $batc
         'batch_item_id' => $batch_item_id,
       ));
     $batch_record = NULL;
-    if ($action_id == IDW_ACTION_PROBLEM) {
+    if ($action_id == IDW_ACTION_PROBLEM || $action_id == IDW_ACTION_METADATA_FAIL_QC) {
       islandora_digital_workflow_set_problem_record($transaction_id, ($alternative_uid) ? $alternative_uid : $user->uid, $problem_notes);
     } elseif ($action_id == IDW_ACTION_SCAN && !is_null($batch_item_id)) {
       islandora_digital_workflow_copy_delivery_files($batch_item_id, FALSE, NULL);

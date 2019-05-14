@@ -2308,11 +2308,11 @@ function islandora_digital_workflow_item_ingest_prerequisites_all_done($item_rec
   $ingest_prerequisite_ids = $item_action_ids = array();
   foreach ($required_batch_actions as $required_batch_action) {
     if ($required_batch_action['is_ingest_prerequisite']) {
-      $ingest_prerequisite_ids[] = $required_batch_action['action_id'];
+      $ingest_prerequisite_ids[$required_batch_action['action_id']] = $required_batch_action['action_id'];
     }
   }
   foreach ($item_record_transactions as $transaction_obj) {
-    if ($transaction_obj->transaction_id > -1) {
+    if ($transaction_obj->transaction_id > 0) {
       $item_action_ids[$transaction_obj->action_id] = $transaction_obj->action_id;
     }
   }
@@ -3362,8 +3362,7 @@ function islandora_digital_workflow_marc_mods_arr_to_item_file_sources($batch_re
     $model = (is_object($batch_item_object) ? $batch_item_object->islandora_model : $batch_record['islandora_model']);
     $subfolder_name = ($item_is_paged ? '/' . islandora_digital_workflow_object_subfolder_name($model, $batch_record) : '');
     $item_path = $batch_path . '/' . $marc_mods_arr['identifier'];
-drupal_set_message('item_path = ' . $item_path);
-drupal_set_message('subfolder_name = ' . $subfolder_name);
+
     $item_subfolder_path = $item_path . $subfolder_name;
     if (!file_exists($item_path)) {
       $call = mkdir($item_path);
@@ -3974,3 +3973,15 @@ function islandora_digital_workflow_collection_link($collection_object) {
 
   return $link;
 }
+
+function islandora_digital_workflow_linux_copy_folder($oldname, $newname) {
+  if (file_exists($oldname)) {
+    exec("mv $oldname $newname");
+  }
+  return (file_exists($oldname));
+}
+
+function islandora_digital_workflow_linux_rm_folder($foldername) {
+  exec("rm -rf $foldername");
+}
+

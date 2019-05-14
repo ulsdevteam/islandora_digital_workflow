@@ -1070,6 +1070,10 @@ function islandora_digital_workflow_insert_islandora_digital_workflow_actions() 
     IDW_ACTION_METADATA_FAIL_QC => array(
       'name' => 'metadata-failed-qc',
       'description' => t('Metadata Failed QC'),
+      'extra_info' => t('A special optional action that will prompt the user ' .
+          'for notes related to the problem (with the metadata) and can be ' .
+          'resolved by a new "Add MODS record" action followed by a successful ' .
+          'review "Metadata Passed QC" action.'),
       'glyph' => 'images/metadata-failed-qc_20.png',
     ),
     IDW_ACTION_SCAN => array(
@@ -1128,7 +1132,10 @@ function islandora_digital_workflow_insert_islandora_digital_workflow_actions() 
     IDW_ACTION_PROBLEM => array(
       'name' => 'problem',
       'description' => t('Problem with scan'),
-      'extra_info' => t('A special optional action that will prompt the user for notes related to the problem (with the scan) and can be resolved by using the "Sync files" operation which replaces the item\'s files with updated delivery files.'),
+      'extra_info' => t('A special optional action that will prompt the user ' .
+          'for notes related to the problem (with the scan) and can be ' .
+          'resolved by using the "Sync files" operation which replaces the ' .
+          'item\'s files with updated delivery files.'),
       'glyph' => 'images/problem_20.png',
       'stage_taxonomy_tid' => $problem_tid,
       'is_triggered_by_single_item' => 1,

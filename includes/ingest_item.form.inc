@@ -228,8 +228,9 @@ function islandora_digital_workflow_do_ingest_item($batch_item_id, $batch_record
         passthru($ingest_set_drush_command, $return_val);
         $ingest_set_output = '';
         $ingest_set_fields = $fields;
+        $ingest_set_fields['drush_command'] = $ingest_set_drush_command;
         $ingest_set_fields['output'] = serialize($ingest_set_output);
-        $ingest_set_fields['return_val'] = $ingest_set_return_var;
+        $ingest_set_fields['return_val'] = $return_val;
       }
     }
     catch (Exception $ex) {

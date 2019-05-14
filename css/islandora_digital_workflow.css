@@ -43,7 +43,7 @@ and open the template in the editor.
     background: url("../images/ingest-item-into-repository_20.png") 0px 0px no-repeat !important;
 }
 
-.transaction_action_system_ingested {
+.transaction_action_system_ingest {
     background: url("../images/system-ingested-item-into-repository_20.png") 0px 0px no-repeat !important;
 }
 
@@ -126,7 +126,7 @@ div.transaction_action_check_in,
 div.transaction_action_scan,
 div.transaction_action_check_out,
 div.transaction_action_user_ingest,
-div.transaction_action_system_ingested,
+div.transaction_action_system_ingest,
 div.transaction_action_rescan,
 div.transaction_action_system_made_derivatives,
 div.transaction_action_check_physical_items,
@@ -443,10 +443,11 @@ div.form-disabled label.enabled_text {
 
 .small_text, .small_lt_text {
     font-size: small;
-    line-height: 0.85em;
 }
+
 .small_lt_text {
     color: #888;
+    padding-bottom: 2px;
 }
 
 .good {

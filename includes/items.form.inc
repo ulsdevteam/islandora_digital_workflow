@@ -375,7 +375,7 @@ function islandora_digital_workflow_batch_items_form(array $form, array &$form_s
   $transactions_cell_class = (($item_transactions_count < 7) ? 'td_wide_normal' :
           (($item_transactions_count < 9) ? 'td_wide_180' :
           ($item_transactions_count < 11) ? 'td_wide_240' :
-          (($item_transactions_count < 18) ? 'td_wide_335' : 'td_wide_400')));
+          (($item_transactions_count < 16) ? 'td_wide_335' : 'td_wide_400')));
 
   $is_batch_paged_content = islandora_digital_workflow_is_paged_object($batch_record['islandora_model']);
   $all_items_are_paged_content = TRUE;
