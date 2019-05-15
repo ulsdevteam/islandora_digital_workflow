@@ -2472,10 +2472,18 @@ function islandora_digital_workflow_move_batch_item_file($batch_item_id, $destin
   //  load the batch related to this batch_item_id to get the batch name (path under the root)
   $batch_record = islandora_digital_workflow_get_batch_record_by_batch_id($batch_item_obj->batch_id);
 
-  $path_parts = pathinfo($batch_item_obj->filename);
-  $path_split = explode("/", $batch_item_obj->filename);
-  $item_name = $path_split[count($path_split) - 2];
-  $source_root = $path_parts['dirname'];
+  // If the item is not paged content, there should be a filename value... else
+  // the $source_root will need to be derived from the batch and batch item.
+  if ($batch_item_obj->filename <> '') {
+    $path_parts = pathinfo($batch_item_obj->filename);
+    $path_split = explode("/", $batch_item_obj->filename);
+    $item_name = $path_split[count($path_split) - 2];
+    $source_root = $path_parts['dirname'];
+  }
+  else {
+    $source_root = islandora_digital_workflow_get_item_delivery_filename($batch_item_obj, $batch_record, TRUE);
+    $item_name = $batch_item_obj->identifier;
+  }
 
   // Check that the source folder exists.
   if (!file_exists($source_root)) {
