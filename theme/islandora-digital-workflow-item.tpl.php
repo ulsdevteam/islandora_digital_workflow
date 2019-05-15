@@ -43,9 +43,22 @@
     <?php endif; ?>
     <?php if ($problem_with_scan && $problem_with_metadata) : ?><hr><?php endif; ?>
     <?php if ($problem_with_metadata) : ?>
-    <p class="disabled_text">To clear the problem with the metadata, consult the
-        problem notes above or consult with <?php print $unresolved_problem->user_name; ?> 
-        the user who QC'd the metadata.</p>
+    <p><span class="disabled_text">To clear the problem with the metadata, consult the
+        problem notes above or consult with <?php print $unresolved_problem->user_name; ?>
+        (the user who QC'd the metadata and entered this "Metadata Failed QC").</span><br>
+        Click <b><?php print l("`Edit MODS for " . $pid . "`", "islandora/object/" .
+            $pid . '/datastream/MODS/edit', array('attributes'=>array(
+              'title' => 'link opens in separate tab',
+              'class' => array('link_open_new_tab_tiny'),
+              'target' => '_blank'))); ?></b>
+        and then add the <b><?php print l("`Add MODS record`", 'node/' .
+            $batch_record['nid'] . '/add_transaction/' . $item->batch_item_id .
+            '/' . IDW_ACTION_MODS_RECORD_UPDATED, array('attributes'=>array(
+              'title' => 'link opens in separate tab',
+              'class' => array('link_open_new_tab_tiny'),
+              'target' => '_blank'))); ?></b> action to send the item
+        back into "Metadata Review".
+    </p>
     <?php endif; ?>
   </div>
   <?php endif; ?>
