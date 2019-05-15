@@ -579,7 +579,7 @@ function islandora_digital_workflow_update_batch_transaction($transaction_id, $a
   islandora_digital_workflow_check_trigger_stage_change($transaction_id);
   // It seems that the code should handle adding the Problem transaction.
   if ($action_id == IDW_ACTION_PROBLEM || $action_id == IDW_ACTION_METADATA_FAIL_QC) {
-    islandora_digital_workflow_set_problem_record($transaction_id, $user->uid, $problem_notes);
+    islandora_digital_workflow_set_problem_record($transaction_id, $user->uid, $problem_notes, $action_id);
   }
 
   return $updated;
@@ -697,10 +697,12 @@ function islandora_digital_workflow_check_trigger_stage_change($transaction_id =
  *   Identifier for a record in the islandora_digital_workflow_transactions table.
  * @param NULL|integer $alternative_uid
  *   An alternate user uid value to use for this transaction.
+ * @param integer $action_id
+ *   The action_id corresponding to the specific problem record.
  * @param string $problem_notes
  *   The notes that the user entered to submit the problem with the item.
  */
-function islandora_digital_workflow_set_problem_record($transaction_id, $alternative_uid = NULL, $problem_notes = '') {
+function islandora_digital_workflow_set_problem_record($transaction_id, $alternative_uid = NULL, $problem_notes = '', $action_id = IDW_ACTION_PROBLEM) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
   global $user;
   $transaction = islandora_digital_workflow_get_batch_transaction($transaction_id);
@@ -711,7 +713,9 @@ function islandora_digital_workflow_set_problem_record($transaction_id, $alterna
         $transaction_id . ", '" . addslashes($problem_notes) . "', now(), " .
         (!is_null($alternative_uid) ? $alternative_uid : $user->uid) . ")");
     // Move the files related to this item over to the configured Problems path.
-    islandora_digital_workflow_move_batch_item_file($transaction->batch_item_id, variable_get('islandora_digital_workflow_ingest_problems_path', ''), $problem_notes);
+    if ($action_id == IDW_ACTION_PROBLEM) {
+      islandora_digital_workflow_move_batch_item_file($transaction->batch_item_id, variable_get('islandora_digital_workflow_ingest_problems_path', ''), $problem_notes);
+    }
   }
 }
 
@@ -1677,7 +1681,7 @@ function islandora_digital_workflow_insert_transactions_record($action_id, $batc
       ));
     $batch_record = NULL;
     if ($action_id == IDW_ACTION_PROBLEM || $action_id == IDW_ACTION_METADATA_FAIL_QC) {
-      islandora_digital_workflow_set_problem_record($transaction_id, ($alternative_uid) ? $alternative_uid : $user->uid, $problem_notes);
+      islandora_digital_workflow_set_problem_record($transaction_id, ($alternative_uid) ? $alternative_uid : $user->uid, $problem_notes, $action_id);
     } elseif ($action_id == IDW_ACTION_SCAN && !is_null($batch_item_id)) {
       islandora_digital_workflow_copy_delivery_files($batch_item_id, FALSE, NULL);
     } elseif ($action_id == IDW_PUBLISH_OBJECT) {

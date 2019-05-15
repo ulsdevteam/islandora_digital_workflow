@@ -28,11 +28,25 @@
       <label>Problem notes:</label><pre><?php print $unresolved_problem->problem_notes ?></pre>
     </div>
     <?php endforeach; ?>
+    <?php
+    $problem_with_scan = $problem_with_metadata = FALSE;
+    foreach ($item_record_transactions as $action_id => $transaction_record) {
+      $problem_with_scan |= $action_id == IDW_ACTION_PROBLEM;
+      $problem_with_metadata |= $action_id == IDW_ACTION_METADATA_FAIL_QC;
+    } ?>
+    <?php if ($problem_with_scan) : ?>
     <p class="disabled_text">Aside from needing to satisfy all of the actions in
         the workflow sequence, problems must be cleared before the item or the
         batch can be ingested.  To clear a problem, place the repaired files in
         the <b>Incoming Delivery Directory</b> location;  these files can then be
         imported back into the system which will resolve the specific item's problem record.</p>
+    <?php endif; ?>
+    <?php if ($problem_with_scan && $problem_with_metadata) : ?><hr><?php endif; ?>
+    <?php if ($problem_with_metadata) : ?>
+    <p class="disabled_text">To clear the problem with the metadata, consult the
+        problem notes above or consult with <?php print $unresolved_problem->user_name; ?> 
+        the user who QC'd the metadata.</p>
+    <?php endif; ?>
   </div>
   <?php endif; ?>
 
@@ -73,7 +87,8 @@
     <?php if ($ingested_links || $item->progress == 'Completed') : ?>
     <div class="messages warning">
       <div class="bad"><p><b>All requirements are completed.  This object has already been ingested.</b></p>
-        <p><i>You will need to manually delete the object and any islandora_batch queue records before this can ingest again.</i><br>
+        <p><i>In order to ingest this item again, you would need to manually delete
+          the object and any islandora_batch queue records.</i><br>
         Ingest this item into Islandora again: <a href="/islandora/islandora_digital_workflow/ingest_item/<?php print urlencode($item->batch_item_id); ?>"><?php print $item->identifier; ?></a>.
     <?php else: ?>
     <div class="messages message_info">
@@ -165,7 +180,7 @@
             <th>When</th>
             <th>Date</th>
         </tr>
-      <?php foreach ($item_record_transactions as $transaction_record) { ?>
+      <?php foreach ($item_record_transactions as $action_id => $transaction_record) { ?>
           <?php
           $toggle = !$toggle;
           ?>
@@ -176,11 +191,10 @@
               <td>
                 <div class="<?php print $transaction_record->glyph_class; ?>">&nbsp;</div>
                 <?php
-                // Some actions should be displayed as a link else print the action descriptoin.
-                switch ($transaction_record->action_id) {
+                switch ($action_id) {
                   case IDW_ACTION_MODS_RECORD_COMPLETED:
                     print l($transaction_record->description,
-                      'islandora/object/' . $pid . '/datastream/MODS/edit',
+                      'islandora/object/' . $item->assigned_pid . '/datastream/MODS/edit',
                       array('attributes'=>array(
                         'title' => 'link opens in separate tab',
                         'class' => array('link_open_new_tab_tiny'),
@@ -190,7 +204,7 @@
                   case IDW_ACTION_METADATA_FAIL_QC:
                     if (module_exists('islandora_mets_editor')) {
                       print l($transaction_record->description,
-                        'islandora/object/' . $pid . '/manage/mets_editor',
+                        'islandora/object/' . $item->assigned_pid . '/manage/mets_editor',
                         array('attributes'=>array(
                           'title' => 'link opens in separate tab',
                           'class' => array('link_open_new_tab_tiny'),
@@ -205,6 +219,8 @@
                     print $transaction_record->description;
                     break;
                   }
+                  // depending on the specific action, make it into a link
+                // print $transaction_record->description;
                 ?>
 
                 <?php if ($transaction_record->admin_links <> ''): ?>
