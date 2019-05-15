@@ -847,13 +847,44 @@ function islandora_digital_workflow_get_batch_item_transactions($batch_item_id, 
  *   The $batch_id value matching a batch.
  * @param boolean $unresolved
  *   Whether or not to restrict the query to problems that have been resolved.
+ * @param array $item_record_transactions
+ *   An array of objects that represent all of the transactions that have and
+ * could be added for the given item.
  * @return array
  *   Either returns an array of batch record objects or NULL if it cannot be found.
  */
-function islandora_digital_workflow_get_batch_item_problems($batch_item_id, $batch_id, $unresolved = FALSE) {
+function islandora_digital_workflow_get_batch_item_problems($batch_item_id, $batch_id, $unresolved = FALSE, $item_record_transactions = array()) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
 
-  $sql = 'SELECT p.problem_notes, p.problem_timestamp, p.problem_resolved_timestamp, ' .
+  // First, see if there was a problem with the metadata that HAS BEEN resolved
+  // at a later time.  If found, set $problem_with_metadata to the transaction_id
+  // which will be needed in the loop below to see if that problem record
+  // should be returned.
+  $metadata_problem_transaction_id = 0;
+  $problem_with_scan = $problem_with_metadata = FALSE;
+  $metadata_problem_timestamp = $metadata_qc_pass_timestamp = 0;
+  foreach ($item_record_transactions as $transaction_record) {
+    if ($transaction_record->transaction_id) {
+      $problem_with_scan |= ($transaction_record->action_id == IDW_ACTION_PROBLEM);
+      $problem_with_metadata |= ($transaction_record->action_id == IDW_ACTION_METADATA_FAIL_QC);
+    }
+  }
+  foreach ($item_record_transactions as $transaction_record) {
+    if ($transaction_record->transaction_id) {
+      if ($transaction_record->action_id == IDW_ACTION_METADATA_FAIL_QC) {
+        $metadata_problem_timestamp = strtotime($transaction_record->timestamp);
+      }
+      if ($transaction_record->action_id == IDW_ACTION_METADATA_PASS_QC) {
+        $metadata_qc_pass_timestamp = strtotime($transaction_record->timestamp);
+        $metadata_problem_transaction_id = $transaction_record->transaction_id;
+      }
+    }
+  }
+  if ($problem_with_metadata && ($metadata_qc_pass_timestamp > $metadata_problem_timestamp)) {
+    $problem_with_metadata = FALSE;
+  }
+
+  $sql = 'SELECT p.problem_notes, p.problem_timestamp, p.problem_resolved_timestamp, bt.transaction_id,' .
          'users.uid AS uid, users.name AS user_name, bt.batch_id, bt.batch_item_id, bi.identifier, bi.title ' .
          'FROM islandora_digital_workflow_problem_items p ' .
          'JOIN islandora_digital_workflow_transactions bt ON p.transaction_id = bt.transaction_id ' .
@@ -865,15 +896,22 @@ function islandora_digital_workflow_get_batch_item_problems($batch_item_id, $bat
   $results = db_query($sql);
   $rows = $results->fetchAll();
   foreach ($rows as $index => $row) {
-    $rows[$index]->problem_how_long_ago = islandora_digital_workflow_timeago_from_timestamp($row->problem_timestamp);
-    $rows[$index]->problem_resolved_how_long_ago = (($unresolved) ? '' : islandora_digital_workflow_timeago_from_timestamp($row->problem_resolved_timestamp));
-    $rows[$index]->user_name = ($row->uid) ? l($row->user_name, 'user/' . $row->uid, array('attributes'=>array(
-      'title' => 'link opens in separate tab',
-      'class' => array('link_open_new_tab_tiny'),
-      'target' => '_blank'))) : 'system';
-    $rows[$index]->problem_notes = $row->problem_notes;
+    if ($row->transaction_id <> $metadata_problem_transaction_id) {
+      $rows[$index]->problem_how_long_ago = islandora_digital_workflow_timeago_from_timestamp($row->problem_timestamp);
+      $rows[$index]->problem_resolved_how_long_ago = (($unresolved) ? '' : islandora_digital_workflow_timeago_from_timestamp($row->problem_resolved_timestamp));
+      $rows[$index]->user_name = ($row->uid) ? l($row->user_name, 'user/' . $row->uid, array('attributes'=>array(
+        'title' => 'link opens in separate tab',
+        'class' => array('link_open_new_tab_tiny'),
+        'target' => '_blank'))) : 'system';
+      $rows[$index]->problem_notes = $row->problem_notes;
+    }
   }
-  return $rows;
+
+  return array(
+      'rows' => $rows,
+      'problem_with_metadata' => $problem_with_metadata,
+      'problem_with_scan' => $problem_with_scan
+  );
 }
 
 /**

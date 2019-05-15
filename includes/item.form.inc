@@ -182,7 +182,7 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
   $max_timestamp_and_how_long_ago = islandora_digital_workflow_get_max_timestamp_for_batch_item_transactions($batch_item_id, $batch_record['batch_id']);
 
   $previous_problems = islandora_digital_workflow_get_batch_item_problems($batch_item_id, $batch_record['batch_id'], FALSE);
-  $unresolved_problems = islandora_digital_workflow_get_batch_item_problems($batch_item_id, $batch_record['batch_id'], TRUE);
+  $unresolved_problems = islandora_digital_workflow_get_batch_item_problems($batch_item_id, $batch_record['batch_id'], TRUE, $item_record_transactions);
 
   // calculate the select box options for type_of_resource field... if it is ingested,
   // make this field read-only input box... else a select box that displays all
@@ -251,8 +251,10 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
         'is_paged_content' => $is_paged_content,
         'workflow_sequence_text' => $workflow_sequence_text,
         'can_update' => user_access(ISLANDORA_DIGITAL_WORKFLOW_UPDATE_ITEMS),
-        'previous_problems' => $previous_problems,
-        'unresolved_problems' => $unresolved_problems,
+        'previous_problems' => $previous_problems['rows'],
+        'unresolved_problems' => $unresolved_problems['rows'],
+        'problem_with_scan' => $unresolved_problems['problem_with_scan'],
+        'problem_with_metadata' => $unresolved_problems['problem_with_metadata'],
         'item_record_transactions' => $item_record_transactions,
         'drush_log_entries' => $drush_log_entries,
         'pid' => $pid,

@@ -638,6 +638,8 @@ function islandora_digital_workflow_theme() {
         'can_update' => FALSE,
         'previous_problems' => array(),
         'unresolved_problems' => array(),
+        'problem_with_scan' => FALSE,
+        'problem_with_metadata' => FALSE,
         'item_record_transactions' => array(),
         'drush_log_entries' => array(),
         'pid' => '',

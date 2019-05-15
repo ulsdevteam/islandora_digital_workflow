@@ -20,20 +20,16 @@
 <div id="no-sidebars">
 
   <?php if (is_array($unresolved_problems) && count($unresolved_problems) > 0): ?>
-  <div class="dashboard-report messages error">
-    <h3>Unresolved Problem/s</h3>
-    <?php foreach ($unresolved_problems as $unresolved_problem): ?>
-    <div>
-      <label>Initially logged:</label> <?php print $unresolved_problem->problem_how_long_ago . ' on ' . $unresolved_problem->problem_timestamp; ?> by <?php print $unresolved_problem->user_name; ?><br>
-      <label>Problem notes:</label><pre><?php print $unresolved_problem->problem_notes ?></pre>
-    </div>
-    <?php endforeach; ?>
-    <?php
-    $problem_with_scan = $problem_with_metadata = FALSE;
-    foreach ($item_record_transactions as $action_id => $transaction_record) {
-      $problem_with_scan |= $action_id == IDW_ACTION_PROBLEM;
-      $problem_with_metadata |= $action_id == IDW_ACTION_METADATA_FAIL_QC;
-    } ?>
+    <?php if ($problem_with_scan || $problem_with_metadata) : ?>
+    <div class="dashboard-report messages error">
+      <h3>Unresolved Problem/s</h3>
+      <?php foreach ($unresolved_problems as $unresolved_problem): ?>
+      <div>
+        <label>Initially logged:</label> <?php print $unresolved_problem->problem_how_long_ago . ' on ' . $unresolved_problem->problem_timestamp; ?> by <?php print $unresolved_problem->user_name; ?><br>
+        <label>Problem notes:</label><pre><?php print $unresolved_problem->problem_notes ?></pre>
+      </div>
+      <?php endforeach; ?>
+    <?php endif; ?>
     <?php if ($problem_with_scan) : ?>
     <p class="disabled_text">Aside from needing to satisfy all of the actions in
         the workflow sequence, problems must be cleared before the item or the
@@ -42,7 +38,7 @@
         imported back into the system which will resolve the specific item's problem record.</p>
     <?php endif; ?>
     <?php if ($problem_with_scan && $problem_with_metadata) : ?><hr><?php endif; ?>
-    <?php if ($problem_with_metadata) : ?>
+    <?php if ($problem_with_metadata === TRUE) : ?>
     <p><span class="disabled_text">To clear the problem with the metadata, consult the
         problem notes above or consult with <?php print $unresolved_problem->user_name; ?>
         (the user who QC'd the metadata and entered this "Metadata Failed QC").</span><br>
@@ -51,9 +47,9 @@
               'title' => 'link opens in separate tab',
               'class' => array('link_open_new_tab_tiny'),
               'target' => '_blank'))); ?></b>
-        and then add the <b><?php print l("`Add MODS record`", 'node/' .
+        and then add the <b><?php print l("`Metadata Completed`", 'node/' .
             $batch_record['nid'] . '/add_transaction/' . $item->batch_item_id .
-            '/' . IDW_ACTION_MODS_RECORD_UPDATED, array('attributes'=>array(
+            '/' . IDW_ACTION_MODS_RECORD_COMPLETED, array('attributes'=>array(
               'title' => 'link opens in separate tab',
               'class' => array('link_open_new_tab_tiny'),
               'target' => '_blank'))); ?></b> action to send the item
@@ -193,7 +189,7 @@
             <th>When</th>
             <th>Date</th>
         </tr>
-      <?php foreach ($item_record_transactions as $action_id => $transaction_record) { ?>
+      <?php foreach ($item_record_transactions as $transaction_record) { ?>
           <?php
           $toggle = !$toggle;
           ?>
@@ -204,7 +200,7 @@
               <td>
                 <div class="<?php print $transaction_record->glyph_class; ?>">&nbsp;</div>
                 <?php
-                switch ($action_id) {
+                switch ($transaction_record->action_id) {
                   case IDW_ACTION_MODS_RECORD_COMPLETED:
                     print l($transaction_record->description,
                       'islandora/object/' . $item->assigned_pid . '/datastream/MODS/edit',

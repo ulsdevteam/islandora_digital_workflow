@@ -1072,8 +1072,9 @@ function islandora_digital_workflow_insert_islandora_digital_workflow_actions() 
       'description' => t('Metadata Failed QC'),
       'extra_info' => t('A special optional action that will prompt the user ' .
           'for notes related to the problem (with the metadata) and can be ' .
-          'resolved by a new "Add MODS record" action followed by a successful ' .
-          'review "Metadata Passed QC" action.'),
+          'resolved by editing the MODS and then adding the "Metadata Completed" ' .
+          'action again followed by a metadata review that yeilds the "Metadata ' .
+          'Passed QC" action.'),
       'glyph' => 'images/metadata-failed-qc_20.png',
     ),
     IDW_ACTION_SCAN => array(
