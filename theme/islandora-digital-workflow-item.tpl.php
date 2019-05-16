@@ -38,7 +38,7 @@
         imported back into the system which will resolve the specific item's problem record.</p>
     <?php endif; ?>
     <?php if ($problem_with_scan && $problem_with_metadata) : ?><hr><?php endif; ?>
-    <?php if ($problem_with_metadata === TRUE) : ?>
+    <?php if ($problem_with_metadata) : ?>
     <p><span class="disabled_text">To clear the problem with the metadata, consult the
         problem notes above or consult with <?php print $unresolved_problem->user_name; ?>
         (the user who QC'd the metadata and entered this "Metadata Failed QC").</span><br>
@@ -202,6 +202,7 @@
                 <?php
                 switch ($transaction_record->action_id) {
                   case IDW_ACTION_MODS_RECORD_COMPLETED:
+                  case IDW_ACTION_METADATA_FAIL_QC:
                     print l($transaction_record->description,
                       'islandora/object/' . $item->assigned_pid . '/datastream/MODS/edit',
                       array('attributes'=>array(
@@ -210,7 +211,6 @@
                         'target' => '_blank')));
                     break;
                   case IDW_ACTION_METS_CREATED:
-                  case IDW_ACTION_METADATA_FAIL_QC:
                     if (module_exists('islandora_mets_editor')) {
                       print l($transaction_record->description,
                         'islandora/object/' . $item->assigned_pid . '/manage/mets_editor',
