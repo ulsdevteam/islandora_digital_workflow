@@ -3153,17 +3153,21 @@ function islandora_digital_workflow_copy_delivery_files($batch_item_id, $is_prob
     $copied_to_location = 'the item subfolder under the batch\'s working directory';
   }
   else {
-    $filename_pathinfo = pathinfo($batch_item_obj->filename);
-    $working_filename = $item_working_root . '/' . $batch_item_obj->identifier . '.' . $filename_pathinfo['extension'];
-    $item_working_folder = $working_filename;
-    $exists = (file_exists($sanitized_delivery_filename));
-    $copied = ($exists && !is_dir($sanitized_delivery_filename)) ? copy($sanitized_delivery_filename, $working_filename) : FALSE;
+    $copied = FALSE;
+    if ($batch_item_obj->filename) {
+      $filename_pathinfo = pathinfo($batch_item_obj->filename);
+      $use_extension = array_key_exists('extension', $filename_pathinfo) ? '.' . $filename_pathinfo['extension'] : '';
+      $working_filename = $item_working_root . '/' . $batch_item_obj->identifier . $use_extension;
+      $item_working_folder = $working_filename;
+      $exists = (file_exists($sanitized_delivery_filename));
+      $copied = ($exists && !is_dir($sanitized_delivery_filename)) ? copy($sanitized_delivery_filename, $working_filename) : FALSE;
 
-    // since the batch_item object's filename points to the MASTER file, the
-    // filename is close to what the metadata file would be named.
-    if (array_key_exists('filename', $filename_pathinfo)) {
-      $metadata_file_location = $filename_pathinfo['dirname'] . '/' . $filename_pathinfo['filename'] . '.xml';
-      $copied &= copy($metadata_file_location, $item_working_root . '/' . $batch_item_obj->identifier . '.xml');
+      // since the batch_item object's filename points to the MASTER file, the
+      // filename is close to what the metadata file would be named.
+      if (array_key_exists('filename', $filename_pathinfo) && array_key_exists('dirname', $filename_pathinfo)) {
+        $metadata_file_location = $filename_pathinfo['dirname'] . '/' . $filename_pathinfo['filename'] . '.xml';
+        $copied &= copy($metadata_file_location, $item_working_root . '/' . $batch_item_obj->identifier . '.xml');
+      }
     }
     $whatwas_copied_message = 'file ' . $batch_item_obj->master_filename_basename . ' was';
     $copied_to_location = $working_filename;

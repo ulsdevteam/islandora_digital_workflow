@@ -151,10 +151,9 @@ function islandora_digital_workflow_add_transactions_form_submit(array $form, ar
   $nid = $form_state['values']['nid'];
 
 
-  if ($form_state['triggering_element']['#value'] == t('Cancel')) {
-    drupal_goto($goto);
+  if ($form_state['triggering_element']['#value'] <> t('Cancel')) {
+    islandora_digital_workflow_insert_transactions_record($action_id, NULL, $batch_item_id, NULL, $problem_notes);
   }
-  islandora_digital_workflow_insert_transactions_record($action_id, NULL, $batch_item_id, NULL, $problem_notes);
   // If inserting this transaction record triggers a Stage change, the value for
   // $goto will be wrong since $batch_item_id no longer points to this element.
   $batch_item_id = islandora_digital_workflow_get_batch_item_id_by_identifier($batch_item_identifier, NULL, FALSE);

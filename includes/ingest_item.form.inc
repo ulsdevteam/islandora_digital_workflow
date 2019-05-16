@@ -60,23 +60,27 @@ function islandora_digital_workflow_ingest_all_batch_submit(array $form, array &
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
   $batch_id = $form_state['values']['batch_id'];
 
-  // This is for when the user has submitted that they do want to ingest all.
-  $success = TRUE;
-  $batch_record = islandora_digital_workflow_get_batch_record_by_batch_id($batch_id);
-  $items = islandora_digital_workflow_get_batch_items_by_nid($batch_record['nid']);
-  if (count($items) > 0) {
-    foreach ($items as $item) {
-      drupal_set_message('ingesting batch_item_id = ' . $item->batch_item_id);
-      $success |= islandora_digital_workflow_do_ingest_item($item->batch_item_id, $batch_record);
+  if ($form_state['triggering_element']['#id']) {
+    drupal_set_message(t('Ingest all items was cancelled.'));
+  } else {
+    // This is for when the "Ok" button was clicked to ingest all.
+    $success = TRUE;
+    $batch_record = islandora_digital_workflow_get_batch_record_by_batch_id($batch_id);
+    $items = islandora_digital_workflow_get_batch_items_by_nid($batch_record['nid']);
+    if (count($items) > 0) {
+      foreach ($items as $item) {
+        drupal_set_message('ingesting batch_item_id = ' . $item->batch_item_id);
+        $success |= islandora_digital_workflow_do_ingest_item($item->batch_item_id, $batch_record);
+      }
     }
-  }
-  if (!$success) {
-    drupal_set_message('There was a problem attempting to ingest at least one ' .
-        'of the items.  Batch name "' . $batch_record['batch_name'] . '".');
-  }
-  else {
-    drupal_set_message('Done ingesting all ' . count($items) . ' items from ' .
-        '"' . $batch_record['batch_name'] . '".');
+    if (!$success) {
+      drupal_set_message('There was a problem attempting to ingest at least one ' .
+          'of the items.  Batch name "' . $batch_record['batch_name'] . '".');
+    }
+    else {
+      drupal_set_message('Done ingesting all ' . count($items) . ' items from ' .
+          '"' . $batch_record['batch_name'] . '".');
+    }
   }
   drupal_goto('node/' . $batch_record['nid']);
 }
