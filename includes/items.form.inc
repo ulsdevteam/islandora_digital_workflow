@@ -749,8 +749,10 @@ function islandora_digital_workflow_batch_items_form_submit(array $form, array &
         if (count($could_not_be_processed) > 0) {
           drupal_set_message(t('Some of the selected items could not be updated. ') .
             implode(", ", $could_not_be_processed));
-        } else {
+        } elseif (count($selected_identifiers) > 0) {
           drupal_set_message(t('All selected items have been updated.'));
+        } elseif (count($selected_identifiers) < 1) {
+          drupal_set_message(t('No items were selected so there was nothing to update.'));
         }
       }
       break;

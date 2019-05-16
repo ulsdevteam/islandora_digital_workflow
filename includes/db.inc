@@ -2345,9 +2345,11 @@ function islandora_digital_workflow_update_batch_record_progress($batch_record =
   $batch_items = islandora_digital_workflow_get_batch_items_by_nid($batch_record['nid']);
   // Go in the reverse order of possible progress values.
   if (!($set_batch_progress_to = islandora_digital_workflow_batch_items_all_same_progress($batch_items, t('Completed'), array()))) {
-    if (!($set_batch_progress_to = islandora_digital_workflow_batch_items_all_same_progress($batch_items, t('Prepared'), array(t('Ingested'), t('Completed'))))) {
-      if (!($set_batch_progress_to = islandora_digital_workflow_batch_items_all_same_progress($batch_items, t('In Progress'), array(t('Prepared'), t('Ingested'), t('Completed'))))) {
-        $set_batch_progress_to = t('New');
+    if (!($set_batch_progress_to = islandora_digital_workflow_batch_items_all_same_progress($batch_items, t('Ingested'), array  (t('Completed'))))) {
+      if (!($set_batch_progress_to = islandora_digital_workflow_batch_items_all_same_progress($batch_items, t('Prepared'), array(t('Ingested'), t('Completed'))))) {
+        if (!($set_batch_progress_to = islandora_digital_workflow_batch_items_all_same_progress($batch_items, t('In Progress'), array(t('Prepared'), t('Ingested'), t('Completed'))))) {
+          $set_batch_progress_to = t('New');
+        }
       }
     }
   }
