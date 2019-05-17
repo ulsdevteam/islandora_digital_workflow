@@ -60,7 +60,7 @@ function islandora_digital_workflow_ingest_all_batch_submit(array $form, array &
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
   $batch_id = $form_state['values']['batch_id'];
 
-  if ($form_state['triggering_element']['#id']) {
+  if ($form_state['triggering_element']['#id'] <> 'edit-submit') {
     drupal_set_message(t('Ingest all items was cancelled.'));
   } else {
     // This is for when the "Ok" button was clicked to ingest all.

@@ -1726,6 +1726,7 @@ function islandora_digital_workflow_insert_transactions_record($action_id, $batc
       islandora_digital_workflow_publish_object($batch_item_id);
     } elseif ($action_id == IDW_ACTION_USER_INGEST && !is_null($batch_item_id)) {
       module_load_include('inc', 'islandora_digital_workflow', 'includes/ingest_item.form');
+      islandora_digital_workflow_clear_islandora_batch_records($batch_item_id);
       islandora_digital_workflow_do_ingest_item($batch_item_id, NULL, FALSE);
     }
 
@@ -2328,7 +2329,6 @@ function islandora_digital_workflow_get_set($pid) {
   while ($item = $items->fetchAssoc()) {
     $result = $item['sid'];
   }
-
   return $result;
 }
 
@@ -2526,5 +2526,66 @@ function islandora_digital_workflow_workflow_autofix_sequence($workflow_sequence
       ->fields($fields)
       ->execute();
     drupal_set_message(t('The "Publish the item" action was added automatically.'));
+  }
+}
+
+/**
+ * This will delete any islandora_batch_* record that are related to the item
+ * that is passed by $batch_item_id.
+ *
+ * This needs to happen due to the way that the islandora_batch module expects
+ * that an item would NEVER be ingested again - making it impossible to ingest
+ * an object again by that same PID value unless these records are removed...
+ * else an attempt to ingest fails due to a primary key constraint on the main
+ * underlying islandora_batch tables.
+ *
+ * @param integer $batch_item_id
+ *   The batch_item_id value corresponding to a batch item.
+ */
+function islandora_digital_workflow_clear_islandora_batch_records($batch_item_id) {
+  $item_record_results = islandora_digital_workflow_get_batch_item_record($batch_item_id);
+  $batch_item_obj = array_pop($item_record_results);
+
+  if (is_object($batch_item_obj)) {
+    $batch_record = islandora_digital_workflow_get_batch_record_by_batch_id($batch_item_obj->batch_id);
+
+    $ingest_namespace = islandora_digital_workflow_get_ingest_namespace($batch_record);
+    $ingest_namespace_nocolon = rtrim($ingest_namespace, ':');
+    $item_assign_pid = (isset($batch_item_obj->assigned_pid) && $batch_item_obj->assigned_pid <> '') ? $batch_item_obj->assigned_pid :
+      $ingest_namespace_nocolon . ':' . trim($batch_item_obj->identifier);
+
+    $result = db_query("select q.sid, q.id from islandora_batch_queue q " .
+        "join islandora_batch_set s ON (s.id = q.sid) " .
+        "where q.id like '" . $pid . "%'");
+    $record = $result->fetchAssoc();
+    if (isset($record['sid'])) {
+      $sid = $record['sid'];
+      db_delete('islandora_batch_set')->condition('id', $sid)->execute();
+      db_delete('islandora_batch_report_sets_processed')->condition('sid', $sid)->execute();
+      db_delete('islandora_batch_queue')->condition('sid', $sid)->execute();
+    }
+    if (isset($record['id'])) {
+      db_delete('islandora_batch_queue_messages')->condition(
+          'id', '%' . db_like($pid) . '%', 'LIKE'
+        )->execute();
+      db_delete('islandora_batch_report_objects_processed')->condition(
+          'pid', '%' . db_like($pid) . '%', 'LIKE'
+        )->execute();
+      db_delete('islandora_batch_resources')->condition(
+          'id', '%' . db_like($pid) . '%', 'LIKE'
+        )->execute();
+      db_delete('islandora_batch_state')->condition(
+          'id', '%' . db_like($pid) . '%', 'LIKE'
+        )->execute();
+    }
+    db_delete('islandora_batch_queue')
+      ->condition('id', db_like($pid) . '%', 'LIKE')
+      ->execute();
+    db_delete('islandora_batch_report_objects_processed')
+      ->condition('id', db_like($pid) . '%', 'LIKE')
+      ->execute();
+    db_delete('islandora_batch_queue_messages')
+      ->condition('id', db_like($pid) . '%', 'LIKE')
+      ->execute();
   }
 }
