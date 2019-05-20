@@ -3149,8 +3149,6 @@ function islandora_digital_workflow_copy_delivery_files($batch_item_id, $is_prob
     // to get the correct files related to this item.
     $item_files = islandora_digital_workflow_scan_files($item_folder, $model_filemasks, FALSE);
     $copied = islandora_digital_workflow_copy_resequence_files($item_files, $item_folder, $item_working_folder, $batch_record['batch_name']);
-    $whatwas_copied_message = 'files were';
-    $copied_to_location = 'the item subfolder under the batch\'s working directory';
   }
   else {
     $copied = FALSE;
@@ -3169,8 +3167,6 @@ function islandora_digital_workflow_copy_delivery_files($batch_item_id, $is_prob
         $copied &= copy($metadata_file_location, $item_working_root . '/' . $batch_item_obj->identifier . '.xml');
       }
     }
-    $whatwas_copied_message = 'file ' . $batch_item_obj->master_filename_basename . ' was';
-    $copied_to_location = $working_filename;
   }
 
   // but only display or try to delete the delivery folder if the file existed.
@@ -3179,24 +3175,7 @@ function islandora_digital_workflow_copy_delivery_files($batch_item_id, $is_prob
       // Load the batch record for this item so that the sizes can be recalculated.
       $batch_record = islandora_digital_workflow_get_batch_record_by_batch_id($batch_item_obj->batch_id);
       islandora_digital_workflow_recalc_batch_files($batch_record);
-      if (variable_get('islandora_digital_workflow_delete_delivery_files', 0)) {
-        @unlink($sanitized_delivery_filename);
-        $deleted = !(file_exists($sanitized_delivery_filename));
-        if (!$deleted) {
-          drupal_set_message(t('The @whatwas_copied_message copied to ' .
-              '@copied_to_location, but the original file "@sanitized_delivery_filename" ' .
-              'could not be deleted.  Check file permissions on the server location ' .
-              'for the source path.', array(
-                  '@sanitized_delivery_filename' => $sanitized_delivery_filename,
-                  '@whatwas_copied_message' => $whatwas_copied_message,
-                  '@copied_to_location' => $copied_to_location
-              )));
-        }
-        // Additionally, when islandora_digital_workflow_delete_delivery_files is set,
-        // if the item is the last item in the batch to be copied, then ALSO try to delete
-        // the delivery folder itself.
-
-      }
+      islandora_digital_workflow_delete_delivery_files($batch_item_obj, $sanitized_delivery_filename, $item_is_paged);
     }
     else {
       drupal_set_message(t('There was a problem copying the scanned file/s for this item ' . 
@@ -3986,14 +3965,94 @@ function islandora_digital_workflow_collection_link($collection_object) {
   return $link;
 }
 
-function islandora_digital_workflow_linux_copy_folder($oldname, $newname) {
+/**
+ * This will execute the linux mv command to copy a folder from one location to
+ * another.  This could return TRUE if the destination $newname already existed.
+ *
+ * @param string $oldname
+ *   Source folder for the folder to be moved.
+ * @param string $newname
+ *   Destination folder name for the moved files.
+ * @return boolean
+ *   Whether or not the destination "$newname" folder exists after this call.
+ */
+function islandora_digital_workflow_linux_move_folder($oldname, $newname) {
   if (file_exists($oldname)) {
     exec("mv $oldname $newname");
   }
   return (file_exists($oldname));
 }
 
+/**
+ * This will call the linux command to delete a folder or file.
+ *
+ * This will check to make sure that the $filename value provided does not
+ * match any of the root folder / delivery / working / problem / or temp folder.
+ *
+ * @param string $filename
+ *   The file or folder that will be deleted.
+ */
 function islandora_digital_workflow_linux_rm_folder($foldername) {
-  exec("rm -rf $foldername");
+  $foldername = rtrim($foldername, '/');
+  $tempdir = file_directory_temp();
+  $deliver_root = variable_get('islandora_digital_workflow_ingest_delivery_path', '');
+  $working_root = variable_get('islandora_digital_workflow_ingest_prepared_path', '');
+  $problem_root = variable_get('islandora_digital_workflow_ingest_problems_path', '');
+  if (!(($foldername == '/') || ($foldername == $tempdir) ||
+    ($foldername == $deliver_root) || ($foldername == $working_root) ||
+    ($foldername == $problem_root))) {
+    exec("rm -rf $foldername");
+  }
 }
 
+/**
+ * This will remove the folder that contains files for an item.
+ *
+ * This will delete item folder / files when called and it will also check the
+ * parent (batch) folder if it is empty after this step.  This also checks to
+ * be sure that the path exists before trying to delete it.
+ *
+ * @param object $batch_item_object
+ *   A batch item object.
+ * @param string $sanitized_delivery_filename
+ *   The filename for the item that needs to be deleted.
+ * @param boolean $item_is_paged
+ */
+function islandora_digital_workflow_delete_delivery_files($batch_item_obj, &$sanitized_delivery_filename, $item_is_paged) {
+  // ONLY do this if the configuration says that the system should.
+  if (!(variable_get('islandora_digital_workflow_delete_delivery_files', 0))) {
+    return FALSE;
+  }
+  $batch_working_folder = $sanitized_delivery_filename;
+  if (!$item_is_paged) {
+    $sanitized_delivery_filename .= '/' . $batch_item_obj->identifier;
+  }
+  $existed = file_exists($sanitized_delivery_filename);
+  if ($existed) {
+    islandora_digital_workflow_linux_rm_folder($sanitized_delivery_filename);
+    $deleted = !(file_exists($sanitized_delivery_filename));
+    if (!$deleted) {
+      drupal_set_message(t('The delivery file "@sanitized_delivery_filename" ' .
+          'could not be deleted.  Check file permissions on the server location ' .
+          'for the source path.', array(
+              '@sanitized_delivery_filename' => $sanitized_delivery_filename,
+          )));
+    }
+    // Additionally, when islandora_digital_workflow_delete_delivery_files is set,
+    // if the item is the last item in the batch to be copied, then ALSO try to delete
+    // the delivery folder itself.
+    if (file_exists($batch_working_folder) && is_dir($batch_working_folder)) {
+      $parent_folder_files = islandora_digital_workflow_scan_files($batch_working_folder, array(), TRUE);
+      if (count($parent_folder_files) > 0) {
+        // Can safely remove the parent directy since it is empty.
+        islandora_digital_workflow_linux_rm_folder($parent_folder_files);
+      }
+    }
+  }
+  else {
+    drupal_set_message(t('The delivery file "@sanitized_delivery_filename" ' .
+        'did not exist, so it could not be deleted.', array(
+            '@sanitized_delivery_filename' => $sanitized_delivery_filename,
+        )));
+  }
+}

@@ -1203,7 +1203,7 @@ function islandora_digital_workflow_update_batch_item_record($batch_item_id, $up
       // Only try to rename those item folders that exist
       if (file_exists($current_delivery_item_path)) {
         module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
-        if (!islandora_digital_workflow_linux_copy_folder($current_delivery_item_path, $update_delivery_item_path)) {
+        if (!islandora_digital_workflow_linux_move_folder($current_delivery_item_path, $update_delivery_item_path)) {
 //        if (!copy($current_delivery_item_path, $update_delivery_item_path) ) {
           drupal_set_message(t('There was a problem renaming the "delivery folder" ' .
               'for the current item "@item_ident".  Check file permissions on the ' .
