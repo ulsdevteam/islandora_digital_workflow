@@ -620,18 +620,39 @@ function islandora_digital_workflow_check_trigger_stage_change($transaction_id =
     $batch_item_record = NULL;
     $batch_record = islandora_digital_workflow_get_batch_record_by_batch_id($transaction_values['batch_id']);
   }
+  $is_paged = islandora_digital_workflow_item_is_paged_content(
+      ((is_null($transaction_values['batch_id'])) ? $transaction_values['batch_id'] : 0),
+      $batch_record);
 
-  if ((!isset($action_record['stage_taxonomy_tid']) || is_null($action_record['add_term_name'])) &&
+  if ($is_paged) {
+    if ((!isset($action_record['stage_taxonomy_tid_pc']) || is_null($action_record['add_term_name_pc'])) &&
+      (!isset($action_record['stage_taxonomy_tid_rm_pc']) || is_null($action_record['rm_term_name_pc']))) {
+      return;
+    }
+  }
+  elseif ((!isset($action_record['stage_taxonomy_tid']) || is_null($action_record['add_term_name'])) &&
     (!isset($action_record['stage_taxonomy_tid_rm']) || is_null($action_record['rm_term_name']))) {
     return;
   }
-  $affects = (($action_record['is_batch_action'] || $action_record['is_triggered_by_single_item']) ?
+
+  $content_type_based_check_trigger = ($is_paged) ?
+    $action_record['is_triggered_by_single_item_pc'] :
+    $action_record['is_triggered_by_single_item'];
+  $content_type_based_stage_taxonomy_tid = ($is_paged) ?
+    $action_record['stage_taxonomy_tid_pc'] :
+    $action_record['stage_taxonomy_tid'];
+  $content_type_based_stage_taxonomy_tid_rm = ($is_paged) ?
+    $action_record['stage_taxonomy_tid_rm_pc'] :
+    $action_record['stage_taxonomy_tid_rm'];
+
+  $affects = (($action_record['is_batch_action'] || $content_type_based_check_trigger) ?
       '"@action_description" has been added' :
       'All Items in the batch have "@action_description"');
   $message_args = array(
       '@action_description' => $action_record['action_description'],
       '@stage' => $action_record['add_term_name'],
-      '@rm_stage' => $action_record['rm_term_name'],
+      '@rm_stage' => (($is_paged) ?
+        $action_record['rm_term_name_pc'] : $action_record['rm_term_name']),
       '@batch_item_identifier' => (($batch_item_record &&
         is_object($batch_item_record->identifier)) ?
           $batch_item_record->identifier : ''),
@@ -639,8 +660,8 @@ function islandora_digital_workflow_check_trigger_stage_change($transaction_id =
   $message_string = 
     (($batch_item_record) ? ' for the item @batch_item_identifier' . $batch_item_record->identifier : '') .
     (($batch_record) ? ' on the batch "@batch_name"' : '');
-  if ($action_record['is_batch_action'] == 1 || $action_record['is_triggered_by_single_item']) {
-    if (islandora_digital_workflow_set_node_stage($batch_record['nid'], '', $action_record['stage_taxonomy_tid'])) {
+  if ($action_record['is_batch_action'] == 1 || $content_type_based_check_trigger) {
+    if (islandora_digital_workflow_set_node_stage($batch_record['nid'], '', $content_type_based_stage_taxonomy_tid)) {
       drupal_set_message(t($affects . ' which triggers the "@stage stage" for ' .
           $message_string, $message_args));
     }
@@ -654,14 +675,14 @@ function islandora_digital_workflow_check_trigger_stage_change($transaction_id =
       $all_items_have_action &= (!(array_search($transaction_values['action_id'], $transaction_action_ids) === FALSE));
     }
     if ($all_items_have_action) {
-      if (islandora_digital_workflow_set_node_stage($batch_record['nid'], '', $action_record['stage_taxonomy_tid'])) {
+      if (islandora_digital_workflow_set_node_stage($batch_record['nid'], '', $content_type_based_stage_taxonomy_tid)) {
         drupal_set_message(t($affects . ' which triggers the "@stage stage" for ' .
             $message_string, $message_args));
       }
     }
   }
   if ($action_record['is_batch_action'] == 1 || $action_record['is_triggered_by_single_item_rm']) {
-    if (islandora_digital_workflow_set_node_stage($batch_record['nid'], '', $action_record['stage_taxonomy_tid_rm'], TRUE)) {
+    if (islandora_digital_workflow_set_node_stage($batch_record['nid'], '', $content_type_based_stage_taxonomy_tid_rm, TRUE)) {
       drupal_set_message(t($affects . ' which triggers the "@rm_stage stage" for ' .
           $message_string, $message_args));
     }
@@ -675,7 +696,7 @@ function islandora_digital_workflow_check_trigger_stage_change($transaction_id =
       $all_items_have_action &= (!(array_search($transaction_values['action_id'], $transaction_action_ids) === FALSE));
     }
     if ($all_items_have_action) {
-      if (islandora_digital_workflow_set_node_stage($batch_record['nid'], '', $action_record['stage_taxonomy_tid_rm'], TRUE)) {
+      if (islandora_digital_workflow_set_node_stage($batch_record['nid'], '', $content_type_based_stage_taxonomy_tid_rm, TRUE)) {
         drupal_set_message(t($affects . ' which triggers the "@stage stage" for ' .
             $message_string, $message_args));
       }
@@ -1454,10 +1475,13 @@ function islandora_digital_workflow_get_workflow_sequences() {
 function islandora_digital_workflow_get_item_action_options($display_reserved_actions = TRUE) {
   // This has to LEFT OUTER JOIN to the taxonomy_term_data table TWICE so that
   // it can get the term name for the "Add Stage" as well as for the "Remove Stage".
-  $query = db_query('SELECT a.*, td_add.name as `add_term_name`, td_rm.name as `rm_term_name` ' .
+  $query = db_query('SELECT a.*, td_add.name as `add_term_name`, td_rm.name as `rm_term_name`, ' .
+          'td_add_pc.name as `add_term_name_pc`, td_rm_pc.name as `rm_term_name_pc`' .
           'FROM islandora_digital_workflow_actions a ' .
           'LEFT OUTER JOIN taxonomy_term_data td_add ON td_add.tid = stage_taxonomy_tid ' .
           'LEFT OUTER JOIN taxonomy_term_data td_rm ON td_rm.tid = stage_taxonomy_tid_rm ' .
+          'LEFT OUTER JOIN taxonomy_term_data td_add_pc ON td_add_pc.tid = stage_taxonomy_tid ' .
+          'LEFT OUTER JOIN taxonomy_term_data td_rm_pc ON td_rm_pc.tid = stage_taxonomy_tid_rm ' .
           'WHERE a.is_batch_action = 0' .
       (!$display_reserved_actions ? ' AND a.description NOT LIKE \'Reserved %\'' : '') );
   $rows = $query->fetchAll();
@@ -1856,6 +1880,11 @@ function islandora_digital_workflow_get_action($action_id) {
   $query->addField('td_add', 'name', 'add_term_name');
   $query->addJoin('LEFT', 'taxonomy_term_data', 'td_rm', 'wa.stage_taxonomy_tid_rm = td_rm.tid');
   $query->addField('td_rm', 'name', 'rm_term_name');
+  $query->addJoin('LEFT', 'taxonomy_term_data', 'td_add_pc', 'wa.stage_taxonomy_tid = td_add_pc.tid');
+  $query->fields('td_add_pc');
+  $query->addField('td_add_pc', 'name', 'add_term_name_pc');
+  $query->addJoin('LEFT', 'taxonomy_term_data', 'td_rm_pc', 'wa.stage_taxonomy_tid_rm = td_rm_pc.tid');
+  $query->addField('td_rm_pc', 'name', 'rm_term_name_pc');
   $results = $query->execute();
   $rows = $results->fetchAll();
   $return = array();
@@ -1873,8 +1902,14 @@ function islandora_digital_workflow_get_action($action_id) {
         'stage_taxonomy_tid' => $row->stage_taxonomy_tid,
         'is_triggered_by_single_item_rm' => $row->is_triggered_by_single_item_rm,
         'stage_taxonomy_tid_rm' => $row->stage_taxonomy_tid_rm,
+        'is_triggered_by_single_item_pc' => $row->is_triggered_by_single_item_pc,
+        'stage_taxonomy_tid_pc' => $row->stage_taxonomy_tid_pc,
+        'is_triggered_by_single_item_rm_pc' => $row->is_triggered_by_single_item_rm_pc,
+        'stage_taxonomy_tid_rm_pc' => $row->stage_taxonomy_tid_rm_pc,
         'add_term_name' => $row->add_term_name,
         'rm_term_name' => $row->rm_term_name,
+        'add_term_name_pc' => $row->add_term_name_pc,
+        'rm_term_name_pc' => $row->rm_term_name_pc,
         'class_name' => islandora_digital_workflow_glyph_class($row->action_name),
     );
   }

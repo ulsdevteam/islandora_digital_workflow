@@ -229,6 +229,36 @@ function islandora_digital_workflow_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
+      'stage_taxonomy_tid_pc' => array(
+        'description' => t('The optional taxonomy term tid value to set the related Stage (for paged content items)'),
+        'type' => 'int',
+        'size' => 'medium',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+      'is_triggered_by_single_item_pc' => array(
+        'description' => t('If this is for a "Batch Item" action, trigger by a single batch_item? (for paged content items)'),
+        'type' => 'int',
+        'size' => 'tiny',
+        'default' => 0,
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'stage_taxonomy_tid_rm_pc' => array(
+        'description' => t('The optional taxonomy term tid value to REMOVE the related Stage (for paged content items)'),
+        'type' => 'int',
+        'size' => 'medium',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+      'is_triggered_by_single_item_rm_pc' => array(
+        'description' => t('If this is for a "Batch Item" action, trigger REMOVAL by a single batch_item? (for paged content items)'),
+        'type' => 'int',
+        'size' => 'tiny',
+        'default' => 0,
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
     ),
     'indexes' => array(
       'ss_name' => array('name'),
@@ -1032,6 +1062,8 @@ function islandora_digital_workflow_insert_islandora_digital_workflow_actions() 
       'glyph' => 'images/check-in-physical-item_20.png',
       'stage_taxonomy_tid' => $inprocess_tid,
       'is_triggered_by_single_item' => 1,
+      'stage_taxonomy_tid_pc' => $inprocess_tid,
+      'is_triggered_by_single_item_pc' => 1,
     ),
     IDW_ACTION_ADD_MARC_RECORD => array(
       'name' => 'add-marc-record',
@@ -1051,6 +1083,8 @@ function islandora_digital_workflow_insert_islandora_digital_workflow_actions() 
       'glyph' => 'images/metadata-completed_20.png',
       'stage_taxonomy_tid' => $metadata_review_tid,
       'is_triggered_by_single_item' => 0,
+      'stage_taxonomy_tid_pc' => $metadata_review_tid,
+      'is_triggered_by_single_item_pc' => 0,
     ),
     IDW_PUBLISH_OBJECT => array(
       'name' => 'publish-object',
@@ -1059,6 +1093,8 @@ function islandora_digital_workflow_insert_islandora_digital_workflow_actions() 
       'glyph' => 'images/publish-object_20.png',
       'stage_taxonomy_tid_rm' => $done_tid,
       'is_triggered_by_single_item_rm' => 0,
+      'stage_taxonomy_tid_rm_pc' => $done_tid,
+      'is_triggered_by_single_item_rm_pc' => 0,
     ),
     IDW_ACTION_METADATA_PASS_QC => array(
       'name' => 'metadata-passed-qc',
@@ -1066,6 +1102,8 @@ function islandora_digital_workflow_insert_islandora_digital_workflow_actions() 
       'glyph' => 'images/metadata-passed-qc_20.png',
       'stage_taxonomy_tid_rm' => $metadata_review_tid,
       'is_triggered_by_single_item_rm' => 0,
+      'stage_taxonomy_tid_rm_pc' => $metadata_review_tid,
+      'is_triggered_by_single_item_rm_pc' => 0,
     ),
     IDW_ACTION_METADATA_FAIL_QC => array(
       'name' => 'metadata-failed-qc',
@@ -1102,6 +1140,8 @@ function islandora_digital_workflow_insert_islandora_digital_workflow_actions() 
       'glyph' => 'images/check-out-physical-item_20.png',
       'stage_taxonomy_tid_rm' => $inprocess_tid,
       'is_triggered_by_single_item_rm' => 0,
+      'stage_taxonomy_tid_rm_pc' => $inprocess_tid,
+      'is_triggered_by_single_item_rm_pc' => 0,
     ),
     IDW_ACTION_RESCANNED => array(
       'name' => 'rescan',
@@ -1140,6 +1180,8 @@ function islandora_digital_workflow_insert_islandora_digital_workflow_actions() 
       'glyph' => 'images/problem_20.png',
       'stage_taxonomy_tid' => $problem_tid,
       'is_triggered_by_single_item' => 1,
+      'stage_taxonomy_tid_pc' => $problem_tid,
+      'is_triggered_by_single_item_pc' => 1,
     ),
     // batch-level actions (action_id values greater than 100).
     IDW_BATCH_ACTION_INACTIVE => array(
@@ -1149,6 +1191,8 @@ function islandora_digital_workflow_insert_islandora_digital_workflow_actions() 
       'stage_taxonomy_tid' => $inactive_tid,
       'is_triggered_by_single_item' => 0,
       'is_batch_action' => 1,
+      'is_triggered_by_single_item_pc' => 0,
+      'is_batch_action_pc' => 1,
     ),
   );
 
@@ -1165,6 +1209,10 @@ function islandora_digital_workflow_insert_islandora_digital_workflow_actions() 
         'is_triggered_by_single_item' => (isset($values['is_triggered_by_single_item']) ? $values['is_triggered_by_single_item'] : 0),
         'stage_taxonomy_tid_rm' => (isset($values['stage_taxonomy_tid_rm']) ? $values['stage_taxonomy_tid_rm'] : 0),
         'is_triggered_by_single_item_rm' => (isset($values['is_triggered_by_single_item_rm']) ? $values['is_triggered_by_single_item_rm'] : 0),
+        'stage_taxonomy_tid_pc' => (isset($values['stage_taxonomy_tid_pc']) ? $values['stage_taxonomy_tid_pc'] : 0),
+        'is_triggered_by_single_item_pc' => (isset($values['is_triggered_by_single_item_pc']) ? $values['is_triggered_by_single_item_pc'] : 0),
+        'stage_taxonomy_tid_rm_pc' => (isset($values['stage_taxonomy_tid_rm_pc']) ? $values['stage_taxonomy_tid_rm_pc'] : 0),
+        'is_triggered_by_single_item_rm_pc' => (isset($values['is_triggered_by_single_item_rm_pc']) ? $values['is_triggered_by_single_item_rm_pc'] : 0),
       ))
     ->execute();
   }

@@ -1054,6 +1054,16 @@ function islandora_digital_workflow_actions_form(array $form, array &$form_state
             $action_record_array['rm_term_name'] .
             (($action_record_array['is_triggered_by_single_item_rm']) ? ' / 1' : ' / all') .
              '</span>' : '');
+    $trigger_add_stage_pc = (isset($action_record_array['add_term_name_pc']) ?
+            '<span title="' . (($action_record_array['is_triggered_by_single_item_pc']) ? 'T' : 'Not t') . 'riggered by a single item">' .
+            $action_record_array['add_term_name_pc'] .
+            (($action_record_array['is_triggered_by_single_item_pc']) ? ' / 1' : ' / all') .
+             '</span>' : '');
+    $trigger_remove_stage_pc = (isset($action_record_array['rm_term_name_pc']) ?
+            '<span title="' . (($action_record_array['is_triggered_by_single_item_rm_pc']) ? 'T' : 'Not t') . 'riggered by a single item">' .
+            $action_record_array['rm_term_name_pc'] .
+            (($action_record_array['is_triggered_by_single_item_rm_pc']) ? ' / 1' : ' / all') .
+             '</span>' : '');
 
     $sequence_ids_using_action = ($action_record_array['is_system_action']) ?
         1 :
@@ -1073,8 +1083,8 @@ function islandora_digital_workflow_actions_form(array $form, array &$form_state
             ),
             '<b>' . $action_record_array['action_description'] . '</b>',
             ($action_record_array['is_system_action'] ? 'Yes' : 'No'),
-            $trigger_add_stage,
-            $trigger_remove_stage,
+            $trigger_add_stage . "<hr>" . $trigger_add_stage_pc,
+            $trigger_remove_stage . "<hr>" . $trigger_remove_stage_pc,
         ),
         'no_striping' => TRUE,
         'class' => array((isset($action_record_array['extra_info']) && $action_record_array['extra_info']) ? 'nonborderbottom' : ''),
@@ -1241,8 +1251,14 @@ function islandora_digital_workflow_actions_edit_form(array $form, array &$form_
     $terms_options[$term_obj->tid] = $term_obj->name;
   }
   $form['batch_action_trigger'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Triggers (optional)'),
+    '#attributes' => array(
+      'class' => array('horiz-split-fieldsets'),
+    ),
+    'non-paged-items' => array(
       '#type' => 'fieldset',
-      '#title' => t('Triggers (optional)'),
+      '#title' => t('For batches of <b>non-paged</b> items'),
       'stage_taxonomy_tid' => array(
           '#type' => 'select',
           '#default_value' => (isset($action_record['stage_taxonomy_tid']) ? $action_record['stage_taxonomy_tid'] : 0),
@@ -1255,12 +1271,6 @@ function islandora_digital_workflow_actions_edit_form(array $form, array &$form_
       'is_triggered_by_single_item' => array(
           '#type' => 'checkbox',
           '#title' => 'Triggered by a single item?',
-          '#description' => ($action_is_batch_action) ?
-            'Not applicable for batch-level transactions' :
-            'If this is for a "Batch Item" action, can this be triggered by a ' .
-            'single batch_item (or must all be required) at a batch level, else ' .
-            'an "item action" is available for items in batches that use a ' .
-            'sequence have this action configured.',
           '#default_value' => (isset($action_record['is_triggered_by_single_item']) ? $action_record['is_triggered_by_single_item']+0 : 0),
       ),
       'stage_taxonomy_tid_rm' => array(
@@ -1275,14 +1285,52 @@ function islandora_digital_workflow_actions_edit_form(array $form, array &$form_
       'is_triggered_by_single_item_rm' => array(
           '#type' => 'checkbox',
           '#title' => 'Triggered by a single item?',
-          '#description' => ($action_is_batch_action) ?
-            'Not applicable for batch-level transactions' :
-            'If this is for a "Batch Item" action, can this be triggered by a ' .
-            'single batch_item (or must all be required) at a batch level, else ' .
-            'an "item action" is available for items in batches that use a ' .
-            'sequence have this action configured.',
           '#default_value' => (isset($action_record['is_triggered_by_single_item_rm']) ? $action_record['is_triggered_by_single_item_rm']+0 : 0),
       ),
+    ),
+    'paged-items' => array(
+      '#type' => 'fieldset',
+      '#title' => t('For batches of <b>paged-content</b> items'),
+      'stage_taxonomy_tid_pc' => array(
+          '#type' => 'select',
+          '#default_value' => (isset($action_record['stage_taxonomy_tid_pc']) ? $action_record['stage_taxonomy_tid_pc'] : 0),
+          '#title' => 'Triggers ADDITION of a workflow "Stage" for related batch?',
+          '#options' => $terms_options,
+          '#attributes' => array(
+            'onchange' => 'stage_selection(this, "is-triggered-by-single-item")',
+          ),
+      ),
+      'is_triggered_by_single_item_pc' => array(
+          '#type' => 'checkbox',
+          '#title' => 'Triggered by a single item?',
+          '#default_value' => (isset($action_record['is_triggered_by_single_item_pc']) ? $action_record['is_triggered_by_single_item_pc']+0 : 0),
+      ),
+      'stage_taxonomy_tid_rm_pc' => array(
+          '#type' => 'select',
+          '#default_value' => (isset($action_record['stage_taxonomy_tid_rm_pc']) ? $action_record['stage_taxonomy_tid_rm_pc'] : 0),
+          '#title' => 'Triggers REMOVAL of a workflow "Stage" for related batch?',
+          '#options' => $terms_options,
+          '#attributes' => array(
+            'onchange' => 'stage_selection(this, "is-triggered-by-single-item-rm")',
+          ),
+      ),
+      'is_triggered_by_single_item_rm_pc' => array(
+          '#type' => 'checkbox',
+          '#title' => 'Triggered by a single item?',
+          '#default_value' => (isset($action_record['is_triggered_by_single_item_rm_pc']) ? $action_record['is_triggered_by_single_item_rm_pc']+0 : 0),
+      ),
+    ),
+    'bottom_description' => array(
+      '#type' => 'item',
+      '#prefix' => '<br class="break_float">',
+      '#markup' => ($action_is_batch_action) ?
+        '<i> class="small_text"><b>NOTE: </b>Not applicable for batch-level transactions</i>' :
+        '<i class="small_text"><b>NOTE: </b>If the action is for a "Batch ' .
+        'Item" action, can this be triggered by a single batch_item (or must ' .
+        'all be required) at a batch level, else an "item action" is ' .
+        'available for items in batches that use a sequence have this ' .
+        'action configured.</i>',
+    ),
   );
 
   // Disable the action name edit box if this action is one of the special system
@@ -1369,6 +1417,10 @@ function islandora_digital_workflow_actions_edit_form_submit(array $form, array 
       'is_triggered_by_single_item' => (!(array_key_exists('is_triggered_by_single_item', $form_state['input'])) || is_null($form_state['input']['is_triggered_by_single_item'])) ? $form_state['values']['is_triggered_by_single_item'] : $form_state['input']['is_triggered_by_single_item'],
       'stage_taxonomy_tid_rm' => (!(array_key_exists('stage_taxonomy_tid_rm', $form_state['input'])) || is_null($form_state['input']['stage_taxonomy_tid_rm'])) ? $form_state['values']['stage_taxonomy_tid_rm'] : $form_state['input']['stage_taxonomy_tid_rm'],
       'is_triggered_by_single_item_rm' => (!(array_key_exists('is_triggered_by_single_item_rm', $form_state['input'])) || is_null($form_state['input']['is_triggered_by_single_item_rm'])) ? $form_state['values']['is_triggered_by_single_item_rm'] : $form_state['input']['is_triggered_by_single_item_rm'],
+      'stage_taxonomy_tid_pc' => (!(array_key_exists('stage_taxonomy_tid_pc', $form_state['input'])) || is_null($form_state['input']['stage_taxonomy_tid_pc'])) ? $form_state['values']['stage_taxonomy_tid_pc'] : $form_state['input']['stage_taxonomy_tid_pc'],
+      'is_triggered_by_single_item_pc' => (!(array_key_exists('is_triggered_by_single_item_pc', $form_state['input'])) || is_null($form_state['input']['is_triggered_by_single_item_pc'])) ? $form_state['values']['is_triggered_by_single_item_pc'] : $form_state['input']['is_triggered_by_single_item_pc'],
+      'stage_taxonomy_tid_rm_pc' => (!(array_key_exists('stage_taxonomy_tid_rm_pc', $form_state['input'])) || is_null($form_state['input']['stage_taxonomy_tid_rm_pc'])) ? $form_state['values']['stage_taxonomy_tid_rm_pc'] : $form_state['input']['stage_taxonomy_tid_rm_pc'],
+      'is_triggered_by_single_item_rm_pc' => (!(array_key_exists('is_triggered_by_single_item_rm_pc', $form_state['input'])) || is_null($form_state['input']['is_triggered_by_single_item_rm_pc'])) ? $form_state['values']['is_triggered_by_single_item_rm_pc'] : $form_state['input']['is_triggered_by_single_item_rm_pc'],
   );
   $action_id = $form_state['input']['action_id'];
   if ($action_id) {

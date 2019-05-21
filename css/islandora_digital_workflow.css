@@ -1190,3 +1190,16 @@ td.slide-cross {
     border: 1px solid #c2c2c2;
     padding: 4px;
 }
+
+.horiz-split-fieldsets {
+    background-color: white;
+}
+
+.horiz-split-fieldsets fieldset {
+    border: 1px solid #999;
+    box-shadow: 3px 3px 5px #aaa;
+    background-color: #FDFDFD;
+    width: 47%;
+    margin-right: 1%;
+    float: left;
+}
