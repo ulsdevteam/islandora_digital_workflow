@@ -1055,12 +1055,12 @@ function islandora_digital_workflow_actions_form(array $form, array &$form_state
             (($action_record_array['is_triggered_by_single_item_rm']) ? ' / 1' : ' / all') .
              '</span>' : '');
     $trigger_add_stage_pc = (isset($action_record_array['add_term_name_pc']) ?
-            '<span title="' . (($action_record_array['is_triggered_by_single_item_pc']) ? 'T' : 'Not t') . 'riggered by a single item">' .
+            '<span title="' . (($action_record_array['is_triggered_by_single_item_pc']) ? 'T' : 'Not t') . 'riggered by a single item (for paged-content items)">' .
             $action_record_array['add_term_name_pc'] .
             (($action_record_array['is_triggered_by_single_item_pc']) ? ' / 1' : ' / all') .
              '</span>' : '');
     $trigger_remove_stage_pc = (isset($action_record_array['rm_term_name_pc']) ?
-            '<span title="' . (($action_record_array['is_triggered_by_single_item_rm_pc']) ? 'T' : 'Not t') . 'riggered by a single item">' .
+            '<span title="' . (($action_record_array['is_triggered_by_single_item_rm_pc']) ? 'T' : 'Not t') . 'riggered by a single item (for paged-content items)">' .
             $action_record_array['rm_term_name_pc'] .
             (($action_record_array['is_triggered_by_single_item_rm_pc']) ? ' / 1' : ' / all') .
              '</span>' : '');
@@ -1083,8 +1083,8 @@ function islandora_digital_workflow_actions_form(array $form, array &$form_state
             ),
             '<b>' . $action_record_array['action_description'] . '</b>',
             ($action_record_array['is_system_action'] ? 'Yes' : 'No'),
-            $trigger_add_stage . "<hr>" . $trigger_add_stage_pc,
-            $trigger_remove_stage . "<hr>" . $trigger_remove_stage_pc,
+            $trigger_add_stage . "<br>" . $trigger_add_stage_pc,
+            $trigger_remove_stage . "<br>" . $trigger_remove_stage_pc,
         ),
         'no_striping' => TRUE,
         'class' => array((isset($action_record_array['extra_info']) && $action_record_array['extra_info']) ? 'nonborderbottom' : ''),
@@ -1297,7 +1297,7 @@ function islandora_digital_workflow_actions_edit_form(array $form, array &$form_
           '#title' => 'Triggers ADDITION of a workflow "Stage" for related batch?',
           '#options' => $terms_options,
           '#attributes' => array(
-            'onchange' => 'stage_selection(this, "is-triggered-by-single-item")',
+            'onchange' => 'stage_selection(this, "is-triggered-by-single-item-pc")',
           ),
       ),
       'is_triggered_by_single_item_pc' => array(
@@ -1311,7 +1311,7 @@ function islandora_digital_workflow_actions_edit_form(array $form, array &$form_
           '#title' => 'Triggers REMOVAL of a workflow "Stage" for related batch?',
           '#options' => $terms_options,
           '#attributes' => array(
-            'onchange' => 'stage_selection(this, "is-triggered-by-single-item-rm")',
+            'onchange' => 'stage_selection(this, "is-triggered-by-single-item-rm-pc")',
           ),
       ),
       'is_triggered_by_single_item_rm_pc' => array(

@@ -1476,12 +1476,12 @@ function islandora_digital_workflow_get_item_action_options($display_reserved_ac
   // This has to LEFT OUTER JOIN to the taxonomy_term_data table TWICE so that
   // it can get the term name for the "Add Stage" as well as for the "Remove Stage".
   $query = db_query('SELECT a.*, td_add.name as `add_term_name`, td_rm.name as `rm_term_name`, ' .
-          'td_add_pc.name as `add_term_name_pc`, td_rm_pc.name as `rm_term_name_pc`' .
+          'td_add_pc.name as `add_term_name_pc`, td_rm_pc.name as `rm_term_name_pc` ' .
           'FROM islandora_digital_workflow_actions a ' .
-          'LEFT OUTER JOIN taxonomy_term_data td_add ON td_add.tid = stage_taxonomy_tid ' .
-          'LEFT OUTER JOIN taxonomy_term_data td_rm ON td_rm.tid = stage_taxonomy_tid_rm ' .
-          'LEFT OUTER JOIN taxonomy_term_data td_add_pc ON td_add_pc.tid = stage_taxonomy_tid ' .
-          'LEFT OUTER JOIN taxonomy_term_data td_rm_pc ON td_rm_pc.tid = stage_taxonomy_tid_rm ' .
+          'LEFT OUTER JOIN taxonomy_term_data td_add ON td_add.tid = a.stage_taxonomy_tid ' .
+          'LEFT OUTER JOIN taxonomy_term_data td_rm ON td_rm.tid = a.stage_taxonomy_tid_rm ' .
+          'LEFT OUTER JOIN taxonomy_term_data td_add_pc ON td_add_pc.tid = stage_taxonomy_tid_pc ' .
+          'LEFT OUTER JOIN taxonomy_term_data td_rm_pc ON td_rm_pc.tid = stage_taxonomy_tid_rm_pc ' .
           'WHERE a.is_batch_action = 0' .
       (!$display_reserved_actions ? ' AND a.description NOT LIKE \'Reserved %\'' : '') );
   $rows = $query->fetchAll();
@@ -1507,11 +1507,14 @@ function islandora_digital_workflow_get_item_action_options($display_reserved_ac
  *   the set of options for possible workflow actions.
  */
 function islandora_digital_workflow_get_batch_action_options($display_reserved_actions = TRUE) {
-  $query = db_query('SELECT a.*, td_add.name as `add_term_name`, td_rm.name as `rm_term_name` ' .
+  $query = db_query('SELECT a.*, td_add.name as `add_term_name`, td_rm.name as `rm_term_name`, ' .
+          'td_add_pc.name as `add_term_name_pc`, td_rm_pc.name as `rm_term_name_pc`' .
           'FROM islandora_digital_workflow_actions a ' .
           'LEFT OUTER JOIN taxonomy_term_data td_add ON td_add.tid = a.stage_taxonomy_tid ' .
           'LEFT OUTER JOIN taxonomy_term_data td_rm ON td_rm.tid = a.stage_taxonomy_tid_rm ' .
-          'WHERE a.is_batch_action = 1' .
+          'LEFT OUTER JOIN taxonomy_term_data td_add_pc ON td_add_pc.tid = stage_taxonomy_tid_pc ' .
+          'LEFT OUTER JOIN taxonomy_term_data td_rm_pc ON td_rm_pc.tid = stage_taxonomy_tid_rm_pc ' .
+           'WHERE a.is_batch_action = 1' .
       (!$display_reserved_actions ? ' AND a.description NOT LIKE \'Reserved %\'' : '') );
   $rows = $query->fetchAll();
   $return_array = array();
@@ -1880,10 +1883,10 @@ function islandora_digital_workflow_get_action($action_id) {
   $query->addField('td_add', 'name', 'add_term_name');
   $query->addJoin('LEFT', 'taxonomy_term_data', 'td_rm', 'wa.stage_taxonomy_tid_rm = td_rm.tid');
   $query->addField('td_rm', 'name', 'rm_term_name');
-  $query->addJoin('LEFT', 'taxonomy_term_data', 'td_add_pc', 'wa.stage_taxonomy_tid = td_add_pc.tid');
+  $query->addJoin('LEFT', 'taxonomy_term_data', 'td_add_pc', 'wa.stage_taxonomy_tid_pc = td_add_pc.tid');
   $query->fields('td_add_pc');
   $query->addField('td_add_pc', 'name', 'add_term_name_pc');
-  $query->addJoin('LEFT', 'taxonomy_term_data', 'td_rm_pc', 'wa.stage_taxonomy_tid_rm = td_rm_pc.tid');
+  $query->addJoin('LEFT', 'taxonomy_term_data', 'td_rm_pc', 'wa.stage_taxonomy_tid_rm_pc = td_rm_pc.tid');
   $query->addField('td_rm_pc', 'name', 'rm_term_name_pc');
   $results = $query->execute();
   $rows = $results->fetchAll();
