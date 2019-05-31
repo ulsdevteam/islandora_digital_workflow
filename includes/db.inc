@@ -645,7 +645,7 @@ function islandora_digital_workflow_check_trigger_stage_change($transaction_id =
     $action_record['stage_taxonomy_tid_rm_pc'] :
     $action_record['stage_taxonomy_tid_rm'];
 
-  $affects = (($action_record['is_batch_action'] || $content_type_based_check_trigger) ?
+  $affect = (($action_record['is_batch_action'] || $content_type_based_check_trigger) ?
       '"@action_description" has been added' :
       'All Items in the batch have "@action_description"');
   $message_args = array(
@@ -662,7 +662,7 @@ function islandora_digital_workflow_check_trigger_stage_change($transaction_id =
     (($batch_record) ? ' on the batch "@batch_name"' : '');
   if ($action_record['is_batch_action'] == 1 || $content_type_based_check_trigger) {
     if (islandora_digital_workflow_set_node_stage($batch_record['nid'], '', $content_type_based_stage_taxonomy_tid)) {
-      drupal_set_message(t($affects . ' which triggers the "@stage stage" for ' .
+      drupal_set_message(t($affect . ' which triggers the "@stage stage" for ' .
           $message_string, $message_args));
     }
   }
@@ -676,14 +676,14 @@ function islandora_digital_workflow_check_trigger_stage_change($transaction_id =
     }
     if ($all_items_have_action) {
       if (islandora_digital_workflow_set_node_stage($batch_record['nid'], '', $content_type_based_stage_taxonomy_tid)) {
-        drupal_set_message(t($affects . ' which triggers the "@stage stage" for ' .
+        drupal_set_message(t($affect . ' which triggers the "@stage stage" for ' .
             $message_string, $message_args));
       }
     }
   }
   if ($action_record['is_batch_action'] == 1 || $action_record['is_triggered_by_single_item_rm']) {
     if (islandora_digital_workflow_set_node_stage($batch_record['nid'], '', $content_type_based_stage_taxonomy_tid_rm, TRUE)) {
-      drupal_set_message(t($affects . ' which triggers the "@rm_stage stage" for ' .
+      drupal_set_message(t($affect . ' which triggers the "@rm_stage stage" for ' .
           $message_string, $message_args));
     }
   }
@@ -697,7 +697,7 @@ function islandora_digital_workflow_check_trigger_stage_change($transaction_id =
     }
     if ($all_items_have_action) {
       if (islandora_digital_workflow_set_node_stage($batch_record['nid'], '', $content_type_based_stage_taxonomy_tid_rm, TRUE)) {
-        drupal_set_message(t($affects . ' which triggers the "@stage stage" for ' .
+        drupal_set_message(t($affect . ' which triggers the "@stage stage" for ' .
             $message_string, $message_args));
       }
     }

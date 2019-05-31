@@ -511,6 +511,30 @@ div.form-disabled label.enabled_text {
     background: url("../images/add_20.png") top left no-repeat;
 }
 
+.object_20 {
+    background: url("../images/object_20.png") 0 -1px no-repeat;
+    padding-left: 22px;
+}
+
+.paged_20 {
+    background: url("../images/paged_20.png") top left no-repeat;
+    padding-left: 22px;
+}
+
+.div_object_24  {
+    background: url("../images/object_20.png") 0 -1px no-repeat;
+    padding-left: 30px;
+    line-height: 24px;
+    background-size: 24px 24px;
+}
+
+.div_paged_24 {
+    background: url("../images/paged_20.png") top left no-repeat;
+    padding-left: 30px;
+    line-height: 24px;
+    background-size: 24px 24px;
+}
+
 .process_set {
     background-color: #F5F5F5;
     border: 2px solid #DDD;

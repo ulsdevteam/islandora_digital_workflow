@@ -1043,26 +1043,35 @@ function islandora_digital_workflow_actions_form(array $form, array &$form_state
       ),
   );
   $markup_item_actions = $markup_batch_actions = array();
+
   foreach ($rows as $action_id => $action_record_array) {
     $trigger_add_stage = (isset($action_record_array['add_term_name']) ?
-            '<span title="' . (($action_record_array['is_triggered_by_single_item']) ? 'T' : 'Not t') . 'riggered by a single item">' .
-            $action_record_array['add_term_name'] .
-            (($action_record_array['is_triggered_by_single_item']) ? ' / 1' : ' / all') .
+            '<span class="object_20" title="Triggered ' . (($action_record_array['is_triggered_by_single_item']) ?
+              'by action on a single item' : 'when action has been added to all items in a batch') . '">' .
+              $action_record_array['add_term_name'] .
+              (($action_record_array['is_triggered_by_single_item']) ?
+                ' / 1' : ' / all') .
              '</span>' : '');
     $trigger_remove_stage = (isset($action_record_array['rm_term_name']) ?
-            '<span title="' . (($action_record_array['is_triggered_by_single_item_rm']) ? 'T' : 'Not t') . 'riggered by a single item">' .
-            $action_record_array['rm_term_name'] .
-            (($action_record_array['is_triggered_by_single_item_rm']) ? ' / 1' : ' / all') .
+            '<span class="paged_20" title="Triggered ' . (($action_record_array['is_triggered_by_single_item_rm'])  ?
+              'by action on a single item' : 'when action has been added to all items in a batch') .'">' .
+              $action_record_array['rm_term_name'] .
+              (($action_record_array['is_triggered_by_single_item_rm']) ?
+                ' / 1' : ' / all') .
              '</span>' : '');
     $trigger_add_stage_pc = (isset($action_record_array['add_term_name_pc']) ?
-            '<span title="' . (($action_record_array['is_triggered_by_single_item_pc']) ? 'T' : 'Not t') . 'riggered by a single item (for paged-content items)">' .
-            $action_record_array['add_term_name_pc'] .
-            (($action_record_array['is_triggered_by_single_item_pc']) ? ' / 1' : ' / all') .
+              '<span class="paged_20" title="Triggered ' . (($action_record_array['is_triggered_by_single_item_pc']) ?
+              'by action on a single item' : 'when action has been added to all items in a batch') . ' (for paged-content items)">' .
+              $action_record_array['add_term_name_pc'] .
+              (($action_record_array['is_triggered_by_single_item_pc']) ?
+                ' / 1' : ' / all') .
              '</span>' : '');
     $trigger_remove_stage_pc = (isset($action_record_array['rm_term_name_pc']) ?
-            '<span title="' . (($action_record_array['is_triggered_by_single_item_rm_pc']) ? 'T' : 'Not t') . 'riggered by a single item (for paged-content items)">' .
-            $action_record_array['rm_term_name_pc'] .
-            (($action_record_array['is_triggered_by_single_item_rm_pc']) ? ' / 1' : ' / all') .
+              '<span class="paged_20" title="Triggered ' . (($action_record_array['is_triggered_by_single_item_rm_pc']) ?
+              'by action on a single item' : 'when action has been added to all items in a batch') . ' (for paged-content items)">' .
+              $action_record_array['rm_term_name_pc'] .
+              (($action_record_array['is_triggered_by_single_item_rm_pc']) ?
+                ' / 1' : ' / all') .
              '</span>' : '');
 
     $sequence_ids_using_action = ($action_record_array['is_system_action']) ?
@@ -1258,7 +1267,7 @@ function islandora_digital_workflow_actions_edit_form(array $form, array &$form_
     ),
     'non-paged-items' => array(
       '#type' => 'fieldset',
-      '#title' => t('For batches of <b>non-paged</b> items'),
+      '#title' => t('<div class="div_object_24">For batches of <b>non-paged</b> items</div>'),
       'stage_taxonomy_tid' => array(
           '#type' => 'select',
           '#default_value' => (isset($action_record['stage_taxonomy_tid']) ? $action_record['stage_taxonomy_tid'] : 0),
@@ -1290,7 +1299,7 @@ function islandora_digital_workflow_actions_edit_form(array $form, array &$form_
     ),
     'paged-items' => array(
       '#type' => 'fieldset',
-      '#title' => t('For batches of <b>paged-content</b> items'),
+      '#title' => t('<div class="div_paged_24">For batches of <b>paged-content</b> items</div>'),
       'stage_taxonomy_tid_pc' => array(
           '#type' => 'select',
           '#default_value' => (isset($action_record['stage_taxonomy_tid_pc']) ? $action_record['stage_taxonomy_tid_pc'] : 0),
