@@ -101,6 +101,7 @@ function islandora_digital_workflow_create_batch_record_by_form($form_state, $no
     $batch_record = islandora_digital_workflow_get_batch_record_by_name($batch_name);
 
     $filename = drupal_realpath($batch_items_filename);
+    $items_file_is_text = islandora_digital_workflow_file_is_mimetype($filename, array("text/plain", "application/xml", "text/xml"));
     $uploaded_batch_items_file = ($batch_items_filename && file_exists($filename)) ? file_get_contents($filename) : FALSE;
     $batch_request_date = ((array_key_exists('is_batch_request', $form_state['values'])) && ($form_state['values']['is_batch_request'] == 1) ?
         strtotime($form_state['values']['batch_request_due_date']['year'] . '/' .
@@ -195,7 +196,7 @@ function islandora_digital_workflow_create_batch_record_by_form($form_state, $no
     // uploaded_batch_items_file.
     if ($batch_items_filename) {
        // replace Microsoft Word version of single  and double quotations marks (“ ” ‘ ’) with  regular quotes (' and ")
-      $field_values['uploaded_batch_items_file'] = islandora_digital_workflow_convert_smart_quotes($uploaded_batch_items_file);
+      $field_values['uploaded_batch_items_file'] = islandora_digital_workflow_convert_smart_quotes($uploaded_batch_items_file, $items_file_is_text);
     }
     // Add the current timestamp for the 'created' field value.
     $field_values['created'] = date("Y-m-d H:i:s");
@@ -223,16 +224,39 @@ function islandora_digital_workflow_create_batch_record_by_form($form_state, $no
 }
 
 /**
+ * Helper function to remove the whitespace around the string that is passed --
+ * namely used to see if there was a functional change to an XML.
+ *
+ * The returned string value should not be saved to the database.
+ *
+ * @param string $string
+ *   The text that needs to have whitespace trimmed.
+ * @return string
+ *   The string without the whitespace.
+ */
+function islandora_digital_workflow_strip_whitespace($string) {
+  // remove spaces at the ends
+  $string = trim($string);
+  // make sure there aren't multiple spaces
+  $string = preg_replace('/\s+/', ' ', $string);
+  // enforce the 'word, word' format
+  return preg_replace('/\s?,\s?/', ', ', $string);
+}
+
+/**
  * Helper function to prevent bad Microsoft UTF8 quote characters from breaking
- * the SQL insert.  Nobody needs those curly quotes.
+ * the SQL insert.  Nobody needs those curly quotes.  This only changes anything
+ * when the file that is passed is a text or XML file.
  *
  * @param string $string
  *   The text that needs to be converted
+ * @param boolean $file_is_text
+ *   Whether or not the file (string value) is a plaintext representation.
  * @return string
  *   The converted string value.
  */
-function islandora_digital_workflow_convert_smart_quotes($string) {
-  return str_replace(
+function islandora_digital_workflow_convert_smart_quotes($string, $file_is_text = FALSE) {
+  return ($file_is_text) ? str_replace(
       array(chr(145),
             chr(146),
             chr(147),
@@ -243,7 +267,7 @@ function islandora_digital_workflow_convert_smart_quotes($string) {
             '"',
             '"',
             '-'),
-      $string);
+      $string) : $string;
 }
 
 /**
@@ -348,7 +372,7 @@ function islandora_digital_workflow_sync_batch_item_record($batch_record, $csv_f
   $existing_batch_identifiers = islandora_digital_workflow_get_existing_identifiers($batch_record['batch_id']);
   // Each MODS is inserted into the item record - this will insert the record:
   $batch_item_id = (array_search($csv_file_source['identifier'], $existing_batch_identifiers) === FALSE) ?
-    islandora_digital_workflow_insert_batch_item($fields) :
+    islandora_digital_workflow_insert_batch_item($fields, $batch_record) :
     array_search($csv_file_source['identifier'], $existing_batch_identifiers);
 
   // New item...
@@ -1711,7 +1735,7 @@ function islandora_digital_workflow_timeago_from_timestamp($timestamp) {
  */
 function islandora_digital_workflow_scan_files($scan_path,  $file_masks = array(), $all_files = FALSE) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/file_utilities');
-  $files = islandora_digital_workflow_file_scandir($scan_path, '', TRUE);
+  $files = islandora_digital_workflow_file_scandir($scan_path, array(), TRUE);
   $ret_arr = array();
   $sequence = 1;
   // Easiest to loop through and remove any file references that match the
@@ -3671,6 +3695,21 @@ function islandora_digital_workflow_inject_defaults_to_mods(&$marc_and_mods_reco
 }
 
 /**
+ * Will return TRUE when the file referenced by $filename matches any of the $mimetypes values.
+ *
+ * @param string $filename
+ *   A filename to a file that needs to be checked for mimetype matching.
+ * @param array $mimetypes
+ *   An array of possible mimetypes that should return a TRUE result.
+ * @return boolean
+ *   Whether or not the file matched one of the mimetypes passed by $mimetypes parameter.
+ */
+function islandora_digital_workflow_file_is_mimetype($filename, $mimetypes = array('text/plain')) {
+  $mimetype = mime_content_type($filename);
+  return !(array_search($mimetype, $mimetypes) === FALSE);
+}
+
+/**
  * This is a helper function that is called from within the loop from the
  * islandora_digital_workflow_inject_defaults_to_mods function.  This is the
  * code that calls the actual XSL transform file to inject that field into the 
@@ -3709,7 +3748,9 @@ function islandora_digital_workflow_inject_default_value_to_mods($batch_record_v
     }
     $bytes_written = file_put_contents($mods_filename, $MODS);
     $new_mods_content = islandora_digital_workflow_convert_smart_quotes(file_get_contents($mods_filename));
-    $mods_changed = $mods_content <> $new_mods_content;
+    $mods_content = islandora_digital_workflow_strip_whitespace($mods_content);
+    $new_mods_content = islandora_digital_workflow_strip_whitespace($new_mods_content);
+    $mods_changed = ($mods_content <> $new_mods_content);
   }
   return $mods_changed;
 }
@@ -3980,7 +4021,7 @@ function islandora_digital_workflow_linux_move_folder($oldname, $newname) {
   if (file_exists($oldname)) {
     exec("mv $oldname $newname");
   }
-  return (file_exists($oldname));
+  return (file_exists($newname));
 }
 
 /**

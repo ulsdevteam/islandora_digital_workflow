@@ -110,10 +110,10 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
       }
       if ($mods_file_changed || $marc_file_changed) {
         if ($mods_file_changed) {
-          file_put_contents($item_working_folder . '/--METADATA--.xml', $_POST['mods']);
+          file_put_contents($item_working_folder . '/MODS.xml', $_POST['mods']);
         }
         if ($marc_file_changed) {
-          file_put_contents($item_working_folder . '/' . $_POST['identifier'] . '.marcxml.xml', $_POST['marc']);
+          file_put_contents($item_working_folder . '/--METADATA--.xml', $_POST['marc']);
         }
       }
       drupal_set_message(t('This batch object record has been updated <br>' .
@@ -161,8 +161,15 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
   $found_delivery_files = islandora_digital_workflow_scandir_paged_content_files($item_delivery_path);
   $item_working_path = $batch_path . '/' . $item->identifier;
   if ($is_paged_content) {
-    $item_working_path .=  (is_null($item)) ? '' :  '/' . islandora_digital_workflow_object_subfolder_name($item->islandora_model, $batch_record);
-    $found_files = islandora_digital_workflow_scandir_paged_content_files($item_working_path, FALSE);
+    $item_working_path = (is_null($item)) ? '' : $batch_path . '/' . $item->identifier;
+    $item_working_paged_object_path = (is_null($item)) ? '' : $batch_path . '/' . $item->identifier . '/' . islandora_digital_workflow_object_subfolder_name($item->islandora_model, $batch_record);
+    $found_files = islandora_digital_workflow_scan_files($item_working_path, array(), TRUE);
+    // $found_files = islandora_digital_workflow_scandir_paged_content_files($item_working_paged_object_path, FALSE);
+    foreach ($found_files as $k => $v_arr) {
+      $found_files[$k]['scan_path'] = $item_working_paged_object_path;
+    }
+//    $item_working_path .=  (is_null($item)) ? '' :  '/' . islandora_digital_workflow_object_subfolder_name($item->islandora_model, $batch_record);
+//    $found_files = islandora_digital_workflow_scandir_paged_content_files($item_working_path, FALSE);
   }
   else {
     $file_records = islandora_digital_workflow_get_batch_files_by_nid($batch_record['nid']);

@@ -38,14 +38,14 @@ function islandora_digital_workflow_files($node) {
     'can_publish_all' => islandora_digital_workflow_can_publish_all($batch_items),
     'batch_mapped_from_webformsubmission' => islandora_digital_workflow_get_webformsubmission($batch_record['webform_submission_sid']),
   ));
-  $file_records = islandora_digital_workflow_get_batch_files_by_nid($node->nid);
+  $batch_delivery_path = islandora_digital_workflow_batch_path($batch_record);
+  $file_records = islandora_digital_workflow_get_batch_files_by_nid($node->nid, $batch_delivery_path);
   $batch_path = islandora_digital_workflow_batch_path($batch_record, 'working');
   // Scan for files in that directory - this will mark any files that are expected,
   // but not found with "bad" class.
   $is_paged_content = islandora_digital_workflow_is_paged_object($batch_record['islandora_model']);
   if (!$is_paged_content) {
     $found_files = islandora_digital_workflow_scan_files($batch_path, array(), TRUE);
-    $batch_delivery_path = islandora_digital_workflow_batch_path($batch_record);
     foreach ($file_records as $index => $file_item) {
       $file_records[$index]->class = '';
       $file_records[$index]->filename = 'foo?';
@@ -54,8 +54,13 @@ function islandora_digital_workflow_files($node) {
   else {
     $found_files = array();
     foreach ($file_records as $idx => $item) {
-      $item_working_path = $batch_path . '/' . $item->identifier . '/' . islandora_digital_workflow_object_subfolder_name($item->islandora_model, $batch_record);
-      $item_files = islandora_digital_workflow_scandir_paged_content_files($item_working_path, FALSE);
+      $item_working_path = $batch_path . '/' . $item->identifier;
+      $item_working_paged_object_path = $batch_path . '/' . $item->identifier . '/' . islandora_digital_workflow_object_subfolder_name($item->islandora_model, $batch_record);
+      $item_files = islandora_digital_workflow_scan_files($item_working_path, array(), TRUE);
+      // $item_files = islandora_digital_workflow_scandir_paged_content_files($item_working_paged_object_path, FALSE);
+      foreach ($item_files as $k => $v_arr) {
+        $item_files[$k]['scan_path'] = $item_working_paged_object_path;
+      }
       $found_files[$item->identifier] = $item_files;
     }
     // $found_files = islandora_digital_workflow_scandir_paged_content_files($batch_path);
