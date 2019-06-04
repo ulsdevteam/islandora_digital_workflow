@@ -203,21 +203,21 @@
                 switch ($transaction_record->action_id) {
                   case IDW_ACTION_MODS_RECORD_COMPLETED:
                   case IDW_ACTION_METADATA_FAIL_QC:
-                    print l($transaction_record->description,
+                    print  (is_object($item->islandora_object) ? l($transaction_record->description,
                       'islandora/object/' . $item->assigned_pid . '/datastream/MODS/edit',
                       array('attributes'=>array(
                         'title' => 'link opens in separate tab',
                         'class' => array('link_open_new_tab_tiny'),
-                        'target' => '_blank')));
+                        'target' => '_blank'))) : $transaction_record->description . ' <i>(pending ingest)</i>');
                     break;
                   case IDW_ACTION_METS_CREATED:
                     if (module_exists('islandora_mets_editor')) {
-                      print l($transaction_record->description,
+                      print (is_object($item->islandora_object) ? l($transaction_record->description,
                         'islandora/object/' . $item->assigned_pid . '/manage/mets_editor',
                         array('attributes'=>array(
                           'title' => 'link opens in separate tab',
                           'class' => array('link_open_new_tab_tiny'),
-                          'target' => '_blank')));
+                          'target' => '_blank'))) : $transaction_record->description . ' <i>(pending ingest)</i>');
                     }
                     else {
                       print $transaction_record->description;

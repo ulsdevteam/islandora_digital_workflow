@@ -144,6 +144,7 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
   $item_record_results = islandora_digital_workflow_get_batch_item_record($batch_item_id);
   $drush_log_entries = islandora_digital_workflow_get_drush_log_for_batch_item($batch_item_id);
   $item = array_pop($item_record_results);
+
   if (!is_object($item)) {
     drupal_set_message(t('Error: the item @batch_item_id could not be loaded.  ' .
         'It may have been deleted.  You have been redirected to the dashboard.',
@@ -236,6 +237,7 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
   $namespace = islandora_digital_workflow_get_ingest_namespace($batch_record);
   $pid = ($item->assigned_pid <> '') ? $item->assigned_pid : $namespace . $item->identifier;
   $islandora_object = islandora_object_load($pid);
+  $item->islandora_object = $islandora_object;
   if (is_object($islandora_object)) {
     $link_att = array('attributes' => array('target' => '_blank'));
     $ingested_links = l($islandora_object->label, 'islandora/object/' . $pid, $link_att) .
