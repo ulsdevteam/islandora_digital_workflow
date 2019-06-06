@@ -4019,7 +4019,8 @@ function islandora_digital_workflow_collection_link($collection_object) {
  */
 function islandora_digital_workflow_linux_move_folder($oldname, $newname) {
   if (file_exists($oldname)) {
-    exec("mv $oldname $newname");
+    // Move the files in the first folder to the second folder.
+    exec("mv $oldname/* $newname");
   }
   return (file_exists($newname));
 }

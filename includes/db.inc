@@ -1266,23 +1266,25 @@ function islandora_digital_workflow_update_batch_item_record($batch_item_id, $up
     // will need to rename those folders (delivery, (and if they exists) problems
     // and working folder.
     if ($update_values['identifier'] <> $original_values->identifier) {
+      module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
       // Only try to rename those item folders that exist
-      if (file_exists($current_delivery_item_path)) {
-        module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
-        if (!islandora_digital_workflow_linux_move_folder($current_delivery_item_path, $update_delivery_item_path)) {
-          drupal_set_message(t('There was a problem renaming the "delivery folder" ' .
-              'for the current item "@item_ident".  Check file permissions on the ' .
-              'paths:<ul><li>@path</li><li>@to_path</li></ul>.', array(
-                  '@path' => $current_delivery_item_path,
-                  '@to_path' => $update_delivery_item_path,
-                  '@item_ident' => $original_values->identifier)), 'error');
-        }
-        else {
-          islandora_digital_workflow_linux_rm_folder($current_delivery_item_path);
-        }
-      }
+// The delivery folders should not be renamed.
+//      if (file_exists($current_delivery_item_path)) {
+//
+//        if (!islandora_digital_workflow_linux_move_folder($current_delivery_item_path, $update_delivery_item_path)) {
+//          drupal_set_message(t('There was a problem renaming the "delivery folder" ' .
+//              'for the current item "@item_ident".  Check file permissions on the ' .
+//              'paths:<ul><li>@path</li><li>@to_path</li></ul>.', array(
+//                  '@path' => $current_delivery_item_path,
+//                  '@to_path' => $update_delivery_item_path,
+//                  '@item_ident' => $original_values->identifier)), 'error');
+//        }
+//        else {
+//          islandora_digital_workflow_linux_rm_folder($current_delivery_item_path);
+//        }
+//      }
       if (file_exists($current_problems_item_path)) {
-        if (!rename($current_problems_item_path, $update_problems_item_path) ) {
+        if (!islandora_digital_workflow_linux_move_folder($current_problems_item_path, $update_problems_item_path) ) {
           drupal_set_message(t('There was a problem renaming the "problems folder" ' .
               'for the current item "@item_ident".  Check file permissions on the ' .
               'paths:<ul><li>@path</li><li>@to_path</li></ul>.', array(
@@ -1290,15 +1292,21 @@ function islandora_digital_workflow_update_batch_item_record($batch_item_id, $up
                   '@to_path' => $update_problems_item_path,
                   '@item_ident' => $original_values->identifier)), 'error');
         }
+        else {
+          islandora_digital_workflow_linux_rm_folder($current_problems_item_path);
+        }
       }
       if (file_exists($current_working_item_path)) {
-        if (!rename($current_working_item_path, $update_working_item_path) ) {
+        if (!islandora_digital_workflow_linux_move_folder($current_working_item_path, $update_working_item_path) ) {
           drupal_set_message(t('There was a problem renaming the "working folder" ' .
               'for the current item "@item_ident".  Check file permissions on the ' .
               'paths:<ul><li>@path</li><li>@to_path</li></ul>.', array(
                   '@path' => $current_working_item_path,
                   '@to_path' => $update_working_item_path,
                   '@item_ident' => $original_values->identifier)), 'error');
+        }
+        else {
+          islandora_digital_workflow_linux_rm_folder($current_working_item_path);
         }
       }
     }
