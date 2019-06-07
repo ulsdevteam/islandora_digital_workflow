@@ -102,15 +102,55 @@ function islandora_digital_workflow_admin_form() {
             'batches by default.  Each batch can override this value.'),
         '#default_value' => variable_get('islandora_digital_workflow_ingest_namespace', 'islandora'),
       ),
-      'ingest_assign_PIDs' => array(
-        '#type' => 'checkbox',
-        '#title' => t('Assign PID values'),
-        '#description' => t('When set, ingested objects are created using the ' .
-            '{Ingest namespace}:{item IDENTIFIER}, else the system will generate ' .
-            'fedora PID values and update the items\' "islandora_pid" value.  ' .
-            '<b>NOTE:</b> Using this option requires that all of the "batch ingest" '.
-            'modules support the `--assign_pid=### parameters.'),
-        '#default_value' => variable_get('islandora_digital_workflow_assign_PIDs', 0),
+      'fedora_pids_fields' => array(
+        '#type' => 'fieldset',
+        '#title' => t('Assigned Fedora PIDs / Solr lookup'),
+        'ingest_assign_PIDs' => array(
+          '#type' => 'checkbox',
+          '#title' => t('Assign PID values'),
+          '#description' => t('When set, ingested objects are created using the ' .
+              '{ingest namespace}:{item IDENTIFIER}, else the system will generate ' .
+              'fedora PID values and update the items\' "islandora_pid" value.  ' .
+              '<b>NOTE:</b> Using this option requires that all of the "batch ingest" '.
+              'modules support the `--assign_pid=### parameters.  Also, the ' .
+              'ingested object for any item would be identified by the PID value '.
+              '<b class="idw_fieldname">{NAMESPACE}:{IDENTIFIER}</b> else the ' .
+              'Solr query defined below would be needed in order to find the ' .
+              'ingested object related to any item.'),
+          '#default_value' => variable_get('islandora_digital_workflow_assign_PIDs', 0),
+        ),
+        'solr_namespace_field' => array(
+          '#type' => 'textfield',
+          '#title' => t('Optional Solr object namespace field'),
+          '#description' => t('The optional Solr query filter that further defines ' .
+              'an object defined by a namespace prefix.  <i>This option' .
+              'is only needed in cases where the SAME IDENTIFIER exists for ' .
+              'ingested items but in different namespaces.</i>'),
+          '#required' => false,
+          '#default_value' => variable_get('islandora_digital_workflow_solr_namespace_field', ''),
+        ),
+        'solr_identifer_field' => array(
+          '#type' => 'textfield',
+          '#title' => t('Solr object identifier field'),
+          '#description' => t('The Solr field that will return a single object ' .
+              'that matches the given identifier.'),
+          '#required' => false,
+          '#default_value' => variable_get('islandora_digital_workflow_solr_identifer_field', 'dc.identifier'),
+        ),
+        'solr_field_value_uses_namespace' => array(
+          '#type' => 'checkbox',
+          '#title' => 'Value used for Solr query "Solr object identifier field" ' .
+              'includes the namespace?',
+          '#description' => 'When this is checked, the Solr query will use a value ' .
+            'that concatenates the namespace to the identifier using a ":" (colon) ' .
+            'character.<br /><em>For example: when `Solr identifier field` = ' .
+            '"<b>dc.identifier</b>" and the `namespace` is "<b>islandora</b>" and ' .
+            'the `identifer` = "<b>123</b>", depending on whether or not this ' .
+            'option, the Solr query would either search for <b class="idw_fieldname">' .
+            'q=dc.identifier:islandora\:123</b> or <b class="idw_fieldname">q=dc.identifier:' .
+            '123</b></em>.',
+          '#default_value' => variable_get('islandora_digital_workflow_solr_field_value_uses_namespace', 0),
+        ),
       ),
       'top_level_collection' => array(
         '#type' => 'textfield',
@@ -350,6 +390,9 @@ function islandora_digital_workflow_admin_form_submit(array $form, array &$form_
       islandora_digital_workflow_save_models($form_state['values']);
       variable_set('islandora_digital_workflow_ingest_namespace', $form_state['values']['ingest_namespace']);
       variable_set('islandora_digital_workflow_assign_PIDs', $form_state['values']['ingest_assign_PIDs']);
+      variable_set('islandora_digital_workflow_solr_field_value_uses_namespace', $form_state['values']['solr_field_value_uses_namespace']);
+      variable_set('islandora_digital_workflow_solr_identifer_field', $form_state['values']['solr_identifer_field']);
+      variable_set('islandora_digital_workflow_solr_namespace_field', $form_state['values']['solr_namespace_field']);
       variable_set('islandora_digital_workflow_top_level_collection', $form_state['values']['top_level_collection']);
       variable_set('islandora_digital_workflow_ingest_delivery_path', $form_state['values']['ingest_delivery_path']);
       variable_set('islandora_digital_workflow_ingest_prepared_path', $form_state['values']['ingest_prepared_path']);
@@ -433,6 +476,9 @@ function islandora_digital_workflow_admin_form_submit(array $form, array &$form_
       variable_del('islandora_digital_workflow_ingest_problems_path');
       variable_del('node_submitted_workflow_batch');
       variable_del('islandora_digital_workflow_assign_PIDs');
+      variable_del('islandora_digital_workflow_solr_field_value_uses_namespace');
+      variable_del('islandora_digital_workflow_solr_identifer_field');
+      variable_del('islandora_digital_workflow_solr_namespace_field');
       variable_del('islandora_digital_workflow_top_level_collection');
       variable_del('islandora_digital_workflow_ingest_ignore_filenames');
       drupal_set_message('[' . date('H:i:s') . '] The settings have been reset.');

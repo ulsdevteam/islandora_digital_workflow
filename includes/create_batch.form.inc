@@ -387,7 +387,7 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
 
   // For legacy batches, this array may need to be joined with the legacy
   // collection `c_id` pointers instead of Solr PID values.
-  $collections = islandora_digital_workflow_get_solr_options('RELS_EXT_hasModel_uri_ms:info' .
+  $collections = islandora_digital_workflow_get_solr_results('RELS_EXT_hasModel_uri_ms:info' .
       '\:fedora\/islandora\:collectionCModel -PID:*_review', 'PID', 'fgs_label_s');
   asort($collections);
   $default_type_of_resources = islandora_digital_workflow_get_default_type_of_resource_options(TRUE);

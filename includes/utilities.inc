@@ -488,7 +488,7 @@ function islandora_digital_workflow_get_csv_header_xpath_mappings() {
  * @return array
  *   Returns an array of values where the distinct set is keyed on the $key_field.
  */
-function islandora_digital_workflow_get_solr_options($solr_query, $key_field, $value_field, $sort_field = '') {
+function islandora_digital_workflow_get_solr_results($solr_query, $key_field, $value_field, $sort_field = '') {
   $query_processor = new IslandoraSolrQueryProcessor();
   $query_processor->solrQuery = $solr_query;
   if ($sort_field) {
@@ -571,7 +571,7 @@ function islandora_digital_workflow_get_solr_values($solr_query, $key_field, $va
  *   Returns an array of PID values that point to siteCModel objects from Solr.
  */
 function islandora_digital_workflow_get_sites_options() {
-  $sites = islandora_digital_workflow_get_solr_options('RELS_EXT_hasModel_uri_ms:*siteCModel', 'PID', 'fgs_label_s');
+  $sites = islandora_digital_workflow_get_solr_results('RELS_EXT_hasModel_uri_ms:*siteCModel', 'PID', 'fgs_label_s');
   if (count($sites) < 1) {
     $sites[0] = 'No sites objects configured.';
   }
@@ -4097,4 +4097,38 @@ function islandora_digital_workflow_delete_delivery_files($batch_item_obj, &$san
             '@sanitized_delivery_filename' => $sanitized_delivery_filename,
         )));
   }
+}
+
+/**
+ * This will return the Fedora PID value related to a given item's namespace
+ * and identifier values.
+ *
+ * @param string $namespace
+ *   The namespace value related to a workflow item.
+ * @param string $identifier
+ *   The identifier value representing a workflow item.
+ * @return string
+ *   The matching Fedora PID value for that item.
+ */
+function islandora_digital_workflow_get_item_PID($namespace, $identifier) {
+  $assigned_pids = variable_get('islandora_digital_workflow_assign_PIDs', 0);
+  if (!$assigned_pids) {
+    $solr_identifer_field = variable_get('islandora_digital_workflow_solr_identifer_field', 'dc.identifier');
+    $solr_namespace_field = variable_get('islandora_digital_workflow_solr_namespace_field', '');
+    $value_uses_namespace = (variable_get('islandora_digital_workflow_solr_field_value_uses_namespace', 0));
+    $solr_filter_namespace =
+    $solr_identifer_fieldvalue = str_replace(
+      array("/", ":", "-", "+"),
+      array("\/", "\:", "\-", "\+"),
+      $namespace . ':' . $identifier);
+    $query = $solr_identifer_field . ":" .
+        ($value_uses_namespace ? $solr_identifer_fieldvalue : $identifier) .
+        ($solr_namespace_field ? ' AND ' . $solr_namespace_field . ":" . $namespace : "");
+    $results = islandora_digital_workflow_get_solr_results($query, 'PID', 'PID');
+    $PID = (is_array($results) && count($results == 1) ? array_pop($results) : '');
+  }
+  else {
+    $PID = $namespace . ':' . $identifier;
+  }
+  return $PID;
 }
