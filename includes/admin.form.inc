@@ -279,11 +279,32 @@ ignored_filename_*
       '#title' => t('Handle the Islandora Ingested hooks'),
       'handle_islandora_hook' => array(
         '#type' => 'checkbox',
-        '#title' => 'Handle the Islandora Object Ingested and Datastream Ingested hooks?',
+        '#title' => 'Handle the Islandora Object Ingested and Datastream ' .
+          'Ingested hooks?',
         '#description' => 'When this is checked, the code will try to add a ' .
-          'transaction for that batch item for "System has ingested item into repository" or ' .
-          '"System made derivatives".',
+          'transaction for that batch item for "System has ingested item into ' .
+          'repository" or "System made derivatives".',
         '#default_value' => variable_get('islandora_digital_workflow_handle_islandora_hook', 0),
+      ),
+    ),
+    'store_workflow_history' => array(
+      '#type' => 'item',
+      '#title' => t('Store workflow history for ingested objects'),
+      'store_workflow_history_json' => array(
+        '#type' => 'checkbox',
+        '#title' => 'Store a JSON datastream containing Islandora Digital ' .
+          'Workflow history for ingested objects?',
+        '#description' => 'When this is checked, the code will try to create a ' .
+          'datastream that contains all of the relevant batch, item, and transaction ' .
+          'information for that item.',
+        '#default_value' => variable_get('islandora_digital_workflow_store_workflow_history_json', 0),
+      ),
+      'workflow_history_json_dsid' => array(
+        '#type' => 'textfield',
+        '#title' => 'Workflow History Datastream Identifier',
+        '#description' => 'The datastream identifier used to store the JSON ' .
+          'datastream containing Islandora Digital Workflow history.',
+        '#default_value' => variable_get('islandora_digital_workflow_workflow_history_json_dsid', 'WORKFLOW_JSON'),
       ),
     ),
   );
@@ -409,7 +430,8 @@ function islandora_digital_workflow_admin_form_submit(array $form, array &$form_
       variable_set('islandora_digital_workflow_delete_delivery_files', $use_value);
       variable_set('islandora_digital_workflow_delete_delivery_files_INTENDED_VAL', $form_state['values']['delete_delivery_when_scanned']);
       variable_set('islandora_digital_workflow_handle_islandora_hook', $form_state['values']['handle_islandora_hook']);
-
+      variable_set('islandora_digital_workflow_store_workflow_history_json', $form_state['values']['store_workflow_history_json']);
+      variable_set('islandora_digital_workflow_workflow_history_json_dsid', $form_state['values']['workflow_history_json_dsid']);
       if (module_exists('webform') && module_exists('islandora_digitization_requests')) {
         module_load_include('inc', 'islandora_digitization_requests', 'includes/db');
         module_load_include('inc', 'islandora_digitization_requests', 'includes/db');
@@ -472,6 +494,8 @@ function islandora_digital_workflow_admin_form_submit(array $form, array &$form_
       variable_del('islandora_digital_workflow_delete_delivery_files');
       variable_del('islandora_digital_workflow_delete_delivery_files_INTENDED_VAL');
       variable_del('islandora_digital_workflow_handle_islandora_hook');
+      variable_del('islandora_digital_workflow_store_workflow_history_json');
+      variable_del('islandora_digital_workflow_workflow_history_json_dsid');
       variable_del('islandora_digital_workflow_ingest_delivery_path');
       variable_del('islandora_digital_workflow_ingest_problems_path');
       variable_del('node_submitted_workflow_batch');

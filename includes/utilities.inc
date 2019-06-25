@@ -4132,3 +4132,69 @@ function islandora_digital_workflow_get_item_PID($namespace, $identifier) {
   }
   return $PID;
 }
+
+function islandora_digital_workflow_add_datastream($object, $datastream_id, $file_contents) {
+  try {
+    $ingest = !isset($object[$datastream_id]);
+
+    if ($ingest) {
+      $ds = $object->constructDatastream($datastream_id, "M");
+      $ds->label = $datastream_id;
+    }
+    else {
+      $ds = $object[$datastream_id];
+    }
+    if ($ds->mimetype != 'text/plain') {
+      $ds->mimetype = 'text/plain';
+    }
+    $ds->setContentFromString($file_contents);
+    if ($ingest) {
+      $object->ingestDatastream($ds);
+    }
+    return array(
+      'success' => TRUE,
+      'messages' => array(
+        array(
+          'message' => t('Created @dsid derivative for OBJ (@pid).'),
+          'message_sub' => array(
+            '@dsid' => $datastream_id,
+            '@pid' => $object->id,
+          ),
+          'type' => 'dsm',
+        ),
+      ),
+    );
+  }
+  catch (exception $e) {
+    return array(
+      'success' => FALSE,
+      'messages' => array(
+        array(
+          'message' => t('Failed to add @dsid datastream for @pid. Error message: "@message" with trace: @stack'),
+          'message_sub' => array(
+            '@dsid' => $datastream_id,
+            '@pid' => $object->id,
+            '@message' => $e->getMessage(),
+            '@stack' => $e->getTraceAsString(),
+          ),
+          'type' => 'watchdog',
+          'severity' => WATCHDOG_ERROR,
+        ),
+      ),
+    );
+  }
+}
+
+/**
+ * This is a constant array that is needed for determining whether or not a
+ * given Islandora object is a page.
+ *
+ * @return type
+ */
+function islandora_digital_workflow_get_page_model_names() {
+  return array(
+    'islandora:newspaperPageCModel',
+    'islandora:pageCModel',
+    'islandora:manuscriptPageCModel',
+  );
+}

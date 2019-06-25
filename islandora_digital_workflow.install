@@ -523,6 +523,27 @@ function islandora_digital_workflow_schema() {
         'length' => 64,
         'not null' => FALSE,
       ),
+      'volume_number' => array(
+        'description' => t('The volume number for the issue (Serials only).'),
+        'type' => 'varchar',
+        'length' => 30,
+        'not null' => FALSE,
+      ),
+      'issue_number' => array(
+        'description' => t('The issue number for the issue (Serials only).'),
+        'type' => 'varchar',
+        'length' => 30,
+        'not null' => FALSE,
+      ),
+      'issued_date' => array(
+        'description' => t('The issued date for the issue (Serials only).  ' .
+            'Supports most date formats including seasons of the year such as ' .
+            '"Spring 2020" - these are all translated to real dates for sorting ' .
+            'purposes.'),
+        'type' => 'varchar',
+        'length' => 30,
+        'not null' => FALSE,
+      ),
       'mods' => array(
         'description' => t('MODS xml created from CSV row for object'),
         'type' => 'text',

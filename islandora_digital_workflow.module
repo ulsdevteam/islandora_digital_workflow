@@ -842,9 +842,23 @@ function islandora_digital_workflow_islandora_object_ingested(AbstractObject $ob
     return;
   }
   if (is_object($object)) {
+    module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
     module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
-    $pid = $object->id;
-    $batch_item_ids = islandora_digital_workflow_get_batch_item_ids_by_assigned_pid($pid);
+    $identifier = islandora_digital_workflow_get_object_identifier($object);
+    if (variable_get('islandora_digital_workflow_store_workflow_history_json', 0)) {
+      // Get the JSON for this item and store it as a datastream.
+      // ONLY certain object types will have a corresponding item -- in other
+      // words, pages will never have a workflow item.
+      $object_is_an_item = TRUE;
+      $page_model_names = islandora_digital_workflow_get_page_model_names();
+      foreach ($object->models as $model) {
+        $object_is_an_item &= (array_search($model, $page_model_names) === FALSE);
+      }
+      if ($object_is_an_item) {
+        islandora_digital_workflow_insert_workflow_history_json($object);
+      }
+    }
+    $batch_item_ids = islandora_digital_workflow_get_batch_item_ids_by_identifier($identifier);
     if (is_array($batch_item_ids)) {
       foreach ($batch_item_ids as $batch_item_id) {
         islandora_digital_workflow_insert_transactions_record(IDW_ACTION_SYSTEM_INGESTED, $batch_item_id, NULL, 0);
@@ -904,9 +918,8 @@ function islandora_digital_workflow_islandora_datastream_ingested(AbstractObject
   // the object model's requirements.
   if ($success) {
     module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
-    $pid = $object->id;
-    @list($ns, $identifier) = explode(":", $pid, 2);
-    $batch_item_arr = islandora_digital_workflow_get_batch_item_ids_by_assigned_pid($pid);
+    $identifier = islandora_digital_workflow_get_object_identifier($object);
+    $batch_item_arr = islandora_digital_workflow_get_batch_item_ids_by_identifier($identifier);
     foreach ($batch_item_arr as $batch_item_id) {
       islandora_digital_workflow_insert_transactions_record(IDW_ACTION_SYSTEM_MADE_DERIVATIVES, NULL, $batch_item_id, 0);
     }

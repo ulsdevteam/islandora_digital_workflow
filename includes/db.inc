@@ -1675,7 +1675,7 @@ function islandora_digital_workflow_get_batch_item_id_by_identifier($identifier,
 
 /**
  * This will return the batch_item_id values of records that have a given
- * `assigned_pid` value.
+ * `identifier` value.
  *
  * There *should* only ever be one record returned for this query, but due to
  * the fact that multiple batches could have the same identifier, this code
@@ -1683,21 +1683,14 @@ function islandora_digital_workflow_get_batch_item_id_by_identifier($identifier,
  * only called from the "datastream ingested" hook and needs to set the
  * "system ingested" transaction for the item/s behind that object.
  *
- * @param string $assigned_pid
- *   The `assigned_pid` value of an islandora_digital_workflow_batch_item record.
+ * @param string $identifier
+ *   The `identifier` value of an islandora_digital_workflow_batch_item record.
  *
  * @return integer
- *   The batch_item_id value of the record that matches the "assigned_pid" value
+ *   The batch_item_id value of the record that matches the "identifier" value
  * of a record.
  */
-function islandora_digital_workflow_get_batch_item_ids_by_assigned_pid($assigned_pid) {
-  // Take the $assigned_pid value and strip off the namespace to get the identifier.
-  if (strstr($assigned_pid, ":")) {
-    @list($namespace, $identifier) = explode(":", $assigned_pid);
-  }
-  else {
-    $identifier = $assigned_pid;
-  }
+function islandora_digital_workflow_get_batch_item_ids_by_identifier($identifier) {
   $query = db_select('islandora_digital_workflow_batch_items', 'bi')
     ->fields('bi', array('batch_item_id'))
     ->condition('identifier', $identifier);
@@ -2650,7 +2643,7 @@ function islandora_digital_workflow_clear_islandora_batch_records($batch_item_id
 
     $ingest_namespace = islandora_digital_workflow_get_ingest_namespace($batch_record);
     $ingest_namespace_nocolon = rtrim($ingest_namespace, ':');
-    $item_assign_pid = (isset($batch_item_obj->assigned_pid) && $batch_item_obj->assigned_pid <> '') ? $batch_item_obj->assigned_pid :
+    $pid = (isset($batch_item_obj->assigned_pid) && $batch_item_obj->assigned_pid <> '') ? $batch_item_obj->assigned_pid :
       $ingest_namespace_nocolon . ':' . trim($batch_item_obj->identifier);
 
     $result = db_query("select q.sid, q.id from islandora_batch_queue q " .
@@ -2687,4 +2680,45 @@ function islandora_digital_workflow_clear_islandora_batch_records($batch_item_id
       ->condition('id', db_like($pid) . '%', 'LIKE')
       ->execute();
   }
+}
+
+/**
+ * Derives the workflow history for an object and stores it to the datastream
+ * configured for the Workflow `workflow_history_json_dsid` variable
+ * (islandora_digital_workflow_workflow_history_json_dsid).
+ *
+ * @param stdObject $object
+ *   The Islandora object for which to add the workflow history.
+ */
+function islandora_digital_workflow_insert_workflow_history_json($object) {
+  $identifier = islandora_digital_workflow_get_object_identifier($object);
+  // Get the identifier for the current object.
+  $batch_item_id = islandora_digital_workflow_get_batch_item_id_by_identifier($identifier, NULL, FALSE);
+
+  // Get the batch_item record
+  $item_record_results = islandora_digital_workflow_get_batch_item_record($batch_item_id);
+  $batch_item_obj = array_pop($item_record_results);
+
+  // Get the batch from the batch_item_id.
+  $batch_record = islandora_digital_workflow_get_batch_record_by_batch_id(NULL, $batch_item_id);
+
+  // Get all transactions for this item.
+  $transactions = islandora_digital_workflow_get_batch_item_transactions($batch_item_id, $batch_record['nid'], $batch_record['batch_id']);
+
+  $work_array = array('batch' => $batch_record);
+  foreach ($transactions as $transaction_record) {
+    $work_array['actions'][$transaction_record->timestamp] = (array)$transaction_record;
+  }
+  $work_array['item'] = (array)$batch_item_obj;
+  $json = json_encode($work_array, JSON_PRETTY_PRINT);
+  $datastream_id = variable_get('islandora_digital_workflow_workflow_history_json_dsid', 'WORKFLOW_JSON');
+  islandora_digital_workflow_add_datastream($object, $datastream_id, $json);
+}
+
+function islandora_digital_workflow_get_object_identifier($object) {
+  // Set the fallback value to the object's fedora PID.
+  $pid = $object->id;
+  @list($namespace, $identifier) = explode(":", $pid);
+  // Load the object --
+  return $identifier;
 }

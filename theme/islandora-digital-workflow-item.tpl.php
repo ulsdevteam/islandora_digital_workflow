@@ -328,11 +328,11 @@
       <tbody>
     <?php foreach ($drush_log_entries as $drush_log_entry): ?>
     <?php $toggle = !$toggle; ?>
-      <tr class="<?php print (($drush_log_entry->return_val) ? 'bad' : 'good') . ' ' . (($toggle) ? 'evenrow' : 'oddrow'); ?>">
+      <tr class="<?php print (($drush_log_entry->return_val) ? 'good': 'bad') . ' ' . (($toggle) ? 'evenrow' : 'oddrow'); ?>">
           <td><?php print $drush_log_entry->drush_command; ?></td>
           <td><?php print $drush_log_entry->user_link; ?></td>
           <td><?php print $drush_log_entry->timestamp; ?></td>
-          <td><?php print $drush_log_entry->return_val; ?></td>
+          <td><?php print ($drush_log_entry->return_val ? 'TRUE' : 'FALSE'); ?></td>
           <td><div class="as_terminal_output"><?php
           $drush_log_arr = unserialize($drush_log_entry->output);
           if (is_array($drush_log_arr)) : ?>
