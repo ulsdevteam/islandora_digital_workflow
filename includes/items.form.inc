@@ -155,7 +155,6 @@ function islandora_digital_workflow_add_items_form(array $form, array &$form_sta
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
   module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy_utilities');
-  module_load_include('inc', 'islandora_marc_utility', 'includes/upload_mrc.form');
 
   $batch_name = $node->title;
   $results = islandora_digital_workflow_find_batch_records_by_name($batch_name);
@@ -186,13 +185,26 @@ function islandora_digital_workflow_add_items_form(array $form, array &$form_sta
         // 1. MRC "application/marc".
         case "application/marc":
         case "application/octet-stream":
-          $marc_and_mods_records = islandora_marc_utility_mrc_split($tmp_uploaded_batch_items_file);
-          list($file_header, $file_rows) = islandora_digital_workflow_mrc_results_as_array($marc_and_mods_records);
+          if (module_exists('islandora_marc_utility')) {
+              module_load_include('inc', 'islandora_marc_utility', 'includes/upload_mrc.form');
+              $marc_and_mods_records = islandora_marc_utility_mrc_split($tmp_uploaded_batch_items_file);
+              list($file_header, $file_rows) = islandora_digital_workflow_results_as_array($marc_and_mods_records);
+          }
           break;
         // 2. MARCXML "application/xml".
         case "application/xml":
-          $marc_and_mods_records = islandora_marc_utility_marcxml_split($tmp_uploaded_batch_items_file);
-          list($file_header, $file_rows) = islandora_digital_workflow_mrc_results_as_array($marc_and_mods_records);
+            if ($model_name == 'islandora:manuscriptCModel') {
+                if (module_exists('islandora_ead_utility')) {
+                    module_load_include('inc', 'islandora_ead_utility', 'includes/upload_ead.form');
+                    $bibid_and_mods_records = islandora_ead_utility_eadxml_split($tmp_uploaded_batch_items_file);
+                    list($file_header, $file_rows) = islandora_digital_workflow_results_as_array($bibid_and_mods_records);
+                }
+            }
+            elseif (module_exists('islandora_marc_utility')) {
+                module_load_include('inc', 'islandora_marc_utility', 'includes/upload_mrc.form');
+                $marc_and_mods_records = islandora_marc_utility_marcxml_split($tmp_uploaded_batch_items_file);
+                list($file_header, $file_rows) = islandora_digital_workflow_results_as_array($marc_and_mods_records);
+            }
           break;
 
         default:

@@ -5,7 +5,6 @@ version = 7.x
 core = 7.x
 dependencies[] = islandora
 dependencies[] = islandora_solr
-dependencies[] = islandora_marc_utility
 
 # Several Drupal core modules that must be enabled in order to use:
 dependencies[] = views

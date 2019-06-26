@@ -3330,17 +3330,17 @@ function islandora_digital_workflow_test_RW($path, $require_write) {
 }
 
 /**
- * Returns only the MARC file references from a MARC array that potentially
+ * Returns only the file references from an array that potentially
  * contains MODS file references as well.
  *
- * @param array $mrc_results_arr
+ * @param array $results_arr
  *   Array of the identifiers MARC record
  * @return type
  */
-function islandora_digital_workflow_mrc_results_as_array($mrc_results_arr) {
+function islandora_digital_workflow_results_as_array($results_arr) {
   $rows = array();
-  foreach ($mrc_results_arr as $idx => $mrc_result_arr) {
-    $rows[] = array($mrc_result_arr['bib_id']);
+  foreach ($results_arr as $idx => $result_arr) {
+    $rows[] = array($result_arr['bib_id']);
   }
 
   $ret = array(array('bib_id'), $rows);
@@ -4133,6 +4133,20 @@ function islandora_digital_workflow_get_item_PID($namespace, $identifier) {
   return $PID;
 }
 
+/**
+ * This will ingest a new datastream made from $file_contents to the supplied
+ * $object and use the datastream identifier = $datastream_id.  This will
+ * either update the existing datastream if it exists on the object, or it will
+ * create a new datastream.
+ *
+ * @param stdObject $object
+ * @param string $datastream_id
+ *   The datastream identifier.
+ * @param string $file_contents
+ *   The contents to store in the new datastream.
+ * @return array
+ *   An array with success and message info.
+ */
 function islandora_digital_workflow_add_datastream($object, $datastream_id, $file_contents) {
   try {
     $ingest = !isset($object[$datastream_id]);

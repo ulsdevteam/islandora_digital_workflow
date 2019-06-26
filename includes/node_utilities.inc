@@ -29,6 +29,18 @@ function islandora_digital_workflow_sync_node_batch_record_info($node, $form_sta
   $batch_name = (is_object($node)) ? $node->title :
       $form_state['values']['batch_name'];
   $batch_record = islandora_digital_workflow_get_batch_record_by_name($batch_name);
+
+  // This is needed to determine whether or not to allow a CSV file upload.
+  $readable_models = islandora_digital_workflow_get_reduced_readable_cmodels();
+  $content_types_vocab = taxonomy_vocabulary_machine_name_load(IDW_CONTENT_TYPE_TAXONOMY_MACHINE_NAME);
+  if (!(array_key_exists($batch_record['default_type_of_resource'], $readable_models) === FALSE)) {
+    $cmodel = $batch_record['default_type_of_resource'];
+    $tid_for_cmodel_selected = islandora_digital_workflow_get_tid_by_name($cmodel, $content_types_vocab);
+  }
+  else {
+    $tid_for_cmodel_selected = '';
+  }
+  $model_name = islandora_digital_workflow_get_name_of_tid($tid_for_cmodel_selected);
   $node = (is_object($node)) ? $node : (($batch_record['nid'] > 0) ? node_load($batch_record['nid']) : NULL);
   $marc_and_mods_records = array();
   if ($batch_items_filename) {
@@ -37,15 +49,29 @@ function islandora_digital_workflow_sync_node_batch_record_info($node, $form_sta
       // 1. MRC "application/marc".
       case "application/marc":
       case "application/octet-stream":
-        $marc_and_mods_records = islandora_marc_utility_mrc_split($batch_items_filename);
-        list($file_header, $file_rows) = islandora_digital_workflow_mrc_results_as_array($marc_and_mods_records);
-        $arr = array('header' => $file_header, 'rows' => $file_rows);
+        if (module_exists('islandora_marc_utility')) {
+            module_load_include('inc', 'islandora_marc_utility', 'includes/upload_mrc.form');
+            $marc_and_mods_records = islandora_marc_utility_mrc_split($batch_items_filename);
+            list($file_header, $file_rows) = islandora_digital_workflow_results_as_array($marc_and_mods_records);
+            $arr = array('header' => $file_header, 'rows' => $file_rows);
+        }
         break;
       // 2. MARCXML "application/xml".
       case "application/xml":
-        $marc_and_mods_records = islandora_marc_utility_marcxml_split($batch_items_filename);
-        list($file_header, $file_rows) = islandora_digital_workflow_mrc_results_as_array($marc_and_mods_records);
-        $arr = array('header' => $file_header, 'rows' => $file_rows);
+        if ($model_name == 'islandora:manuscriptCModel') {
+            if (module_exists('islandora_ead_utility')) {
+                module_load_include('inc', 'islandora_ead_utility', 'includes/upload_ead.form');
+                $bibid_and_mods_records = islandora_ead_utility_eadxml_split($tmp_uploaded_batch_items_file);
+                list($file_header, $file_rows) = islandora_digital_workflow_results_as_array($bibid_and_mods_records);
+                $arr = array('header' => $file_header, 'rows' => $file_rows);
+            }
+        }
+        elseif (module_exists('islandora_marc_utility')) {
+            module_load_include('inc', 'islandora_marc_utility', 'includes/upload_mrc.form');
+            $marc_and_mods_records = islandora_marc_utility_marcxml_split($batch_items_filename);
+            list($file_header, $file_rows) = islandora_digital_workflow_results_as_array($marc_and_mods_records);
+            $arr = array('header' => $file_header, 'rows' => $file_rows);
+        }
         break;
 
       default:

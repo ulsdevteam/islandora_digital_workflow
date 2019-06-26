@@ -60,7 +60,6 @@ The Islandora Digital Workflow module relies on some other modules in order to b
 **Required modules:**
  - [Islandora](https://github.com/Islandora/islandora) The Islandora core module.
  - [Islandora Solr Search](https://github.com/Islandora/islandora_solr_search.git) - Searches an Islandora Solr index.
- - [Islandora MARC Utility](https://github.com/ulsdevteam/islandora_marc_utility.git) - MARC utilities for parsing MARC mrc or MARCXML (collection) files.
  - [Forena](https://git.drupal.org/project/forena.git) | [ulsdevteam "Forena"](https://github.com/ulsdevteam/forena.git) *The ulsdevteam feature branch of Forena reports adds a Description value to the reports.  If the ulsdevteam branch of this module is installed or if the code is eventually merged into Forena, the descriptions of reports would be displayed -- else, only their Titles can be displayed.*
  - Taxonomy (Drupal core module must be enabled)
  - [Views](https://git.drupal.org/project/views.git)
@@ -71,6 +70,8 @@ The Islandora Digital Workflow module relies on some other modules in order to b
  - [Rules](https://git.drupal.org/project/rules.git)
  - [Islandora METS Editor](https://github.com/ulsdevteam/islandora_mets_editor.git) To provide a way to create, edit, manage METS files in Islandora.
  - [Islandora MARC XML](https://github.com/Islandora/islandora_marcxml) An Islandora module which performs transformations between MODS and MARCXML.  When present, the configuration will add the transforms to the "MARC to MODS Transform" selection choices.
+ - [Islandora MARC Utility](https://github.com/ulsdevteam/islandora_marc_utility.git) - MARC utilities for parsing MARC mrc or MARCXML (collection) files.
+ - [Islandora EAD Utility](https://github.com/ulsdevteam/islandora_ead_utility.git) - EAD utilities for parsing EAD xml and creating individual MODS files from the various <did> containers.
  - [Islandora Digitization Requests](https://github.com/ulsdevteam/islandora_digitization_requests.git) A module that allow for the creation of Webforms and the other to allow use of these to handle Digitization Request submissions.  For more information on how this works with the Islandora Digital Workflow, please see the ["Digitization Requests" documentation](docs/DigitizationRequests.md).
 
 **Islandora Batch Ingest Modules**
