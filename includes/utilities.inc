@@ -2258,6 +2258,7 @@ function islandora_digital_workflow_array_to_csv($array) {
  *   Array of required / optional dasastreams for model_requirements
  */
 function islandora_digital_workflow_object_model_datastream_requirements($model_pid) {
+  module_load_include('inc', 'islandora', 'includes/utilities');
   $model = @islandora_object_load($model_pid);
   if (isset($model) && $model) {
     $ds_reqs = islandora_get_datastreams_requirements_from_content_model($model);
@@ -2585,7 +2586,9 @@ function islandora_digital_workflow_check_and_deploy_forena_reports() {
     // Perform the file deployment from the islandora_digital_workflow/forena_reports
     // folder locations into the FRX and SQL folders.
     // Only deploy the FRX files if they do not exist
-    if (count($frx_files) < 1) {
+    if ((array_key_exists('batch_completedness.frx', $frx_files) === FALSE) ||
+        (array_key_exists('batch_stats.frx', $frx_files) === FALSE) ||
+        (array_key_exists('single_batch_stats.frx', $frx_files) === FALSE)) {
       $from =  $this_folder . '/forena_reports/frx';
       $to = $sites_location . $forena_frx_path;
       islandora_digital_workflow_deploy_files_to_forena_install($from, $to);
@@ -2596,7 +2599,11 @@ function islandora_digital_workflow_check_and_deploy_forena_reports() {
           )), 'message_info');
     }
     // Only deploy the SQL files if they do not exist
-    if (count($sql_files) < 1) {
+    if ((array_key_exists('batch_completedness.sql', $sql_files) === FALSE) ||
+        (array_key_exists('batch_stats.sql', $sql_files) === FALSE) ||
+        (array_key_exists('batch_transactions.sql', $sql_files) === FALSE) ||
+        (array_key_exists('single_batch_details.sql', $sql_files) === FALSE) ||
+        (array_key_exists('single_batch_stats.sql', $sql_files) === FALSE)) {
       $from = $this_folder . '/forena_reports/sql';
       $to = $sites_location . $forena_sql_path;
       islandora_digital_workflow_deploy_files_to_forena_install($from, $to);
