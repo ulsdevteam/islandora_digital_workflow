@@ -78,7 +78,7 @@
           <th class="numeric">Size (bytes)</th>
         </tr>
 
-        <?php $items_found_files = $found_files[$item->identifier]; ?>
+        <?php $items_found_files = (array_key_exists($item->identifier, $found_files) ? $found_files[$item->identifier] : array()); ?>
         <?php foreach ($items_found_files as $filename => $file_info) { ?>
           <?php if (strstr($file_info['scan_path'], '/' . $item->identifier . '/')) : ?>
             <?php if ($last_path <> $file_info['scan_path']) { $last_path =  $file_info['scan_path']; } ?>
