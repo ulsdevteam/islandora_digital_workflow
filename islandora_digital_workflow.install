@@ -294,6 +294,12 @@ function islandora_digital_workflow_schema() {
         'size' => 'normal',
         'not null' => TRUE,
       ),
+      'scan_specs' => array(
+        'description' => t('Scanning specifications'),
+        'type' => 'text',
+        'size' => 'normal',
+        'not null' => TRUE,
+      ),
       'batch_priority_tid' => array(
         'description' => t('Batch priority (Drupal taxonomy term tid value)'),
         'type' => 'int',

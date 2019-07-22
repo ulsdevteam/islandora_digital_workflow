@@ -43,7 +43,7 @@ and open the template in the editor.
     background: url("../images/ingest-item-into-repository_20.png") 0px 0px no-repeat !important;
 }
 
-.transaction_action_system_ingest {
+.transaction_action_system_has_ingested_item_into_repository {
     background: url("../images/system-ingested-item-into-repository_20.png") 0px 0px no-repeat !important;
 }
 
@@ -131,14 +131,14 @@ div.transaction_action_rescan,
 div.transaction_action_system_made_derivatives,
 div.transaction_action_check_physical_items,
 div.transaction_action_mets_created,
-
 div.transaction_action_spacer,
 div.transaction_action_inactive,
 div.transaction_action_mods_record_updated,
 div.transaction_action_add_marc_record,
 div.transaction_action_metadata_completed,
-div.transaction_action_metadata_passed_qc, 
-div.transaction_action_metadata_failed_qc, 
+div.transaction_action_metadata_passed_qc,
+div.transaction_action_metadata_failed_qc,
+div.transaction_action_system_has_ingested_item_into_repository,
 div.transaction_action_problem,
 div.transaction_action_publish_object,
 div.transaction_action_unconfigured_reserved_action {

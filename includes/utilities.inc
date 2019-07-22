@@ -37,6 +37,7 @@ function islandora_digital_workflow_create_stub_batch_record($form_state) {
     $field_values = array(
         'batch_name' => $batch_name,
         'batch_description' => $form_state['values']['batch_description'],
+        'scan_specs' => $form_state['values']['scan_specs'],
         'default_type_of_resource' => $form_state['values']['default_type_of_resource'],
         'islandora_model' => islandora_digital_workflow_get_name_of_tid($form_state['values']['cmodel_select']),
         'is_batch_active' => 0,

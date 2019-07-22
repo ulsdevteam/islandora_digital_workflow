@@ -152,6 +152,15 @@ function islandora_digital_workflow_admin_form() {
           '#default_value' => variable_get('islandora_digital_workflow_solr_field_value_uses_namespace', 0),
         ),
       ),
+      'default_scan_specs' => array(
+        '#type' => 'textarea',
+        '#title' => t('Default Scanning Specifications'),
+        '#attributes' => array(
+            'placeholder' => t('Default scanning specifications')),
+        '#description' => t('Each batch may override this value.'),
+        '#required' => true,
+        '#default_value' => variable_get('islandora_digital_workflow_default_scan_specs', t('Default scanning specifications')),
+      ),
       'top_level_collection' => array(
         '#type' => 'textfield',
         '#title' => t('Top level collection'),
@@ -414,6 +423,7 @@ function islandora_digital_workflow_admin_form_submit(array $form, array &$form_
       variable_set('islandora_digital_workflow_solr_field_value_uses_namespace', $form_state['values']['solr_field_value_uses_namespace']);
       variable_set('islandora_digital_workflow_solr_identifer_field', $form_state['values']['solr_identifer_field']);
       variable_set('islandora_digital_workflow_solr_namespace_field', $form_state['values']['solr_namespace_field']);
+      variable_set('islandora_digital_workflow_default_scan_specs', $form_state['values']['default_scan_specs']);
       variable_set('islandora_digital_workflow_top_level_collection', $form_state['values']['top_level_collection']);
       variable_set('islandora_digital_workflow_ingest_delivery_path', $form_state['values']['ingest_delivery_path']);
       variable_set('islandora_digital_workflow_ingest_prepared_path', $form_state['values']['ingest_prepared_path']);
@@ -503,6 +513,7 @@ function islandora_digital_workflow_admin_form_submit(array $form, array &$form_
       variable_del('islandora_digital_workflow_solr_field_value_uses_namespace');
       variable_del('islandora_digital_workflow_solr_identifer_field');
       variable_del('islandora_digital_workflow_solr_namespace_field');
+      variable_del('islandora_digital_workflow_default_scan_specs');
       variable_del('islandora_digital_workflow_top_level_collection');
       variable_del('islandora_digital_workflow_ingest_ignore_filenames');
       drupal_set_message('[' . date('H:i:s') . '] The settings have been reset.');

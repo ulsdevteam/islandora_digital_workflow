@@ -161,7 +161,12 @@ function islandora_digital_workflow_create_empty_batch_form(array $form, array &
       '#description' => t('Description of the items in this batch.'),
       '#default_value' => '',
     ),
-
+    'scan_specs' => array(
+      '#type' => 'textarea',
+      '#title' => t('Scanning Specifications'),
+      '#required' => true,
+      '#default_value' => variable_get('islandora_digital_workflow_default_scan_specs', t('Default scanning specifications')),
+    ),
     // Is a request? checkbox
     'meta_defaults_frame' => array(
       '#title' => 'Metadata defaults',
