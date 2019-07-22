@@ -66,7 +66,8 @@ function islandora_digital_workflow_get_dashboard_links() {
   foreach ($stages_terms as $tid => $stage_obj) {
     $node_count = islandora_digital_workflow_get_count_of_nodes_by_tid('field_stage', $tid);
     $link_att = array('attributes' => array('title' => $stage_obj->description));
-    $links['batch_stages'][] = l($stage_obj->name, '/islandora/islandora_digital_workflow/batches/' . $tid, $link_att) .
+
+    $links['batch_stages'][] = l($stage_obj->name, '/taxonomy/term/' . $tid . '/view', $link_att) .
         ($node_count ? ' <span class="small_lt_text">- ' . $node_count . ' batch' . ($node_count == 1 ? '' : 'es'). '</span>' : '');
   }
 
