@@ -996,7 +996,7 @@ function islandora_digital_workflow_get_batch_items_by_nid($nid) {
        JOIN islandora_digital_workflow_transactions wft ON (wft.action_id = wfa.action_id)
        WHERE wft.transaction_id = MAX(bt.transaction_id)) as `last_action`,
       (MAX(bt.timestamp)) as `when`,
-      GROUP_CONCAT(DISTINCT a.name) as `transaction_actions`,
+      GROUP_CONCAT(DISTINCT a.description) as `transaction_actions`,
       GROUP_CONCAT(DISTINCT a.action_id) as `transaction_action_ids`,
       bi.progress, bi.batch_item_id
   FROM islandora_digital_workflow_batch b
@@ -1884,8 +1884,9 @@ function islandora_digital_workflow_get_required_batch_actions($batch_id = NULL,
   $query->fields('wsa', array('is_publish_prerequisite', 'is_ingest_prerequisite', 'islandora_model'));
   $query->addField('wsa', 'order', 'action_order');
   $query->join('islandora_digital_workflow_actions', 'wa', 'wsa.action_id = wa.action_id');
-  $query->fields('wa', array('description', 'action_id'));
+  $query->fields('wa', array('action_id'));
   $query->addField('wa', 'name', 'action_name');
+  $query->addField('wa', 'description', 'action_description');
   if ($batch_id) {
     $query->condition('b.batch_id', $batch_id);
   }
@@ -1901,7 +1902,8 @@ function islandora_digital_workflow_get_required_batch_actions($batch_id = NULL,
     $return_rows[] = array(
         'batch_id' => $row->batch_id,
         'batch_action_name' => $row->action_name,
-        'batch_action_description' => $row->description,
+//        'batch_action_description' => $row->description,
+        'batch_action_description' => $row->action_description,
         'is_publish_prerequisite' => $row->is_publish_prerequisite,
         'is_ingest_prerequisite' => $row->is_ingest_prerequisite,
         'islandora_model' => $row->islandora_model,
