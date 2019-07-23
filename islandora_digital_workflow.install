@@ -987,13 +987,21 @@ function islandora_digital_workflow_add_workflow_batch_priority_taxonomy_terms()
  *   The term identifier for the "Problem" term in the Stages vocabulary.
  * @global integer $inactive_tid
  *   The term identifier for the "Inactive" term in the Stages vocabulary.
- * @global integer $inprocess_tid
- *   The term identifier for the "In Process" term in the Stages vocabulary.
+ * @global integer $inscanning_tid
+ *   The term identifier for the "In Scanning" term in the Stages vocabulary.
+ * @global integer $new_stage_term
+ *   The term identifier for the "New" term in the Stages vocabulary.
+ * @global integer $readymets_tid
+ *   The term identifier for the "Ready for METS Metadata" term in the Stages vocabulary.
+ * @global integer $readymetadata_tid
+ *   The term identifier for the "Ready for Descriptive Metadata" term in the Stages vocabulary.
  */
 function islandora_digital_workflow_add_workflow_stage_taxonomy_terms() {
   global $problem_tid;
   global $inactive_tid;
-  global $inprocess_tid;
+  global $inscanning_tid;
+  global $readymetadata_tid;
+  global $readymets_tid;
   global $metadata_review_tid;
   global $done_tid;
   global $new_stage_term;
@@ -1032,20 +1040,35 @@ function islandora_digital_workflow_add_workflow_stage_taxonomy_terms() {
   taxonomy_term_save($term);
 
   $term = (object) array(
-   'name' => t('Metadata Review'),
-   'description' => t('Metadata review for batches when all metadata has been "completed", but may still need to be quality-controlled.'),
+   'name' => t('Metadata in Review'),
+   'description' => t('Metadata review for batches when all metadata has been "completed", but may still need to pass quality-controlled.'),
    'vid' => $vocab->vid,
   );
   taxonomy_term_save($term);
   $metadata_review_tid = islandora_digital_workflow_get_tid_by_name($term->name, $vocab);
 
   $term = (object) array(
-   'name' => t('In Process'),
-   'description' => t('Batch in processing -- automatically contains batches that have had any item checked in -- and not all items checked out.'),
+   'name' => t('In Scanning'),
+   'description' => t('Stage for a batch where the scanning has started on any one of the items.'),
    'vid' => $vocab->vid,
   );
   taxonomy_term_save($term);
-  $inprocess_tid = islandora_digital_workflow_get_tid_by_name($term->name, $vocab);
+  $inscanning_tid = islandora_digital_workflow_get_tid_by_name($term->name, $vocab);
+  $term = (object) array(
+   'name' => t('Ready for Descriptive Metadata'),
+   'description' => t('Stage for when all objects have been ingested and ready for archive staff to add descriptive metadata (MODS) -- applies only to batch of images.'),
+   'vid' => $vocab->vid,
+  );
+  taxonomy_term_save($term);
+  $readymetadata_tid = islandora_digital_workflow_get_tid_by_name($term->name, $vocab);
+
+  $term = (object) array(
+   'name' => t('Ready for METS Metadata'),
+   'description' => t('Stage for a batch of objects that are ready for structural metadata to be created and the images of scans to be reviewed'),
+   'vid' => $vocab->vid,
+  );
+  taxonomy_term_save($term);
+  $readymets_tid = islandora_digital_workflow_get_tid_by_name($term->name, $vocab);
 
   $term = (object) array(
    'name' => t('Inactive'),
@@ -1071,13 +1094,22 @@ function islandora_digital_workflow_add_workflow_stage_taxonomy_terms() {
  *   The term identifier for the "Problem" term in the Stages vocabulary.
  * @global integer $inactive_tid
  *   The term identifier for the "Inactive" term in the Stages vocabulary.
- * @global integer $inprocess_tid
- *   The term identifier for the "In Process" term in the Stages vocabulary.
+ * @global integer $inscanning_tid
+ *   The term identifier for the "In Scanning" term in the Stages vocabulary.
+ * @global integer $new_stage_term
+ *   The term identifier for the "New" term in the Stages vocabulary.
+ * @global integer $readymets_tid
+ *   The term identifier for the "Ready for METS Metadata" term in the Stages vocabulary.
+ * @global integer $readymetadata_tid
+ *   The term identifier for the "Ready for Descriptive Metadata" term in the Stages vocabulary.
  */
 function islandora_digital_workflow_insert_islandora_digital_workflow_actions() {
   global $problem_tid;
   global $inactive_tid;
-  global $inprocess_tid;
+  global $inscanning_tid;
+  global $readymetadata_tid;
+  global $readymets_tid;
+  global $new_stage_term;
   global $metadata_review_tid;
   global $done_tid;
 
@@ -1087,10 +1119,14 @@ function islandora_digital_workflow_insert_islandora_digital_workflow_actions() 
       'name' => 'check-in',
       'description' => t('Check in physical item'),
       'glyph' => 'images/check-in-physical-item_20.png',
-      'stage_taxonomy_tid' => $inprocess_tid,
+      'stage_taxonomy_tid' => $inscanning_tid,
       'is_triggered_by_single_item' => 1,
-      'stage_taxonomy_tid_pc' => $inprocess_tid,
+      'stage_taxonomy_tid_pc' => $inscanning_tid,
       'is_triggered_by_single_item_pc' => 1,
+      'stage_taxonomy_tid_rm' => $new_stage_term,
+      'is_triggered_by_single_item_rm' => 1,
+      'stage_taxonomy_tid_rm_pc' => $new_stage_term,
+      'is_triggered_by_single_item_rm_pc' => 1,
     ),
     IDW_ACTION_ADD_MARC_RECORD => array(
       'name' => 'add-marc-record',
@@ -1186,6 +1222,14 @@ function islandora_digital_workflow_insert_islandora_digital_workflow_actions() 
       'extra_info' => t('This action is set by the system at the point in time when the derivative creation has been completed for the object.'),
       'glyph' => 'images/system-made-derivatives_20.png',
       'is_system_action' => 1,
+      'stage_taxonomy_tid' => $readymetadata_tid,
+      'is_triggered_by_single_item' => 0,
+      'stage_taxonomy_tid_pc' => $readymets_tid,
+      'is_triggered_by_single_item_pc' => 0,
+      'stage_taxonomy_tid_rm' => $inscanning_tid,
+      'is_triggered_by_single_item_rm' => 0,
+      'stage_taxonomy_tid_rm_pc' => $inscanning_tid,
+      'is_triggered_by_single_item_rm_pc' => 0,
     ),
     IDW_ACTION_METS_CREATED => array(
       'name' => 'mets-created',

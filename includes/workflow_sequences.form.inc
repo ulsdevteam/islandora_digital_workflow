@@ -1053,7 +1053,7 @@ function islandora_digital_workflow_actions_form(array $form, array &$form_state
                 ' / 1' : ' / all') .
              '</span>' : '');
     $trigger_remove_stage = (isset($action_record_array['rm_term_name']) ?
-            '<span class="paged_20" title="Triggered ' . (($action_record_array['is_triggered_by_single_item_rm'])  ?
+            '<span class="object_20" title="Triggered ' . (($action_record_array['is_triggered_by_single_item_rm'])  ?
               'by action on a single item' : 'when action has been added to all items in a batch') .'">' .
               $action_record_array['rm_term_name'] .
               (($action_record_array['is_triggered_by_single_item_rm']) ?
