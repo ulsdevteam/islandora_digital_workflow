@@ -40,10 +40,10 @@
     </div>
     <br class="break_float">
     <?php endif; ?>
-
-    <label>Batch description:</label> <?php print $batch_record['batch_description']; ?>
+    <label>Batch description:</label> <div><?php print $batch_record['batch_description']; ?></div>
     <?php if ($batch_mapped_from_webformsubmission) : ?>
     <br><label>Submission: </label> <a class="link_open_new_tab" title="link opens in separate tab" target="_blank" href="/node/<?php print $batch_mapped_from_webformsubmission->nid; ?>/submission/<?php print $batch_mapped_from_webformsubmission->sid; ?>">"<?php print $batch_mapped_from_webformsubmission->title; ?>" #<?php print $batch_mapped_from_webformsubmission->sid; ?></a>
     <?php endif; ?>
+    <label>Scanning specifications:</label> <div><?php print ($batch_record['scan_specs'] ? $batch_record['scan_specs'] : '&nbsp;'); ?></div>
 </div>
 <?php endif; ?>

@@ -121,6 +121,9 @@ function islandora_digital_workflow_create_batch_record_by_form($form_state, $no
     if (array_key_exists('batch_description', $form_state['values'])) {
       $field_values['batch_description'] = $form_state['values']['batch_description'];
     }
+    if (array_key_exists('scan_specs', $form_state['values'])) {
+      $field_values['scan_specs'] = $form_state['values']['scan_specs'];
+    }
     if (array_key_exists('is_batch_active', $form_state['values'])) {
       $field_values['is_batch_active'] = $form_state['values']['is_batch_active'];
     }
