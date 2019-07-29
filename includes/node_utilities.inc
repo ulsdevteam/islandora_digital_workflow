@@ -20,6 +20,7 @@
 function islandora_digital_workflow_sync_node_batch_record_info($node, $form_state, $batch_items_filename = '', $update_node = TRUE) {
   global $system_creating_nodes;
   $system_creating_nodes = TRUE;
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy_utilities');
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
 

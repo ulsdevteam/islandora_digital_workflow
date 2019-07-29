@@ -21,6 +21,7 @@
  */
 function islandora_digital_workflow_create_stub_batch_record($form_state) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy_utilities');
 
   global $user;
   if (is_array($form_state) && isset($form_state['values']['batch_name'])
