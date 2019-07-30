@@ -3744,7 +3744,7 @@ function islandora_digital_workflow_inject_default_value_to_mods($batch_record_v
   if ($batch_record_value <> '') {
     // perform an XSL transform that can inject the given MODS fieldname.
     $xsl_template_contents = theme('islandora_digital_workflow_xsl_' . $mods_fieldname,
-        array('value' => $batch_record_value));
+        array('value' => htmlentities($batch_record_value)));
     $temp_xsl_filename = drupal_realpath(drupal_tempnam('temporary://', 'xsl_template_' . $mods_fieldname));
     file_put_contents($temp_xsl_filename, $xsl_template_contents);
     $mods_content = islandora_digital_workflow_convert_smart_quotes(file_get_contents($mods_filename));
