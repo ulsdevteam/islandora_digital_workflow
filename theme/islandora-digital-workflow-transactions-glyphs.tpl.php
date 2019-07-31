@@ -23,17 +23,18 @@
         </small>
     </div>
     <?php endif; ?>
-
     <?php foreach ($transaction_actions as $transaction_action) {
       // Since this set of actions can be used for a batch to represent required
-      // actions AS WELL AS to display just the descriptions of the actions that 
+      // actions AS WELL AS to display just the descriptions of the actions that
       // are related to the batch / batch_item, this needs to inspect the variable
       $transaction_action_description = (is_array($transaction_action) &&
           array_key_exists('batch_action_description', $transaction_action)) ?
-              $transaction_action['batch_action_description'] : $transaction_action;
+              $transaction_action['batch_action_description'] :
+          ((array_key_exists('description', $transaction_action)) ? $transaction_action['description'] : '');
       $transaction_action_name = (is_array($transaction_action) &&
           array_key_exists('batch_action_name', $transaction_action)) ?
-              $transaction_action['batch_action_name'] : $transaction_action;
+              $transaction_action['batch_action_name'] :
+          ((array_key_exists('name', $transaction_action)) ? $transaction_action['name'] : '');
 
       $required_class = (is_array($transaction_action) &&
           array_key_exists('is_publish_prerequisite', $transaction_action)) ?
@@ -43,7 +44,8 @@
       }
       else {
         $class_name = (($transaction_action_name) ? 'transaction_action_' . strtolower(str_replace(array("-", " ", "transaction_action_"), array("_", "_", ""), $transaction_action_name)) : 'transaction_action_spacer');
-      } ?>
+      }
+      ?>
     <div class="<?php print $class_name . $required_class;?>" title="<?php print $transaction_action_description; ?>">&nbsp;</div>
     <?php } ?>
 </div><br class="double_space">

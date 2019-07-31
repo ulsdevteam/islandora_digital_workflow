@@ -64,7 +64,7 @@ function islandora_digital_workflow_add_item_form(array $form, array &$form_stat
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
 
   $batch_name = $node->title;
-  $results = islandora_digital_workflow_find_batch_records_by_name($batch_name);
+  $results = islandora_digital_workflow_find_batch_records_by_name($batch_name, TRUE);
   $batch_record = array_pop($results);
   $batch_record_arr = (array)$batch_record;
 
@@ -157,7 +157,7 @@ function islandora_digital_workflow_add_items_form(array $form, array &$form_sta
   module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy_utilities');
 
   $batch_name = $node->title;
-  $results = islandora_digital_workflow_find_batch_records_by_name($batch_name);
+  $results = islandora_digital_workflow_find_batch_records_by_name($batch_name, TRUE);
   $batch_record = array_pop($results);
   $batch_record_arr = (array)$batch_record;
 
@@ -373,7 +373,7 @@ function islandora_digital_workflow_batch_items_form(array $form, array &$form_s
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
 
   $batch_name = $node->title;
-  $results = islandora_digital_workflow_find_batch_records_by_name($batch_name);
+  $results = islandora_digital_workflow_find_batch_records_by_name($batch_name, TRUE);
   $batch_record = (array) array_pop($results);
 
   // Prepare various objects for the dynamic form generation...
@@ -681,7 +681,6 @@ function islandora_digital_workflow_batch_items_form(array $form, array &$form_s
            'or "Delete Items" ' : '' ) . 'above</i></small>',
       '#suffix' => '<hr>' . $workflow_sequence_text,
     );
-
   return $form;
 }
 
@@ -697,12 +696,14 @@ function islandora_digital_workflow_batch_items_form(array $form, array &$form_s
  */
 function islandora_digital_workflow_batch_items_form_submit(array $form, array &$form_state) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
+
   $selected_identifiers = array_filter($form_state['values']['items']);
   $using__batch_id = $form_state['values']['using__batch_id'];
   $add_action_id = $form_state['values']['add_batch_action'];
   $problem_notes = $form_state['values']['problem_notes'];
   $remove_action_id = $form_state['values']['remove_batch_action'];
   $batch_item_ids = array();
+
   switch ($form_state['values']['op']) {
     case t('Delete'):
       foreach ($selected_identifiers as $identifier) {
@@ -717,7 +718,7 @@ function islandora_digital_workflow_batch_items_form_submit(array $form, array &
       $nid = arg(1);
       $node = node_load($nid);
       $batch_name = $node->title;
-      $results = islandora_digital_workflow_find_batch_records_by_name($batch_name);
+      $results = islandora_digital_workflow_find_batch_records_by_name($batch_name, TRUE);
       $batch_record = (array) array_pop($results);
       $default_type_of_resources = islandora_digital_workflow_get_default_type_of_resource_options(TRUE);
 
@@ -747,6 +748,7 @@ function islandora_digital_workflow_batch_items_form_submit(array $form, array &
         $could_not_be_processed = array();
         foreach ($selected_identifiers as $identifier) {
           $batch_item_id = islandora_digital_workflow_get_batch_item_id_by_identifier($identifier, $using__batch_id);
+
           if ($add_action_id) {
             if (!islandora_digital_workflow_insert_transactions_record($add_action_id, NULL, $batch_item_id, NULL, $problem_notes)) {
               $could_not_be_processed[] = $identifier;

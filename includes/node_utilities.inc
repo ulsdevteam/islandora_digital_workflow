@@ -141,6 +141,7 @@ function islandora_digital_workflow_sync_node_batch_record_info($node, $form_sta
  */
 function islandora_digital_workflow_set_node_stage($nid, $stage_name = '', $stage_tid = FALSE, $is_removal = FALSE) {
   module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy_utilities');
+
   $node = node_load($nid);
   if (is_object($node)) {
     $stages_vocab = taxonomy_vocabulary_machine_name_load(IDW_STAGE_TAXONOMY_MACHINE_NAME);

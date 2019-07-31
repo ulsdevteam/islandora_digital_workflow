@@ -196,11 +196,17 @@ function islandora_digital_workflow_update_batch($batch_id, $field_values) {
  * @return mixed
  *   Either returns an array of batch record objects or NULL if it cannot be found.
  */
-function islandora_digital_workflow_find_batch_records_by_name($batch_name) {
+function islandora_digital_workflow_find_batch_records_by_name($batch_name, $exact = FALSE) {
   if ($batch_name) {
     $query = db_select('islandora_digital_workflow_batch', 'b')
-        ->fields('b')
-        ->condition('b.batch_name', '%' . db_like($batch_name) . '%', 'LIKE');
+        ->fields('b');
+
+    if ($exact) {
+        $query->condition('b.batch_name', $batch_name);
+    }
+    else {
+        $query->condition('b.batch_name', '%' . db_like($batch_name) . '%', 'LIKE');
+    }
     $results = $query->execute();
     $rows = $results->fetchAll();
     return $rows;
@@ -1028,7 +1034,7 @@ function islandora_digital_workflow_get_batch_items_by_nid($nid) {
         $required_action_id = $required_batch_action['action_id'];
         $exploded_key = (!array_search($required_action_id, $transaction_action_ids_array) === FALSE) ? array_search($required_action_id, $transaction_action_ids_array) : FALSE;
         $transactions[$i] = (!$exploded_key === FALSE) ?
-          $transaction_actions_array[$exploded_key] : '';
+          array('description' => $transaction_actions_array[$exploded_key], 'name' => $required_batch_action['batch_action_name']) : array('');
         $i++;
       }
 
