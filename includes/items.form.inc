@@ -670,12 +670,19 @@ function islandora_digital_workflow_batch_items_form(array $form, array &$form_s
       '#type' => 'submit',
       '#value' => t('Modify transactions'),
   );
+  $no_sequence_warning = ($batch_record['workflow_sequence_id'] && count($items) > 0) ? '' :
+      t('<div class="messages error">This batch does not have a <b>' .
+      l(t('Workflow Sequence'), 'node/' . $node->nid . '/batch') .
+      '</b> associated with it.  Any actions for the items below ' .
+      'would not display until that sequence is configured.  Click individual ' .
+      'items below to view their transactions.</div>');
   $form['items'] = array(
       '#type' => 'tableselect',
       '#header' => $items_header,
       '#options' => $options,
       '#empty' => 'There are no items in the batch.',
-      '#prefix' => '<small><i>Use the checkboxes in the table below to select ' .
+      '#prefix' => $no_sequence_warning .
+          '<small><i>Use the checkboxes in the table below to select ' .
           'item/s for "Add / Remove Transactions" ' .
           (user_access(ISLANDORA_DIGITAL_WORKFLOW_DELETE_ITEMS) ?
            'or "Delete Items" ' : '' ) . 'above</i></small>',
