@@ -23,7 +23,6 @@ function islandora_digital_workflow_sync_node_batch_record_info($node, $form_sta
   module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy_utilities');
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
   module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
-
   if (!$batch_items_filename && (isset($_SESSION['uploaded_batch_items_filename']))) {
     $batch_items_filename = $_SESSION['uploaded_batch_items_filename'];
   }
@@ -59,13 +58,12 @@ function islandora_digital_workflow_sync_node_batch_record_info($node, $form_sta
         break;
       // 2. MARCXML "application/xml".
       case "application/xml":
-        if ($model_name == 'islandora:manuscriptCModel') {
-            if (module_exists('islandora_ead_utility')) {
-                module_load_include('inc', 'islandora_ead_utility', 'includes/upload_ead.form');
-                $bibid_and_mods_records = islandora_ead_utility_eadxml_split($tmp_uploaded_batch_items_file);
-                list($file_header, $file_rows) = islandora_digital_workflow_results_as_array($bibid_and_mods_records);
-                $arr = array('header' => $file_header, 'rows' => $file_rows);
-            }
+        if ($model_name == 'islandora:manuscriptCModel'&& module_exists('islandora_ead_utility')) {
+            module_load_include('inc', 'islandora_ead_utility', 'includes/upload_ead.form');
+            $namespace = islandora_digital_workflow_get_ingest_namespace($batch_record);
+            $bibid_and_mods_records = islandora_ead_utility_eadxml_split($batch_items_filename, '', $namespace);
+            list($file_header, $file_rows) = islandora_digital_workflow_results_as_array($bibid_and_mods_records);
+            $arr = array('header' => $file_header, 'rows' => $file_rows);
         }
         elseif (module_exists('islandora_marc_utility')) {
             module_load_include('inc', 'islandora_marc_utility', 'includes/upload_mrc.form');
@@ -89,7 +87,6 @@ function islandora_digital_workflow_sync_node_batch_record_info($node, $form_sta
   }
   if ($update_node) {
     $node = islandora_digital_workflow_make_or_update_node($form_state, $arr, $node);
-
     $batch_record = islandora_digital_workflow_create_batch_record_by_form($form_state, $node, $batch_items_filename, NULL, $marc_and_mods_records);
     // Load the batch record related to the node's title value which should
     // be synced with the batch record's batch_name field.

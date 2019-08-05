@@ -14,6 +14,13 @@
  */
 ?>
 
+<?php
+  if (!$batch_record['workflow_sequence_id']) : ?>
+  <div class="messages error">This batch does not have a <b>
+    <a href="node/<?php print $batch_record['nid'] . '/batch';?>">Workflow Sequence</b>
+    associated with it.  Any actions for the items below would not display until
+    that sequence is configured.</div>
+<?php endif; ?>
 <div id="islandora-digital-workflow-batch-defaults">
   <h3>Batch Defaults</h3>
   <?php if (is_array($batch_record)) { ?>

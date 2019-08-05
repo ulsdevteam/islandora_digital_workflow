@@ -366,12 +366,11 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
         break;
       // 2. MARCXML "application/xml".
       case "application/xml":
-        if ($model_name == 'islandora:manuscriptCModel') {
-            if (module_exists('islandora_ead_utility')) {
-                module_load_include('inc', 'islandora_ead_utility', 'includes/upload_ead.form');
-                $bibid_and_mods_records = islandora_ead_utility_eadxml_split($tmp_uploaded_batch_items_file);
-                list($file_header, $file_rows) = islandora_digital_workflow_results_as_array($bibid_and_mods_records);
-            }
+        if (($model_name == 'islandora:manuscriptCModel') && module_exists('islandora_ead_utility')) {
+            module_load_include('inc', 'islandora_ead_utility', 'includes/upload_ead.form');
+            $namespace = islandora_digital_workflow_get_ingest_namespace($batch_record);
+            $bibid_and_mods_records = islandora_ead_utility_eadxml_split($tmp_uploaded_batch_items_file, '', $namespace);
+            list($file_header, $file_rows) = islandora_digital_workflow_results_as_array($bibid_and_mods_records);
         }
         elseif (module_exists('islandora_marc_utility')) {
             module_load_include('inc', 'islandora_marc_utility', 'includes/upload_mrc.form');
@@ -896,6 +895,7 @@ function islandora_digital_workflow_create_batch_form_validate(&$elements, &$for
  */
 function islandora_digital_workflow_create_batch_form_submit(array $form, array &$form_state) {
   $id = $form_state['triggering_element']['#id'];
+
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
   module_load_include('inc', 'islandora_digital_workflow', 'includes/node_utilities');
   switch ($id) {

@@ -1277,10 +1277,14 @@ function islandora_digital_workflow_prepare_csv2mods($input_filename, $batch_rec
       case "application/octet-stream":
       // 2. MARCXML "application/xml".
       case "application/xml":
-        drupal_set_message(t('MARC collections can not merged together.  To replace the ' .
+        if ($batch_record['islandora_model'] == 'islandora:manuscriptCModel' && module_exists('islandora_ead_utility')) {
+        }
+        else {
+          drupal_set_message(t('MARC collections can not merged together.  To replace the ' .
             'items file, upload it from the <b>Batch Items</b> section of the page ') .
             l('Edit Batch Record page', '/node/' . $v1 . '/batch') . '.');
-        return array();
+          return array();
+        }
         break;
 
       case "text/plain":
@@ -2048,7 +2052,7 @@ function islandora_digital_workflow_validate_batch_items_file_upload($override_f
         break;
       // 2. MARCXML "application/xml".
       case "application/xml":
-        $dest = drupal_tempnam('temporary://', 'batch_objects.marcxml');
+        $dest = drupal_tempnam('temporary://', 'batch_objects.items');
         $validation_function = 'islandora_digital_workflow_validate_mrc';
         break;
 
@@ -2227,7 +2231,7 @@ function islandora_digital_workflow_merge_uploaded_csv_files(&$batch_record, $no
     $field_values = array('uploaded_batch_items_file' => $save_merged_csv_file, 'object_count' => count($merged_rows));
     islandora_digital_workflow_update_batch($batch_record['batch_id'], $field_values);
 
-    $node->field_batch_defaults[LANGUAGE_NONE][0]['value'] = $new_value;
+    $node->field_batch_defaults[$node->language][0]['value'] = $new_value;
     $csv_values_arr = islandora_digital_workflow_get_csv_values_for_fieldname('identifier', $csv_array);
     $node->field_identifiers[$node->language][0]['value'] = ((count($csv_values_arr) > 0) ? implode("\n", $csv_values_arr['identifier']) : '');
     node_save($node);
@@ -3354,7 +3358,6 @@ function islandora_digital_workflow_results_as_array($results_arr) {
   foreach ($results_arr as $idx => $result_arr) {
     $rows[] = array($result_arr['bib_id']);
   }
-
   $ret = array(array('bib_id'), $rows);
   return $ret;
 }
@@ -3717,8 +3720,13 @@ function islandora_digital_workflow_inject_defaults_to_mods(&$marc_and_mods_reco
  *   Whether or not the file matched one of the mimetypes passed by $mimetypes parameter.
  */
 function islandora_digital_workflow_file_is_mimetype($filename, $mimetypes = array('text/plain')) {
-  $mimetype = mime_content_type($filename);
-  return !(array_search($mimetype, $mimetypes) === FALSE);
+  if ($filename && file_exists($filename)) {
+    $mimetype = mime_content_type($filename);
+    return !(array_search($mimetype, $mimetypes) === FALSE);
+  }
+  else {
+    return FALSE;
+  }
 }
 
 /**

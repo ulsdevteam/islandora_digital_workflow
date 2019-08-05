@@ -193,12 +193,11 @@ function islandora_digital_workflow_add_items_form(array $form, array &$form_sta
           break;
         // 2. MARCXML "application/xml".
         case "application/xml":
-            if ($model_name == 'islandora:manuscriptCModel') {
-                if (module_exists('islandora_ead_utility')) {
-                    module_load_include('inc', 'islandora_ead_utility', 'includes/upload_ead.form');
-                    $bibid_and_mods_records = islandora_ead_utility_eadxml_split($tmp_uploaded_batch_items_file);
-                    list($file_header, $file_rows) = islandora_digital_workflow_results_as_array($bibid_and_mods_records);
-                }
+            if ($model_name == 'islandora:manuscriptCModel' && module_exists('islandora_ead_utility')) {
+                module_load_include('inc', 'islandora_ead_utility', 'includes/upload_ead.form');
+                $namespace = islandora_digital_workflow_get_ingest_namespace($batch_record);
+                $bibid_and_mods_records = islandora_ead_utility_eadxml_split($tmp_uploaded_batch_items_file, '', $namespace);
+                list($file_header, $file_rows) = islandora_digital_workflow_results_as_array($bibid_and_mods_records);
             }
             elseif (module_exists('islandora_marc_utility')) {
                 module_load_include('inc', 'islandora_marc_utility', 'includes/upload_mrc.form');
