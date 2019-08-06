@@ -643,6 +643,7 @@ function islandora_digital_workflow_theme() {
         'item_record_transactions' => array(),
         'drush_log_entries' => array(),
         'pid' => '',
+        'item_exists_in_other_batch' => FALSE,
         'can_ingest' => FALSE,
         'can_publish' => FALSE,
         'ingested_links' => '',

@@ -2208,6 +2208,17 @@ function islandora_digital_workflow_merge_uploaded_csv_files(&$batch_record, $no
       }
     }
   }
+  module_load_include('install', 'islandora_digital_workflow', 'islandora_digital_workflow');
+  $schema = islandora_digital_workflow_schema();
+  $new_value = theme('islandora_digital_workflow_batch_defaults', array(
+      'batch_record' => $batch_record,
+      'schema' => $schema));
+  $field_values = array('uploaded_batch_items_file' => $save_merged_csv_file, 'object_count' => count($merged_rows));
+  islandora_digital_workflow_update_batch($batch_record['batch_id'], $field_values);
+
+  $node->field_batch_defaults[$node->language][0]['value'] = $new_value;
+  $node->field_batch_defaults[$node->language][0]['format'] = 'full_html';
+
   if ($merged_csv_file) {
     $temp_batch_items_filename = drupal_realpath(drupal_tempnam('temporary://', 'merged_csv.csv'));
     $save_merged_csv_file = ((count($merged_rows) > 0) ? $merged_csv_file : '');
@@ -2223,15 +2234,8 @@ function islandora_digital_workflow_merge_uploaded_csv_files(&$batch_record, $no
     }
 
     $batch_record['uploaded_batch_items_file'] = $save_merged_csv_file;
-    module_load_include('install', 'islandora_digital_workflow', 'islandora_digital_workflow');
-    $schema = islandora_digital_workflow_schema();
-    $new_value = theme('islandora_digital_workflow_batch_defaults', array(
-        'batch_record' => $batch_record,
-        'schema' => $schema));
     $field_values = array('uploaded_batch_items_file' => $save_merged_csv_file, 'object_count' => count($merged_rows));
     islandora_digital_workflow_update_batch($batch_record['batch_id'], $field_values);
-
-    $node->field_batch_defaults[$node->language][0]['value'] = $new_value;
     $csv_values_arr = islandora_digital_workflow_get_csv_values_for_fieldname('identifier', $csv_array);
     $node->field_identifiers[$node->language][0]['value'] = ((count($csv_values_arr) > 0) ? implode("\n", $csv_values_arr['identifier']) : '');
     node_save($node);
@@ -2884,6 +2888,12 @@ function islandora_digital_workflow_make_process_set($title, $mode, $items) {
 /**
  * Update the batch status record for the matching a given $ingested_object.  This will
  * create an item record if it does not exist already.
+ *
+ * There could be a problem here if there were more than one batch that referenced
+ * the ingested objects' identifier.
+ *
+ * There could be a problem here if there were more than one batch that referenced
+ * the objects' identifier.
  *
  * @param object $ingested_object
  * @param integer $transaction_action_id

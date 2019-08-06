@@ -996,7 +996,7 @@ function islandora_digital_workflow_get_batch_items_by_nid($nid) {
     // Due to the nature of this query and how stubborn the db_select is with creating
     // a LEFT JOIN query that uses GROUP BY and GROUP_CONCAT to display the needed
     // field values, this is much MUCH MUCH easier to write out as a SQL statement.
-    $query = db_query('SELECT bi.identifier, bi.title, bi.islandora_model, bi.filename,
+    $query = db_query('SELECT b.batch_id, bi.identifier, bi.title, bi.islandora_model, bi.filename,
       \'\' as `ready_for`,
       (SELECT description FROM islandora_digital_workflow_actions wfa
        JOIN islandora_digital_workflow_transactions wft ON (wft.action_id = wfa.action_id)
@@ -1646,15 +1646,19 @@ function islandora_digital_workflow_get_workflow_model_sequences() {
  * Returns the matching islandora_digital_workflow_batch_items batch_item_id value.
  *
  * @param string $identifier
+ *   The identifier value to try to find.
  * $use__batch_id string 
  *   Optional value of a batch_id to search within.
  * $like_identifier boolean
  *   Optional parameter to use a LIKE '%identifier%' MySQL condition, else
  * the condition is an exact match.
+ * $not__batch_id boolean
+ *   Optional parameter when supplied will only return matches that are not
+ * related to this batch_id value.
  * @return stdObject
  *   The batch_item record object.
  */
-function islandora_digital_workflow_get_batch_item_id_by_identifier($identifier, $use__batch_id = NULL, $like_identifier = TRUE) {
+function islandora_digital_workflow_get_batch_item_id_by_identifier($identifier, $use__batch_id = NULL, $like_identifier = TRUE, $not__batch_id = NULL) {
   // If this has been passed a $pid value, just use whatever comes after the colon.
   if (strstr($identifier, ':')) {
     @list($namespace, $identifier) = explode(":", $identifier);
@@ -1667,6 +1671,9 @@ function islandora_digital_workflow_get_batch_item_id_by_identifier($identifier,
   else {
     $query = db_select('islandora_digital_workflow_batch_items', 'bi')
           ->fields('bi', array('batch_item_id'));
+  }
+  if ($not__batch_id) {
+    $query->condition('identifier', $not__batch_id, '!=');
   }
   if ($like_identifier) {
     $query->condition('identifier', '%' . db_like($identifier), 'LIKE');
@@ -1727,9 +1734,17 @@ function islandora_digital_workflow_insert_batch_item($fields, $batch_record = a
       mkdir($item_delivery_path);
     }
   }
+  $item_exists_in_other_batch = (array_key_exists("identifier", $fields)) ?
+    // See if the object is alread in the system -- and if it is part of a
+    // different batch.
+    islandora_digital_workflow_get_batch_item_id_by_identifier($fields["identifier"], NULL, FALSE, $batch_record['batch_id']) : FALSE;
+  if ($item_exists_in_other_batch) {
+    drupal_set_message(t('The item @identifier is already a member of another batch.', array(
+        '@identifier' => $fields['identifier'])), 'error');
+  }
   return db_insert('islandora_digital_workflow_batch_items')
-      ->fields($fields)
-      ->execute();
+    ->fields($fields)
+    ->execute();
 }
 
 /**
@@ -2694,6 +2709,9 @@ function islandora_digital_workflow_clear_islandora_batch_records($batch_item_id
  * Derives the workflow history for an object and stores it to the datastream
  * configured for the Workflow `workflow_history_json_dsid` variable
  * (islandora_digital_workflow_workflow_history_json_dsid).
+ *
+ * There could be a problem here if there were more than one batch that referenced
+ * the objects' identifier.
  *
  * @param stdObject $object
  *   The Islandora object for which to add the workflow history.

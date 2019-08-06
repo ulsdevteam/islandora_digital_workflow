@@ -15,7 +15,20 @@
  * - batch_mapped_from_webformsubmission => webform submission object
  */
 ?>
+<?php if (array_key_exists('an_item_exists_in_other_batch', $_SESSION) && $_SESSION['an_item_exists_in_other_batch'] > 0): ?>
+<div class="messages warning">
+<p>At least one item in this batch exists in at least one other batch.  If those
+item/s are ingested and published, they would replace the previous objects and
+any workflow item/s records related to the identifier/s would be out of sync
+with the state of the object/s.</div>
+<?php endif; ?>
 <?php if (is_array($batch_record)): ?>
+<?php
+  if ($batch_record['workflow_sequence_id'] < 1) : ?>
+  <div class="bad messages error">This batch does not have a <b>
+    <a href="/node/<?php print $batch_record['nid'] . '/batch';?>">Workflow Sequence</b>
+    associated with it.</div>
+<?php endif; ?>
 <div class="lookup_result batch-description">
     <label>Batch name:</label> <a href="<?php print ($batch_record['nid']) ? '/node/' . $batch_record['nid'] . '/batch' : '/islandora/islandora_digital_workflow/edit_batch/' . $batch_record['batch_name']; ?>"><?php print $batch_record['batch_name']; ?></a><br >
     <label>Batch progress:</label>

@@ -390,15 +390,21 @@ function islandora_digital_workflow_batch_items_form(array $form, array &$form_s
 
   $is_batch_paged_content = islandora_digital_workflow_is_paged_object($batch_record['islandora_model']);
   $all_items_are_paged_content = TRUE;
+  $an_item_exists_in_other_batch = FALSE;
   foreach ($items as $item) {
     $all_items_are_paged_content &= islandora_digital_workflow_is_paged_object($item->islandora_model);
+    $item_exists_in_other_batch = islandora_digital_workflow_get_batch_item_id_by_identifier($item->identifier, NULL, FALSE, $item->batch_id);
+    $an_item_exists_in_other_batch |= $item_exists_in_other_batch;
+    $identifier_cell_text = ($item_exists_in_other_batch) ?
+        '<span class="small_font alert" title="This identifier exists in another batch">' . l($item->identifier, '/node/' . $node->nid . '/item/' . $item->batch_item_id) . '</span>' :
+        '<span class="small_font">' . l($item->identifier, '/node/' . $node->nid . '/item/' . $item->batch_item_id) . '</span>';
     $options[$item->identifier] = array(
       'id' => $item->identifier,
       t('Transactions') => array('data' => theme('islandora_digital_workflow_transactions_glyphs', array('transaction_actions' => $item->transactions)),
           'class' => array($transactions_cell_class)),
       t('Title') => array('data' => l($item->title, '/node/' . $node->nid . '/item/' . $item->batch_item_id),
           'class' => array('small_font', 'not_too_wide')),
-      t('Identifier') => '<span class="small_font">' . l($item->identifier, '/node/' . $node->nid . '/item/' . $item->batch_item_id) . '</span>',
+      t('Identifier') => $identifier_cell_text,
       t('Filename') => '<span class="small_font">' . $item->master_filename_basename . '</span>',
       t('Progress') => '<span class="small_font progress_' .
         strtolower(str_replace(" ", "_", $item->progress)) . '">' . $item->progress . '</span>',
@@ -429,6 +435,7 @@ function islandora_digital_workflow_batch_items_form(array $form, array &$form_s
       unset($options[$ident]['Filename']);
     }
   }
+  $_SESSION['an_item_exists_in_other_batch'] = $an_item_exists_in_other_batch;
 
   $required_batch_actions = islandora_digital_workflow_get_required_batch_actions($batch_record['batch_id']);
   // Easy to loop through the set of $required_batch_actions to set the ones that
@@ -753,7 +760,7 @@ function islandora_digital_workflow_batch_items_form_submit(array $form, array &
       else {
         $could_not_be_processed = array();
         foreach ($selected_identifiers as $identifier) {
-          $batch_item_id = islandora_digital_workflow_get_batch_item_id_by_identifier($identifier, $using__batch_id);
+          $batch_item_id = islandora_digital_workflow_get_batch_item_id_by_identifier($identifier, $using__batch_id, TRUE);
 
           if ($add_action_id) {
             if (!islandora_digital_workflow_insert_transactions_record($add_action_id, NULL, $batch_item_id, NULL, $problem_notes)) {

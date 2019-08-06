@@ -272,7 +272,7 @@ span.transaction_action_reserved_action_spacer {
 .idw_field_type_int, .idw_field_type_serial {
     font-family: Andale Mono, monospace;
     text-align: right;
-    max-width: 120px;
+    max-width: 200px;
 }
 
 .dashboard-report, #islandora-digital-workflow-batch-defaults {
@@ -459,6 +459,15 @@ div.form-disabled label.enabled_text {
     font-style: italic;
     font-weight: bold;
 }
+
+.alert {
+    background-color: #fffce5;
+    padding: 4px;
+    border: 1px solid #ed5;
+    color: #840;
+}
+
+.alert a { color: #840; }
 
 .bad {
     color: red;

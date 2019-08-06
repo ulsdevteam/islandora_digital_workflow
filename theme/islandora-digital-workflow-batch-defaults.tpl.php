@@ -17,7 +17,7 @@
 <?php
   if (!$batch_record['workflow_sequence_id']) : ?>
   <div class="messages error">This batch does not have a <b>
-    <a href="node/<?php print $batch_record['nid'] . '/batch';?>">Workflow Sequence</b>
+    <a href="/node/<?php print $batch_record['nid'] . '/batch';?>">Workflow Sequence</b>
     associated with it.  Any actions for the items below would not display until
     that sequence is configured.</div>
 <?php endif; ?>
@@ -37,10 +37,10 @@
       $type = (array_key_exists('type', $schema['islandora_digital_workflow_batch']['fields'][$field]) ?
         $schema['islandora_digital_workflow_batch']['fields'][$field]['type']: 'varchar');
       $span_id = "islandora-digital-workflow-" . $field; ?>
-        <div><label title="field name &quot;<?php print $field; ?>&quot;" for='<?php print $span_id; ?>'><?php print $description; ?></label><span class="idw_field_type_<?php print  $type; ?>" id='<?php print $span_id; ?>'><?php print $quote_char; ?><?php
-      $truncated_ellipsis = (strlen($value) > 180) ? ' ... <i>(continued)</i> ' : '';
-      print substr($value, 0, 180) . $truncated_ellipsis;
-    ?><?php print $quote_char; ?></span></div>
+        <div><label title="field name &quot;<?php print $field; ?>&quot;" for='<?php print $span_id; ?>'><?php print $description; ?></label><span class="idw_field_type_<?php print  $type; ?>" id='<?php print $span_id; ?>'><?php print $quote_char; ?>
+<?php $truncated_ellipsis = (strlen($value) > 180) ? ' ... <i>(continued)</i> ' : '';
+print substr($value, 0, 180) . $truncated_ellipsis;
+?><?php print $quote_char; ?></span></div>
     <?php }
   } ?>
 </div><!-- /end islandora-digital-workflow-batch-defaults -->

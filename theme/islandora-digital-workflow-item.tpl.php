@@ -19,6 +19,17 @@
 ?>
 <div id="no-sidebars">
 
+  <?php if ($item_exists_in_other_batch): ?>
+    <div class="dashboard-report messages warning">
+      <h3>Item already exists</h3>
+      <div>
+          <p>This item exists in at least one other batch.  If this item is ingested
+and published, it would replace the previous object and the workflow records related
+to the matching workflow item/s would be out of sync with the state of the object.
+<b><a href="/islandora/islandora_digital_workflow/lookup/<?php print $item->identifier; ?>" target="_blank" class="link_open_new_tab_tiny">Search for this identifier</a></b>
+      </div>
+    </div>
+  <?php endif; ?>
   <?php if (is_array($unresolved_problems) && count($unresolved_problems) > 0): ?>
     <?php if ($problem_with_scan || $problem_with_metadata) : ?>
     <div class="dashboard-report messages error">

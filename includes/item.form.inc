@@ -36,6 +36,7 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
     'batch_mapped_from_webformsubmission' => islandora_digital_workflow_get_webformsubmission($batch_record['webform_submission_sid']),
   ));
 
+  $_SESSION['an_item_exists_in_other_batch'] = FALSE;
   $required_batch_actions = islandora_digital_workflow_get_required_batch_actions($batch_record['batch_id']);
   if (is_array($required_batch_actions)) {
     $first_required_batch_actions = $required_batch_actions;
@@ -252,6 +253,8 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
       (is_array($required_batch_actions)) &&
       islandora_digital_workflow_item_ingest_prerequisites_all_done($item_record_transactions, $required_batch_actions));
   $can_publish = (user_access(ISLANDORA_DIGITAL_WORKFLOW_PUBLISH_ITEMS) && $item->progress == 'Ingested');
+
+  $item_exists_in_other_batch = islandora_digital_workflow_get_batch_item_id_by_identifier($item->identifier, NULL, FALSE, $item->batch_id);
   return $lookup_form_markup .
       theme('islandora_digital_workflow_item', array(
         'batch_record' => $batch_record,
@@ -267,6 +270,7 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
         'item_record_transactions' => $item_record_transactions,
         'drush_log_entries' => $drush_log_entries,
         'pid' => $pid,
+        'item_exists_in_other_batch' => $item_exists_in_other_batch,
         'can_ingest' => $can_ingest,
         'can_publish' => $can_publish,
         'ingested_links' => $ingested_links,
