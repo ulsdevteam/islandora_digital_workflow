@@ -86,12 +86,25 @@ function islandora_digital_workflow_lookup_form_submitted($searchterm = '') {
     }
     $found_total += ((is_array($records)) ? count($records) : 0);
   }
-  if ($found_total == 1) {
-    foreach ($found_records as $reason => $records) {
+  $found_batch_ids = array();
+  foreach ($found_records as $reason => $records) {
+    foreach ($records as $found_object) {
+      $found_batch_ids[$found_object->batch_id] = $found_object->batch_id;
     }
+  }
+  $found_keys = array_keys($found_records);
+  // Also use a redirect when $found_total was more than one yet ONLY a single
+  // batch is returned, for more than one reason.
+  if ((count($found_batch_ids) == 1 && $found_total > 1) ||
+      $found_total == 1) {
     // If there is only one result, jump to that page --- else, present the
     // results as a list that can be used to jump to each.
     if (count($records) < 2) {
+      // Correct the reason in the event that there was only one batch
+      // returned for more than one reason such as "batch name" AND "csv file contents".
+      if (count($found_batch_ids) == 1 && $found_total > 1) {
+        $reason = '"' . implode('", "', $found_keys) . '"';
+      }
       // If this is a batch record, display the message that the redirect happened
       // due to the match $reason.
       if ($reason <> 'digitization requests') {

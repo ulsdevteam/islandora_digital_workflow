@@ -36,7 +36,10 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
     'batch_mapped_from_webformsubmission' => islandora_digital_workflow_get_webformsubmission($batch_record['webform_submission_sid']),
   ));
 
-  $_SESSION['an_item_exists_in_other_batch'] = FALSE;
+  if (array_key_exists('an_item_exists_in_other_batch', $_SESSION)) {
+//  $_SESSION['an_item_exists_in_other_batch'] = FALSE;
+    unset($_SESSION['an_item_exists_in_other_batch']); //  = FALSE;
+  }
   $required_batch_actions = islandora_digital_workflow_get_required_batch_actions($batch_record['batch_id']);
   if (is_array($required_batch_actions)) {
     $first_required_batch_actions = $required_batch_actions;

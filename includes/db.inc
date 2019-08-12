@@ -1663,7 +1663,7 @@ function islandora_digital_workflow_get_batch_item_id_by_identifier($identifier,
   if (strstr($identifier, ':')) {
     @list($namespace, $identifier) = explode(":", $identifier);
   }
-  if ($use__batch_id) {
+  if ($use__batch_id && is_null($not__batch_id)) {
     $query = db_select('islandora_digital_workflow_batch_items', 'bi')
       ->fields('bi', array('batch_item_id'))
       ->condition('batch_id', $use__batch_id);
@@ -1673,7 +1673,7 @@ function islandora_digital_workflow_get_batch_item_id_by_identifier($identifier,
           ->fields('bi', array('batch_item_id'));
   }
   if ($not__batch_id) {
-    $query->condition('identifier', $not__batch_id, '!=');
+    $query->condition('batch_id', $not__batch_id, '!=');
   }
   if ($like_identifier) {
     $query->condition('identifier', '%' . db_like($identifier), 'LIKE');

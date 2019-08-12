@@ -83,7 +83,7 @@ to the matching workflow item/s would be out of sync with the state of the objec
   </div>
   <?php endif; ?>
 
-  <?php if ($max_timestamp_and_how_long_ago->max_timestamp &&
+  <?php if ($max_timestamp_and_how_long_ago->max_timestamp && $batch_record['workflow_sequence_id'] &&
       ($workflow_sequences[$batch_record['workflow_sequence_id']]['max_timestamp'] > $max_timestamp_and_how_long_ago->max_timestamp)): ?>
   <div class="dashboard-report messages message_info">
     <h3>Workflow Sequence updated</h3>

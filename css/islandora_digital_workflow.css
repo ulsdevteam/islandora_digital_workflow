@@ -469,6 +469,16 @@ div.form-disabled label.enabled_text {
 
 .alert a { color: #840; }
 
+.alert_row {
+    outline-offset: -1px;
+    outline: 1px solid #ed541d;
+}
+
+.alert_row td {
+    background-color: #f1e5e1;
+    color: #8c2e0b;
+}
+
 .bad {
     color: red;
 }

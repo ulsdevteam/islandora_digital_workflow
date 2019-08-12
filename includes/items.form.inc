@@ -413,6 +413,9 @@ function islandora_digital_workflow_batch_items_form(array $form, array &$form_s
       t('When') => '<span class="small_font">' . $item->when . '</span><br>' . 
         '<span class="small_lt_text">' . islandora_digital_workflow_timeago_from_timestamp($item->when) . '</span>',
     );
+    if ($item_exists_in_other_batch) {
+      $options[$item->identifier]['#attributes'] = array('class' => array('alert_row'));
+    }
   }
   $items_header = array(
     'Transactions' => t('Transactions'),
@@ -435,6 +438,7 @@ function islandora_digital_workflow_batch_items_form(array $form, array &$form_s
       unset($options[$ident]['Filename']);
     }
   }
+
   $_SESSION['an_item_exists_in_other_batch'] = $an_item_exists_in_other_batch;
 
   $required_batch_actions = islandora_digital_workflow_get_required_batch_actions($batch_record['batch_id']);
