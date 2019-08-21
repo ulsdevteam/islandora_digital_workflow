@@ -3188,17 +3188,14 @@ function islandora_digital_workflow_copy_delivery_files($batch_item_id, $is_prob
     $subfolder_name = ($item_is_paged ? '/' . islandora_digital_workflow_object_subfolder_name($batch_item_obj->islandora_model) : '');
     $item_working_folder = $item_working_root  . $subfolder_name;
 
-    // Scan the source folder - and copy over all page resources
-    $item_folder = islandora_digital_workflow_get_item_delivery_filename($batch_item_obj);
     // Use the value that is passed as a parameter if it exists, else fall back to
     // the item's islandora_model value
-
     $content_model = ($content_model) ? $content_model : $batch_item_obj->islandora_model;
     $model_filemasks  = islandora_digital_workflow_content_model_filemask($content_model);
     // Call this with $all_files set to FALSE so that it uses the $model_filemasks
     // to get the correct files related to this item.
-    $item_files = islandora_digital_workflow_scan_files($item_folder, $model_filemasks, FALSE);
-    $copied = islandora_digital_workflow_copy_resequence_files($item_files, $item_folder, $item_working_folder, $batch_record['batch_name']);
+    $item_files = islandora_digital_workflow_scan_files($sanitized_delivery_filename, $model_filemasks, FALSE);
+    $copied = islandora_digital_workflow_copy_resequence_files($item_files, $sanitized_delivery_filename, $item_working_folder, $batch_record['batch_name']);
   }
   else {
     $copied = FALSE;

@@ -37,8 +37,7 @@ function islandora_digital_workflow_items_view_item($node, $batch_item_id) {
   ));
 
   if (array_key_exists('an_item_exists_in_other_batch', $_SESSION)) {
-//  $_SESSION['an_item_exists_in_other_batch'] = FALSE;
-    unset($_SESSION['an_item_exists_in_other_batch']); //  = FALSE;
+    unset($_SESSION['an_item_exists_in_other_batch']);
   }
   $required_batch_actions = islandora_digital_workflow_get_required_batch_actions($batch_record['batch_id']);
   if (is_array($required_batch_actions)) {

@@ -988,24 +988,24 @@ function islandora_digital_workflow_add_workflow_batch_priority_taxonomy_terms()
  *   The term identifier for the "Problem" term in the Stages vocabulary.
  * @global integer $inactive_tid
  *   The term identifier for the "Inactive" term in the Stages vocabulary.
- * @global integer $inscanning_tid
+ * @global integer $in_scanning_tid
  *   The term identifier for the "In Scanning" term in the Stages vocabulary.
- * @global integer $new_stage_term
+ * @global integer $new_tid
  *   The term identifier for the "New" term in the Stages vocabulary.
- * @global integer $readymets_tid
+ * @global integer $ready_for_mets_metadata_tid
  *   The term identifier for the "Ready for METS Metadata" term in the Stages vocabulary.
- * @global integer $readymetadata_tid
+ * @global integer $ready_for_descriptive_metadata_tid
  *   The term identifier for the "Ready for Descriptive Metadata" term in the Stages vocabulary.
  */
 function islandora_digital_workflow_add_workflow_stage_taxonomy_terms() {
   global $problem_tid;
   global $inactive_tid;
-  global $inscanning_tid;
-  global $readymetadata_tid;
-  global $readymets_tid;
+  global $in_scanning_tid;
+  global $ready_for_descriptive_metadata_tid;
+  global $ready_for_mets_metadata_tid;
   global $metadata_review_tid;
   global $done_tid;
-  global $new_stage_term;
+  global $new_tid;
 
   module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy_utilities');
   $vocab = taxonomy_vocabulary_machine_name_load(IDW_STAGE_TAXONOMY_MACHINE_NAME);
@@ -1018,13 +1018,13 @@ function islandora_digital_workflow_add_workflow_stage_taxonomy_terms() {
   taxonomy_term_save($term);
   $problem_tid = islandora_digital_workflow_get_tid_by_name($term->name, $vocab);
 
-  $new_stage_term = (object) array(
+  $new_tid = (object) array(
    'name' => t('New'),
    'description' => t('This is for workflow_batch nodes that are new.'),
    'vid' => $vocab->vid,
   );
-  taxonomy_term_save($new_stage_term);
-  $new_stage_term->tid;
+  taxonomy_term_save($new_tid);
+  $new_tid->tid;
 
   $term = (object) array(
    'name' => t('Scanned'),
@@ -1054,14 +1054,14 @@ function islandora_digital_workflow_add_workflow_stage_taxonomy_terms() {
    'vid' => $vocab->vid,
   );
   taxonomy_term_save($term);
-  $inscanning_tid = islandora_digital_workflow_get_tid_by_name($term->name, $vocab);
+  $in_scanning_tid = islandora_digital_workflow_get_tid_by_name($term->name, $vocab);
   $term = (object) array(
    'name' => t('Ready for Descriptive Metadata'),
    'description' => t('Stage for when all objects have been ingested and ready for archive staff to add descriptive metadata (MODS) -- applies only to batch of images.'),
    'vid' => $vocab->vid,
   );
   taxonomy_term_save($term);
-  $readymetadata_tid = islandora_digital_workflow_get_tid_by_name($term->name, $vocab);
+  $ready_for_descriptive_metadata_tid = islandora_digital_workflow_get_tid_by_name($term->name, $vocab);
 
   $term = (object) array(
    'name' => t('Ready for METS Metadata'),
@@ -1069,7 +1069,7 @@ function islandora_digital_workflow_add_workflow_stage_taxonomy_terms() {
    'vid' => $vocab->vid,
   );
   taxonomy_term_save($term);
-  $readymets_tid = islandora_digital_workflow_get_tid_by_name($term->name, $vocab);
+  $ready_for_mets_metadata_tid = islandora_digital_workflow_get_tid_by_name($term->name, $vocab);
 
   $term = (object) array(
    'name' => t('Inactive'),
@@ -1095,22 +1095,22 @@ function islandora_digital_workflow_add_workflow_stage_taxonomy_terms() {
  *   The term identifier for the "Problem" term in the Stages vocabulary.
  * @global integer $inactive_tid
  *   The term identifier for the "Inactive" term in the Stages vocabulary.
- * @global integer $inscanning_tid
+ * @global integer $in_scanning_tid
  *   The term identifier for the "In Scanning" term in the Stages vocabulary.
- * @global integer $new_stage_term
+ * @global integer $new_tid
  *   The term identifier for the "New" term in the Stages vocabulary.
- * @global integer $readymets_tid
+ * @global integer $ready_for_mets_metadata_tid
  *   The term identifier for the "Ready for METS Metadata" term in the Stages vocabulary.
- * @global integer $readymetadata_tid
+ * @global integer $ready_for_descriptive_metadata_tid
  *   The term identifier for the "Ready for Descriptive Metadata" term in the Stages vocabulary.
  */
 function islandora_digital_workflow_insert_islandora_digital_workflow_actions() {
   global $problem_tid;
   global $inactive_tid;
-  global $inscanning_tid;
-  global $readymetadata_tid;
-  global $readymets_tid;
-  global $new_stage_term;
+  global $in_scanning_tid;
+  global $ready_for_descriptive_metadata_tid;
+  global $ready_for_mets_metadata_tid;
+  global $new_tid;
   global $metadata_review_tid;
   global $done_tid;
 
@@ -1120,13 +1120,13 @@ function islandora_digital_workflow_insert_islandora_digital_workflow_actions() 
       'name' => 'check-in',
       'description' => t('Check in physical item'),
       'glyph' => 'images/check-in-physical-item_20.png',
-      'stage_taxonomy_tid' => $inscanning_tid,
+      'stage_taxonomy_tid' => $in_scanning_tid,
       'is_triggered_by_single_item' => 1,
-      'stage_taxonomy_tid_pc' => $inscanning_tid,
+      'stage_taxonomy_tid_pc' => $in_scanning_tid,
       'is_triggered_by_single_item_pc' => 1,
-      'stage_taxonomy_tid_rm' => $new_stage_term,
+      'stage_taxonomy_tid_rm' => $new_tid,
       'is_triggered_by_single_item_rm' => 1,
-      'stage_taxonomy_tid_rm_pc' => $new_stage_term,
+      'stage_taxonomy_tid_rm_pc' => $new_tid,
       'is_triggered_by_single_item_rm_pc' => 1,
     ),
     IDW_ACTION_ADD_MARC_RECORD => array(
@@ -1212,29 +1212,29 @@ function islandora_digital_workflow_insert_islandora_digital_workflow_actions() 
       'description' => t('Rescanned the item'),
       'glyph' => 'images/rescanned-the-item_20.png',
     ),
-    IDW_ACTION_CHECK_PHYSICAL_ITEMS => array(
-      'name' => 'check-physical-items',
-      'description' => t('Check item against physical object'),
-      'glyph' => 'images/check-item-against-physical-object_20.png',
-    ),
+//    IDW_ACTION_CHECK_PHYSICAL_ITEMS => array(
+//      'name' => 'check-physical-items',
+//      'description' => t('Check item against physical object'),
+//      'glyph' => 'images/check-item-against-physical-object_20.png',
+//    ),
     IDW_ACTION_SYSTEM_MADE_DERIVATIVES => array(
       'name' => 'system-made-derivatives',
       'description' => t('System made derivatives'),
       'extra_info' => t('This action is set by the system at the point in time when the derivative creation has been completed for the object.'),
       'glyph' => 'images/system-made-derivatives_20.png',
       'is_system_action' => 1,
-      'stage_taxonomy_tid' => $readymetadata_tid,
+      'stage_taxonomy_tid' => $ready_for_descriptive_metadata_tid,
       'is_triggered_by_single_item' => 0,
-      'stage_taxonomy_tid_pc' => $readymets_tid,
+      'stage_taxonomy_tid_pc' => $ready_for_mets_metadata_tid,
       'is_triggered_by_single_item_pc' => 0,
-      'stage_taxonomy_tid_rm' => $inscanning_tid,
+      'stage_taxonomy_tid_rm' => $in_scanning_tid,
       'is_triggered_by_single_item_rm' => 0,
-      'stage_taxonomy_tid_rm_pc' => $inscanning_tid,
+      'stage_taxonomy_tid_rm_pc' => $in_scanning_tid,
       'is_triggered_by_single_item_rm_pc' => 0,
     ),
     IDW_ACTION_METS_CREATED => array(
       'name' => 'mets-created',
-      'description' => t('METS created (structural metadata file)'),
+      'description' => t('METS Metadata and Pagination QC Completed'),
       'glyph' => 'images/mets-created_20.png',
     ),
     // this will also trigger insertion of a record into the
@@ -1330,7 +1330,7 @@ function islandora_digital_workflow_create_cck_fields() {
 function _islandora_digital_workflow_installed_instances() {
   global $regular_priority_term;
   global $priority_vocab;
-  global $new_stage_term;
+  global $new_tid;
   global $stage_vocab;
 
   return array(
@@ -1593,12 +1593,12 @@ function _islandora_digital_workflow_installed_instances() {
       ),
       'default_value' => array(
         0 => array(
-          'tid' => $new_stage_term->tid,
+          'tid' => $new_tid->tid,
           'vid' => $stage_vocab->vid,
-          'name' => $new_stage_term->name,
-          'description' => $new_stage_term->description,
-          'format' => isset($new_stage_term->format) ? $new_stage_term->format : NULL,
-          'weight' => $new_stage_term->weight,
+          'name' => $new_tid->name,
+          'description' => $new_tid->description,
+          'format' => isset($new_tid->format) ? $new_tid->format : NULL,
+          'weight' => $new_tid->weight,
           'vocabulary_machine_name' => $stage_vocab->machine_name,
         )
       ),

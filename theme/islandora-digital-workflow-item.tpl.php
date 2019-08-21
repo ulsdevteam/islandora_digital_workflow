@@ -221,7 +221,8 @@ to the matching workflow item/s would be out of sync with the state of the objec
                         'class' => array('link_open_new_tab_tiny'),
                         'target' => '_blank'))) : $transaction_record->description . ' <i>(pending ingest)</i>');
                     break;
-                  case IDW_ACTION_CHECK_PHYSICAL_ITEMS:
+                    case IDW_ACTION_METS_CREATED:
+//                  case IDW_ACTION_CHECK_PHYSICAL_ITEMS:
                     if (module_exists('islandora_mets_editor')) {
                       print (is_object($item->islandora_object) ? l($transaction_record->description,
                         'islandora/object/' . $item->islandora_object->id . '/manage/mets_editor',
