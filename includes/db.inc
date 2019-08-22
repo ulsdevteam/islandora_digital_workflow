@@ -1002,13 +1002,15 @@ function islandora_digital_workflow_get_batch_items_by_nid($nid) {
        JOIN islandora_digital_workflow_transactions wft ON (wft.action_id = wfa.action_id)
        WHERE wft.transaction_id = MAX(bt.transaction_id)) as `last_action`,
       (MAX(bt.timestamp)) as `when`,
-      GROUP_CONCAT(DISTINCT a.description) as `transaction_actions`,
-      GROUP_CONCAT(DISTINCT a.action_id) as `transaction_action_ids`,
+      GROUP_CONCAT(u.name) as usernames,
+      GROUP_CONCAT(a.description) as `transaction_actions`,
+      GROUP_CONCAT(a.action_id) as `transaction_action_ids`,
       bi.progress, bi.batch_item_id
   FROM islandora_digital_workflow_batch b
   JOIN islandora_digital_workflow_batch_items bi ON b.batch_id = bi.batch_id
   LEFT JOIN islandora_digital_workflow_transactions bt ON (bi.batch_item_id = bt.batch_item_id OR bi.batch_id = bt.batch_id)
   LEFT JOIN islandora_digital_workflow_actions a ON a.action_id = bt.action_id
+  LEFT JOIN users u ON u.uid = bt.drupal_uid
   WHERE b.nid = ' . $nid . '
   GROUP BY bi.batch_item_id
   ORDER BY bi.batch_item_id ASC, bt.`timestamp` DESC');
@@ -1021,11 +1023,16 @@ function islandora_digital_workflow_get_batch_items_by_nid($nid) {
       // Need to put the action_ids together with the transaction descriptions...
       // - it is easier on the server than running subsequent queries to get these.
       $actions = explode(",", $row->transaction_actions);
+      $usernames = explode(",", $row->usernames);
       $action_ids = explode(",", $row->transaction_action_ids);
-      $transactions = $transaction_action_ids_array = $transaction_actions_array = array();
+      $transactions = $transaction_action_ids_array = $transaction_usernames_array = $transaction_actions_array = array();
       foreach ($action_ids as $k => $v) {
         $transaction_action_ids_array[$v] = $v;
         $transaction_actions_array[$v] = $actions[$k];
+        // since these are sorted by timestamp reverse order, do not overwrite
+        // the username value since we want the most recent name displayed not
+        // the first.
+        $transaction_usernames_array[$v] = $usernames[$k];
       }
       // Also, put these in order - and insert an empty transaction for any that
       // are not set for the item.
@@ -1034,7 +1041,11 @@ function islandora_digital_workflow_get_batch_items_by_nid($nid) {
         $required_action_id = $required_batch_action['action_id'];
         $exploded_key = (!array_search($required_action_id, $transaction_action_ids_array) === FALSE) ? array_search($required_action_id, $transaction_action_ids_array) : FALSE;
         $transactions[$i] = (!$exploded_key === FALSE) ?
-          array('description' => $transaction_actions_array[$exploded_key], 'name' => $required_batch_action['batch_action_name']) : array('');
+          array(
+              'description' => $transaction_actions_array[$exploded_key],
+              'username' => $transaction_usernames_array[$exploded_key],
+              'name' => $required_batch_action['batch_action_name']) :
+          array('');
         $i++;
       }
 

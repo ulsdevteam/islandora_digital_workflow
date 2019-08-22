@@ -27,6 +27,9 @@
       // Since this set of actions can be used for a batch to represent required
       // actions AS WELL AS to display just the descriptions of the actions that
       // are related to the batch / batch_item, this needs to inspect the variable
+      $transaction_action_username = (is_array($transaction_action) &&
+          array_key_exists('username', $transaction_action)) ?
+              $transaction_action['username'] : '';
       $transaction_action_description = (is_array($transaction_action) &&
           array_key_exists('batch_action_description', $transaction_action)) ?
               $transaction_action['batch_action_description'] :
@@ -46,6 +49,9 @@
         $class_name = (($transaction_action_name) ? 'transaction_action_' . strtolower(str_replace(array("-", " ", "transaction_action_"), array("_", "_", ""), $transaction_action_name)) : 'transaction_action_spacer');
       }
       ?>
-    <div class="<?php print $class_name . $required_class;?>" title="<?php print $transaction_action_description; ?>">&nbsp;</div>
+    <div class="<?php print $class_name . $required_class;?>" title="<?php
+      print $transaction_action_description;
+      print ($transaction_action_username) ? " (" . $transaction_action_username . ")" : '';
+    ?>">&nbsp;</div>
     <?php } ?>
 </div><br class="double_space">

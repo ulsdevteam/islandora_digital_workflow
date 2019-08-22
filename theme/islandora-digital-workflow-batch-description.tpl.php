@@ -13,6 +13,8 @@
  * - can_ingest_all => whether or not the entire batch can be ingested,
  * - can_publish_all => whether or not the entire batch can be published,
  * - batch_mapped_from_webformsubmission => webform submission object
+ * - metadata_reviewer => HTML of the user who made the metadata and the
+ * timestamp, but only appears until that item has passed metadata QC.
  */
 ?>
 <?php if (array_key_exists('an_item_exists_in_other_batch', $_SESSION) && $_SESSION['an_item_exists_in_other_batch'] > 0): ?>
@@ -58,5 +60,6 @@ with the state of the object/s.</div>
     <br><label>Submission: </label> <a class="link_open_new_tab" title="link opens in separate tab" target="_blank" href="/node/<?php print $batch_mapped_from_webformsubmission->nid; ?>/submission/<?php print $batch_mapped_from_webformsubmission->sid; ?>">"<?php print $batch_mapped_from_webformsubmission->title; ?>" #<?php print $batch_mapped_from_webformsubmission->sid; ?></a>
     <?php endif; ?>
     <label>Scanning specifications:</label> <div><?php print ($batch_record['scan_specs'] ? $batch_record['scan_specs'] : '&nbsp;'); ?></div>
+    <?php print $metadata_reviewer; ?>
 </div>
 <?php endif; ?>

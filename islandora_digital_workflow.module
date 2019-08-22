@@ -778,6 +778,8 @@ function islandora_digital_workflow_theme() {
         'can_publish_all' => FALSE,
         'collection_review_links' => array(),
         'batch_mapped_from_webformsubmission' => array(),
+        // This will only have a value when called from any batch item page.
+        'metadata_reviewer' => '',
       ),
       'template' => 'theme/islandora-digital-workflow-batch-description',
     ),
@@ -824,6 +826,14 @@ function islandora_digital_workflow_theme() {
       'template' => 'theme/islandora-digital-workflow-xsl-rights-holder',
       'variables' => array(
         'value' => '',
+      ),
+    ),
+    'islandora_digital_workflow_item_metadata_reviewer' => array(
+      'template' => 'theme/islandora-digital-workflow-item-metadata-reviewer',
+      'variables' => array(
+        'metadata_reviewer' => '',
+        'timestamp' => '',
+        'long_ago' => '',
       ),
     ),
   );

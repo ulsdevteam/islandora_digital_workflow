@@ -4239,3 +4239,17 @@ function islandora_digital_workflow_get_page_model_names() {
     'islandora:manuscriptPageCModel',
   );
 }
+
+/**
+ * Helper function that will return the user name as a link.
+ *
+ * @param integer $uid
+ *   The value that would correspond to a $user->uid.
+ * @return string
+ *   HTML that can be passed into in a template for output.
+ */
+function islandora_digital_workflow_get_user($uid) {
+  $user = user_load($uid);
+  $user_name = (isset($user->field_name) && array_key_exists('und', $user->field_name) ? $user->field_name['und'][0]['safe_value'] : $user->name);
+  return '<a href="' . '/user/' . $user->uid . '" target="_blank" class="link_open_new_tab_tiny" title="' . $user_name . ' (link opens in separate tab)" alt="' . $user_name . '">' . $user->name . "</a>";
+}
