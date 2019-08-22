@@ -1,5 +1,8 @@
 <?php
 
+// Allow this form as long as it needs to process whatever changes to the batch / batch items are required.
+set_time_limit(0);
+
 /**
  * @file
  * Create batch form and submit handling for Islandora Digital Workflow module.
