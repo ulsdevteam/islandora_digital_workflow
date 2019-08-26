@@ -2759,3 +2759,74 @@ function islandora_digital_workflow_get_object_identifier($object) {
   // Load the object --
   return $identifier;
 }
+
+/**
+ * Parses the list of collection PID values and returns an array of
+ * their corresponding names at the time that this was queried -- This means
+ * that if a collection was renamed some time in the future, the collection
+ * name stored to a batch node would be incorrectly named.  For that reason,
+ * the link to the collection is returned.
+ *
+ * @param array $collection_pids
+ *   An array of fedora PID values that correspond to the collection objects
+ * that any given batch should relate its objects.
+ * @return array
+ *   The array of collection names with a PID as key to each item entry.
+ */
+function islandora_digital_workflow_parse_mapto_collections($collection_pids) {
+  $collection_names = array();
+  foreach ($collection_pids as $collection_pid) {
+    $collection_name = islandora_digital_workflow_get_collection_name($collection_pid);
+    $collection_names[$collection_pid] = $collection_name;
+  }
+  return $collection_names;
+}
+
+/**
+ * This will lookup the collection name for any given collection PID (as long
+ * as the collection object exists already in islandora).
+ *
+ * @staticvar array $collections_from_solr
+ *   This will store the Solr results so that this is not queried every time
+ * a new collection name is inserted.
+ * @param string $pid
+ *   The collection object PID value.
+ * @return array
+ *   "collection_name" and a "link" to that as array key values.
+ */
+function islandora_digital_workflow_get_collection_name($pid) {
+  static $collections_from_solr;
+  if ($pid) {
+    $query = db_select('islandora_digital_workflow_collection_names', 'cn')
+        ->fields('cn')
+        ->condition('cn.PID', $pid)
+        ->range(0,1);
+    $results = $query->execute();
+    $row = $results->fetchAssoc();
+    if (is_array($row)) {
+      $name = $row['collection_name'];
+      $return = array(
+          'collection_name' => $name,
+          'link' => l($name, '/islandora/object/' . $pid . '/manage'));
+    }
+    else {
+      // need to insert this record...
+      if (!$collections_from_solr) {
+        @list($ns, $ident) = explode(":", $pid);
+        module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
+        // assume same namespace for this query as for the requested collection.
+        $collections_from_solr = islandora_digital_workflow_get_solr_results('RELS_EXT_hasModel_uri_ms:info' .
+          '\:fedora\/islandora\:collectionCModel AND PID:' . $ns . '\:*', 'PID', 'fgs_label_s');
+      }
+      $name = $collections_from_solr[$pid];
+      $fields = array('PID' => $pid, 'collection_name' => $name);
+      db_insert('islandora_digital_workflow_collection_names')
+        ->fields($fields)
+        ->execute();
+      $return = array(
+        'collection_name' => $name,
+        'link' => l($name, '/islandora/object/' . $pid . '/manage'));
+    }
+  }
+  return $return;
+}

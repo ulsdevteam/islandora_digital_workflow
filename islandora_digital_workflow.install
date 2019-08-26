@@ -1831,7 +1831,7 @@ function _islandora_digital_workflow_installed_fields() {
     ),
     'field_collections_mapping' => array(
       'field_name' => 'field_collections_mapping',
-      'type' => 'text',
+      'type' => 'text_long',
       'entity_types' => array('node'),
       'module' => 'text',
       'active' => 1,
@@ -1845,7 +1845,7 @@ function _islandora_digital_workflow_installed_fields() {
       'settings' => array(
         'translatable' => 0,
         'entity_types' => array(),
-        'settings' => array('max_length' => 255),
+        'settings' => array(),
       ),
       'storage' => array(
         'type' => 'field_sql_storage',

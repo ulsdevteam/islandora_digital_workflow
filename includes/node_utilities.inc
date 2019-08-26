@@ -147,7 +147,6 @@ function islandora_digital_workflow_set_node_stage($nid, $stage_name = '', $stag
     }
     if ($stage_tid) {
       if ($is_removal) {
-        drupal_set_message('For node (' . $nid . '), REMOVE the stage behind $stage_tid = ' . $stage_tid);
         if (array_key_exists($node->language, $node->field_stage)) {
           $original_stages = $node->field_stage[$node->language];
           $node->field_stage[$node->language] = array();
@@ -219,6 +218,7 @@ function islandora_digital_workflow_make_or_update_node($form_state, $arr, $node
   global $user;
   module_load_include('inc', 'islandora_digital_workflow', 'includes/taxonomy_utilities');
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
+  module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
 
   if (is_null($node)) {
     $node = new stdClass();
@@ -261,9 +261,30 @@ function islandora_digital_workflow_make_or_update_node($form_state, $arr, $node
     $node->field_priority[$node->language][0]['tid'] = $form_state['values']['batch_priority'];
 
     $node->field_pid_count[$node->language][0]['value'] = $form_state['values']['object_count'];
-    foreach ($form_state['values']['collections_select'] as $collection_pid) {
-      $node->field_collections_mapping[$node->language][]['value'] = $collection_pid;
+    $collection_names = islandora_digital_workflow_parse_mapto_collections($form_state['values']['collections_select']);
+    $collection_links = array();
+    foreach ($collection_names as $collection_pid => $collection_name) {
+      $collection_links[$collection_pid] = $collection_name['link'];
     }
+
+    $tmp_links_string = '';
+    foreach ($collection_links as $pid => $collection_link) {
+      $this_link_length = strlen($collection_link);
+      if ((strlen($tmp_links_string) + $this_link_length) < 255 ) {
+        $tmp_links_string .= $collection_link;
+      }
+      else {
+        drupal_set_message(t('There are too many collections to list as links for ' .
+            'the node display.  Please refer to the "Edit Batch" screen,'), 'warning');
+        unset($collection_links[$pid]);
+        $collection_links['...'] = '...';
+      }
+    }
+    $use_collection_links_value = implode(", ", $collection_links);
+    $node->field_collections_mapping[$node->language] = array(
+        '0' => array(
+            'value' => $use_collection_links_value,
+            'format' => 'full_html'));
     if (variable_get('islandora_digital_workflow_use_isMemberOfSite', 0)) {
       foreach ($form_state['values']['sites_select'] as $site_pid) {
         $node->field_sites_mapping[$node->language][]['value'] = $site_pid;
