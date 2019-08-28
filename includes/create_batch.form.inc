@@ -1,8 +1,5 @@
 <?php
 
-// Allow this form as long as it needs to process whatever changes to the batch / batch items are required.
-set_time_limit(0);
-
 /**
  * @file
  * Create batch form and submit handling for Islandora Digital Workflow module.
@@ -441,6 +438,10 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
         'same object model</strong>, and usually have many of the <strong>same ' .
         'properties</strong>.</i>',
     ));
+  $form['nid'] = array(
+      '#type' => 'hidden',
+      '#default_value' => $batch_record['nid'],
+  );
   $cmodel_readonly = $read_only_att;
   $cmodel_readonly['autocomplete'] = 'off';
   $form['batch_edit_frame'] = array(
