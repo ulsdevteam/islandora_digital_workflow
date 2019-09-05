@@ -261,18 +261,22 @@ function islandora_digital_workflow_strip_whitespace($string) {
  *   The converted string value.
  */
 function islandora_digital_workflow_convert_smart_quotes($string, $file_is_text = FALSE) {
-  return ($file_is_text) ? str_replace(
+  return utf8_encode(($file_is_text) ? str_replace(
       array(chr(145),
             chr(146),
             chr(147),
             chr(148),
-            chr(151)),
+            chr(151),
+            chr(160),
+            chr(195) . chr(130)),
       array("'",
             "'",
             '"',
             '"',
-            '-'),
-      $string) : $string;
+            '-',
+            ' ',
+            ' '),
+      $string) : $string);
 }
 
 /**
