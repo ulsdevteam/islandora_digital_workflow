@@ -1138,7 +1138,7 @@ function islandora_digital_workflow_preprocess_page(&$vars) {
     if ( $node->type == 'workflow_batch' ) {
       // islandora/islandora_digital_workflow » {current node title}.
       $title = (arg(2) == 'item' && is_numeric(arg(3))) ?
-              l($node->title, 'node/' . arg(1) . '/batch') : $node->title;
+              l($node->title, 'node/' . arg(1) . '/items') : $node->title;
       $vars['breadcrumb'] = theme('breadcrumb', array(
           'breadcrumb' => array(
               l('Islandora Digital Workflow', 'islandora/islandora_digital_workflow'),
@@ -1249,7 +1249,7 @@ function islandora_digital_workflow_page_alter(&$page) {
           // Create the right link depending on whether or not the batch has been
           // finalized or if it is just a "stub record".
           $links[] = ($batch->nid) ?
-            l($batch->batch_name, 'node/' . $batch->nid . '/batch', $link_attributes) :
+            l($batch->batch_name, 'node/' . $batch->nid . '/items', $link_attributes) :
             l($batch->batch_name, 'islandora/islandora_digital_workflow/edit_batch/'  . $batch->batch_name, $link_attributes);
         }
         $batch_record = array_pop($batches);

@@ -221,7 +221,7 @@ function islandora_digital_workflow_workflow_sequence_delete_submit(array $form,
       'target' => '_blank'));
     foreach ($rows as $i => $row) {
       // Make a list of links to edit these batchs' batch records.
-      $affected_batch_nodes[] = l($row->batch_name, 'node/' . $row->nid . '/batch', $link_attributes);
+      $affected_batch_nodes[] = l($row->batch_name, 'node/' . $row->nid . '/items', $link_attributes);
     }
     $batches_updated_count = db_update('islandora_digital_workflow_batch')
         ->fields(array('workflow_sequence_id' => NULL))
@@ -275,7 +275,7 @@ function islandora_digital_workflow_get_batches_by_workflow_sequence_id($workflo
       'target' => '_blank'));
   foreach ($rows as $i => $row) {
     // Make a list of links to edit these batchs' batch records.
-    $affected_batch_nodes[] = '<b>' . l($row->batch_name, 'node/' . $row->nid . '/batch', $link_attributes) . '</b> ' .
+    $affected_batch_nodes[] = '<b>' . l($row->batch_name, 'node/' . $row->nid . '/items', $link_attributes) . '</b> ' .
         ($row->batch_description ? $row->batch_description : '');
   }
   return $affected_batch_nodes;

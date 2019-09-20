@@ -114,7 +114,7 @@ function islandora_digital_workflow_lookup_form_submitted($searchterm = '') {
                 '@searchterm' => $searchterm,
                 '@reason' => $reason)));
         if ($records[0]->nid) {
-          drupal_goto('node/' . $records[0]->nid . '/batch');
+          drupal_goto('node/' . $records[0]->nid . '/items');
         }
         else {
           drupal_goto('islandora/islandora_digital_workflow/edit_batch/' . $records[0]->batch_name);

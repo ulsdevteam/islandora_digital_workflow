@@ -27,7 +27,7 @@ function islandora_digital_workflow_delete_transaction() {
     l(t('Islandora Digital Workflow'), 'islandora/islandora_digital_workflow'),
   );
   if ($node) {
-    $breadcrumb[] = l($node->title, 'node/' . $node->nid);
+    $breadcrumb[] = l($node->title, 'node/' . $node->nid . '/items');
     $breadcrumb[] = l(t('Transactions'), 'node/' . $node->nid . '/transactions');
   }
   drupal_set_breadcrumb($breadcrumb);

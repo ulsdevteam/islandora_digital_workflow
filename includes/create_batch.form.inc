@@ -927,7 +927,7 @@ function islandora_digital_workflow_create_batch_form_submit(array $form, array 
       if (file_exists($batch_items_filename)) {
         @unlink($batch_items_filename);
       }
-      drupal_goto('node/' . $batch_record['nid']);
+      drupal_goto('node/' . $batch_record['nid']  . '/items');
       break;
     case 'edit-deletebatch':
       $batch_record = islandora_digital_workflow_get_batch_record_by_name($form_state['values']['batch_name']);
@@ -960,7 +960,7 @@ function islandora_digital_workflow_sync_batch_items() {
   $breadcrumb = array(
     l(t('Home'), '<front>'),
     l(t('Islandora Digital Workflow'), 'islandora/islandora_digital_workflow'),
-    l($node->title, 'node/' . $node->nid),
+    l($node->title, 'node/' . $node->nid . '/items'),
   );
   drupal_set_breadcrumb($breadcrumb);
 

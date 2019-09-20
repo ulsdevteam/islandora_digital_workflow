@@ -27,7 +27,7 @@ function islandora_digital_workflow_batch_transactions() {
     l(t('Islandora Digital Workflow'), 'islandora/islandora_digital_workflow'),
   );
   if ($nid) {
-    $breadcrumb[] = l($node->title, 'node/' . $nid);
+    $breadcrumb[] = l($node->title, 'node/' . $nid . '/items');
   }
   drupal_set_breadcrumb($breadcrumb);
 

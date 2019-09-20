@@ -22,7 +22,7 @@ function islandora_digital_workflow_files($node) {
   $breadcrumb = array(
     l(t('Home'), '<front>'),
     l(t('Islandora Digital Workflow'), 'islandora/islandora_digital_workflow'),
-    l($node->title, 'node/' . $node->nid),
+    l($node->title, 'node/' . $node->nid . '/items'),
   );
   drupal_set_breadcrumb($breadcrumb);
 

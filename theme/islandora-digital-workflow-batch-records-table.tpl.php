@@ -38,7 +38,7 @@
                 <?php endforeach; ?></span></legend>
 
               <div class="fieldset-wrapper" style="display: none;">
-                <h3><a href="<?php print ($batch_record->nid) ? '/node/' . $batch_record->nid . '/batch' : '/islandora/islandora_digital_workflow/edit_batch/' . $batch_record->batch_name; ?>"><?php print $batch_record->batch_name; ?></a></h3>
+                <h3><a href="<?php print ($batch_record->nid) ? '/node/' . $batch_record->nid . '/items' : '/islandora/islandora_digital_workflow/edit_batch/' . $batch_record->batch_name; ?>"><?php print $batch_record->batch_name; ?></a></h3>
                 <ul class="indented_ul">
                 <li><b>Description:</b> <?php print nl2br($batch_record->batch_description); ?></li>
                 <?php if (isset($batch_record->priority) && $batch_record->priority): ?>

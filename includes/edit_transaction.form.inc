@@ -48,7 +48,7 @@ function islandora_digital_workflow_edit_transactions_form(array $form, array &$
     l(t('Islandora Digital Workflow'), 'islandora/islandora_digital_workflow'),
   );
   if ($node) {
-    $breadcrumb[] = l($node->title, 'node/' . $node->nid);
+    $breadcrumb[] = l($node->title, 'node/' . $node->nid . '/items');
   }
   if ($transaction_id && $node) {
     $breadcrumb[] = l(t('Transactions'), 'node/' . $node->nid . '/transactions');

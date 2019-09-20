@@ -82,7 +82,7 @@ function islandora_digital_workflow_ingest_all_batch_submit(array $form, array &
           '"' . $batch_record['batch_name'] . '".');
     }
   }
-  drupal_goto('node/' . $batch_record['nid']);
+  drupal_goto('node/' . $batch_record['nid'] . '/items');
 }
 
 /**
