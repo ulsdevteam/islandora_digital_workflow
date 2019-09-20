@@ -1,6 +1,6 @@
 -- ACCESS=access content
 SELECT b.batch_name, 
- b.batch_description,
+ b.batch_description, b.nid, `nid`,
  COUNT(bi.batch_item_id) `item_count`,
  bi.batch_item_id,
  SUM(bi.file_count) `file_count`,

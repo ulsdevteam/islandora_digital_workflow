@@ -16,7 +16,7 @@
         </frx:docgen>
         <frx:fields>
             <frx:field id="User" link="user/{User}"/>
-            <frx:field id="batch_name" link="node/{nid}"/>
+            <frx:field id="batch_name" link="node/{nid}/items"/>
             <frx:field id="identifier" link="node/{nid}/item/{batch_item_id}"/>
         </frx:fields>
         <frx:menu/>
