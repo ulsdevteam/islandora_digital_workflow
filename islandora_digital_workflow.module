@@ -1286,6 +1286,14 @@ function islandora_digital_workflow_page_alter(&$page) {
       module_load_include('inc', 'islandora_digital_workflow', 'includes/db');
       module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
       if (is_object($node) && $node->type == 'workflow_batch') {
+        // Check to see if the HTTP_REFERRER to see if it is coming from one
+        // of the drupal core taxonomy pages like "taxonomy/term/149/view".
+        $referrer = $_SERVER['HTTP_REFERER'];
+        if ($item['path'] == 'node/%' && strstr($referrer, 'taxonomy/term/')) {
+          // Redirect this immediately to the "Batch Items" page.
+          drupal_goto('node/' . $nid . '/items');
+          return;
+        }
         $batch_record = islandora_digital_workflow_get_batch_record_by_nid($nid);
         $batch_items = islandora_digital_workflow_get_batch_items_by_nid($batch_record['nid']);
         $batch_description_markup = theme('islandora_digital_workflow_batch_description', array(
