@@ -1289,7 +1289,7 @@ function islandora_digital_workflow_page_alter(&$page) {
         // Check to see if the HTTP_REFERRER to see if it is coming from one
         // of the drupal core taxonomy pages like "taxonomy/term/149/view".
         $referrer = $_SERVER['HTTP_REFERER'];
-        if ($item['path'] == 'node/%' && strstr($referrer, 'taxonomy/term/')) {
+        if ($item['path'] == 'node/%' && (strstr($referrer, 'taxonomy/term/') || strstr($referrer, 'islandora/islandora_digital_workflow/batches/all'))) {
           // Redirect this immediately to the "Batch Items" page.
           drupal_goto('node/' . $nid . '/items');
           return;
