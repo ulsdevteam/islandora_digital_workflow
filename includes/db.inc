@@ -992,6 +992,7 @@ function islandora_digital_workflow_get_batch_items_by_nid($nid) {
 
   $rows = array();
   if ($nid) {
+    $action_descriptions = islandora_digital_workflow_get_action_descriptions();
     $required_batch_actions = islandora_digital_workflow_get_required_batch_actions(NULL, $nid);
     // Due to the nature of this query and how stubborn the db_select is with creating
     // a LEFT JOIN query that uses GROUP BY and GROUP_CONCAT to display the needed
@@ -1022,13 +1023,11 @@ function islandora_digital_workflow_get_batch_items_by_nid($nid) {
       $rows[$index]->master_filename_basename = $filename_pathinfo['basename'];
       // Need to put the action_ids together with the transaction descriptions...
       // - it is easier on the server than running subsequent queries to get these.
-      $actions = explode(",", $row->transaction_actions);
       $usernames = explode(",", $row->usernames);
       $action_ids = explode(",", $row->transaction_action_ids);
-      $transactions = $transaction_action_ids_array = $transaction_usernames_array = $transaction_actions_array = array();
+      $transactions = $transaction_action_ids_array = $transaction_usernames_array = array();
       foreach ($action_ids as $k => $v) {
         $transaction_action_ids_array[$v] = $v;
-        $transaction_actions_array[$v] = $actions[$k];
         // since these are sorted by timestamp reverse order, do not overwrite
         // the username value since we want the most recent name displayed not
         // the first.
@@ -1042,7 +1041,8 @@ function islandora_digital_workflow_get_batch_items_by_nid($nid) {
         $exploded_key = (!array_search($required_action_id, $transaction_action_ids_array) === FALSE) ? array_search($required_action_id, $transaction_action_ids_array) : FALSE;
         $transactions[$i] = (!$exploded_key === FALSE) ?
           array(
-              'description' => $transaction_actions_array[$exploded_key],
+              'description' => (array_key_exists($required_action_id, $action_descriptions) ?
+                $action_descriptions[$required_action_id] : ''),
               'username' => $transaction_usernames_array[$exploded_key],
               'name' => $required_batch_action['batch_action_name']) :
           array('');
@@ -2829,4 +2829,23 @@ function islandora_digital_workflow_get_collection_name($pid) {
     }
   }
   return $return;
+}
+
+/**
+ * Helper function to load this lookup table's descriptions into an array.
+ *
+ * @return array
+ *   Array of action descriptions with the key of each element being the
+ * action's action_id value.
+ */
+function islandora_digital_workflow_get_action_descriptions() {
+  $action_descriptions = array();
+  $query = db_select('islandora_digital_workflow_actions', 'a')
+      ->fields('a');
+  $results = $query->execute();
+  $rows = $results->fetchAll();
+  foreach ($rows as $row) {
+    $action_descriptions[$row->action_id] = $row->description;
+  }
+  return $action_descriptions;
 }
