@@ -694,12 +694,17 @@ function islandora_digital_workflow_get_reduced_cmodels() {
     'ir:citationCModel',
     'islandora:sp_audioCModel',
     'islandora:sp-audioCModel',
+    'islandora:binaryObjectCModel',
+    'islandora:bookCollection',
     'islandora:collectionCModel',
     'islandora:CollectionModel',
-    'islandora:compoundCModel',
+    # We're going to try to allow Compound Object models to ingest
+//    'islandora:compoundCModel',
     'islandora:sp_disk_image',
     'islandora:entityCModel',
     'islandora:eventCModel',
+    'islandora:intermediateCModel',
+    'islandora:rootSerialCModel',
     'islandora:mapCModel',
     'islandora:newspaperPageCModel',
     'islandora:oralhistoriesCModel',
@@ -1210,6 +1215,11 @@ function islandora_digital_workflow_model_ingest_module_info($model) {
       $retval['module_name'] = 'islandora_batch';
       $git_link = 'https://github.com/Islandora/islandora_book_batch.git';
       $uls_git_link = 'https://github.com/ulsdevteam/islandora_book_batch.git';
+      break;
+    case "islandora:compoundCModel":
+      $retval['module_name'] = 'islandora_compound_batch';
+      $git_link = 'https://github.com/MarcusBarnes/islandora_compound_batch.git';
+      $uls_git_link = 'https://github.com/ulsdevteam/islandora_compound_batch.git';
       break;
     default:
       $git_link = '';
