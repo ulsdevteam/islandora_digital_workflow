@@ -919,11 +919,18 @@ function islandora_digital_workflow_islandora_datastream_ingested(AbstractObject
  * values on the Node page, this code will update the field_batch_defaults
  * field with the values from the batch record so that all of those do not
  * need to be CCK fields.
+ *
+ * @global boolean $system_creating_nodes
+ *   whether or not the system is updating / creating the node or if the user is
+ * @global boolean $updating_batch_only
+ *   whether or not the batch file has changed
+ *
  */
 function islandora_digital_workflow_node_update($node) {
   if ($node->type == 'workflow_batch') {
     global $system_creating_nodes;
-    if (!$system_creating_nodes) {
+    global $updating_batch_only;
+    if (!$system_creating_nodes && !$updating_batch_only) {
       module_load_include('inc', 'islandora_digital_workflow', 'includes/node_utilities');
       islandora_digital_workflow_sync_node_batch_record_info($node, array(), '', FALSE);
     }

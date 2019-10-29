@@ -892,20 +892,26 @@ function islandora_digital_workflow_create_batch_form_validate(&$elements, &$for
 /**
  * Function that sets the Drupal variables with user's input.
  *
+ * @global boolean $updating_batch_only
+ *   whether or not the batch file has changed
+ *
  * @param array $form
  *   The Drupal form definition.
  * @param array $form_state
  *   The Drupal form state.
  */
 function islandora_digital_workflow_create_batch_form_submit(array $form, array &$form_state) {
+  global $updating_batch_only;
   $id = $form_state['triggering_element']['#id'];
 
   module_load_include('inc', 'islandora_digital_workflow', 'includes/utilities');
   module_load_include('inc', 'islandora_digital_workflow', 'includes/node_utilities');
   switch ($id) {
     case 'edit-submit':
+      $updating_batch_only = TRUE;
       if (isset($_FILES['files']) && isset($_FILES["files"]["tmp_name"]['file'])) {
         islandora_digital_workflow_validate_batch_items_file_upload();
+        $updating_batch_only = FALSE;
       }
       $batch_items_filename = (isset($_SESSION['uploaded_batch_items_filename']) ? $_SESSION['uploaded_batch_items_filename'] : '');
       $create_new = ($form_state['clicked_button']['#value'] === SAVE_BUTTON_TEXT);

@@ -14,6 +14,9 @@
  * node object is created with type="workflow_batch" and field_batch_name to
  * match the form value for "batch name".
  *
+ * @global boolean $system_creating_nodes
+ *   whether or not the system is updating / creating the node or if the user is
+ *
  * @param object $node
  *   Standard drupal node object.
  */

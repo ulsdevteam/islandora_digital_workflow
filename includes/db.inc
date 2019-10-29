@@ -605,6 +605,8 @@ function islandora_digital_workflow_update_batch_transaction($transaction_id, $a
  *   No return value.  `return` call only used to exit the procedure.
  */
 function islandora_digital_workflow_check_trigger_stage_change($transaction_id = NULL, $transaction_values = NULL) {
+  static $actions_checked = array();
+
   module_load_include('inc', 'islandora_digital_workflow', 'includes/node_utilities');
   if (!(is_null($transaction_id) && is_array($transaction_values))) {
     $transaction_values = islandora_digital_workflow_get_batch_transaction($transaction_id);
@@ -615,6 +617,14 @@ function islandora_digital_workflow_check_trigger_stage_change($transaction_id =
   // further to know whether or not this change alone or "all batch items" have to 
   // have this action in order to fire the trigger.
   $action_record = islandora_digital_workflow_get_action($transaction_values['action_id']);
+
+  // Only process the code below here if the action_id has not already been checked.
+  if ((array_key_exists($transaction_values['action_id'], $actions_checked)) && (!$actions_checked[$transaction_values['action_id']])) {
+    if ($actions_checked[$transaction_values['action_id']]) {
+      return;
+    }
+    $actions_checked[$transaction_values['action_id']] = TRUE;
+  }
 
   // Also, in order to set a stage_taxonomy_tid, we will need the node nid value 
   // from the batch_record.
@@ -668,7 +678,7 @@ function islandora_digital_workflow_check_trigger_stage_change($transaction_id =
     (($batch_record) ? ' on the batch "@batch_name"' : '');
   if ($action_record['is_batch_action'] == 1 || $content_type_based_check_trigger) {
     if (islandora_digital_workflow_set_node_stage($batch_record['nid'], '', $content_type_based_stage_taxonomy_tid)) {
-      drupal_set_message(t($affect . ' which triggers the "@stage stage" for ' .
+      drupal_set_message(t($affect . ' which triggers the "@stage" stage for ' .
           $message_string, $message_args));
     }
   }
@@ -682,14 +692,14 @@ function islandora_digital_workflow_check_trigger_stage_change($transaction_id =
     }
     if ($all_items_have_action) {
       if (islandora_digital_workflow_set_node_stage($batch_record['nid'], '', $content_type_based_stage_taxonomy_tid)) {
-        drupal_set_message(t($affect . ' which triggers the "@stage stage" for ' .
+        drupal_set_message(t($affect . ' which triggers the "@stage" stage for ' .
             $message_string, $message_args));
       }
     }
   }
   if ($action_record['is_batch_action'] == 1 || $action_record['is_triggered_by_single_item_rm']) {
     if (islandora_digital_workflow_set_node_stage($batch_record['nid'], '', $content_type_based_stage_taxonomy_tid_rm, TRUE)) {
-      drupal_set_message(t($affect . ' which triggers the "@rm_stage stage" for ' .
+      drupal_set_message(t($affect . ' which triggers the "@rm_stage" stage for ' .
           $message_string, $message_args));
     }
   }
@@ -703,7 +713,7 @@ function islandora_digital_workflow_check_trigger_stage_change($transaction_id =
     }
     if ($all_items_have_action) {
       if (islandora_digital_workflow_set_node_stage($batch_record['nid'], '', $content_type_based_stage_taxonomy_tid_rm, TRUE)) {
-        drupal_set_message(t($affect . ' which triggers the "@stage stage" for ' .
+        drupal_set_message(t($affect . ' which triggers the "@stage" stage for ' .
             $message_string, $message_args));
       }
     }
@@ -1003,15 +1013,15 @@ function islandora_digital_workflow_get_batch_items_by_nid($nid) {
        JOIN islandora_digital_workflow_transactions wft ON (wft.action_id = wfa.action_id)
        WHERE wft.transaction_id = MAX(bt.transaction_id)) as `last_action`,
       (MAX(bt.timestamp)) as `when`,
-      GROUP_CONCAT(u.name) as usernames,
-      GROUP_CONCAT(a.description) as `transaction_actions`,
+' . /*      GROUP_CONCAT(u.name) as usernames,
+      GROUP_CONCAT(a.description) as `transaction_actions`, */ '
       GROUP_CONCAT(a.action_id) as `transaction_action_ids`,
       bi.progress, bi.batch_item_id
   FROM islandora_digital_workflow_batch b
   JOIN islandora_digital_workflow_batch_items bi ON b.batch_id = bi.batch_id
   LEFT JOIN islandora_digital_workflow_transactions bt ON (bi.batch_item_id = bt.batch_item_id OR bi.batch_id = bt.batch_id)
   LEFT JOIN islandora_digital_workflow_actions a ON a.action_id = bt.action_id
-  LEFT JOIN users u ON u.uid = bt.drupal_uid
+' . /*  LEFT JOIN users u ON u.uid = bt.drupal_uid */ '
   WHERE b.nid = ' . $nid . '
   GROUP BY bi.batch_item_id
   ORDER BY bi.batch_item_id ASC, bt.`timestamp` DESC');
@@ -1023,7 +1033,7 @@ function islandora_digital_workflow_get_batch_items_by_nid($nid) {
       $rows[$index]->master_filename_basename = $filename_pathinfo['basename'];
       // Need to put the action_ids together with the transaction descriptions...
       // - it is easier on the server than running subsequent queries to get these.
-      $usernames = explode(",", $row->usernames);
+//      $usernames = explode(",", $row->usernames);
       $action_ids = explode(",", $row->transaction_action_ids);
       $transactions = $transaction_action_ids_array = $transaction_usernames_array = array();
       foreach ($action_ids as $k => $v) {
@@ -1031,7 +1041,7 @@ function islandora_digital_workflow_get_batch_items_by_nid($nid) {
         // since these are sorted by timestamp reverse order, do not overwrite
         // the username value since we want the most recent name displayed not
         // the first.
-        $transaction_usernames_array[$v] = $usernames[$k];
+//        $transaction_usernames_array[$v] = $usernames[$k];
       }
       // Also, put these in order - and insert an empty transaction for any that
       // are not set for the item.
@@ -1043,7 +1053,7 @@ function islandora_digital_workflow_get_batch_items_by_nid($nid) {
           array(
               'description' => (array_key_exists($required_action_id, $action_descriptions) ?
                 $action_descriptions[$required_action_id] : ''),
-              'username' => $transaction_usernames_array[$exploded_key],
+              'username' => '', // $transaction_usernames_array[$exploded_key],
               'name' => $required_batch_action['batch_action_name']) :
           array('');
         $i++;
@@ -1377,7 +1387,7 @@ function islandora_digital_workflow_calculate_item_progress_filedetails($batch_i
       $item_done |= (is_object($islandora_object));
     }
     $progress = ($item_done) ? 'Completed' : $progress;
-    if ($progress <> $batch_item_obj->progress) {
+    if (is_object($batch_item_obj) && ($progress <> $batch_item_obj->progress)) {
       $set_fields = array('progress' => $progress);
       db_update('islandora_digital_workflow_batch_items')
         ->condition('batch_item_id', $batch_item_id)
