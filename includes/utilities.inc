@@ -2818,13 +2818,15 @@ function islandora_digital_workflow_create_review_collections($collection_pids) 
 
     if (is_object($copy_from_object)) {
       $object_review->relationships = $copy_from_object->relationships;
-      foreach ($copy_from_object as $copy_from_datastream) {
-        $datastream = $object_review->constructDatastream($copy_from_datastream->id);
-        $datastream->label = $copy_from_datastream->label . ' {review}';
-        $datastream->mimeType = $copy_from_datastream->mimeType;
+      foreach ($copy_from_object as $dsid => $copy_from_datastream) {
+        if (is_object($copy_from_datastream)) {
+          $datastream = $object_review->constructDatastream($copy_from_datastream->id);
+          $datastream->label = $copy_from_datastream->label . ' {review}';
+          $datastream->mimeType = $copy_from_datastream->mimeType;
 
-        $datastream->setContentFromString($copy_from_datastream->content);
-        $object_review->ingestDatastream($datastream);
+          $datastream->setContentFromString($copy_from_datastream->content);
+          $object_review->ingestDatastream($datastream);
+        }
       }
     }
   }
