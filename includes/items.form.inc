@@ -164,8 +164,8 @@ function islandora_digital_workflow_add_items_form(array $form, array &$form_sta
   // This is needed to determine whether or not to allow a CSV file upload.
   $readable_models = islandora_digital_workflow_get_reduced_readable_cmodels();
   $content_types_vocab = taxonomy_vocabulary_machine_name_load(IDW_CONTENT_TYPE_TAXONOMY_MACHINE_NAME);
-  if (!(array_key_exists($batch_record_arr['default_type_of_resource'], $readable_models) === FALSE)) {
-    $cmodel = $batch_record_arr['default_type_of_resource'];
+  if (!(array_key_exists($batch_record_arr['islandora_model'], $readable_models) === FALSE)) {
+    $cmodel = $batch_record_arr['islandora_model'];
     $tid_for_cmodel_selected = islandora_digital_workflow_get_tid_by_name($cmodel, $content_types_vocab);
   }
   else {
@@ -191,7 +191,7 @@ function islandora_digital_workflow_add_items_form(array $form, array &$form_sta
               list($file_header, $file_rows) = islandora_digital_workflow_results_as_array($marc_and_mods_records);
           }
           break;
-        // 2. MARCXML "application/xml".
+        // 2. MARCXML "application/xml" or EAD xml.
         case "application/xml":
             if ($model_name == 'islandora:manuscriptCModel' && module_exists('islandora_ead_utility')) {
                 module_load_include('inc', 'islandora_ead_utility', 'includes/upload_ead.form');
@@ -680,7 +680,7 @@ function islandora_digital_workflow_batch_items_form(array $form, array &$form_s
       '#type' => 'submit',
       '#value' => t('Modify transactions'),
   );
-  $no_sequence_warning = ($batch_record['workflow_sequence_id'] && count($items) > 0) ? '' :
+  $no_sequence_warning = ($batch_record['workflow_sequence_id']) ? '' :
       t('<div class="messages error">This batch does not have a <b>' .
       l(t('Workflow Sequence'), 'node/' . $node->nid . '/batch') .
       '</b> associated with it.  Any actions for the items below ' .

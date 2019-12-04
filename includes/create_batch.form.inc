@@ -364,7 +364,7 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
               list($file_header, $file_rows) = islandora_digital_workflow_results_as_array($marc_and_mods_records);
           }
         break;
-      // 2. MARCXML "application/xml".
+      // 2. MARCXML "application/xml" or EAD xml.
       case "application/xml":
         if (($model_name == 'islandora:manuscriptCModel') && module_exists('islandora_ead_utility')) {
             module_load_include('inc', 'islandora_ead_utility', 'includes/upload_ead.form');

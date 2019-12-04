@@ -672,6 +672,9 @@ function islandora_digital_workflow_batch_path($batch_record, $which_path = 'del
  *   The sanitized ingest_namespace value.
  */
 function islandora_digital_workflow_get_ingest_namespace($batch_record = array()) {
+  if (is_object($batch_record)) {
+    $batch_record = (array)$batch_record;
+  }
   return rtrim(($batch_record && isset($batch_record['ingest_namespace'])) ?
       $batch_record['ingest_namespace'] :
       variable_get('islandora_digital_workflow_ingest_namespace', 'islandora'
@@ -1289,7 +1292,7 @@ function islandora_digital_workflow_prepare_csv2mods($input_filename, $batch_rec
       // 1. MRC "application/marc".
       case "application/marc":
       case "application/octet-stream":
-      // 2. MARCXML "application/xml".
+      // 2. MARCXML "application/xml" or EAD xml.
       case "application/xml":
         if ($batch_record['islandora_model'] == 'islandora:manuscriptCModel' && module_exists('islandora_ead_utility')) {
         }
@@ -2064,9 +2067,11 @@ function islandora_digital_workflow_validate_batch_items_file_upload($override_f
         $dest = drupal_tempnam('temporary://', 'batch_objects.marc');
         $validation_function = 'islandora_digital_workflow_validate_mrc';
         break;
-      // 2. MARCXML "application/xml".
+      // 2. MARCXML "application/xml" or EAD xml.
       case "application/xml":
         $dest = drupal_tempnam('temporary://', 'batch_objects.items');
+        // TODO:  need to look at the batch's model and validate differently
+        // based off of that.
         $validation_function = 'islandora_digital_workflow_validate_mrc';
         break;
 
@@ -3378,10 +3383,14 @@ function islandora_digital_workflow_test_RW($path, $require_write) {
  */
 function islandora_digital_workflow_results_as_array($results_arr) {
   $rows = array();
+  $id_keyname = '';
   foreach ($results_arr as $idx => $result_arr) {
-    $rows[] = array($result_arr['bib_id']);
+    if (!$id_keyname) {
+      $id_keyname = (array_key_exists('bib_id', $result_arr)) ? 'bib_id' : 'identifier';
+    }
+    $rows[] = array($result_arr[$id_keyname]);
   }
-  $ret = array(array('bib_id'), $rows);
+  $ret = array(array($id_keyname), $rows);
   return $ret;
 }
 
@@ -3391,19 +3400,19 @@ function islandora_digital_workflow_results_as_array($results_arr) {
  *
  * @param array $batch_record
  *   The batch record in question.
- * @param array $marc_and_mods_records
+ * @param array $use_items
  *   In some cases, this would be the parsed MRC and contains pointers to the
  * MARCXML and MODS records.
  * @return array
  *   An array of temporary filenames that store the MARC and MODS files.
  */
-function islandora_digital_workflow_marc_mods_arr_to_item_file_sources($batch_record, &$marc_and_mods_records) {
+function islandora_digital_workflow_marc_mods_arr_to_item_file_sources($batch_record, &$use_items) {
   $item_file_sources = array();
   $batch_path = islandora_digital_workflow_batch_path($batch_record, 'working');
-  foreach ($marc_and_mods_records as $idx => $marc_mods_arr) {
+  foreach ($use_items as $idx => $marc_mods_arr) {
     $bib_id = $marc_mods_arr['bib_id'];
     $use_identifier = $bib_id;
-    if (file_exists($marc_mods_arr['MARC'])) {
+    if (array_key_exists('MARC', $marc_mods_arr) && file_exists($marc_mods_arr['MARC'])) {
       $use_identifier = 'item_' . str_pad((1 + $idx), 4, '0', STR_PAD_LEFT);
     }
     $marc_mods_arr['identifier'] = $use_identifier;
@@ -3445,7 +3454,7 @@ function islandora_digital_workflow_marc_mods_arr_to_item_file_sources($batch_re
       $use_title = $bib_id;
     }
     // Copy the file from the temp location to the batch working directory.
-    if (file_exists($marc_mods_arr['MARC'])) {
+    if (array_key_exists('MARC', $marc_mods_arr) && file_exists($marc_mods_arr['MARC'])) {
       $marc_filename = (copy($marc_mods_arr['MARC'], $item_path . '/--METADATA--.xml')) ?
           $item_path . '/--METADATA--.xml' : '';
     }

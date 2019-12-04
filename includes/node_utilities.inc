@@ -40,8 +40,8 @@ function islandora_digital_workflow_sync_node_batch_record_info($node, $form_sta
   // This is needed to determine whether or not to allow a CSV file upload.
   $readable_models = islandora_digital_workflow_get_reduced_readable_cmodels();
   $content_types_vocab = taxonomy_vocabulary_machine_name_load(IDW_CONTENT_TYPE_TAXONOMY_MACHINE_NAME);
-  if (!(array_key_exists($batch_record['default_type_of_resource'], $readable_models) === FALSE)) {
-    $cmodel = $batch_record['default_type_of_resource'];
+  if (!(array_key_exists($batch_record['islandora_model'], $readable_models) === FALSE)) {
+    $cmodel = $batch_record['islandora_model'];
     $tid_for_cmodel_selected = islandora_digital_workflow_get_tid_by_name($cmodel, $content_types_vocab);
   }
   else {
@@ -49,7 +49,7 @@ function islandora_digital_workflow_sync_node_batch_record_info($node, $form_sta
   }
   $model_name = islandora_digital_workflow_get_name_of_tid($tid_for_cmodel_selected);
   $node = (is_object($node)) ? $node : (($batch_record['nid'] > 0) ? node_load($batch_record['nid']) : NULL);
-  $marc_and_mods_records = array();
+  $use_items = array();
   if ($batch_items_filename) {
     $mimetype = mime_content_type($batch_items_filename);
     switch ($mimetype) {
@@ -58,23 +58,23 @@ function islandora_digital_workflow_sync_node_batch_record_info($node, $form_sta
       case "application/octet-stream":
         if (module_exists('islandora_marc_utility')) {
             module_load_include('inc', 'islandora_marc_utility', 'includes/upload_mrc.form');
-            $marc_and_mods_records = islandora_marc_utility_mrc_split($batch_items_filename);
+            $use_items = $marc_and_mods_records = islandora_marc_utility_mrc_split($batch_items_filename);
             list($file_header, $file_rows) = islandora_digital_workflow_results_as_array($marc_and_mods_records);
             $arr = array('header' => $file_header, 'rows' => $file_rows);
         }
         break;
-      // 2. MARCXML "application/xml".
+      // 2. MARCXML "application/xml" or EAD xml.
       case "application/xml":
         if ($model_name == 'islandora:manuscriptCModel'&& module_exists('islandora_ead_utility')) {
             module_load_include('inc', 'islandora_ead_utility', 'includes/upload_ead.form');
             $namespace = islandora_digital_workflow_get_ingest_namespace($batch_record);
-            $bibid_and_mods_records = islandora_ead_utility_eadxml_split($batch_items_filename, '', $namespace);
+            $use_items = $bibid_and_mods_records = islandora_ead_utility_eadxml_split($batch_items_filename, '', $namespace);
             list($file_header, $file_rows) = islandora_digital_workflow_results_as_array($bibid_and_mods_records);
             $arr = array('header' => $file_header, 'rows' => $file_rows);
         }
         elseif (module_exists('islandora_marc_utility')) {
             module_load_include('inc', 'islandora_marc_utility', 'includes/upload_mrc.form');
-            $marc_and_mods_records = islandora_marc_utility_marcxml_split($batch_items_filename);
+            $use_items = $marc_and_mods_records = islandora_marc_utility_marcxml_split($batch_items_filename);
             list($file_header, $file_rows) = islandora_digital_workflow_results_as_array($marc_and_mods_records);
             $arr = array('header' => $file_header, 'rows' => $file_rows);
         }
@@ -94,7 +94,7 @@ function islandora_digital_workflow_sync_node_batch_record_info($node, $form_sta
   }
   if ($update_node) {
     $node = islandora_digital_workflow_make_or_update_node($form_state, $arr, $node);
-    $batch_record = islandora_digital_workflow_create_batch_record_by_form($form_state, $node, $batch_items_filename, NULL, $marc_and_mods_records);
+    $batch_record = islandora_digital_workflow_create_batch_record_by_form($form_state, $node, $batch_items_filename, NULL, $use_items);
     // Load the batch record related to the node's title value which should
     // be synced with the batch record's batch_name field.
     $node = (is_object($node)) ? $node : (($batch_record['nid'] > 0) ? node_load($batch_record['nid']) : NULL);
@@ -130,7 +130,7 @@ function islandora_digital_workflow_sync_node_batch_record_info($node, $form_sta
       'islandora_model' => islandora_digital_workflow_get_name_of_tid($node->field_islandora_model[$node->language][0]['tid']),
       'batch_priority_tid' => $node->field_priority[$node->language][0]['tid'],
     ));
-    $batch_record = islandora_digital_workflow_create_batch_record_by_form($form_state, $node, $batch_items_filename, NULL, $marc_and_mods_records);
+    $batch_record = islandora_digital_workflow_create_batch_record_by_form($form_state, $node, $batch_items_filename, NULL, $use_items);
   }
   return $batch_record;
 }
