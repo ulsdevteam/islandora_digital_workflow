@@ -24,11 +24,6 @@
   </xsl:template>
 
 <?php if ($depositor): ?>
-  <!--  If the element exists, do what you want to do -->
-  <xsl:template match="/mods:mods/mods:name/mods:role/mods:roleTerm[@type='text']">
-    <xsl:copy><?php print $depositor; ?></xsl:copy>
-  </xsl:template>
-
   <!--  If the element doesn't exist, add it -->
   <xsl:template match="/mods:mods">
     <xsl:copy>
