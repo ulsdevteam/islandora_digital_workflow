@@ -504,7 +504,7 @@ function islandora_digital_workflow_get_batch_item_ids_to_transaction_ids($batch
   $query->join('islandora_digital_workflow_batch_items', 'bi', 'b.batch_id = bi.batch_id');
   $query->fields('bi', array('batch_item_id','identifier'));
   $query->join('islandora_digital_workflow_transactions', 't', 't.batch_item_id = bi.batch_item_id');
-  $query->fields('t', array('transaction_id', 'timestamp'));
+  $query->fields('t', array('transaction_id', 'timestamp', 'drupal_uid'));
   $query->condition('b.batch_id', $batch_id)->execute();
   $results = $query->execute();
   $rows = $results->fetchAll();
@@ -512,7 +512,8 @@ function islandora_digital_workflow_get_batch_item_ids_to_transaction_ids($batch
   foreach ($rows as $row) {
     $return_rows[$row->identifier][] = array(
         'timestamp' => $row->timestamp,
-        'transaction_id' => $row->transaction_id);
+        'transaction_id' => $row->transaction_id,
+        'drupal_uid' => $row->drupal_uid);
   }
   return $return_rows;
 }
