@@ -10,8 +10,6 @@
  *
  * @ingroup forms
  *
- * @todo break out non-settings elements into their own form.
- *
  * @return array
  *   The Drupal form definition.
  */

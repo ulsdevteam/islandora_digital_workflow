@@ -57,8 +57,6 @@ function islandora_digital_workflow_create_batch() {
  *
  * @ingroup forms
  *
- * @todo break out non-settings elements into their own form.
- *
  * @return array
  *   The Drupal form definition.
  */
@@ -263,8 +261,6 @@ function islandora_digital_workflow_create_empty_batch_form_submit(array $form, 
  * Create batch form for islandora_digital_workflow.
  *
  * @ingroup forms
- *
- * @todo break out non-settings elements into their own form.
  *
  * @param array $form
  * @param array $form_state

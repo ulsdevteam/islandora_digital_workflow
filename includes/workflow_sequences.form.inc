@@ -91,11 +91,6 @@ function islandora_digital_workflow_sequences() {
     $sequence_models = array_key_exists($workflow_sequence_id, $models_arr) ? $models_arr[$workflow_sequence_id] : array();
     $form['wrapper']['workflow_sequence_id_' . $workflow_sequence_id] = array(
       '#type' => 'item',
-      /**
-       * @todo replace all of this markup with a themed template call that passes
-       * in the $workflow_sequence_id, $sequence_info['name'], $markup_batch_actions,
-       * $markup_item_actions, $models, and value for $sequence_in_use.
-       */
       '#markup' => theme('islandora_digital_workflow_admin_workflow_sequence', array(
           'workflow_sequence_id' => $workflow_sequence_id,
           'sequence_name' => $sequence_info['name'],

@@ -1400,59 +1400,6 @@ function islandora_digital_workflow_calculate_item_progress_filedetails($batch_i
 }
 
 /**
- * This will analyze a mysql table to return stats on the fields.
- *
- * This will perform mysql analysis of the underlying table to return the
- * fieldname for primary key, which fields are numeric, which are not, and
- * finally all field names (both numeric and non-numeric fields).
- *
- * @todo this is still not used.  Search the project later and see if this
- *       can be removed.
- * 
- * @param string $tablename
- *   The name of the MySQL table to inspect.
- * @return array
- *   'primary_key_field' string the name of the primary key for the table
- *   'numeric_fields' array names of numeric fields
- *   'num_numeric_fields' array names of non-numeric fields
- *   'all_fields' arry names of all fields
- */
-function islandora_digital_workflow_get_tablefield_stats($tablename) {
-  $query = db_select($tablename, 'b')
-      ->fields('b')
-      ->range(0,1);
-  $results = $query->execute();
-  $result = $results->fetchAssoc();
-  $primary_key_field = '';
-  $fields = $integer_fieldnames = $non_integer_fieldnames = array();
-
-  $fields = array_keys($result);
-  if (count($fields) < 1) {
-    return array(NULL, array(), array());
-  }
-
-  foreach ($fields as $field) {
-    $results = db_query("SHOW FIELDS FROM `" . $tablename . "` WHERE Field = '" . $field . "'");
-
-    $row = $results->fetchAssoc();
-    if (!$primary_key_field && $row['Key'] == 'PRI') {
-      $primary_key_field = $field;
-    }
-    if (substr($row['Type'], 0, 4) == "int(" || substr($row['Type'], 0, 7) == 'TINYINT') {
-      $integer_fieldnames[] = $field;
-    } else {
-      $non_integer_fieldnames[] = $field;
-    }
-  }
-  return array(
-      'primary_key_field' => $primary_key_field,
-      'numeric_fields' => $integer_fieldnames,
-      'num_numeric_fields' => $non_integer_fieldnames,
-      'all_fields' => $fields
-    );
-}
-
-/**
  * Returns all batch actions that pertain to batch records rather than
  * batch_items records.
  *
@@ -1543,9 +1490,6 @@ function islandora_digital_workflow_get_workflow_sequences() {
 /**
  * To get a set of workflow item-level actions as options for some forms.
  *
- *  @todo rewrite to use a db_select -- the LEFT OUTER JOIN can be accomplished using:
- *        $query->addJoin('LEFT', 'taxonomy_term_data', 'td', 'stage_taxonomy_tid = td.tid');
- * 
  * @param boolean $display_reserved_actions
  *   whether or not to return only the Reserved actions.
  * @return array
@@ -1576,9 +1520,6 @@ function islandora_digital_workflow_get_item_action_options($display_reserved_ac
 
 /**
  * To get a set of workflow batch actions as options for some forms.
- *
- * @todo rewrite to use a db_select -- the LEFT OUTER JOIN can be accomplished using:
- *       $query->addJoin('LEFT', 'taxonomy_term_data', 'td', 'stage_taxonomy_tid = td.tid');
  *
  * @param boolean $display_reserved_actions
  *

@@ -88,9 +88,6 @@ function islandora_digital_workflow_ingest_all_batch_submit(array $form, array &
 /**
  * The user-form definition for approving / cancelling the ingest of an item.
  * 
- * @todo check completedness of this item and only display the confirm dialog
- *       if the item is ready for ingest.
- * 
  * @param array $form
  *   The Drupal form definition.
  * @param array $form_state

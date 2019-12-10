@@ -74,8 +74,6 @@ function islandora_digital_workflow_create_stub_batch_record($form_state) {
  * Given a form submission and related workflow_batch node, this should update
  * the batch record.
  *
- * @todo add a validate call instead of checking the values of $form_state here.
- *
  * @global object $user
  *   Drupal user object.
  * @param array $form_state
@@ -830,8 +828,6 @@ function islandora_digital_workflow_get_cmodels_having_sequences() {
  * Returns all content types for the current Islandora deployment.
  *
  * This will also strip off the " Content Model" suffix.
- *
- * @todo check user permissions here for this $model_name before adding.
  *
  * @return array
  *   the key for each item is the Islandora content model
@@ -2070,8 +2066,7 @@ function islandora_digital_workflow_validate_batch_items_file_upload($override_f
       // 2. MARCXML "application/xml" or EAD xml.
       case "application/xml":
         $dest = drupal_tempnam('temporary://', 'batch_objects.items');
-        // TODO:  need to look at the batch's model and validate differently
-        // based off of that.
+        // @todo may need separate validate functions for EAD / MARC xml here.
         $validation_function = 'islandora_digital_workflow_validate_mrc';
         break;
 
