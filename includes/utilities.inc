@@ -403,7 +403,7 @@ function islandora_digital_workflow_sync_batch_item_record($batch_record, $csv_f
         ->fields(array(
             'timestamp' => $timestamp_transaction_id['timestamp'],
             'batch_item_id' => $batch_item_id,
-            'drupal_uid' => (($alternative_uid) ? $alternative_uid : $timestamp_transaction_id['timestamp']),
+            'drupal_uid' => (($alternative_uid) ? $alternative_uid : $timestamp_transaction_id['drupal_uid']),
         ))
         ->condition('transaction_id', $timestamp_transaction_id['transaction_id'])
         ->execute();
