@@ -1024,10 +1024,10 @@ function islandora_digital_workflow_get_batch_items_by_nid($nid) {
 	  islandora_digital_workflow_batch b
 	  JOIN islandora_digital_workflow_batch_items bi ON b.batch_id = bi.batch_id
 	  LEFT JOIN islandora_digital_workflow_transactions bti ON (bi.batch_item_id = bti.batch_item_id)
-	  LEFT JOIN islandora_digital_workflow_transactions filteri ON (bi.batch_item_id = filteri.batch_item_id AND filteri.timestamp < bti.timestamp AND filteri.transaction_id < bti.transaction_id)
+	  LEFT JOIN islandora_digital_workflow_transactions filteri ON (bi.batch_item_id = filteri.batch_item_id AND (filteri.timestamp > bti.timestamp OR (filteri.timestamp = bti.timestamp AND filteri.transaction_id > bti.transaction_id)))
 	  LEFT JOIN islandora_digital_workflow_actions ai ON (ai.action_id = bti.action_id)
 	  LEFT JOIN islandora_digital_workflow_transactions btb ON (bi.batch_item_id = btb.batch_item_id)
-	  LEFT JOIN islandora_digital_workflow_transactions filterb ON (bi.batch_item_id = filterb.batch_item_id AND filterb.timestamp < btb.timestamp AND filterb.transaction_id < btb.transaction_id)
+	  LEFT JOIN islandora_digital_workflow_transactions filterb ON (bi.batch_item_id = filterb.batch_item_id AND (filterb.timestamp > btb.timestamp OR (filterb.timestamp = btb.timestamp AND filterb.transaction_id > btb.transaction_id)))
 	  LEFT JOIN islandora_digital_workflow_actions ab ON (ab.action_id = btb.action_id)
 	WHERE
 	  b.nid = '.$nid.'
