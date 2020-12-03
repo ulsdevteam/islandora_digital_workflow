@@ -341,7 +341,7 @@ function islandora_digital_workflow_create_batch_form(array $form, array &$form_
   }
   $model_name = islandora_digital_workflow_get_name_of_tid($tid_for_cmodel_selected);
   $sequences = islandora_digital_workflow_get_workflow_sequences_for_model($model_name);
-  $file_not_allowed_for_model_names = array('islandora:findingAidCModel', 'islandora:newspaperCModel', 'islandora:newspaperIssueCModel');
+  $file_not_allowed_for_model_names = array('islandora:findingAidCModel', 'islandora:newspaperCModel');
   $paged_content_model_names = islandora_digital_workflow_retrieve_applicable_paged_content_cmodels();
 
   $file_rows = $file_header = array();
