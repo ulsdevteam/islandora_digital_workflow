@@ -3397,7 +3397,7 @@ function islandora_digital_workflow_results_as_array($results_arr) {
  *   The batch record in question.
  * @param array $use_items
  *   In some cases, this would be the parsed MRC and contains pointers to the
- * MARCXML and MODS records.
+ * MA/RCXML and MODS records.
  * @return array
  *   An array of temporary filenames that store the MARC and MODS files.
  */
@@ -3442,7 +3442,7 @@ function islandora_digital_workflow_marc_mods_arr_to_item_file_sources($batch_re
     // Copy the file from the temp location to the batch working directory.
     if (file_exists($marc_mods_arr['MODS'])) {
       $mods_filename = (copy($marc_mods_arr['MODS'], $item_path . '/MODS.xml')) ?
-          $item_path . '/MODS.xml' : '';
+          (($item_subfolder_path) ? $item_subfolder_path . '/MODS.xml' : $item_path . '/MODS.xml') : '';
       $use_title = islandora_digital_workflow_get_mods_title($marc_mods_arr['MODS']);
     }
     else {
@@ -3451,7 +3451,7 @@ function islandora_digital_workflow_marc_mods_arr_to_item_file_sources($batch_re
     // Copy the file from the temp location to the batch working directory.
     if (array_key_exists('MARC', $marc_mods_arr) && file_exists($marc_mods_arr['MARC'])) {
       $marc_filename = (copy($marc_mods_arr['MARC'], $item_path . '/--METADATA--.xml')) ?
-          $item_path . '/--METADATA--.xml' : '';
+          (($item_subfolder_path) ? $item_subfolder_path . '/--METADATA--.xml' : $item_path . '/--METADATA--.xml') : '';
     }
 
     $remapped_arr = array(
