@@ -3647,7 +3647,7 @@ function islandora_digital_workflow_object_subfolder_name($model_name, $batch_re
       break;
 
     default:
-      $subfolder_name = 'newspaper';
+      $subfolder_name = '';
       break;
   }
   return $subfolder_name;
