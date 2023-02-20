@@ -359,7 +359,7 @@ function islandora_digital_workflow_make_drush_prepare_statement($batch_item_obj
         )), 'message_info');
     $param_and_vals[] = 'parent=' . $default_parent_collection_pid;
   }
-  $param_and_vals[] = 'target=' . $filepath;
+  $param_and_vals[] = 'scan_target=' . $filepath;
   return $drush_command_prefix . ' ' . $batch_preprocessor . ' --' . implode(" --", $param_and_vals);
 }
 
